@@ -16,8 +16,12 @@ updated_at: 2026-04-14T05:30:00Z
 ## Policy
 - private 원문은 사용자가 자유롭게 관리한다.
 - 현재 마스터 토큰 사용자는 `owner=aaron`, `role=admin`으로 본다.
-- 사서장은 서버 내부 운영 주체이며 `owner=saguan`, `role=manager`로 본다.
+- 사서장은 서버 내부 운영 주체이며 `owner=sagwan`, `role=manager`로 본다.
 - 모든 새 문서는 기본적으로 `owner=aaron`, `visibility=private`, `publication_status=none`으로 시작한다.
+- `owner`는 편집 폼이나 일반 API payload로 변경할 수 없고, 첫 작성자 닉네임과 인증 토큰 정체성에 묶인다.
+- private 문서는 소유자와 관리자만 읽고 수정할 수 있다.
+- public 문서는 관리자만 추가, 수정, 삭제, 이동, 병합할 수 있으며 공개 승격 시 `owner=sagwan`으로 이관한다.
+- 공개 승격 뒤에도 원 작성자는 `original_owner`와 `created_by`로 보존한다.
 - MCP/API에서 일반 저장은 개인보관/비공개 저장으로 간주한다.
 - `scope`는 `shared`/`personal` 폴더와 맥락을 고르는 힌트일 뿐 접근 권한이 아니다.
 - 공개는 직접 저장이 아니라 `request_publication` 공개신청 queue를 통해서만 시작한다.

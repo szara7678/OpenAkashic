@@ -51,12 +51,16 @@ Non-public data can remain user-editable like the current Closed Akashic flow, w
 ## Ownership And Publication Metadata
 Every document should carry explicit governance metadata.
 
-- `owner`: the accountable nickname or agent identity. Current bootstrap identities are `aaron` for the master-token admin and `saguan` for the librarian manager.
+- `owner`: the accountable nickname or agent identity. Current bootstrap identities are `aaron` for the master-token admin and `sagwan` for the librarian manager.
 - `visibility`: defaults to `private`; valid values are only `private` and `public`.
 - `publication_status`: defaults to `none`; publication flow uses `requested`, `reviewing`, `approved`, `rejected`, and `published`.
 - `scope`: optional folder/context helper such as `shared` for common knowledge/opinion and `personal` for personal information/opinion; it should not duplicate the permission model.
 - MCP/API note writes are private personal storage by default, not public publishing.
 - Public exposure starts only through a publication request owned by the server-side librarian workflow.
+- `owner` is immutable through normal editing. It is bound to the creating user's nickname/token identity.
+- When a note becomes public, stewardship moves to `owner=sagwan` while the source author remains in `original_owner` and `created_by`.
+- Private notes are readable and editable only by their owner and admins.
+- Public notes are readable as public artifacts, but only admins/managers may add, modify, delete, move, or merge them.
 - Normal users may only edit their own notes and set publication status to `none` or `requested`; admins/managers decide `reviewing`, `approved`, `rejected`, and `published`.
 
 ## MCP Flow

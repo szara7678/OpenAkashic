@@ -51,14 +51,22 @@ OpenAkashic/Closed Akashic를 하나의 제어면(control plane)으로 다루되
 ## 2026-04-14 Governance Metadata And Publication Requests
 - Implemented note governance metadata defaults: new writes now get `owner=aaron`, `visibility=private`, and `publication_status=none` unless explicitly overridden.
 - Added publication request workflow: `/api/publication/request`, `/api/publication/requests`, MCP tools `request_note_publication` and `list_note_publication_requests`.
-- Publication requests keep the source note private, mark it `publication_status=requested`, and create a private librarian queue note owned by `saguan` under `personal_vault/projects/ops/librarian/publication_requests/`.
+- Publication requests keep the source note private, mark it `publication_status=requested`, and create a private librarian queue note owned by `sagwan` under `personal_vault/projects/ops/librarian/publication_requests/`.
 - Updated the web note info/editor surfaces to show and edit owner, visibility, and publication status.
 - Updated librarian policy and user scope review docs to state that MCP/API writes are private by default and public exposure must go through librarian review to produce public fact/evidence summary/capsule/know-how artifacts rather than raw source disclosure.
 - Verified via public API: default private metadata, publication request creation, source request markers, request listing, MCP tool exposure, and cleanup of smoke-test notes.
 
 ## 2026-04-14 Owner And Publication Governance Correction
-- Bootstrap identities are now explicit: master-token admin is `aaron`; server librarian manager is `saguan`.
+- Bootstrap identities are now explicit: master-token admin is `aaron`; server librarian manager is `sagwan`.
 - `visibility` is intentionally small: only `private` and `public`.
 - `publication_status` carries the review state: normal users can set only `none` or `requested` on their own notes; admin/manager decisions use `reviewing`, `approved`, `rejected`, or `published`.
 - `scope` remains only a folder/context selector for `shared` common knowledge/opinion versus `personal` personal information/opinion, not an authorization primitive.
 - Added admin/API/MCP publication decision path so `published` records the decision and flips the source to `visibility=public`.
+
+## 2026-04-14 Immutable Owner And Public Stewardship
+- Corrected the librarian identity spelling to `sagwan`.
+- Owner is no longer editable through the web editor or normal note write payloads; new private notes bind owner to the authenticated creator nickname.
+- Private read/write is limited to owner and admin.
+- Public artifacts are readable as public knowledge, but only admin/manager workflows may add, modify, delete, move, or merge them.
+- Publishing records `original_owner`, keeps `created_by`, transfers current stewardship to `owner=sagwan`, and sets `visibility=public`.
+- The web token modal now mirrors the token into a same-site cookie so server-rendered private pages can be authorized before login exists.

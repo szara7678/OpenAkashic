@@ -7,7 +7,7 @@ confidence: high
 tags: [librarian, memory]
 related: ["Librarian Project", "Librarian Profile"]
 created_at: 2026-04-14T00:00:00Z
-updated_at: 2026-04-14T05:05:29Z
+updated_at: 2026-04-14T05:20:51Z
 owner: aaron
 visibility: private
 publication_status: none
@@ -43,8 +43,16 @@ publication_status: none
 요청 기록: 상태를 한 줄로 보고해줘
 
 ## 2026-04-14 Owner Governance Deployment
-- Implemented bootstrap identities: `aaron` is the master-token admin and `saguan` is the server librarian manager.
+- Implemented bootstrap identities: `aaron` is the master-token admin and `sagwan` is the server librarian manager.
 - Kept `visibility` intentionally small: `private` and `public` only; legacy source/shared/internal visibility names normalize back to `private`.
 - Treated `scope` as a folder/context hint, not an authorization field.
 - Added admin publication decision flow: `set_note_publication_status` and `/api/publication/status`; setting `published` makes the source note `visibility=public`.
 - Deployment verified on `knowledge.openakashic.com` through API smoke test and MCP tools/list.
+
+## 2026-04-14 Immutable Owner And Sagwan Stewardship
+- Corrected the librarian identity to `sagwan`.
+- Normal note writes can no longer change an existing `owner`; owner is bound to the authenticated creator nickname.
+- Private notes are readable and writable only by their owner or an admin.
+- Public artifacts are readable publicly, but admin/manager workflows control add, update, delete, move, and merge operations.
+- Publishing preserves `original_owner` and `created_by`, then transfers current stewardship to `owner=sagwan` with `visibility=public`.
+- The web token modal now mirrors the browser token into a same-site cookie so server-rendered private pages can be authorized until Google login exists.

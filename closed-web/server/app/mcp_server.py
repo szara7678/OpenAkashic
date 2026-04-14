@@ -230,6 +230,12 @@ def upsert_note(
     metadata: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Create or overwrite a Closed Akashic markdown note."""
+    write_metadata = dict(metadata or {})
+    write_metadata.pop("owner", None)
+    write_metadata.setdefault("created_by", "aaron")
+    visibility = str(write_metadata.get("visibility") or settings.default_note_visibility).strip().lower()
+    if visibility == "public":
+        write_metadata["owner"] = "sagwan"
     doc = write_document(
         path=path,
         body=body,
@@ -239,7 +245,7 @@ def upsert_note(
         status=status,
         tags=tags,
         related=related,
-        metadata=metadata,
+        metadata=write_metadata,
     )
     note = get_closed_note(doc.path)
     return {
@@ -281,7 +287,7 @@ def list_note_publication_requests(status: str | None = None) -> dict[str, Any]:
 @mcp.tool(title="Set Publication Status")
 def set_note_publication_status(path: str, status: str, reason: str | None = None) -> dict[str, Any]:
     """Admin/librarian-only publication decision helper. published also sets visibility=public."""
-    document = set_publication_status(path=path, status=status, decider="saguan", reason=reason)
+    document = set_publication_status(path=path, status=status, decider="sagwan", reason=reason)
     note = get_closed_note(document.path)
     return {"path": document.path, "frontmatter": document.frontmatter, "note": note}
 

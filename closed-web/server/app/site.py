@@ -766,7 +766,7 @@ def closed_note_html(note_slug: str | None = None, route_prefix: str = "") -> st
             </label>
             <label class="field">
               <span class="field-label">Owner</span>
-              <input class="field-input" id="editor-owner" placeholder="aaron" />
+              <input class="field-input" id="editor-owner" placeholder="auto" disabled />
             </label>
             <label class="field">
               <span class="field-label">Visibility</span>
@@ -3513,6 +3513,14 @@ def _shared_ui_shell(route_prefix: str) -> str:
           return window.localStorage.getItem(tokenStorageKey) || '';
         }}
 
+        function syncTokenCookie(value) {{
+          if (value) {{
+            document.cookie = `closed_akashic_token=${{encodeURIComponent(value)}}; path=/; SameSite=Lax; max-age=2592000`;
+          }} else {{
+            document.cookie = 'closed_akashic_token=; path=/; SameSite=Lax; max-age=0';
+          }}
+        }}
+
         function setAuthButton(session) {{
           if (!dom.authTrigger) return;
           const isAdmin = Boolean(session?.authenticated && session?.role === 'admin');
@@ -3611,6 +3619,7 @@ def _shared_ui_shell(route_prefix: str) -> str:
             return;
           }}
           window.localStorage.setItem(tokenStorageKey, value);
+          syncTokenCookie(value);
           const session = await refreshSession();
           if (session?.authenticated && session?.role === 'admin') {{
             closeAuthModal();
@@ -3619,6 +3628,7 @@ def _shared_ui_shell(route_prefix: str) -> str:
 
         function clearToken() {{
           window.localStorage.removeItem(tokenStorageKey);
+          syncTokenCookie('');
           if (dom.authInput) dom.authInput.value = '';
           refreshSession();
           setAuthStatus('토큰을 지웠다. 지금은 읽기 전용이다.');
@@ -3719,6 +3729,7 @@ def _shared_ui_shell(route_prefix: str) -> str:
         loadThread();
         renderThread();
         if (token()) {{
+          syncTokenCookie(token());
           refreshSession({{ silent: true }});
         }} else {{
           setAdminVisible(false);
@@ -4275,7 +4286,6 @@ def _workspace_script() -> str:
           tags: parseList(dom.formTags.value),
           related: parseList(dom.formRelated.value),
           metadata: {
-            owner: dom.formOwner.value.trim() || 'aaron',
             visibility: dom.formVisibility.value.trim() || 'private',
             publication_status: dom.formPublicationStatus.value.trim() || 'none',
           },

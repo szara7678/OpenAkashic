@@ -158,6 +158,7 @@ def write_document(
     tags: list[str] | None = None,
     related: list[str] | None = None,
     metadata: dict[str, Any] | None = None,
+    allow_owner_change: bool = False,
 ) -> VaultDocument:
     target = resolve_note_path(path, must_exist=False)
     existing = load_document(path) if target.exists() else None
@@ -197,7 +198,10 @@ def write_document(
         frontmatter["related"] = []
 
     if metadata:
-        frontmatter.update(metadata)
+        next_metadata = dict(metadata)
+        if existing and not allow_owner_change and "owner" in next_metadata:
+            next_metadata["owner"] = existing.frontmatter.get("owner")
+        frontmatter.update(next_metadata)
 
     _apply_governance_defaults(frontmatter)
 
@@ -277,7 +281,7 @@ def request_publication(
         tags=["librarian", "publication", "request"],
         related=[str(source_frontmatter.get("title", ""))] if source_frontmatter.get("title") else [],
         metadata={
-            "owner": "saguan",
+            "owner": "sagwan",
             "visibility": "private",
             "publication_status": "reviewing",
             "source_path": document.path,
@@ -335,7 +339,7 @@ def set_publication_status(
     *,
     path: str,
     status: str,
-    decider: str = "saguan",
+    decider: str = "sagwan",
     reason: str | None = None,
 ) -> VaultDocument:
     document = load_document(path)
@@ -346,12 +350,14 @@ def set_publication_status(
         raise ValueError("Publication status decision must be requested, reviewing, approved, rejected, or published")
     frontmatter["publication_status"] = next_status
     frontmatter["publication_decided_at"] = _now_iso()
-    frontmatter["publication_decided_by"] = (decider or "saguan").strip() or "saguan"
+    frontmatter["publication_decided_by"] = (decider or "sagwan").strip() or "sagwan"
     if reason is not None:
         frontmatter["publication_decision_reason"] = reason.strip()
     if next_status == "published":
+        frontmatter.setdefault("original_owner", frontmatter.get("owner") or get_settings().default_note_owner)
         frontmatter["visibility"] = "public"
-    return write_document(path=document.path, body=document.body, metadata=frontmatter)
+        frontmatter["owner"] = "sagwan"
+    return write_document(path=document.path, body=document.body, metadata=frontmatter, allow_owner_change=True)
 
 
 def append_section(path: str, heading: str, content: str) -> VaultDocument:

@@ -467,6 +467,7 @@ def _run_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
             title=arguments.get("title"),
             kind=arguments.get("kind"),
             project=arguments.get("project"),
+            metadata={"owner": "sagwan", "created_by": "sagwan"},
         )
         return {"path": doc.path, "title": doc.frontmatter.get("title")}
     if name == "request_publication":
@@ -485,7 +486,7 @@ def _run_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
         doc = set_publication_status(
             path=arguments["path"],
             status=arguments["status"],
-            decider="saguan",
+            decider="sagwan",
             reason=arguments.get("reason"),
         )
         return {"path": doc.path, "frontmatter": doc.frontmatter}

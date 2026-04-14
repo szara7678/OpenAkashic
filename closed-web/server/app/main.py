@@ -158,7 +158,16 @@ def _request_token(request: Request) -> str | None:
     if auth_header.lower().startswith("bearer "):
         token = auth_header[7:].strip()
         return token or None
+    cookie_token = request.cookies.get("closed_akashic_token", "").strip()
+    if cookie_token:
+        return cookie_token
     return None
+
+
+def _auth_from_request(request: Request) -> AuthState:
+    from app.auth import auth_state_for_token
+
+    return auth_state_for_token(_request_token(request))
 
 
 def _is_admin(auth: AuthState) -> bool:
@@ -169,19 +178,58 @@ def _can_manage_publication(auth: AuthState) -> bool:
     return _is_admin(auth) or "publication:manage" in auth.capabilities
 
 
+def _note_visibility(frontmatter: dict[str, Any]) -> str:
+    visibility = str(frontmatter.get("visibility") or settings.default_note_visibility).strip().lower()
+    return visibility if visibility in {"private", "public"} else "private"
+
+
+def _note_owner(frontmatter: dict[str, Any]) -> str:
+    return str(frontmatter.get("owner") or settings.default_note_owner).strip() or settings.default_note_owner
+
+
+def _can_read_frontmatter(frontmatter: dict[str, Any], auth: AuthState) -> bool:
+    if _note_visibility(frontmatter) == "public":
+        return True
+    return auth.authenticated and (_is_admin(auth) or _note_owner(frontmatter) == auth.nickname)
+
+
+def _can_modify_frontmatter(frontmatter: dict[str, Any], auth: AuthState) -> bool:
+    if _note_visibility(frontmatter) == "public":
+        return _is_admin(auth)
+    return auth.authenticated and (_is_admin(auth) or _note_owner(frontmatter) == auth.nickname)
+
+
+def _assert_can_read_note_payload(note: dict[str, Any], auth: AuthState) -> None:
+    if not _can_read_frontmatter(note, auth):
+        raise HTTPException(status_code=403, detail="Private notes can only be read by their owner or an admin")
+
+
+def _assert_can_read_document(document_path: str, auth: AuthState) -> None:
+    document = load_document(document_path)
+    if not _can_read_frontmatter(document.frontmatter, auth):
+        raise HTTPException(status_code=403, detail="Private notes can only be read by their owner or an admin")
+
+
+def _assert_can_modify_document(document_path: str, auth: AuthState) -> dict[str, Any]:
+    document = load_document(document_path)
+    if not _can_modify_frontmatter(document.frontmatter, auth):
+        raise HTTPException(status_code=403, detail="Notes can only be modified by their owner or an admin")
+    return document.frontmatter
+
+
+def _filter_readable_notes(notes: list[dict[str, Any]], auth: AuthState) -> list[dict[str, Any]]:
+    return [note for note in notes if _can_read_frontmatter(note, auth)]
+
+
 def _normalize_write_metadata(payload: NoteWriteRequest, auth: AuthState) -> dict[str, Any]:
     metadata = dict(payload.metadata or {})
     existing_frontmatter: dict[str, Any] = {}
+    is_existing = False
     try:
         existing_frontmatter = load_document(payload.path).frontmatter
+        is_existing = True
     except (FileNotFoundError, ValueError):
         existing_frontmatter = {}
-
-    owner = str(metadata.get("owner") or existing_frontmatter.get("owner") or auth.nickname or settings.default_note_owner)
-    owner = owner.strip() or settings.default_note_owner
-    if not _is_admin(auth) and owner != auth.nickname:
-        raise HTTPException(status_code=403, detail="Users can only edit their own notes")
-    metadata["owner"] = owner
 
     requested_visibility = str(
         metadata.get("visibility") or existing_frontmatter.get("visibility") or settings.default_note_visibility
@@ -191,6 +239,18 @@ def _normalize_write_metadata(payload: NoteWriteRequest, auth: AuthState) -> dic
     if not _is_admin(auth) and requested_visibility != "private":
         raise HTTPException(status_code=403, detail="Only admins can make a note public")
     metadata["visibility"] = requested_visibility
+
+    if is_existing:
+        if not _can_modify_frontmatter(existing_frontmatter, auth):
+            raise HTTPException(status_code=403, detail="Notes can only be modified by their owner or an admin")
+        owner = _note_owner(existing_frontmatter)
+        if requested_visibility == "public":
+            metadata.setdefault("original_owner", existing_frontmatter.get("original_owner") or owner)
+            owner = "sagwan"
+        metadata["owner"] = owner
+    else:
+        metadata["created_by"] = metadata.get("created_by") or auth.nickname
+        metadata["owner"] = "sagwan" if requested_visibility == "public" else auth.nickname
 
     publication_status = str(
         metadata.get("publication_status") or existing_frontmatter.get("publication_status") or "none"
@@ -251,13 +311,23 @@ def prefixed_debug_page() -> str:
 
 
 @api.get("/graph-data")
-def graph_data() -> dict[str, Any]:
-    return get_closed_graph()
+def graph_data(request: Request) -> dict[str, Any]:
+    auth = _auth_from_request(request)
+    graph = get_closed_graph()
+    readable_paths = {note["path"] for note in _filter_readable_notes(graph["nodes"], auth)}
+    return {
+        **graph,
+        "nodes": [node for node in graph["nodes"] if node["path"] in readable_paths],
+        "links": [
+            link for link in graph["links"]
+            if link.get("source") in readable_paths and link.get("target") in readable_paths
+        ],
+    }
 
 
 @api.get("/closed/graph-data")
-def prefixed_graph_data() -> dict[str, Any]:
-    return get_closed_graph()
+def prefixed_graph_data(request: Request) -> dict[str, Any]:
+    return graph_data(request)
 
 
 @api.get("/search")
@@ -266,30 +336,41 @@ def search(
     q: str = Query(min_length=1),
     limit: int = Query(default=12, ge=1, le=50),
 ) -> dict[str, Any]:
-    return search_closed_notes(q, limit, route_prefix=_route_prefix(request))
+    auth = _auth_from_request(request)
+    results = search_closed_notes(q, limit, route_prefix=_route_prefix(request))
+    readable = _filter_readable_notes(results.get("results", []), auth)
+    return {**results, "results": readable, "count": len(readable)}
 
 
 @api.get("/closed/search")
 def prefixed_search(
+    request: Request,
     q: str = Query(min_length=1),
     limit: int = Query(default=12, ge=1, le=50),
 ) -> dict[str, Any]:
-    return search_closed_notes(q, limit, route_prefix="/closed")
+    auth = _auth_from_request(request)
+    results = search_closed_notes(q, limit, route_prefix="/closed")
+    readable = _filter_readable_notes(results.get("results", []), auth)
+    return {**results, "results": readable, "count": len(readable)}
 
 
 @api.get("/note")
 def note(request: Request, path: str = Query(min_length=1)) -> dict[str, Any]:
+    auth = _auth_from_request(request)
     result = get_closed_note(path, route_prefix=_route_prefix(request))
     if not result:
         raise HTTPException(status_code=404, detail="Note not found")
+    _assert_can_read_note_payload(result, auth)
     return result
 
 
 @api.get("/closed/note")
-def prefixed_note(path: str = Query(min_length=1)) -> dict[str, Any]:
+def prefixed_note(request: Request, path: str = Query(min_length=1)) -> dict[str, Any]:
+    auth = _auth_from_request(request)
     result = get_closed_note(path, route_prefix="/closed")
     if not result:
         raise HTTPException(status_code=404, detail="Note not found")
+    _assert_can_read_note_payload(result, auth)
     return result
 
 
@@ -305,17 +386,21 @@ def prefixed_home() -> dict[str, Any]:
 
 @api.get("/notes/{slug}", response_class=HTMLResponse)
 def note_page(request: Request, slug: str) -> str:
+    auth = _auth_from_request(request)
     note_data = get_closed_note_by_slug(slug, route_prefix=_route_prefix(request))
     if not note_data:
         raise HTTPException(status_code=404, detail="Note not found")
+    _assert_can_read_note_payload(note_data, auth)
     return closed_note_html(note_slug=slug, route_prefix=_route_prefix(request))
 
 
 @api.get("/closed/notes/{slug}", response_class=HTMLResponse)
-def prefixed_note_page(slug: str) -> str:
+def prefixed_note_page(request: Request, slug: str) -> str:
+    auth = _auth_from_request(request)
     note_data = get_closed_note_by_slug(slug, route_prefix="/closed")
     if not note_data:
         raise HTTPException(status_code=404, detail="Note not found")
+    _assert_can_read_note_payload(note_data, auth)
     return closed_note_html(note_slug=slug, route_prefix="/closed")
 
 
@@ -330,40 +415,57 @@ def api_session(request: Request) -> dict[str, Any]:
     }
 
 
-@api.get("/api/notes", dependencies=[Depends(require_agent_token)])
+@api.get("/api/notes")
 def api_list_notes(
     q: str | None = Query(default=None),
     limit: int = Query(default=20, ge=1, le=100),
+    auth: AuthState = Depends(require_agent_token),
 ) -> dict[str, Any]:
     if q:
-        return search_closed_notes(q, limit=limit)
+        results = search_closed_notes(q, limit=limit)
+        readable = _filter_readable_notes(results.get("results", []), auth)
+        return {**results, "results": readable, "count": len(readable)}
     graph = get_closed_graph()
+    nodes = _filter_readable_notes(graph["nodes"], auth)
     return {
-        "notes": graph["nodes"][:limit],
-        "count": len(graph["nodes"]),
+        "notes": nodes[:limit],
+        "count": len(nodes),
     }
 
 
-@api.get("/api/notes/{slug}", dependencies=[Depends(require_agent_token)])
-def api_note_by_slug(slug: str) -> dict[str, Any]:
+@api.get("/api/notes/{slug}")
+def api_note_by_slug(
+    slug: str,
+    auth: AuthState = Depends(require_agent_token),
+) -> dict[str, Any]:
     result = get_closed_note_by_slug(slug)
     if not result:
         raise HTTPException(status_code=404, detail="Note not found")
+    _assert_can_read_note_payload(result, auth)
     return result
 
 
-@api.get("/api/note", dependencies=[Depends(require_agent_token)])
-def api_note_by_path(path: str = Query(min_length=1)) -> dict[str, Any]:
+@api.get("/api/note")
+def api_note_by_path(
+    path: str = Query(min_length=1),
+    auth: AuthState = Depends(require_agent_token),
+) -> dict[str, Any]:
     result = get_closed_note(path)
     if not result:
         raise HTTPException(status_code=404, detail="Note not found")
+    _assert_can_read_note_payload(result, auth)
     return result
 
 
-@api.get("/api/raw-note", dependencies=[Depends(require_agent_token)])
-def api_raw_note(path: str = Query(min_length=1)) -> dict[str, Any]:
+@api.get("/api/raw-note")
+def api_raw_note(
+    path: str = Query(min_length=1),
+    auth: AuthState = Depends(require_agent_token),
+) -> dict[str, Any]:
     try:
         document = load_document(path)
+        if not _can_read_frontmatter(document.frontmatter, auth):
+            raise HTTPException(status_code=403, detail="Private notes can only be read by their owner or an admin")
     except (FileNotFoundError, ValueError) as exc:
         raise _vault_http_error(exc) from exc
     return {
@@ -373,9 +475,18 @@ def api_raw_note(path: str = Query(min_length=1)) -> dict[str, Any]:
     }
 
 
-@api.get("/api/graph", dependencies=[Depends(require_agent_token)])
-def api_graph() -> dict[str, Any]:
-    return get_closed_graph()
+@api.get("/api/graph")
+def api_graph(auth: AuthState = Depends(require_agent_token)) -> dict[str, Any]:
+    graph = get_closed_graph()
+    readable_paths = {note["path"] for note in _filter_readable_notes(graph["nodes"], auth)}
+    return {
+        **graph,
+        "nodes": [node for node in graph["nodes"] if node["path"] in readable_paths],
+        "links": [
+            link for link in graph["links"]
+            if link.get("source") in readable_paths and link.get("target") in readable_paths
+        ],
+    }
 
 
 @api.get("/api/folders", dependencies=[Depends(require_agent_token)])
@@ -467,6 +578,7 @@ def api_upsert_note(
             tags=payload.tags,
             related=payload.related,
             metadata=metadata,
+            allow_owner_change=metadata.get("owner") == "sagwan" and metadata.get("visibility") == "public",
         )
     except (FileNotFoundError, ValueError) as exc:
         raise _vault_http_error(exc) from exc
@@ -474,9 +586,13 @@ def api_upsert_note(
     return {"path": document.path, "note": result}
 
 
-@api.post("/api/note/append", dependencies=[Depends(require_agent_token)])
-def api_append_note(payload: NoteAppendRequest) -> dict[str, Any]:
+@api.post("/api/note/append")
+def api_append_note(
+    payload: NoteAppendRequest,
+    auth: AuthState = Depends(require_agent_token),
+) -> dict[str, Any]:
     try:
+        _assert_can_modify_document(payload.path, auth)
         document = append_section(payload.path, payload.heading, payload.content)
     except (FileNotFoundError, ValueError) as exc:
         raise _vault_http_error(exc) from exc
@@ -484,19 +600,27 @@ def api_append_note(payload: NoteAppendRequest) -> dict[str, Any]:
     return {"path": document.path, "note": result}
 
 
-@api.api_route("/api/note", methods=["DELETE"], dependencies=[Depends(require_agent_token)])
-async def api_delete_note(request: Request) -> dict[str, Any]:
+@api.api_route("/api/note", methods=["DELETE"])
+async def api_delete_note(
+    request: Request,
+    auth: AuthState = Depends(require_agent_token),
+) -> dict[str, Any]:
     payload = NoteDeleteRequest(**(await request.json()))
     try:
+        _assert_can_modify_document(payload.path, auth)
         deleted = delete_document(payload.path)
     except (FileNotFoundError, ValueError) as exc:
         raise _vault_http_error(exc) from exc
     return {"deleted": deleted}
 
 
-@api.post("/api/note/move", dependencies=[Depends(require_agent_token)])
-def api_move_note(payload: NoteMoveRequest) -> dict[str, str]:
+@api.post("/api/note/move")
+def api_move_note(
+    payload: NoteMoveRequest,
+    auth: AuthState = Depends(require_agent_token),
+) -> dict[str, str]:
     try:
+        _assert_can_modify_document(payload.path, auth)
         moved = move_document(payload.path, payload.new_path)
     except (FileNotFoundError, FileExistsError, ValueError) as exc:
         raise _vault_http_error(exc) from exc

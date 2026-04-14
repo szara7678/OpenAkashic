@@ -91,8 +91,8 @@ def librarian_identity() -> AuthState:
         authenticated=True,
         role="manager",
         token_label="server-librarian",
-        nickname="saguan",
-        owner="saguan",
+        nickname="sagwan",
+        owner="sagwan",
         capabilities=[
             "notes:read",
             "notes:write",
