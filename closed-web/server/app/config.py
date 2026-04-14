@@ -32,7 +32,7 @@ class Settings(BaseSettings):
         alias="CLOSED_AKASHIC_WRITABLE_ROOTS",
     )
     default_note_owner: str = Field(
-        default="personal",
+        default="aaron",
         alias="CLOSED_AKASHIC_DEFAULT_NOTE_OWNER",
     )
     default_note_visibility: str = Field(

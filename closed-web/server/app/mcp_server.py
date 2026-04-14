@@ -30,6 +30,7 @@ from app.vault import (
     normalize_project_key,
     request_publication,
     save_image,
+    set_publication_status,
     suggest_note_path,
     write_document,
 )
@@ -44,8 +45,9 @@ mcp = FastMCP(
         "Remote agents should use this MCP server as the central memory layer instead of local agent-knowledge clones. "
         "Read before major work, prefer existing notes, and write back concise linked notes after meaningful work. "
         "Use doc/ for operating docs, personal_vault/ for graph-linked working memory, and assets/images/ for uploaded images. "
-        "New notes default to owner=personal and visibility=private. "
-        "Do not publish or share raw source directly; use request_publication for explicit public/shared promotion review."
+        "New notes default to owner=aaron and visibility=private. "
+        "Scope is only a folder/context hint; access is controlled by owner, visibility, and publication_status. "
+        "Do not publish raw source directly; use request_publication for explicit public promotion review."
     ),
     host="0.0.0.0",
     streamable_http_path="/",
@@ -255,7 +257,7 @@ def request_note_publication(
     rationale: str | None = None,
     evidence_paths: list[str] | None = None,
 ) -> dict[str, Any]:
-    """Request librarian review for sharing/publication. Source remains private by default."""
+    """Request librarian review for public publication. Source remains private by default."""
     request = request_publication(
         path=path,
         requester=requester,
@@ -268,12 +270,20 @@ def request_note_publication(
 
 @mcp.tool(title="List Publication Requests")
 def list_note_publication_requests(status: str | None = None) -> dict[str, Any]:
-    """List librarian publication/share requests."""
+    """List librarian publication requests."""
     requests = list_publication_requests(status=status)
     return {
         "requests": [item.__dict__ for item in requests],
         "count": len(requests),
     }
+
+
+@mcp.tool(title="Set Publication Status")
+def set_note_publication_status(path: str, status: str, reason: str | None = None) -> dict[str, Any]:
+    """Admin/librarian-only publication decision helper. published also sets visibility=public."""
+    document = set_publication_status(path=path, status=status, decider="saguan", reason=reason)
+    note = get_closed_note(document.path)
+    return {"path": document.path, "frontmatter": document.frontmatter, "note": note}
 
 
 @mcp.tool(title="Append Closed Note Section")

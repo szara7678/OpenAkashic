@@ -8,7 +8,7 @@ tags: [openakashic, architecture, librarian, closed-akashic, control-plane]
 related: ["Closed Akashic User Scope Review", "Librarian Project", "Agent Guide"]
 updated_at: 2026-04-14T04:45:48Z
 created_at: 2026-04-14T01:52:31Z
-owner: personal
+owner: aaron
 visibility: private
 publication_status: none
 ---
@@ -31,7 +31,8 @@ OpenAkashic/Closed Akashic를 하나의 제어면(control plane)으로 다루되
 - shared/public 승격은 사용자의 직접 쓰기보다 서버측 사서장 검토와 정책 적용을 거친다.
 
 ## Next Steps
-- account/workspace/visibility/role 기반 ACL을 붙여 private, shared, org, public candidate, public 레이어를 구분한다.
+- Google 로그인, 토큰 발급, 닉네임 수정, 역할 부여 기반 ACL을 붙인다.
+- `scope`는 폴더/맥락 힌트로 유지하고 권한은 `owner`, `visibility`, `publication_status`로 판단한다.
 - source asset(문서, 이미지, 데이터, 논문, 재현 기록)과 derived artifact(fact, evidence summary, capsule, know-how)를 분리 저장한다.
 - 사서장에 publish-review, evidence-linking, duplicate-merge, memory distillation playbook을 추가한다.
 - OpenAI API 키가 서버 환경에 들어오면 현재 Codex 계열 모델 호출을 실제 운영 응답 경로로 활성화한다.
@@ -48,9 +49,16 @@ OpenAkashic/Closed Akashic를 하나의 제어면(control plane)으로 다루되
 - GPU diagnosis: host RTX 3060 is visible, but Docker has no NVIDIA runtime/container toolkit and Ollama logs show CPU-only execution. GPU enablement requires installing/configuring NVIDIA container toolkit/CDI and then restarting the Ollama compose stack with GPU device requests.
 
 ## 2026-04-14 Governance Metadata And Publication Requests
-- Implemented note governance metadata defaults: new writes now get `owner=personal`, `visibility=private`, and `publication_status=none` unless explicitly overridden.
+- Implemented note governance metadata defaults: new writes now get `owner=aaron`, `visibility=private`, and `publication_status=none` unless explicitly overridden.
 - Added publication request workflow: `/api/publication/request`, `/api/publication/requests`, MCP tools `request_note_publication` and `list_note_publication_requests`.
-- Publication requests keep the source note private, mark it `publication_status=requested`, and create a derived internal librarian queue note under `personal_vault/projects/ops/librarian/publication_requests/`.
+- Publication requests keep the source note private, mark it `publication_status=requested`, and create a private librarian queue note owned by `saguan` under `personal_vault/projects/ops/librarian/publication_requests/`.
 - Updated the web note info/editor surfaces to show and edit owner, visibility, and publication status.
 - Updated librarian policy and user scope review docs to state that MCP/API writes are private by default and public exposure must go through librarian review to produce public fact/evidence summary/capsule/know-how artifacts rather than raw source disclosure.
 - Verified via public API: default private metadata, publication request creation, source request markers, request listing, MCP tool exposure, and cleanup of smoke-test notes.
+
+## 2026-04-14 Owner And Publication Governance Correction
+- Bootstrap identities are now explicit: master-token admin is `aaron`; server librarian manager is `saguan`.
+- `visibility` is intentionally small: only `private` and `public`.
+- `publication_status` carries the review state: normal users can set only `none` or `requested` on their own notes; admin/manager decisions use `reviewing`, `approved`, `rejected`, or `published`.
+- `scope` remains only a folder/context selector for `shared` common knowledge/opinion versus `personal` personal information/opinion, not an authorization primitive.
+- Added admin/API/MCP publication decision path so `published` records the decision and flips the source to `visibility=public`.

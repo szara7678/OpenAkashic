@@ -7,7 +7,7 @@ confidence: high
 tags: [closed-akashic, review, scope, sharing, llm]
 related: [Open and Closed Akashic Strategy, LLM Maintained Wiki, OpenAkashic Project]
 created_at: 2026-04-14T00:00:00Z
-updated_at: 2026-04-14T04:40:00Z
+updated_at: 2026-04-14T05:30:00Z
 ---
 
 ## Summary
@@ -22,9 +22,9 @@ Closed Akashic should split internal memory into at least two scopes: per-user p
 
 ## Recommendation
 1. Keep Open and Closed separate.
-2. Inside Closed, add explicit memory scopes such as `private/<user>`, `shared/<workspace>`, and project workspaces.
-3. Let only server-side jobs or approved promotion workflows write to shared memory.
-4. Keep user drafts, opinions, and raw reflections in private scope by default.
+2. Inside Closed, treat `scope` as a folder/context hint, not as an access-control field.
+3. Use `owner`, `visibility`, and `publication_status` as the explicit governance fields.
+4. Keep user drafts, opinions, and raw reflections private by default.
 5. Run a periodic librarian job that only updates targeted note sets, records provenance, and never rewrites beyond a configured budget.
 
 ## Clarification
@@ -51,19 +51,22 @@ Non-public data can remain user-editable like the current Closed Akashic flow, w
 ## Ownership And Publication Metadata
 Every document should carry explicit governance metadata.
 
-- `owner`: the user, workspace, or agent accountable for the document.
-- `visibility`: defaults to `private`; valid layers are `private`, `source_private`, `source_shared`, `derived_internal`, `public_requested`, and `public`.
+- `owner`: the accountable nickname or agent identity. Current bootstrap identities are `aaron` for the master-token admin and `saguan` for the librarian manager.
+- `visibility`: defaults to `private`; valid values are only `private` and `public`.
 - `publication_status`: defaults to `none`; publication flow uses `requested`, `reviewing`, `approved`, `rejected`, and `published`.
+- `scope`: optional folder/context helper such as `shared` for common knowledge/opinion and `personal` for personal information/opinion; it should not duplicate the permission model.
 - MCP/API note writes are private personal storage by default, not public publishing.
 - Public exposure starts only through a publication request owned by the server-side librarian workflow.
+- Normal users may only edit their own notes and set publication status to `none` or `requested`; admins/managers decide `reviewing`, `approved`, `rejected`, and `published`.
 
 ## MCP Flow
 The unified MCP should expose one control plane while keeping storage policy explicit.
 
 - `upsert_note`: saves private/personal notes by default.
 - `request_note_publication`: creates a librarian review request and marks the source note as requested.
-- `list_note_publication_requests`: lets the librarian or admin review pending publication/share requests.
+- `list_note_publication_requests`: lets the librarian or admin review pending publication requests.
+- `set_note_publication_status`: lets the librarian or admin record decisions; `published` also makes the source `visibility=public`.
 - Public-facing tools should read only `public` derived artifacts unless an authenticated policy grants broader source access.
 
 ## Reuse
-Prefer a three-step flow: private capture, shared promotion, public promotion to Open Akashic.
+Prefer a three-step flow: private capture, librarian review, public promotion to Open Akashic.

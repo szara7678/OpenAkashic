@@ -11,8 +11,10 @@ from starlette.applications import Starlette
 from starlette.routing import Mount, Route
 
 from app.auth import (
+    AuthState,
     BearerTokenASGI,
     auth_state_dict,
+    librarian_identity_dict,
     require_admin_token,
     require_agent_token,
 )
@@ -51,6 +53,7 @@ from app.vault import (
     read_asset_bytes,
     save_asset,
     save_image,
+    set_publication_status,
     ensure_folder,
     suggest_note_path,
     write_document,
@@ -135,6 +138,12 @@ class PublicationRequestPayload(BaseModel):
     evidence_paths: list[str] = Field(default_factory=list)
 
 
+class PublicationStatusPayload(BaseModel):
+    path: str = Field(min_length=1)
+    status: str = Field(min_length=1)
+    reason: str | None = None
+
+
 def _route_prefix(request: Request) -> str:
     host = request.headers.get("host", "")
     return "/closed" if host.startswith("openakashic.com") else ""
@@ -150,6 +159,55 @@ def _request_token(request: Request) -> str | None:
         token = auth_header[7:].strip()
         return token or None
     return None
+
+
+def _is_admin(auth: AuthState) -> bool:
+    return auth.role == "admin" or "librarian:admin" in auth.capabilities
+
+
+def _can_manage_publication(auth: AuthState) -> bool:
+    return _is_admin(auth) or "publication:manage" in auth.capabilities
+
+
+def _normalize_write_metadata(payload: NoteWriteRequest, auth: AuthState) -> dict[str, Any]:
+    metadata = dict(payload.metadata or {})
+    existing_frontmatter: dict[str, Any] = {}
+    try:
+        existing_frontmatter = load_document(payload.path).frontmatter
+    except (FileNotFoundError, ValueError):
+        existing_frontmatter = {}
+
+    owner = str(metadata.get("owner") or existing_frontmatter.get("owner") or auth.nickname or settings.default_note_owner)
+    owner = owner.strip() or settings.default_note_owner
+    if not _is_admin(auth) and owner != auth.nickname:
+        raise HTTPException(status_code=403, detail="Users can only edit their own notes")
+    metadata["owner"] = owner
+
+    requested_visibility = str(
+        metadata.get("visibility") or existing_frontmatter.get("visibility") or settings.default_note_visibility
+    ).strip().lower().replace("-", "_")
+    if requested_visibility not in {"private", "public"}:
+        requested_visibility = "private"
+    if not _is_admin(auth) and requested_visibility != "private":
+        raise HTTPException(status_code=403, detail="Only admins can make a note public")
+    metadata["visibility"] = requested_visibility
+
+    publication_status = str(
+        metadata.get("publication_status") or existing_frontmatter.get("publication_status") or "none"
+    ).strip().lower().replace("-", "_")
+    if not _is_admin(auth) and publication_status not in {"none", "requested"}:
+        raise HTTPException(status_code=403, detail="Users can only set publication status to none or requested")
+    metadata["publication_status"] = publication_status
+    return metadata
+
+
+def _assert_can_request_publication(path: str, auth: AuthState) -> None:
+    if _is_admin(auth):
+        return
+    document = load_document(path)
+    owner = str(document.frontmatter.get("owner") or settings.default_note_owner).strip()
+    if owner != auth.nickname:
+        raise HTTPException(status_code=403, detail="Users can only request publication for their own notes")
 
 
 def _vault_http_error(exc: Exception) -> HTTPException:
@@ -267,6 +325,7 @@ def api_session(request: Request) -> dict[str, Any]:
     return {
         **auth,
         "public_base_url": settings.public_base_url,
+        "librarian_identity": librarian_identity_dict(),
         "librarian": librarian_status() if auth["authenticated"] else None,
     }
 
@@ -391,9 +450,13 @@ def api_path_suggestion(
     return {"path": suggest_note_path(kind, title, folder, scope, project)}
 
 
-@api.put("/api/note", dependencies=[Depends(require_agent_token)])
-def api_upsert_note(payload: NoteWriteRequest) -> dict[str, Any]:
+@api.put("/api/note")
+def api_upsert_note(
+    payload: NoteWriteRequest,
+    auth: AuthState = Depends(require_agent_token),
+) -> dict[str, Any]:
     try:
+        metadata = _normalize_write_metadata(payload, auth)
         document = write_document(
             path=payload.path,
             body=payload.body,
@@ -403,7 +466,7 @@ def api_upsert_note(payload: NoteWriteRequest) -> dict[str, Any]:
             status=payload.status,
             tags=payload.tags,
             related=payload.related,
-            metadata=payload.metadata,
+            metadata=metadata,
         )
     except (FileNotFoundError, ValueError) as exc:
         raise _vault_http_error(exc) from exc
@@ -469,12 +532,16 @@ def api_bootstrap_project(payload: ProjectBootstrapRequest) -> dict[str, Any]:
     )
 
 
-@api.post("/api/publication/request", dependencies=[Depends(require_agent_token)])
-def api_request_publication(payload: PublicationRequestPayload) -> dict[str, Any]:
+@api.post("/api/publication/request")
+def api_request_publication(
+    payload: PublicationRequestPayload,
+    auth: AuthState = Depends(require_agent_token),
+) -> dict[str, Any]:
     try:
+        _assert_can_request_publication(payload.path, auth)
         request = request_publication(
             path=payload.path,
-            requester=payload.requester,
+            requester=payload.requester if _is_admin(auth) else auth.nickname,
             target_visibility=payload.target_visibility,
             rationale=payload.rationale,
             evidence_paths=payload.evidence_paths,
@@ -484,13 +551,35 @@ def api_request_publication(payload: PublicationRequestPayload) -> dict[str, Any
     return {"request": request.__dict__}
 
 
-@api.get("/api/publication/requests", dependencies=[Depends(require_agent_token)])
-def api_publication_requests(status: str | None = Query(default=None)) -> dict[str, Any]:
+@api.get("/api/publication/requests")
+def api_publication_requests(
+    status: str | None = Query(default=None),
+    auth: AuthState = Depends(require_agent_token),
+) -> dict[str, Any]:
+    if not _can_manage_publication(auth):
+        raise HTTPException(status_code=403, detail="Only admins or managers can list publication requests")
     requests = list_publication_requests(status=status)
     return {
         "requests": [item.__dict__ for item in requests],
         "count": len(requests),
     }
+
+
+@api.post("/api/publication/status")
+def api_publication_status(
+    payload: PublicationStatusPayload,
+    auth: AuthState = Depends(require_admin_token),
+) -> dict[str, Any]:
+    try:
+        document = set_publication_status(
+            path=payload.path,
+            status=payload.status,
+            decider=auth.nickname,
+            reason=payload.reason,
+        )
+    except (FileNotFoundError, ValueError) as exc:
+        raise _vault_http_error(exc) from exc
+    return {"path": document.path, "frontmatter": document.frontmatter}
 
 
 @api.post("/api/assets/images", dependencies=[Depends(require_agent_token)])

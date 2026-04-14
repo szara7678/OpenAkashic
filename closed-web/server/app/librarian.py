@@ -6,6 +6,7 @@ from pathlib import Path
 import subprocess
 from typing import Any
 
+from app.auth import librarian_identity_dict
 from app.config import get_settings
 from app.site import get_closed_note, search_closed_notes
 from app.vault import (
@@ -16,6 +17,7 @@ from app.vault import (
     load_document,
     request_publication,
     resolve_note_path,
+    set_publication_status,
     write_document,
 )
 
@@ -72,12 +74,13 @@ def ensure_librarian_workspace() -> dict[str, Any]:
         body="\n".join(
             [
                 "## Summary",
-                "사서장은 private/source/shared/public 레이어를 섞지 않고, 공개 승격과 구조 정리만 수행한다.",
+                "사서장은 private 원문과 public 산출물을 섞지 않고, 공개 승격과 구조 정리만 수행한다.",
                 "",
                 "## Policy",
                 "- private 원문은 사용자가 자유롭게 관리한다.",
-                "- shared/public 쓰기는 정책과 권한 검토 뒤에만 수행한다.",
-                "- 모든 새 문서는 기본적으로 owner=personal, visibility=private, publication_status=none으로 시작한다.",
+                "- public 쓰기는 정책과 권한 검토 뒤에만 수행한다.",
+                "- scope는 폴더/맥락 힌트이며 접근 권한이 아니다.",
+                "- 모든 새 문서는 기본적으로 owner=aaron, visibility=private, publication_status=none으로 시작한다.",
                 "- 공개는 원문을 직접 공개하지 않고 publication request queue를 통해 capsule/result/evidence summary로 승격한다.",
                 "- 근거 없는 공개 승격은 금지한다.",
                 "- 장기 메모리는 요약과 재사용 포인트만 남기고 장황한 로그는 줄인다.",
@@ -109,6 +112,7 @@ def librarian_status() -> dict[str, Any]:
     settings = get_settings()
     return {
         "name": "Librarian",
+        "identity": librarian_identity_dict(),
         "project": settings.librarian_project,
         "provider": settings.librarian_provider,
         "model": settings.librarian_model,
@@ -293,7 +297,8 @@ def _librarian_instructions(relevant_notes: list[dict[str, Any]]) -> str:
             "너는 OpenAkashic/Closed Akashic의 사서장이다.",
             "역할은 공개 승격, 링크 정리, 정책 일관성 유지, 메모리 축적, 운영 보고다.",
             "private/source/shared/public 레이어를 섞지 말고, 공개 가능한 것만 승격 후보로 다뤄라.",
-            "새 문서는 기본 private/personal 보관이고, 공개는 request_publication으로만 신청한다.",
+            "새 문서는 기본 owner=aaron, visibility=private 보관이고, 공개는 request_publication으로만 신청한다.",
+            "scope는 폴더/맥락 선택일 뿐 권한 모델이 아니다.",
             "공개 결과는 raw source가 아니라 fact/evidence summary/capsule/know-how 형태여야 한다.",
             "답변은 짧고 실무적으로 하고, 필요하면 도구를 사용하라.",
             "중요한 운영 판단이나 재사용 가치가 높은 정보는 memory_write 제안 형태로 드러내라.",
@@ -393,13 +398,13 @@ def _tool_registry() -> list[dict[str, Any]]:
         {
             "type": "function",
             "name": "request_publication",
-            "description": "Create a librarian review request for sharing or public publication while keeping the source private.",
+            "description": "Create a librarian review request for public publication while keeping the source private.",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "path": {"type": "string"},
                     "requester": {"type": "string"},
-                    "target_visibility": {"type": "string", "enum": ["public", "source_shared", "derived_internal"]},
+                    "target_visibility": {"type": "string", "enum": ["public"]},
                     "rationale": {"type": "string"},
                     "evidence_paths": {"type": "array", "items": {"type": "string"}},
                 },
@@ -410,12 +415,30 @@ def _tool_registry() -> list[dict[str, Any]]:
         {
             "type": "function",
             "name": "list_publication_requests",
-            "description": "List librarian publication/share requests.",
+            "description": "List librarian publication requests.",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "status": {"type": "string"},
                 },
+                "additionalProperties": False,
+            },
+        },
+        {
+            "type": "function",
+            "name": "set_publication_status",
+            "description": "Record a librarian/admin publication decision. Setting published also makes the source visibility public.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "path": {"type": "string"},
+                    "status": {
+                        "type": "string",
+                        "enum": ["requested", "reviewing", "approved", "rejected", "published"],
+                    },
+                    "reason": {"type": "string"},
+                },
+                "required": ["path", "status"],
                 "additionalProperties": False,
             },
         },
@@ -458,6 +481,14 @@ def _run_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
     if name == "list_publication_requests":
         requests = list_publication_requests(arguments.get("status"))
         return {"requests": [item.__dict__ for item in requests], "count": len(requests)}
+    if name == "set_publication_status":
+        doc = set_publication_status(
+            path=arguments["path"],
+            status=arguments["status"],
+            decider="saguan",
+            reason=arguments.get("reason"),
+        )
+        return {"path": doc.path, "frontmatter": doc.frontmatter}
     return {"error": f"Unknown tool: {name}"}
 
 

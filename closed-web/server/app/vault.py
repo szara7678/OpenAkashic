@@ -23,14 +23,7 @@ PROJECT_SUBFOLDERS = (
     "experiments",
     "reference",
 )
-VISIBILITY_VALUES = {
-    "private",
-    "source_private",
-    "source_shared",
-    "derived_internal",
-    "public_requested",
-    "public",
-}
+VISIBILITY_VALUES = {"private", "public"}
 PUBLICATION_STATUS_VALUES = {
     "none",
     "requested",
@@ -232,8 +225,8 @@ def request_publication(
     requested_at = _now_iso()
     requester_value = (requester or source_frontmatter.get("owner") or get_settings().default_note_owner).strip()
     target = _normalize_visibility(target_visibility or "public")
-    if target not in {"public", "source_shared", "derived_internal"}:
-        raise ValueError("Publication target must be public, source_shared, or derived_internal")
+    if target != "public":
+        raise ValueError("Publication target must be public")
 
     source_frontmatter["publication_status"] = "requested"
     source_frontmatter["publication_requested_at"] = requested_at
@@ -284,8 +277,8 @@ def request_publication(
         tags=["librarian", "publication", "request"],
         related=[str(source_frontmatter.get("title", ""))] if source_frontmatter.get("title") else [],
         metadata={
-            "owner": "librarian",
-            "visibility": "derived_internal",
+            "owner": "saguan",
+            "visibility": "private",
             "publication_status": "reviewing",
             "source_path": document.path,
             "requester": requester_value,
@@ -336,6 +329,29 @@ def list_publication_requests(status: str | None = None) -> list[PublicationRequ
         )
     requests.sort(key=lambda item: item.requested_at, reverse=True)
     return requests
+
+
+def set_publication_status(
+    *,
+    path: str,
+    status: str,
+    decider: str = "saguan",
+    reason: str | None = None,
+) -> VaultDocument:
+    document = load_document(path)
+    frontmatter = dict(document.frontmatter)
+    _apply_governance_defaults(frontmatter)
+    next_status = _normalize_publication_status(status)
+    if next_status == "none":
+        raise ValueError("Publication status decision must be requested, reviewing, approved, rejected, or published")
+    frontmatter["publication_status"] = next_status
+    frontmatter["publication_decided_at"] = _now_iso()
+    frontmatter["publication_decided_by"] = (decider or "saguan").strip() or "saguan"
+    if reason is not None:
+        frontmatter["publication_decision_reason"] = reason.strip()
+    if next_status == "published":
+        frontmatter["visibility"] = "public"
+    return write_document(path=document.path, body=document.body, metadata=frontmatter)
 
 
 def append_section(path: str, heading: str, content: str) -> VaultDocument:
@@ -570,7 +586,7 @@ def render_document(frontmatter: dict[str, Any], body: str) -> str:
 
 
 def _apply_governance_defaults(frontmatter: dict[str, Any]) -> None:
-    owner = str(frontmatter.get("owner") or get_settings().default_note_owner).strip() or "personal"
+    owner = str(frontmatter.get("owner") or get_settings().default_note_owner).strip() or "aaron"
     visibility = _normalize_visibility(str(frontmatter.get("visibility") or get_settings().default_note_visibility))
     publication_status = _normalize_publication_status(str(frontmatter.get("publication_status") or "none"))
     frontmatter["owner"] = owner
@@ -583,10 +599,14 @@ def _normalize_visibility(value: str) -> str:
     aliases = {
         "personal": "private",
         "personal_private": "private",
-        "private_source": "source_private",
-        "shared_source": "source_shared",
-        "internal": "derived_internal",
-        "requested": "public_requested",
+        "private_source": "private",
+        "source_private": "private",
+        "source_shared": "private",
+        "shared_source": "private",
+        "internal": "private",
+        "derived_internal": "private",
+        "requested": "private",
+        "public_requested": "private",
     }
     normalized = aliases.get(normalized, normalized)
     if normalized not in VISIBILITY_VALUES:

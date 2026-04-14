@@ -766,16 +766,12 @@ def closed_note_html(note_slug: str | None = None, route_prefix: str = "") -> st
             </label>
             <label class="field">
               <span class="field-label">Owner</span>
-              <input class="field-input" id="editor-owner" placeholder="personal" />
+              <input class="field-input" id="editor-owner" placeholder="aaron" />
             </label>
             <label class="field">
               <span class="field-label">Visibility</span>
               <select class="field-select" id="editor-visibility">
                 <option value="private">private</option>
-                <option value="source_private">source_private</option>
-                <option value="source_shared">source_shared</option>
-                <option value="derived_internal">derived_internal</option>
-                <option value="public_requested">public_requested</option>
                 <option value="public">public</option>
               </select>
             </label>
@@ -791,10 +787,10 @@ def closed_note_html(note_slug: str | None = None, route_prefix: str = "") -> st
               </select>
             </label>
             <label class="field">
-              <span class="field-label">Scope</span>
+              <span class="field-label">Folder Scope</span>
               <select class="field-select" id="editor-scope">
-                <option value="shared">shared</option>
                 <option value="personal">personal</option>
+                <option value="shared">shared</option>
               </select>
             </label>
             <label class="field span-2">
@@ -4208,10 +4204,10 @@ def _workspace_script() -> str:
           dom.formKind.value = fm.kind || noteData.kind || '';
           dom.formProject.value = fm.project || noteData.project || '';
           dom.formStatus.value = fm.status || noteData.status || 'active';
-          dom.formOwner.value = fm.owner || noteData.owner || 'personal';
+          dom.formOwner.value = fm.owner || noteData.owner || 'aaron';
           dom.formVisibility.value = fm.visibility || noteData.visibility || 'private';
           dom.formPublicationStatus.value = fm.publication_status || noteData.publication_status || 'none';
-          dom.formScope.value = dom.formProject.value ? 'shared' : 'shared';
+          dom.formScope.value = (raw.path || noteData.path || '').startsWith('personal_vault/personal/') ? 'personal' : 'shared';
           dom.formFolder.value = '';
           dom.formPath.value = raw.path || noteData.path || '';
           dom.formTags.value = Array.isArray(fm.tags) ? fm.tags.join(', ') : (noteData.tags || []).join(', ');
@@ -4279,7 +4275,7 @@ def _workspace_script() -> str:
           tags: parseList(dom.formTags.value),
           related: parseList(dom.formRelated.value),
           metadata: {
-            owner: dom.formOwner.value.trim() || 'personal',
+            owner: dom.formOwner.value.trim() || 'aaron',
             visibility: dom.formVisibility.value.trim() || 'private',
             publication_status: dom.formPublicationStatus.value.trim() || 'none',
           },

@@ -20,6 +20,8 @@ class AuthState:
     authenticated: bool
     role: str
     token_label: str
+    nickname: str
+    owner: str
     capabilities: list[str]
 
 
@@ -37,11 +39,16 @@ def auth_state_for_token(token: str | None) -> AuthState:
             authenticated=True,
             role="admin",
             token_label="open-mode",
+            nickname="aaron",
+            owner="aaron",
             capabilities=[
                 "notes:read",
                 "notes:write",
                 "folders:write",
                 "assets:write",
+                "publication:request",
+                "publication:manage",
+                "users:manage",
                 "librarian:chat",
                 "librarian:admin",
             ],
@@ -51,28 +58,65 @@ def auth_state_for_token(token: str | None) -> AuthState:
             authenticated=True,
             role="admin",
             token_label="master",
+            nickname="aaron",
+            owner="aaron",
             capabilities=[
                 "notes:read",
                 "notes:write",
                 "folders:write",
                 "assets:write",
+                "publication:request",
+                "publication:manage",
+                "users:manage",
                 "librarian:chat",
                 "librarian:admin",
             ],
         )
-    return AuthState(authenticated=False, role="anonymous", token_label="anonymous", capabilities=[])
+    return AuthState(
+        authenticated=False,
+        role="anonymous",
+        token_label="anonymous",
+        nickname="anonymous",
+        owner="anonymous",
+        capabilities=[],
+    )
 
 
 def auth_state_dict(token: str | None) -> dict[str, object]:
     return asdict(auth_state_for_token(token))
 
 
+def librarian_identity() -> AuthState:
+    return AuthState(
+        authenticated=True,
+        role="manager",
+        token_label="server-librarian",
+        nickname="saguan",
+        owner="saguan",
+        capabilities=[
+            "notes:read",
+            "notes:write",
+            "folders:write",
+            "assets:write",
+            "publication:request",
+            "publication:manage",
+            "librarian:chat",
+            "librarian:admin",
+        ],
+    )
+
+
+def librarian_identity_dict() -> dict[str, object]:
+    return asdict(librarian_identity())
+
+
 def require_agent_token(
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(_bearer)],
-) -> None:
+) -> AuthState:
     token = credentials.credentials if credentials else None
-    if _matches(token):
-        return
+    auth_state = auth_state_for_token(token)
+    if auth_state.authenticated:
+        return auth_state
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Missing or invalid bearer token",
