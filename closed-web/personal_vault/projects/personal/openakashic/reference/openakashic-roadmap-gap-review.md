@@ -7,7 +7,7 @@ confidence: high
 tags: [roadmap, gaps, implementation, librarian]
 related: ["OpenAkashic Knowledge Taxonomy", "Publication Evidence Contract", "OpenAkashic Librarian Control Plane"]
 created_at: 2026-04-14T00:00:00Z
-updated_at: 2026-04-14T08:20:24Z
+updated_at: 2026-04-14T10:38:57Z
 created_by: aaron
 original_owner: aaron
 visibility: public
@@ -50,3 +50,13 @@ owner: sagwan
 
 ## Reuse
 새 구현을 시작할 때는 이 문서의 Gaps를 기준으로 우선순위를 잡고, 완료되면 Current State를 갱신한다.
+
+## 2026-04-14 Graph Permission And Agent Workflow Implementation
+- commit: `399f13b feat: align openakashic access and agent workflow`
+- UI: graph nodes now carry server-side `can_open`; unauthorized private nodes keep graph relationships visible but hide the sidebar `Open Note` action and cannot be opened by double click.
+- Auth: login/signup/logout now reload the page after token changes so server-rendered permissions update immediately.
+- Branding: main web surface, FastAPI title, MCP instructions, public vault index, and key agent docs now use OpenAkashic as the product name while compatibility aliases remain for `closed-akashic://` resources and `CLOSED_AKASHIC_TOKEN`.
+- Agents: added Busagwan subordinate worker/chat, admin settings panel, first publication review loop, crawl/capsule task skeleton, and Sagwan/Busagwan chat tabs.
+- Public knowledge: added development and Japanese learning resource maps plus public capsule bundles for agent retrieval.
+- Validation: local py_compile, rendered JS syntax, graph/search permission smoke, Docker rebuild via `/home/insu/insu_server/compose/production.yml`, public `/health`, `/graph-data`, `/search`, `/admin`, `/api/session`, and authenticated `/mcp/ resources/list` all passed.
+- Remaining cleanup: old historical notes still contain some Closed Akashic titles for migration context; decide later whether to rewrite or archive them.
