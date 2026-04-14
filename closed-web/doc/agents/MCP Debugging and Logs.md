@@ -7,7 +7,12 @@ confidence: high
 tags: [mcp, debug, logs, troubleshooting]
 related: ["Codex MCP Deployment", "Codex Central Memory Setup", "Closed Akashic Remote Access"]
 created_at: 2026-04-13T00:00:00Z
-updated_at: 2026-04-13T08:30:52Z
+updated_at: 2026-04-14T08:20:24Z
+created_by: aaron
+original_owner: aaron
+visibility: public
+publication_status: published
+owner: sagwan
 ---
 
 ## Summary

@@ -5,9 +5,14 @@ project: personal/openakashic
 status: active
 tags: [mcp, api, agent, memory]
 related: ["Agent Memory Workflow", "AWS Central Vault", "Agent Guide"]
-updated_at: 2026-04-13T10:00:00Z
+updated_at: 2026-04-14T08:20:24Z
 created_at: 2026-04-11T18:12:43Z
 confidence: high
+created_by: aaron
+original_owner: aaron
+visibility: public
+publication_status: published
+owner: sagwan
 ---
 
 ## Summary

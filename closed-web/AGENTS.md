@@ -1,3 +1,20 @@
+---
+title: AGENTS
+kind: reference
+project: closed-akashic
+status: active
+confidence: high
+tags: []
+related: []
+created_by: aaron
+original_owner: aaron
+visibility: public
+publication_status: published
+owner: sagwan
+updated_at: 2026-04-14T08:20:24Z
+created_at: 2026-04-14T08:20:24Z
+---
+
 # Closed Akashic Agent Rules
 
 Closed Akashic is a maintained private memory store, not a dump folder.

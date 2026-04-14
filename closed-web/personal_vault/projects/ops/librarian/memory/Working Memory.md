@@ -7,7 +7,7 @@ confidence: high
 tags: [librarian, memory]
 related: ["Librarian Project", "Librarian Profile"]
 created_at: 2026-04-14T00:00:00Z
-updated_at: 2026-04-14T07:38:09Z
+updated_at: 2026-04-14T08:35:27Z
 owner: aaron
 visibility: private
 publication_status: none
@@ -64,3 +64,12 @@ publication_status: none
 
 ## 2026-04-14 UI Governance And Taxonomy Pass
 Closed Akashic/OpenAkashic 통합 작업에서 graph inspector와 note sidebar를 같은 좌측 inspector 패턴으로 정리했다. Graph는 전체 topology를 유지하되, Explore/Search/Open Note는 현재 권한으로 열 수 있는 문서만 보여주고 선택 패널에는 owner, status, visibility, publication metadata를 함께 노출한다. `kind`는 index, architecture, policy, playbook, evidence, experiment, dataset, reference, claim, capsule, roadmap, profile, publication_request로 정규화했고, 편집기 Kind Guide가 권장 섹션과 경로 힌트를 즉시 보여주도록 연결했다. `publication_request`와 evidence 중심 공개 계약, 구현/기획 gap roadmap 문서를 OpenAkashic 프로젝트 노트에 추가했다.
+
+## 2026-04-14 Public Read Rollback, User Auth, And Publication Request Flow
+Public notes are readable again on the main site and now surface in home, explorer, and search while private notes remain owner-or-admin only. The graph inspector recovered from the runtime template bug, keeps the persistent reopen arrow, and now includes display filters for kind, owner, query, path, and degree.
+
+A local user-account flow was added with signup, login, profile update, and token rotation endpoints plus a shared header auth modal. User tokens now resolve to user capabilities and can create personal private notes, browse public knowledge, and contribute publication requests without MCP.
+
+Publication save flow is now verified end to end: a regular user can save a note with visibility set to public, the source note stays private under the author, publication_status becomes requested, and a librarian request note is created under the sagwan-managed publication queue. Safe OpenAkashic and shared docs were promoted to public ownership under sagwan, while company-sensitive, portfolio, ops, and personal-private materials were left private.
+
+A follow-up bug in user account storage was fixed by remapping legacy /server paths to the active Closed Akashic vault root so signup/login now work in the deployed container environment.

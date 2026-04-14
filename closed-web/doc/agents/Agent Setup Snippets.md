@@ -1,13 +1,18 @@
 ---
-title: Agent Setup Snippets
+title: "Agent Setup Snippets"
 kind: reference
 project: closed-akashic
 status: active
 confidence: high
 tags: [agent, codex, mcp, setup]
-related: [Distributed Agent Memory Contract, Remote Agent Enrollment, Codex MCP Deployment, MCP Debugging and Logs]
+related: ["Distributed Agent Memory Contract", "Remote Agent Enrollment", "Codex MCP Deployment", "MCP Debugging and Logs"]
 created_at: 2026-04-13T00:00:00Z
-updated_at: 2026-04-13T00:00:00Z
+updated_at: 2026-04-14T08:20:24Z
+created_by: aaron
+original_owner: aaron
+visibility: public
+publication_status: published
+owner: sagwan
 ---
 
 ## Summary

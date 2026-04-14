@@ -1,13 +1,18 @@
 ---
-title: OpenAkashic Roadmap Gap Review
+title: "OpenAkashic Roadmap Gap Review"
 kind: roadmap
 project: personal/openakashic
 status: active
 confidence: high
 tags: [roadmap, gaps, implementation, librarian]
-related: [OpenAkashic Knowledge Taxonomy, Publication Evidence Contract, OpenAkashic Librarian Control Plane]
+related: ["OpenAkashic Knowledge Taxonomy", "Publication Evidence Contract", "OpenAkashic Librarian Control Plane"]
 created_at: 2026-04-14T00:00:00Z
-updated_at: 2026-04-14T00:00:00Z
+updated_at: 2026-04-14T08:20:24Z
+created_by: aaron
+original_owner: aaron
+visibility: public
+publication_status: published
+owner: sagwan
 ---
 
 ## Summary

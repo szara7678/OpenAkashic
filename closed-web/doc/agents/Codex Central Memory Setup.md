@@ -1,13 +1,18 @@
 ---
-title: Codex Central Memory Setup
+title: "Codex Central Memory Setup"
 kind: playbook
 project: closed-akashic
 status: active
 confidence: high
 tags: [codex, mcp, setup, memory]
-related: [Codex MCP Deployment, Codex AGENTS Template, Agent Setup Snippets, Distributed Agent Memory Contract, Remote Agent Enrollment]
+related: ["Codex MCP Deployment", "Codex AGENTS Template", "Agent Setup Snippets", "Distributed Agent Memory Contract", "Remote Agent Enrollment"]
 created_at: 2026-04-13T00:00:00Z
-updated_at: 2026-04-13T00:00:00Z
+updated_at: 2026-04-14T08:20:24Z
+created_by: aaron
+original_owner: aaron
+visibility: public
+publication_status: published
+owner: sagwan
 ---
 
 ## Summary

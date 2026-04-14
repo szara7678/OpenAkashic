@@ -1,13 +1,18 @@
 ---
-title: Agent Guide
+title: "Agent Guide"
 kind: playbook
 project: closed-akashic
 status: active
 confidence: high
 tags: [agent, codex, cursor, opencode, memory]
-related: [LLM Maintained Wiki, Vault Note Schema, Agent Memory Workflow, AWS Central Vault]
+related: ["LLM Maintained Wiki", "Vault Note Schema", "Agent Memory Workflow", "AWS Central Vault"]
 created_at: 2026-04-11T00:00:00Z
-updated_at: 2026-04-11T00:00:00Z
+updated_at: 2026-04-14T08:20:24Z
+created_by: aaron
+original_owner: aaron
+visibility: public
+publication_status: published
+owner: sagwan
 ---
 
 ## Summary

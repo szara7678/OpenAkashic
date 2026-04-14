@@ -58,6 +58,13 @@ from app.vault import (
     suggest_note_path,
     write_document,
 )
+from app.users import (
+    authenticate_user,
+    create_user,
+    public_user_record,
+    rotate_user_token,
+    update_user_profile,
+)
 
 
 settings = get_settings()
@@ -144,6 +151,23 @@ class PublicationStatusPayload(BaseModel):
     reason: str | None = None
 
 
+class AuthSignupPayload(BaseModel):
+    nickname: str = Field(min_length=3)
+    password: str = Field(min_length=8)
+    email: str | None = None
+    display_name: str | None = None
+
+
+class AuthLoginPayload(BaseModel):
+    identifier: str = Field(min_length=1)
+    password: str = Field(min_length=8)
+
+
+class ProfileUpdatePayload(BaseModel):
+    display_name: str | None = None
+    email: str | None = None
+
+
 def _route_prefix(request: Request) -> str:
     host = request.headers.get("host", "")
     return "/closed" if host.startswith("openakashic.com") else ""
@@ -178,6 +202,16 @@ def _can_manage_publication(auth: AuthState) -> bool:
     return _is_admin(auth) or "publication:manage" in auth.capabilities
 
 
+def _session_payload(token: str | None) -> dict[str, Any]:
+    auth = auth_state_dict(token)
+    return {
+        **auth,
+        "public_base_url": settings.public_base_url,
+        "librarian_identity": librarian_identity_dict(),
+        "librarian": librarian_status() if auth["authenticated"] else None,
+    }
+
+
 def _note_visibility(frontmatter: dict[str, Any]) -> str:
     visibility = str(frontmatter.get("visibility") or settings.default_note_visibility).strip().lower()
     return visibility if visibility in {"private", "public"} else "private"
@@ -188,6 +222,8 @@ def _note_owner(frontmatter: dict[str, Any]) -> str:
 
 
 def _can_read_frontmatter(frontmatter: dict[str, Any], auth: AuthState) -> bool:
+    if _note_visibility(frontmatter) == "public":
+        return True
     return auth.authenticated and (_is_admin(auth) or _note_owner(frontmatter) == auth.nickname)
 
 
@@ -234,8 +270,9 @@ def _normalize_write_metadata(payload: NoteWriteRequest, auth: AuthState) -> dic
     ).strip().lower().replace("-", "_")
     if requested_visibility not in {"private", "public"}:
         requested_visibility = "private"
-    if not _is_admin(auth) and requested_visibility != "private":
-        raise HTTPException(status_code=403, detail="Only admins can make a note public")
+    if not _is_admin(auth) and requested_visibility == "public":
+        metadata["publication_target_visibility"] = "public"
+        requested_visibility = "private"
     metadata["visibility"] = requested_visibility
 
     if is_existing:
@@ -253,6 +290,8 @@ def _normalize_write_metadata(payload: NoteWriteRequest, auth: AuthState) -> dic
     publication_status = str(
         metadata.get("publication_status") or existing_frontmatter.get("publication_status") or "none"
     ).strip().lower().replace("-", "_")
+    if not _is_admin(auth) and metadata.get("publication_target_visibility") == "public":
+        publication_status = "requested"
     if not _is_admin(auth) and publication_status not in {"none", "requested"}:
         raise HTTPException(status_code=403, detail="Users can only set publication status to none or requested")
     metadata["publication_status"] = publication_status
@@ -281,16 +320,12 @@ def _vault_http_error(exc: Exception) -> HTTPException:
 @api.get("/", response_class=HTMLResponse)
 def root(request: Request) -> str:
     auth = _auth_from_request(request)
-    home_note = get_closed_home_note(route_prefix=_route_prefix(request))
-    _assert_can_read_note_payload(home_note, auth)
     return closed_note_html(route_prefix=_route_prefix(request), viewer_owner=auth.nickname, is_admin=_is_admin(auth))
 
 
 @api.get("/closed", response_class=HTMLResponse)
 def prefixed_root(request: Request) -> str:
     auth = _auth_from_request(request)
-    home_note = get_closed_home_note(route_prefix="/closed")
-    _assert_can_read_note_payload(home_note, auth)
     return closed_note_html(route_prefix="/closed", viewer_owner=auth.nickname, is_admin=_is_admin(auth))
 
 
@@ -373,16 +408,22 @@ def prefixed_note(request: Request, path: str = Query(min_length=1)) -> dict[str
 @api.get("/home")
 def home(request: Request) -> dict[str, Any]:
     auth = _auth_from_request(request)
-    result = get_closed_home_note(route_prefix=_route_prefix(request))
-    _assert_can_read_note_payload(result, auth)
+    result = get_closed_home_note(
+        route_prefix=_route_prefix(request),
+        viewer_owner=auth.nickname,
+        is_admin=_is_admin(auth),
+    )
     return result
 
 
 @api.get("/closed/home")
 def prefixed_home(request: Request) -> dict[str, Any]:
     auth = _auth_from_request(request)
-    result = get_closed_home_note(route_prefix="/closed")
-    _assert_can_read_note_payload(result, auth)
+    result = get_closed_home_note(
+        route_prefix="/closed",
+        viewer_owner=auth.nickname,
+        is_admin=_is_admin(auth),
+    )
     return result
 
 
@@ -413,12 +454,85 @@ def prefixed_note_page(request: Request, slug: str) -> str:
 
 @api.get("/api/session")
 def api_session(request: Request) -> dict[str, Any]:
-    auth = auth_state_dict(_request_token(request))
+    return _session_payload(_request_token(request))
+
+
+@api.post("/api/auth/signup")
+def api_auth_signup(payload: AuthSignupPayload) -> dict[str, Any]:
+    try:
+        user = create_user(
+            nickname=payload.nickname,
+            password=payload.password,
+            email=payload.email,
+            display_name=payload.display_name,
+        )
+    except ValueError as exc:
+        raise _vault_http_error(exc) from exc
+    token = str(user.get("api_token") or "")
     return {
-        **auth,
-        "public_base_url": settings.public_base_url,
-        "librarian_identity": librarian_identity_dict(),
-        "librarian": librarian_status() if auth["authenticated"] else None,
+        "token": token,
+        "user": public_user_record(user),
+        "session": _session_payload(token),
+    }
+
+
+@api.post("/api/auth/login")
+def api_auth_login(payload: AuthLoginPayload) -> dict[str, Any]:
+    user = authenticate_user(payload.identifier, payload.password)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid login credentials")
+    token = str(user.get("api_token") or "")
+    return {
+        "token": token,
+        "user": public_user_record(user),
+        "session": _session_payload(token),
+    }
+
+
+@api.get("/api/profile")
+def api_profile(auth: AuthState = Depends(require_agent_token)) -> dict[str, Any]:
+    return {
+        "profile": {
+            "nickname": auth.nickname,
+            "display_name": auth.display_name or auth.nickname,
+            "email": auth.email,
+            "role": auth.role,
+            "token": None if auth.token_label == "master" else "",
+        }
+    }
+
+
+@api.post("/api/profile")
+def api_update_profile(
+    payload: ProfileUpdatePayload,
+    auth: AuthState = Depends(require_agent_token),
+) -> dict[str, Any]:
+    if auth.token_label == "master":
+        raise HTTPException(status_code=403, detail="Master admin profile is managed outside local signup")
+    try:
+        user = update_user_profile(
+            nickname=auth.nickname,
+            display_name=payload.display_name,
+            email=payload.email,
+        )
+    except ValueError as exc:
+        raise _vault_http_error(exc) from exc
+    return {"profile": public_user_record(user)}
+
+
+@api.post("/api/profile/token")
+def api_rotate_profile_token(auth: AuthState = Depends(require_agent_token)) -> dict[str, Any]:
+    if auth.token_label == "master":
+        raise HTTPException(status_code=403, detail="Master admin token is managed outside local signup")
+    try:
+        user = rotate_user_token(nickname=auth.nickname)
+    except ValueError as exc:
+        raise _vault_http_error(exc) from exc
+    token = str(user.get("api_token") or "")
+    return {
+        "token": token,
+        "profile": public_user_record(user),
+        "session": _session_payload(token),
     }
 
 
@@ -578,10 +692,24 @@ def api_upsert_note(
             metadata=metadata,
             allow_owner_change=metadata.get("owner") == "sagwan" and metadata.get("visibility") == "public",
         )
+        publication_request_data: dict[str, Any] | None = None
+        wants_publication = not _is_admin(auth) and (
+            str((payload.metadata or {}).get("visibility") or "").strip().lower() == "public"
+            or str(metadata.get("publication_status") or "").strip().lower() == "requested"
+        )
+        if wants_publication:
+            request = request_publication(
+                path=document.path,
+                requester=auth.nickname,
+                target_visibility="public",
+                rationale=None,
+                evidence_paths=[],
+            )
+            publication_request_data = request.__dict__
     except (FileNotFoundError, ValueError) as exc:
         raise _vault_http_error(exc) from exc
     result = get_closed_note(document.path)
-    return {"path": document.path, "note": result}
+    return {"path": document.path, "note": result, "publication_request": publication_request_data}
 
 
 @api.post("/api/note/append")

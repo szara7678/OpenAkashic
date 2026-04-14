@@ -38,6 +38,8 @@ class ClosedNote:
 
 
 def _viewer_can_open_note(note: ClosedNote, viewer_owner: str | None, is_admin: bool) -> bool:
+    if note.visibility == "public":
+        return True
     if is_admin:
         return True
     owner = (viewer_owner or "").strip()
@@ -136,11 +138,18 @@ def get_closed_note_by_slug(slug: str, route_prefix: str = "") -> dict[str, Any]
     return _note_payload(note, notes, route_prefix)
 
 
-def get_closed_home_note(route_prefix: str = "") -> dict[str, Any]:
+def get_closed_home_note(
+    route_prefix: str = "",
+    *,
+    viewer_owner: str | None = None,
+    is_admin: bool = False,
+) -> dict[str, Any]:
     notes = _load_notes()
-    home = next((note for note in notes if note.path.lower() == "readme.md"), None)
-    note = home or (notes[0] if notes else _empty_note())
-    return _note_payload(note, notes, route_prefix)
+    visible_notes = _filter_notes_for_viewer(notes, viewer_owner=viewer_owner, is_admin=is_admin)
+    candidates = visible_notes
+    home = next((note for note in candidates if note.path.lower() == "readme.md"), None)
+    note = home or (candidates[0] if candidates else _empty_note())
+    return _note_payload(note, candidates, route_prefix)
 
 
 def search_closed_notes(query: str, limit: int = 12, route_prefix: str = "") -> dict[str, Any]:
@@ -169,15 +178,25 @@ def search_closed_notes(query: str, limit: int = 12, route_prefix: str = "") -> 
     }
     for note in notes:
         haystack = " ".join(
-            [note.title, note.summary, note.kind, note.project, " ".join(note.tags), note.body]
+            [
+                note.title,
+                note.summary,
+                note.kind,
+                note.project,
+                note.path,
+                note.owner,
+                " ".join(note.tags),
+                note.body,
+            ]
         ).lower()
         lexical_hit = bool(q and q in haystack)
         semantic_score = semantic_scores.get(note.slug, 0.0)
         if not lexical_hit and semantic_score <= 0:
             continue
         title_hit = 4 if q and q in note.title.lower() else 0
+        path_hit = 3 if q and q in note.path.lower() else 0
         tag_hit = 2 if q and any(q in tag.lower() for tag in note.tags) else 0
-        lexical_score = title_hit + tag_hit + (haystack.count(q) if q else 0)
+        lexical_score = title_hit + path_hit + tag_hit + (haystack.count(q) if q else 0)
         score = float(lexical_score) + semantic_score * 6.0
         matches_by_slug[note.slug] = {
             "path": note.path,
@@ -185,6 +204,9 @@ def search_closed_notes(query: str, limit: int = 12, route_prefix: str = "") -> 
             "title": note.title,
             "kind": note.kind,
             "project": note.project,
+            "owner": note.owner,
+            "visibility": note.visibility,
+            "publication_status": note.publication_status,
             "tags": note.tags,
             "summary": note.summary,
             "href": _note_href(note.slug, route_prefix),
@@ -213,8 +235,9 @@ def closed_note_html(
     visible_notes = _filter_notes_for_viewer(notes, viewer_owner=viewer_owner, is_admin=is_admin)
     route_prefix = _normalize_prefix(route_prefix)
     note = next((item for item in notes if item.slug == note_slug), None) if note_slug else None
-    note = note or next((item for item in notes if item.path.lower() == "readme.md"), None)
-    note = note or (notes[0] if notes else _empty_note())
+    home_candidates = visible_notes
+    note = note or next((item for item in home_candidates if item.path.lower() == "readme.md"), None)
+    note = note or (home_candidates[0] if home_candidates else _empty_note())
     payload = _note_payload(note, visible_notes or [note], route_prefix)
     note_links = _explorer_html(visible_notes, note.slug, route_prefix)
     path_breadcrumb = _path_breadcrumb_html(payload["path"])
@@ -283,6 +306,33 @@ def closed_note_html(
       transition: grid-template-columns .22s ease;
     }}
     body.left-collapsed .layout {{ grid-template-columns: 0 minmax(0, 1fr); }}
+    .sidebar-edge-toggle {{
+      position: fixed;
+      top: calc(var(--closed-header-height) + 18px);
+      left: calc(var(--closed-sidebar-width) - 18px);
+      z-index: 60;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.96);
+      color: var(--muted);
+      box-shadow: 0 10px 24px rgba(15, 23, 42, .08);
+      cursor: pointer;
+      transition: left .22s ease, transform .18s ease, background .18s ease, border-color .18s ease;
+    }}
+    body.left-collapsed .sidebar-edge-toggle {{
+      left: 10px;
+      transform: rotate(180deg);
+    }}
+    .sidebar-edge-toggle:hover {{
+      background: rgba(255,255,255,.99);
+      border-color: var(--line-strong);
+      color: var(--ink);
+    }}
     .sidebar {{
       position: sticky;
       top: var(--closed-header-height);
@@ -408,27 +458,6 @@ def closed_note_html(
       display: block;
     }}
     .brand-wrap {{ display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 18px; }}
-    .brand-actions {{ display: flex; align-items: center; gap: 8px; }}
-    .icon-button {{
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 34px;
-      height: 34px;
-      border-radius: 10px;
-      border: 1px solid var(--line);
-      background: rgba(255,255,255,.92);
-      color: var(--muted);
-      cursor: pointer;
-      transition: transform .18s ease, background .18s ease, border-color .18s ease, color .18s ease;
-    }}
-    .icon-button:hover {{
-      transform: translateY(-1px);
-      background: rgba(255,255,255,.98);
-      border-color: var(--line-strong);
-      color: var(--ink);
-    }}
-    body.left-collapsed #toggle-left-sidebar {{ transform: rotate(180deg); }}
     .brand {{ margin: 0; font-size: 1.85rem; line-height: 1.05; font-weight: 780; letter-spacing: 0; }}
     .brand-kicker {{ margin: 0 0 6px; color: var(--accent-2); font-size: 0.76rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }}
     .sub {{ margin: 0; color: var(--muted); font-size: 0.94rem; line-height: 1.6; }}
@@ -720,6 +749,7 @@ def closed_note_html(
       .sidebar {{ padding-right: 24px; }}
       .sidebar-resizer {{ display: none; }}
       body.left-collapsed .sidebar {{ display: none; }}
+      .sidebar-edge-toggle {{ top: calc(var(--closed-header-height) + 10px); left: 10px; }}
       .content {{ padding-top: 0; }}
       .appbar {{
         margin-left: -14px;
@@ -737,16 +767,13 @@ def closed_note_html(
 </head>
 <body class="closed-with-header">
   {shared_header}
+  <button class="sidebar-edge-toggle" id="toggle-left-sidebar" type="button" aria-label="Toggle Sidebar" title="Toggle Sidebar">❮</button>
   <div class="layout">
     <aside class="sidebar" id="workspace-sidebar" data-active-panel="explore">
       <div class="brand-wrap">
         <div>
           <p class="brand-kicker">Closed Akashic</p>
           <h1 class="brand">Living Notes</h1>
-        </div>
-        <div class="brand-actions">
-          <button class="icon-button" id="focus-global-search" type="button" aria-label="Focus Explorer Search" title="Focus Explorer Search">⌕</button>
-          <button class="icon-button" id="toggle-left-sidebar" type="button" aria-label="Toggle Sidebar" title="Toggle Sidebar">❮</button>
         </div>
       </div>
       <p class="sub">링크된 노트를 따라 기억을 쌓고 다시 꺼내 쓰는 개인 지식 창고.</p>
@@ -792,13 +819,13 @@ def closed_note_html(
           <h3 class="meta-title">Relations</h3>
           <p class="meta-copy">관련 페이지는 Edit 탭의 Related 필드에 제목을 넣어 연결한다.</p>
           <div class="toolbar-row" style="margin-top:12px;">
-            <button class="action-button" id="edit-relations" type="button" data-admin-only hidden>Edit Related</button>
+            <button class="action-button" id="edit-relations" type="button" data-note-write-control hidden>Edit Related</button>
           </div>
         </section>
         {related_html}
         {backlinks_html}
       </section>
-      <section class="sidebar-panel" data-sidebar-panel="edit" data-admin-only hidden>
+      <section class="sidebar-panel" data-sidebar-panel="edit" data-note-write-control hidden>
         <section class="meta-section">
           <h3 class="meta-title">Page Settings</h3>
           <div class="workspace-grid">
@@ -879,6 +906,13 @@ def closed_note_html(
             <button class="action-button" id="workspace-create-folder" type="button">Create Folder</button>
           </div>
         </section>
+        <section class="meta-section">
+          <h3 class="meta-title">Save</h3>
+          <div class="toolbar-row">
+            <button class="action-button" id="workspace-save" type="button">Save Changes</button>
+          </div>
+          <p class="meta-copy">본인 문서에서 Visibility를 `public`으로 두고 저장하면 원문은 private로 유지되고 publication 요청이 자동으로 올라간다.</p>
+        </section>
       </section>
       <div class="sidebar-resizer" id="sidebar-resizer" role="separator" aria-orientation="vertical" aria-label="Resize sidebar" title="Drag to resize"></div>
     </aside>
@@ -911,6 +945,7 @@ def closed_note_html(
   {workspace_overlay}
   <script type="application/json" id="closed-note-data">{note_json}</script>
   <script>
+    const noteMeta = JSON.parse(document.getElementById('closed-note-data')?.textContent || '{{}}');
     const input = document.getElementById('note-filter');
     const items = [...document.querySelectorAll('.nav-link')];
     const folders = [...document.querySelectorAll('.folder-group')];
@@ -919,7 +954,6 @@ def closed_note_html(
     const pathSegments = [...document.querySelectorAll('.path-segment')];
     const sidebar = document.getElementById('workspace-sidebar');
     const leftToggle = document.getElementById('toggle-left-sidebar');
-    const focusSearch = document.getElementById('focus-global-search');
     const sideTabs = [...document.querySelectorAll('[data-sidebar-tab]')];
     const editRelations = document.getElementById('edit-relations');
     const searchEndpoint = '{html.escape(_search_href(route_prefix))}';
@@ -927,6 +961,20 @@ def closed_note_html(
     const leftCollapsedKey = 'closed-akashic-left-collapsed';
     const sidebarTabKey = 'closed-akashic-sidebar-tab';
     let searchTimer = null;
+
+    function canWriteCurrentNote(session) {{
+      if (!session?.authenticated) return false;
+      if (session.role === 'admin') return true;
+      return noteMeta.visibility !== 'public' && session.nickname === noteMeta.owner;
+    }}
+
+    function syncNoteWriteControls(session) {{
+      const allowed = canWriteCurrentNote(session);
+      window.closedAkashicUI?.setNoteWriteVisible?.(allowed);
+      if (!allowed && sidebar?.getAttribute('data-active-panel') === 'edit') {{
+        setSidebarTab('explore', {{ openSidebar: false }});
+      }}
+    }}
 
     function setLeftCollapsed(collapsed) {{
       document.body.classList.toggle('left-collapsed', collapsed);
@@ -997,15 +1045,6 @@ def closed_note_html(
 
     leftToggle?.addEventListener('click', () => {{
       setLeftCollapsed(!document.body.classList.contains('left-collapsed'));
-    }});
-
-    focusSearch?.addEventListener('click', () => {{
-      setSidebarTab('explore');
-      setLeftCollapsed(false);
-      window.setTimeout(() => {{
-        input?.focus();
-        input?.select();
-      }}, 80);
     }});
 
     editRelations?.addEventListener('click', () => {{
@@ -1095,6 +1134,10 @@ def closed_note_html(
         searchBox?.classList.remove('visible');
       }}
     }});
+    document.addEventListener('closed-akashic-auth-change', (event) => {{
+      syncNoteWriteControls(event.detail || {{ authenticated: false, role: 'anonymous', nickname: '' }});
+    }});
+    syncNoteWriteControls(window.closedAkashicUI?.getSession?.() || {{ authenticated: false, role: 'anonymous', nickname: '' }});
   </script>
   <script>
     {workspace_script}
@@ -1112,6 +1155,10 @@ def closed_graph_html(
     route_prefix = _normalize_prefix(route_prefix)
     visible_notes = _filter_notes_for_viewer(_load_notes(), viewer_owner=viewer_owner, is_admin=is_admin)
     note_links = _explorer_html(visible_notes, "", route_prefix)
+    kind_options_html = "\n".join(
+        f'        <option value="{html.escape(item["kind"])}"></option>'
+        for item in kind_catalog()
+    )
     shared_styles = _shared_ui_styles()
     shared_header = _shared_header_html(route_prefix, "Graph")
     shared_shell = _shared_ui_shell(route_prefix)
@@ -1181,6 +1228,33 @@ def closed_graph_html(
     }}
     body.left-collapsed .shell {{
       transform: translateX(calc(var(--closed-sidebar-width) * -1));
+    }}
+    .sidebar-edge-toggle {{
+      position: fixed;
+      top: calc(var(--closed-header-height) + 18px);
+      left: calc(var(--closed-sidebar-width) - 18px);
+      z-index: 60;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.96);
+      color: var(--muted);
+      box-shadow: 0 10px 24px rgba(15, 23, 42, .08);
+      cursor: pointer;
+      transition: left .22s ease, transform .18s ease, background .18s ease, border-color .18s ease;
+    }}
+    body.left-collapsed .sidebar-edge-toggle {{
+      left: 10px;
+      transform: rotate(180deg);
+    }}
+    .sidebar-edge-toggle:hover {{
+      background: rgba(255,255,255,.99);
+      border-color: var(--line-strong);
+      color: var(--ink);
     }}
     .graph-menu {{
       width: 100%;
@@ -1300,15 +1374,6 @@ def closed_graph_html(
     .brand-wrap {{ display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 18px; }}
     .brand-kicker {{ margin: 0 0 6px; color: var(--accent-2); font-size: 0.76rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }}
     .brand {{ margin: 0; font-size: 1.85rem; line-height: 1.05; font-weight: 780; letter-spacing: 0; }}
-    .brand-actions {{ display: flex; align-items: center; gap: 8px; }}
-    .icon-button {{
-      display: inline-flex; align-items: center; justify-content: center;
-      width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--line);
-      background: rgba(255,255,255,.92); color: var(--muted); cursor: pointer;
-      transition: transform .18s ease, background .18s ease, border-color .18s ease, color .18s ease;
-    }}
-    .icon-button:hover {{ transform: translateY(-1px); background: rgba(255,255,255,.98); border-color: var(--line-strong); color: var(--ink); }}
-    body.left-collapsed #toggle-left-sidebar {{ transform: rotate(180deg); }}
     .sub {{ margin: 0; color: var(--muted); font-size: 0.94rem; line-height: 1.6; }}
     .search-wrap {{ position: relative; margin-bottom: 18px; }}
     .search-results {{
@@ -1353,14 +1418,51 @@ def closed_graph_html(
     .nav-link small {{ display:block; color: var(--muted); font-size: 0.72rem; margin-top: 4px; overflow-wrap: anywhere; line-height: 1.35; }}
     .panel-copy {{ color: var(--muted); font-size: .88rem; line-height: 1.6; }}
     .selection-access {{ margin-top: 10px; color: var(--muted); font-size: .84rem; line-height: 1.55; }}
+    .filter-grid {{
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }}
+    .filter-field {{
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+    }}
+    .filter-field span {{
+      color: var(--muted);
+      font-size: .72rem;
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }}
+    .filter-input {{
+      width: 100%;
+      min-width: 0;
+      height: 38px;
+      padding: 0 12px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.96);
+      color: var(--ink);
+      outline: none;
+    }}
+    .filter-meta {{
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: .84rem;
+      line-height: 1.55;
+    }}
     @media (max-width: 980px) {{
       .shell {{
         inset: var(--closed-header-height) auto 0 0;
       }}
       .graph-menu {{ width: min(100vw, 92vw); }}
+      .sidebar-edge-toggle {{ top: calc(var(--closed-header-height) + 10px); left: 10px; }}
     }}
     @media (max-width: 560px) {{
       .meta-grid {{ grid-template-columns: 1fr; }}
+      .filter-grid {{ grid-template-columns: 1fr; }}
       .row, .actions {{ gap: 7px; }}
       .chip, .search {{ min-width: 0; max-width: 100%; }}
       .graph-menu {{ width: min(100vw, 100%); }}
@@ -1371,6 +1473,7 @@ def closed_graph_html(
 <body class="closed-with-header">
   {shared_header}
   <canvas id="graph"></canvas>
+  <button class="sidebar-edge-toggle" id="toggle-left-sidebar" type="button" aria-label="Toggle Sidebar" title="Toggle Sidebar">❮</button>
   <div class="shell">
     <section class="graph-menu floating" id="graph-menu" data-active-tab="explore">
       <div class="panel-bar">
@@ -1378,10 +1481,6 @@ def closed_graph_html(
           <div>
             <p class="brand-kicker">Closed Akashic</p>
             <h1 class="brand">Graph Inspector</h1>
-          </div>
-          <div class="brand-actions">
-            <button class="icon-button" id="focus-global-search" type="button" aria-label="Focus Explorer Search" title="Focus Explorer Search">⌕</button>
-            <button class="icon-button" id="toggle-left-sidebar" type="button" aria-label="Toggle Sidebar" title="Toggle Sidebar">❮</button>
           </div>
         </div>
       </div>
@@ -1428,16 +1527,48 @@ def closed_graph_html(
         </section>
         <section class="graph-tab-panel" data-graph-panel="display">
           <h2>Display</h2>
-          <p>왼쪽 inspector는 접고 펼칠 수 있고, 그래프 자체는 모든 연결을 유지한다. 노트 열람은 owner/admin 경계에서만 제한된다.</p>
+          <p>그래프 자체는 전체 연결을 유지하면서도, 여기서는 원하는 조건의 노드 집합만 골라 시각화할 수 있다.</p>
           <div class="legend">
             <span><i style="background:#2563eb"></i>architecture/dataset</span>
             <span><i style="background:#0f766e"></i>policy/playbook/profile</span>
             <span><i style="background:#ea580c"></i>evidence/experiment/request</span>
             <span><i style="background:#7c3aed"></i>claim/capsule/roadmap</span>
           </div>
+          <datalist id="graph-kind-options">
+{kind_options_html}
+          </datalist>
+          <datalist id="graph-owner-options"></datalist>
+          <div class="filter-grid">
+            <label class="filter-field">
+              <span>Kind</span>
+              <input class="filter-input" id="graph-filter-kind" list="graph-kind-options" placeholder="all" />
+            </label>
+            <label class="filter-field">
+              <span>Owner</span>
+              <input class="filter-input" id="graph-filter-owner" list="graph-owner-options" placeholder="all" />
+            </label>
+            <label class="filter-field">
+              <span>Name Or Word</span>
+              <input class="filter-input" id="graph-filter-query" placeholder="title, tag, path, summary" />
+            </label>
+            <label class="filter-field">
+              <span>Path Contains</span>
+              <input class="filter-input" id="graph-filter-path" placeholder="projects/personal/openakashic" />
+            </label>
+            <label class="filter-field">
+              <span>Min Degree</span>
+              <input class="filter-input" id="graph-filter-min-degree" type="number" min="0" step="1" value="0" />
+            </label>
+            <label class="filter-field">
+              <span>Max Degree</span>
+              <input class="filter-input" id="graph-filter-max-degree" type="number" min="0" step="1" placeholder="auto" />
+            </label>
+          </div>
+          <div class="filter-meta" id="graph-filter-meta">전체 그래프를 기준으로 필터를 적용한다.</div>
           <div class="row">
             <button class="chip" id="graph-focus-search" type="button">Focus Explore</button>
             <button class="chip" id="graph-focus-selection" type="button">Focus Selection</button>
+            <button class="chip" id="graph-filter-reset" type="button">Reset Filters</button>
           </div>
         </section>
       </div>
@@ -1468,6 +1599,9 @@ def closed_graph_html(
       clusters: new Map(),
       activePointer: null,
       auth: {{ authenticated: false, role: 'anonymous', nickname: '' }},
+      visibleNodeIds: new Set(),
+      visibleLinks: [],
+      filters: {{ kind: '', owner: '', query: '', path: '', minDegree: 0, maxDegree: '' }},
     }};
     const leftCollapsedKey = 'closed-akashic-left-collapsed';
     const graphTabKey = 'closed-akashic-graph-tab';
@@ -1477,6 +1611,15 @@ def closed_graph_html(
     const graphFocusSelection = document.getElementById('graph-focus-selection');
     const leftToggle = document.getElementById('toggle-left-sidebar');
     const openLink = document.getElementById('open-link');
+    const ownerOptions = document.getElementById('graph-owner-options');
+    const filterKind = document.getElementById('graph-filter-kind');
+    const filterOwner = document.getElementById('graph-filter-owner');
+    const filterQuery = document.getElementById('graph-filter-query');
+    const filterPath = document.getElementById('graph-filter-path');
+    const filterMinDegree = document.getElementById('graph-filter-min-degree');
+    const filterMaxDegree = document.getElementById('graph-filter-max-degree');
+    const filterMeta = document.getElementById('graph-filter-meta');
+    const filterReset = document.getElementById('graph-filter-reset');
     let searchTimer = null;
 
     function resize() {{
@@ -1531,6 +1674,50 @@ def closed_graph_html(
       state.adjacency = map;
     }}
 
+    function matchesGraphFilters(node) {{
+      const kind = String(state.filters.kind || '').trim().toLowerCase();
+      const owner = String(state.filters.owner || '').trim().toLowerCase();
+      const query = String(state.filters.query || '').trim().toLowerCase();
+      const pathQuery = String(state.filters.path || '').trim().toLowerCase();
+      const minDegree = Number(state.filters.minDegree || 0) || 0;
+      const maxDegree = state.filters.maxDegree === '' ? Number.POSITIVE_INFINITY : Number(state.filters.maxDegree || 0);
+      const haystack = [node.title, node.summary, node.path, node.project, node.kind, ...(node.tags || [])]
+        .join(' ')
+        .toLowerCase();
+      if (kind && node.kind !== kind) return false;
+      if (owner && String(node.owner || '').toLowerCase() !== owner) return false;
+      if (query && !haystack.includes(query)) return false;
+      if (pathQuery && !String(node.path || '').toLowerCase().includes(pathQuery)) return false;
+      if ((node.degree || 0) < minDegree) return false;
+      if ((node.degree || 0) > maxDegree) return false;
+      return true;
+    }}
+
+    function visibleNodes() {{
+      return state.nodes.filter((node) => state.visibleNodeIds.has(node.id));
+    }}
+
+    function rebuildVisibleGraph() {{
+      const nextNodes = state.nodes.filter(matchesGraphFilters);
+      state.visibleNodeIds = new Set(nextNodes.map((node) => node.id));
+      state.visibleLinks = state.links.filter((link) => state.visibleNodeIds.has(link.source) && state.visibleNodeIds.has(link.target));
+      const nextAdjacency = new Map(nextNodes.map((node) => [node.id, new Set()]));
+      state.visibleLinks.forEach((link) => {{
+        nextAdjacency.get(link.source)?.add(link.target);
+        nextAdjacency.get(link.target)?.add(link.source);
+      }});
+      state.adjacency = nextAdjacency;
+      if (state.selected && !state.visibleNodeIds.has(state.selected.id)) {{
+        state.selected = null;
+        document.getElementById('title').textContent = '노드를 선택하세요';
+        document.getElementById('summary').textContent = '그래프에서 노트를 고르면 연결된 이웃과 메타 정보를 같이 보여준다. 드래그로 이동하고 휠로 확대할 수 있다.';
+      }}
+      if (filterMeta) {{
+        filterMeta.textContent = nextNodes.length + '개 노드와 ' + state.visibleLinks.length + '개 링크가 현재 필터에 맞는다.';
+      }}
+      syncSelectionAccess();
+    }}
+
     function worldFromScreen(clientX, clientY) {{
       return {{
         x: (clientX - state.offsetX) / state.zoom,
@@ -1549,7 +1736,7 @@ def closed_graph_html(
       const point = worldFromScreen(clientX, clientY);
       let best = null;
       let bestDist = Infinity;
-      for (const node of state.nodes) {{
+      for (const node of visibleNodes()) {{
         const r = nodeRadius(node) + 4;
         const d = Math.hypot(node.x - point.x, node.y - point.y);
         if (d < r && d < bestDist) {{
@@ -1573,10 +1760,11 @@ def closed_graph_html(
     function stepPhysics() {{
       const centerX = (window.innerWidth / 2 - state.offsetX) / state.zoom;
       const centerY = (window.innerHeight / 2 - state.offsetY) / state.zoom;
-      const lookup = new Map(state.nodes.map(node => [node.id, node]));
+      const nodes = visibleNodes();
+      const lookup = new Map(nodes.map(node => [node.id, node]));
 
-      for (let i = 0; i < state.nodes.length; i += 1) {{
-        const a = state.nodes[i];
+      for (let i = 0; i < nodes.length; i += 1) {{
+        const a = nodes[i];
         if (a === state.draggingNode) continue;
 
         const cluster = state.clusters.get(clusterKey(a)) || {{ x: centerX, y: centerY }};
@@ -1585,8 +1773,8 @@ def closed_graph_html(
         a.vx += (centerX - a.x) * 0.00014;
         a.vy += (centerY - a.y) * 0.00014;
 
-        for (let j = i + 1; j < state.nodes.length; j += 1) {{
-          const b = state.nodes[j];
+        for (let j = i + 1; j < nodes.length; j += 1) {{
+          const b = nodes[j];
           const dx = a.x - b.x;
           const dy = a.y - b.y;
           const dist = Math.max(18, Math.hypot(dx, dy));
@@ -1598,7 +1786,7 @@ def closed_graph_html(
         }}
       }}
 
-      for (const edge of state.links) {{
+      for (const edge of state.visibleLinks) {{
         const a = lookup.get(edge.source);
         const b = lookup.get(edge.target);
         if (!a || !b) continue;
@@ -1613,7 +1801,7 @@ def closed_graph_html(
         if (b !== state.draggingNode) {{ b.vx -= fx; b.vy -= fy; }}
       }}
 
-      for (const node of state.nodes) {{
+      for (const node of nodes) {{
         if (node === state.draggingNode) continue;
         node.vx *= 0.92;
         node.vy *= 0.92;
@@ -1648,12 +1836,13 @@ def closed_graph_html(
       ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
       drawGrid();
 
-      const lookup = new Map(state.nodes.map(node => [node.id, node]));
+      const nodes = visibleNodes();
+      const lookup = new Map(nodes.map(node => [node.id, node]));
       ctx.save();
       ctx.translate(state.offsetX, state.offsetY);
       ctx.scale(state.zoom, state.zoom);
 
-      for (const edge of state.links) {{
+      for (const edge of state.visibleLinks) {{
         const a = lookup.get(edge.source);
         const b = lookup.get(edge.target);
         if (!a || !b) continue;
@@ -1666,7 +1855,7 @@ def closed_graph_html(
         ctx.stroke();
       }}
 
-      for (const node of state.nodes) {{
+      for (const node of nodes) {{
         const active = state.selected && state.selected.id === node.id;
         const hovered = state.hover && state.hover.id === node.id;
         const related = relatedToActive(node);
@@ -1717,6 +1906,7 @@ def closed_graph_html(
 
     function canOpenNode(node) {{
       if (!node) return false;
+      if (node.visibility === 'public') return true;
       return Boolean(state.auth?.authenticated && (state.auth.role === 'admin' || state.auth.nickname === node.owner));
     }}
 
@@ -1731,7 +1921,9 @@ def closed_graph_html(
       openLink.hidden = !allowed;
       if (access) {{
         access.textContent = allowed
-          ? '현재 세션은 이 노트를 열 수 있다.'
+          ? (state.selected.visibility === 'public'
+              ? '이 노트는 public이라 현재 세션으로 바로 열 수 있다.'
+              : '현재 세션은 이 노트를 열 수 있다.')
           : '현재 세션은 이 노트를 열 수 없다. 그래프 관계만 확인 가능하다.';
       }}
     }}
@@ -1761,12 +1953,18 @@ def closed_graph_html(
       const data = await fetch('{html.escape(_graph_data_href(route_prefix))}').then(res => res.json());
       state.nodes = data.nodes;
       state.links = data.links;
-      buildAdjacency();
+      if (ownerOptions) {{
+        ownerOptions.innerHTML = [...new Set(state.nodes.map((node) => String(node.owner || '').trim()).filter(Boolean))]
+          .sort((a, b) => a.localeCompare(b))
+          .map((owner) => `<option value="${{owner}}"></option>`)
+          .join('');
+      }}
       document.getElementById('stats').textContent = `${{data.meta.note_count}} notes · ${{data.meta.link_count}} links`;
       state.offsetX = window.innerWidth * 0.12;
       state.offsetY = window.innerHeight * 0.08;
       init();
-      if (state.nodes[0]) show(state.nodes[0]);
+      rebuildVisibleGraph();
+      if (visibleNodes()[0]) show(visibleNodes()[0]);
       tick();
     }}
 
@@ -1792,10 +1990,25 @@ def closed_graph_html(
     if (window.localStorage.getItem(leftCollapsedKey) === '1') setLeftCollapsed(true);
     setGraphTab(window.localStorage.getItem(graphTabKey) || 'explore');
     leftToggle?.addEventListener('click', () => setLeftCollapsed(!document.body.classList.contains('left-collapsed')));
-    document.getElementById('focus-global-search')?.addEventListener('click', () => {{
-      setGraphTab('explore');
-      setLeftCollapsed(false);
-      window.setTimeout(() => noteFilterInput?.focus(), 80);
+    const filterInputs = [filterKind, filterOwner, filterQuery, filterPath, filterMinDegree, filterMaxDegree];
+    filterInputs.forEach((field) => field?.addEventListener('input', () => {{
+      state.filters.kind = String(filterKind?.value || '').trim().toLowerCase();
+      state.filters.owner = String(filterOwner?.value || '').trim().toLowerCase();
+      state.filters.query = String(filterQuery?.value || '').trim();
+      state.filters.path = String(filterPath?.value || '').trim();
+      state.filters.minDegree = String(filterMinDegree?.value || '0').trim();
+      state.filters.maxDegree = String(filterMaxDegree?.value || '').trim();
+      rebuildVisibleGraph();
+    }}));
+    filterReset?.addEventListener('click', () => {{
+      if (filterKind) filterKind.value = '';
+      if (filterOwner) filterOwner.value = '';
+      if (filterQuery) filterQuery.value = '';
+      if (filterPath) filterPath.value = '';
+      if (filterMinDegree) filterMinDegree.value = '0';
+      if (filterMaxDegree) filterMaxDegree.value = '';
+      state.filters = {{ kind: '', owner: '', query: '', path: '', minDegree: 0, maxDegree: '' }};
+      rebuildVisibleGraph();
     }});
     noteFilterInput?.addEventListener('input', () => {{
       const q = noteFilterInput.value.trim().toLowerCase();
@@ -1913,7 +2126,7 @@ def closed_graph_html(
 
     canvas.addEventListener('dblclick', (event) => {{
       const node = pick(event.clientX, event.clientY);
-      if (node) {{
+      if (node && canOpenNode(node)) {{
         window.location.href = `{html.escape(_notes_base(route_prefix))}/${{node.slug}}`;
       }}
     }});
@@ -3342,6 +3555,51 @@ def _shared_ui_styles() -> str:
       border-color: rgba(234,88,12,.20);
       color: #c2410c;
     }
+    .global-auth-button[data-tone="user"] {
+      background: rgba(37,99,235,.10);
+      border-color: rgba(37,99,235,.20);
+      color: var(--accent);
+    }
+    .auth-identity {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+    .auth-avatar {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      background: rgba(37,99,235,.14);
+      color: var(--accent);
+      font-size: .78rem;
+      font-weight: 900;
+      flex: 0 0 30px;
+    }
+    .auth-meta {
+      display: grid;
+      gap: 2px;
+      min-width: 0;
+      text-align: left;
+    }
+    .auth-meta strong,
+    .auth-meta small {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      line-height: 1.1;
+    }
+    .auth-meta small {
+      color: var(--muted);
+      font-size: .68rem;
+      font-weight: 700;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
     .global-modal[hidden] {
       display: none;
     }
@@ -3381,6 +3639,52 @@ def _shared_ui_styles() -> str:
     .global-modal-grid {
       display: grid;
       gap: 10px;
+    }
+    .auth-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 0 0 16px;
+    }
+    .auth-tab {
+      min-height: 34px;
+      padding: 0 12px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      background: rgba(255,255,255,.82);
+      color: var(--muted);
+      font: inherit;
+      font-size: .78rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .auth-tab.active {
+      background: rgba(37,99,235,.10);
+      border-color: rgba(37,99,235,.18);
+      color: var(--accent);
+    }
+    .auth-panel[hidden] {
+      display: none;
+    }
+    .auth-field {
+      display: grid;
+      gap: 6px;
+    }
+    .auth-field span {
+      color: var(--muted);
+      font-size: .72rem;
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .auth-token-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .auth-token-row .global-token-input {
+      flex: 1 1 220px;
     }
     .global-token-input {
       width: 100%;
@@ -3572,9 +3876,9 @@ def _shared_header_html(route_prefix: str, page_label: str, *, note_actions: boo
     note_action_html = ""
     if note_actions:
         note_action_html = """
-          <button class="global-pill is-primary" id="global-edit-note" type="button" data-admin-only data-edit-view="edit" hidden>Edit</button>
-          <button class="global-pill is-primary" id="global-save-note" type="button" data-admin-only data-edit-view="save" hidden>Save</button>
-          <button class="global-pill" id="global-cancel-note" type="button" data-admin-only data-edit-view="save" hidden>Cancel</button>
+          <button class="global-pill is-primary" id="global-edit-note" type="button" data-note-write-control data-edit-view="edit" hidden>Edit</button>
+          <button class="global-pill is-primary" id="global-save-note" type="button" data-note-write-control data-edit-view="save" hidden>Save</button>
+          <button class="global-pill" id="global-cancel-note" type="button" data-note-write-control data-edit-view="save" hidden>Cancel</button>
         """
     return f"""
     <header class="global-header">
@@ -3592,7 +3896,15 @@ def _shared_header_html(route_prefix: str, page_label: str, *, note_actions: boo
       </nav>
       <div class="global-actions">
         {note_action_html}
-        <button class="global-pill global-auth-button" id="global-auth-trigger" type="button" data-tone="warn">Admin</button>
+        <button class="global-pill global-auth-button" id="global-auth-trigger" type="button" data-tone="warn">
+          <span class="auth-identity">
+            <span class="auth-avatar" id="global-auth-avatar">G</span>
+            <span class="auth-meta">
+              <strong id="global-auth-name">Guest</strong>
+              <small id="global-auth-role">anonymous</small>
+            </span>
+          </span>
+        </button>
       </div>
     </header>
     """
@@ -3604,14 +3916,96 @@ def _shared_ui_shell(route_prefix: str) -> str:
     <div class="global-modal" id="global-auth-modal" hidden>
       <div class="global-modal-backdrop" data-close-auth-modal></div>
       <section class="global-modal-card" role="dialog" aria-modal="true" aria-labelledby="global-auth-title">
-        <h2 id="global-auth-title">관리자 토큰</h2>
-        <p>현재 브라우저에만 토큰을 저장하고, 관리자 권한이 확인되면 편집과 사서장 기능이 열린다.</p>
-        <div class="global-modal-grid">
-          <input class="global-token-input" id="global-token-input" type="password" placeholder="CLOSED_AKASHIC_TOKEN" autocomplete="off" />
+        <h2 id="global-auth-title">로그인과 토큰</h2>
+        <p>웹 로그인, 간단한 회원가입, 프로필 관리, 에이전트용 API 토큰 복사를 이 모달 하나에서 처리한다.</p>
+        <div class="auth-tabs" role="tablist" aria-label="Auth panels">
+          <button class="auth-tab active" type="button" data-auth-panel="login">Login</button>
+          <button class="auth-tab" type="button" data-auth-panel="signup">Sign Up</button>
+          <button class="auth-tab" type="button" data-auth-panel="token">Token</button>
+          <button class="auth-tab" type="button" data-auth-panel="profile">Profile</button>
         </div>
+        <section class="auth-panel" data-auth-panel-view="login">
+          <div class="global-modal-grid">
+            <label class="auth-field">
+              <span>Nickname Or Email</span>
+              <input class="global-token-input" id="global-login-identifier" type="text" placeholder="nickname or email" autocomplete="username" />
+            </label>
+            <label class="auth-field">
+              <span>Password</span>
+              <input class="global-token-input" id="global-login-password" type="password" placeholder="password" autocomplete="current-password" />
+            </label>
+          </div>
+          <div class="global-modal-actions">
+            <button class="global-pill is-primary" id="global-login-submit" type="button">Login</button>
+          </div>
+        </section>
+        <section class="auth-panel" data-auth-panel-view="signup" hidden>
+          <div class="global-modal-grid">
+            <label class="auth-field">
+              <span>Nickname</span>
+              <input class="global-token-input" id="global-signup-nickname" type="text" placeholder="your-id" autocomplete="username" />
+            </label>
+            <label class="auth-field">
+              <span>Display Name</span>
+              <input class="global-token-input" id="global-signup-display-name" type="text" placeholder="shown name" />
+            </label>
+            <label class="auth-field">
+              <span>Email</span>
+              <input class="global-token-input" id="global-signup-email" type="email" placeholder="name@example.com" autocomplete="email" />
+            </label>
+            <label class="auth-field">
+              <span>Password</span>
+              <input class="global-token-input" id="global-signup-password" type="password" placeholder="at least 8 characters" autocomplete="new-password" />
+            </label>
+          </div>
+          <div class="global-modal-actions">
+            <button class="global-pill is-primary" id="global-signup-submit" type="button">Create Account</button>
+          </div>
+        </section>
+        <section class="auth-panel" data-auth-panel-view="token" hidden>
+          <div class="global-modal-grid">
+            <label class="auth-field">
+              <span>Bearer Token</span>
+              <input class="global-token-input" id="global-token-input" type="password" placeholder="CLOSED_AKASHIC_TOKEN or user API token" autocomplete="off" />
+            </label>
+          </div>
+          <div class="global-modal-actions">
+            <button class="global-pill is-primary" id="global-token-apply" type="button">Apply</button>
+            <button class="global-pill" id="global-token-clear" type="button">Logout / Clear</button>
+          </div>
+        </section>
+        <section class="auth-panel" data-auth-panel-view="profile" hidden>
+          <div class="global-modal-grid">
+            <label class="auth-field">
+              <span>Nickname</span>
+              <input class="global-token-input" id="global-profile-nickname" type="text" disabled />
+            </label>
+            <label class="auth-field">
+              <span>Display Name</span>
+              <input class="global-token-input" id="global-profile-display-name" type="text" placeholder="shown name" />
+            </label>
+            <label class="auth-field">
+              <span>Email</span>
+              <input class="global-token-input" id="global-profile-email" type="email" placeholder="name@example.com" />
+            </label>
+            <label class="auth-field">
+              <span>Role</span>
+              <input class="global-token-input" id="global-profile-role" type="text" disabled />
+            </label>
+            <label class="auth-field">
+              <span>Agent API Token</span>
+              <div class="auth-token-row">
+                <input class="global-token-input" id="global-profile-token" type="text" readonly />
+                <button class="global-pill" id="global-profile-token-copy" type="button">Copy</button>
+              </div>
+            </label>
+          </div>
+          <div class="global-modal-actions">
+            <button class="global-pill is-primary" id="global-profile-save" type="button">Save Profile</button>
+            <button class="global-pill" id="global-profile-rotate-token" type="button">Rotate Token</button>
+          </div>
+        </section>
         <div class="global-modal-actions">
-          <button class="global-pill is-primary" id="global-token-apply" type="button">Apply</button>
-          <button class="global-pill" id="global-token-clear" type="button">Clear</button>
           <button class="global-pill" id="global-token-close" type="button">Close</button>
         </div>
         <div class="global-status" id="global-auth-status">토큰을 적용하면 이 브라우저에서만 관리자 상태가 유지된다.</div>
@@ -3653,14 +4047,36 @@ def _shared_ui_shell(route_prefix: str) -> str:
         }};
         const dom = {{
           authTrigger: document.getElementById('global-auth-trigger'),
+          authAvatar: document.getElementById('global-auth-avatar'),
+          authName: document.getElementById('global-auth-name'),
+          authRole: document.getElementById('global-auth-role'),
           authModal: document.getElementById('global-auth-modal'),
+          authTabs: [...document.querySelectorAll('[data-auth-panel]')],
+          authPanels: [...document.querySelectorAll('[data-auth-panel-view]')],
           authInput: document.getElementById('global-token-input'),
           authApply: document.getElementById('global-token-apply'),
           authClear: document.getElementById('global-token-clear'),
           authClose: document.getElementById('global-token-close'),
           authStatus: document.getElementById('global-auth-status'),
           authDismiss: [...document.querySelectorAll('[data-close-auth-modal]')],
+          loginIdentifier: document.getElementById('global-login-identifier'),
+          loginPassword: document.getElementById('global-login-password'),
+          loginSubmit: document.getElementById('global-login-submit'),
+          signupNickname: document.getElementById('global-signup-nickname'),
+          signupDisplayName: document.getElementById('global-signup-display-name'),
+          signupEmail: document.getElementById('global-signup-email'),
+          signupPassword: document.getElementById('global-signup-password'),
+          signupSubmit: document.getElementById('global-signup-submit'),
+          profileNickname: document.getElementById('global-profile-nickname'),
+          profileDisplayName: document.getElementById('global-profile-display-name'),
+          profileEmail: document.getElementById('global-profile-email'),
+          profileRole: document.getElementById('global-profile-role'),
+          profileToken: document.getElementById('global-profile-token'),
+          profileTokenCopy: document.getElementById('global-profile-token-copy'),
+          profileSave: document.getElementById('global-profile-save'),
+          profileRotateToken: document.getElementById('global-profile-rotate-token'),
           adminOnly: [...document.querySelectorAll('[data-admin-only]')],
+          noteWriteControls: [...document.querySelectorAll('[data-note-write-control]')],
           editButton: document.getElementById('global-edit-note'),
           saveButton: document.getElementById('global-save-note'),
           cancelButton: document.getElementById('global-cancel-note'),
@@ -3677,6 +4093,30 @@ def _shared_ui_shell(route_prefix: str) -> str:
           return window.localStorage.getItem(tokenStorageKey) || '';
         }}
 
+        function setStoredToken(value) {{
+          if (value) {{
+            window.localStorage.setItem(tokenStorageKey, value);
+          }} else {{
+            window.localStorage.removeItem(tokenStorageKey);
+          }}
+          syncTokenCookie(value);
+          if (dom.authInput) dom.authInput.value = value;
+          if (dom.profileToken) dom.profileToken.value = value;
+        }}
+
+        function initialsFor(session) {{
+          const label = String(session?.display_name || session?.nickname || 'G').trim();
+          return (label[0] || 'G').toUpperCase();
+        }}
+
+        function setAuthPanel(panel) {{
+          const next = ['login', 'signup', 'token', 'profile'].includes(panel) ? panel : 'login';
+          dom.authTabs.forEach((button) => button.classList.toggle('active', button.dataset.authPanel === next));
+          dom.authPanels.forEach((section) => {{
+            section.hidden = section.dataset.authPanelView !== next;
+          }});
+        }}
+
         function syncTokenCookie(value) {{
           if (value) {{
             document.cookie = `closed_akashic_token=${{encodeURIComponent(value)}}; path=/; SameSite=Lax; max-age=2592000`;
@@ -3688,8 +4128,11 @@ def _shared_ui_shell(route_prefix: str) -> str:
         function setAuthButton(session) {{
           if (!dom.authTrigger) return;
           const isAdmin = Boolean(session?.authenticated && session?.role === 'admin');
-          dom.authTrigger.dataset.tone = isAdmin ? 'admin' : 'warn';
-          dom.authTrigger.textContent = isAdmin ? 'Admin Active' : 'Admin';
+          const isUser = Boolean(session?.authenticated && session?.role !== 'admin');
+          dom.authTrigger.dataset.tone = isAdmin ? 'admin' : isUser ? 'user' : 'warn';
+          if (dom.authAvatar) dom.authAvatar.textContent = initialsFor(session);
+          if (dom.authName) dom.authName.textContent = session?.display_name || session?.nickname || 'Guest';
+          if (dom.authRole) dom.authRole.textContent = session?.role || 'anonymous';
         }}
 
         function setAdminVisible(visible) {{
@@ -3699,8 +4142,23 @@ def _shared_ui_shell(route_prefix: str) -> str:
           }});
         }}
 
+        function setNoteWriteVisible(visible) {{
+          dom.noteWriteControls.forEach((node) => {{
+            node.hidden = !visible;
+          }});
+        }}
+
         function setAuthStatus(message) {{
           if (dom.authStatus) dom.authStatus.textContent = message;
+        }}
+
+        function syncProfileFields() {{
+          const session = state.session || {{}};
+          if (dom.profileNickname) dom.profileNickname.value = session.nickname || '';
+          if (dom.profileDisplayName) dom.profileDisplayName.value = session.display_name || session.nickname || '';
+          if (dom.profileEmail) dom.profileEmail.value = session.email || '';
+          if (dom.profileRole) dom.profileRole.value = session.role || 'anonymous';
+          if (dom.profileToken) dom.profileToken.value = token();
         }}
 
         async function apiFetch(path, options = {{}}) {{
@@ -3743,19 +4201,25 @@ def _shared_ui_shell(route_prefix: str) -> str:
             setAdminVisible(isAdmin);
             setAuthButton(session);
             if (!silent) {{
-              setAuthStatus(isAdmin ? '관리자 권한이 활성화되었다.' : '유효한 관리자 토큰이 아직 없다.');
+              setAuthStatus(
+                session?.authenticated
+                  ? `${{session.display_name || session.nickname || 'user'}} 계정으로 연결되었다.`
+                  : '유효한 로그인 세션이나 토큰이 아직 없다.'
+              );
             }}
             if (dom.librarianStatus) {{
               dom.librarianStatus.textContent = isAdmin
                 ? `모델: ${{session?.librarian?.model || 'unknown'}}`
                 : '관리자 토큰이 활성화되면 사서장과 대화할 수 있다.';
             }}
+            syncProfileFields();
             dispatchAuthChange();
             return session;
           }} catch (error) {{
             state.session = {{ authenticated: false, role: 'anonymous', capabilities: [] }};
             setAdminVisible(false);
             setAuthButton(state.session);
+            syncProfileFields();
             if (!silent) {{
               setAuthStatus(error.message || '토큰 확인에 실패했다.');
             }}
@@ -3766,9 +4230,25 @@ def _shared_ui_shell(route_prefix: str) -> str:
 
         function openAuthModal() {{
           if (dom.authModal) dom.authModal.hidden = false;
+          setAuthPanel(state.session?.authenticated ? 'profile' : 'login');
           if (dom.authInput) {{
             dom.authInput.value = token();
-            window.setTimeout(() => dom.authInput.focus(), 40);
+          }}
+          syncProfileFields();
+          window.setTimeout(() => {{
+            if (state.session?.authenticated) {{
+              dom.profileDisplayName?.focus();
+            }} else {{
+              dom.loginIdentifier?.focus();
+            }}
+          }}, 40);
+        }}
+
+        async function applyIssuedToken(value) {{
+          setStoredToken(value);
+          const session = await refreshSession();
+          if (session?.authenticated) {{
+            setAuthPanel('profile');
           }}
         }}
 
@@ -3782,20 +4262,85 @@ def _shared_ui_shell(route_prefix: str) -> str:
             setAuthStatus('먼저 토큰을 넣어야 한다.');
             return;
           }}
-          window.localStorage.setItem(tokenStorageKey, value);
-          syncTokenCookie(value);
-          const session = await refreshSession();
-          if (session?.authenticated && session?.role === 'admin') {{
-            closeAuthModal();
-          }}
+          await applyIssuedToken(value);
         }}
 
         function clearToken() {{
-          window.localStorage.removeItem(tokenStorageKey);
-          syncTokenCookie('');
-          if (dom.authInput) dom.authInput.value = '';
+          setStoredToken('');
           refreshSession();
           setAuthStatus('토큰을 지웠다. 지금은 읽기 전용이다.');
+        }}
+
+        async function login() {{
+          const identifier = dom.loginIdentifier?.value.trim() || '';
+          const password = dom.loginPassword?.value || '';
+          if (!identifier || !password) {{
+            setAuthStatus('로그인 식별자와 비밀번호를 모두 입력해줘.');
+            return;
+          }}
+          const data = await requestJson('/api/auth/login', {{
+            method: 'POST',
+            json: {{ identifier, password }},
+          }});
+          await applyIssuedToken(data.token || '');
+          setAuthStatus('로그인했다. 이 토큰으로 웹과 에이전트 둘 다 사용할 수 있다.');
+        }}
+
+        async function signup() {{
+          const nickname = dom.signupNickname?.value.trim() || '';
+          const password = dom.signupPassword?.value || '';
+          const display_name = dom.signupDisplayName?.value.trim() || '';
+          const email = dom.signupEmail?.value.trim() || '';
+          if (!nickname || !password) {{
+            setAuthStatus('회원가입에는 nickname과 password가 필요하다.');
+            return;
+          }}
+          const data = await requestJson('/api/auth/signup', {{
+            method: 'POST',
+            json: {{ nickname, password, display_name, email }},
+          }});
+          await applyIssuedToken(data.token || '');
+          setAuthStatus('계정을 만들고 바로 로그인했다. 프로필 탭에서 API 토큰을 복사할 수 있다.');
+        }}
+
+        async function saveProfile() {{
+          if (!state.session?.authenticated) {{
+            setAuthStatus('먼저 로그인해줘.');
+            return;
+          }}
+          const data = await requestJson('/api/profile', {{
+            method: 'POST',
+            json: {{
+              display_name: dom.profileDisplayName?.value.trim() || '',
+              email: dom.profileEmail?.value.trim() || '',
+            }},
+          }});
+          await refreshSession({{ silent: true }});
+          syncProfileFields();
+          setAuthStatus(`프로필을 저장했다: ${{data.profile?.display_name || state.session?.display_name || ''}}`);
+        }}
+
+        async function rotateProfileToken() {{
+          if (!state.session?.authenticated) {{
+            setAuthStatus('먼저 로그인해줘.');
+            return;
+          }}
+          const data = await requestJson('/api/profile/token', {{
+            method: 'POST',
+          }});
+          await applyIssuedToken(data.token || '');
+          setAuthStatus('새 API 토큰을 발급했다. 에이전트가 쓸 토큰도 함께 바뀌었다.');
+        }}
+
+        async function copyProfileToken() {{
+          const value = dom.profileToken?.value || token();
+          if (!value) return;
+          try {{
+            await navigator.clipboard.writeText(value);
+            setAuthStatus('현재 API 토큰을 복사했다.');
+          }} catch (error) {{
+            setAuthStatus('토큰 복사에 실패했다.');
+          }}
         }}
 
         function loadThread() {{
@@ -3870,10 +4415,25 @@ def _shared_ui_shell(route_prefix: str) -> str:
         }}
 
         dom.authTrigger?.addEventListener('click', openAuthModal);
+        dom.authTabs.forEach((button) => button.addEventListener('click', () => setAuthPanel(button.dataset.authPanel || 'login')));
         dom.authApply?.addEventListener('click', applyToken);
         dom.authClear?.addEventListener('click', clearToken);
         dom.authClose?.addEventListener('click', closeAuthModal);
+        dom.loginSubmit?.addEventListener('click', login);
+        dom.signupSubmit?.addEventListener('click', signup);
+        dom.profileSave?.addEventListener('click', saveProfile);
+        dom.profileRotateToken?.addEventListener('click', rotateProfileToken);
+        dom.profileTokenCopy?.addEventListener('click', copyProfileToken);
         dom.authDismiss.forEach((node) => node.addEventListener('click', closeAuthModal));
+        dom.loginPassword?.addEventListener('keydown', (event) => {{
+          if (event.key === 'Enter') login();
+        }});
+        dom.loginIdentifier?.addEventListener('keydown', (event) => {{
+          if (event.key === 'Enter') login();
+        }});
+        dom.signupPassword?.addEventListener('keydown', (event) => {{
+          if (event.key === 'Enter') signup();
+        }});
         dom.authInput?.addEventListener('keydown', (event) => {{
           if (event.key === 'Enter') applyToken();
           if (event.key === 'Escape') closeAuthModal();
@@ -3893,11 +4453,12 @@ def _shared_ui_shell(route_prefix: str) -> str:
         loadThread();
         renderThread();
         if (token()) {{
-          syncTokenCookie(token());
+          setStoredToken(token());
           refreshSession({{ silent: true }});
         }} else {{
           setAdminVisible(false);
           setAuthButton(state.session);
+          syncProfileFields();
           dispatchAuthChange();
         }}
 
@@ -3909,6 +4470,7 @@ def _shared_ui_shell(route_prefix: str) -> str:
           requestJson,
           openAuthModal,
           closeAuthModal,
+          setNoteWriteVisible,
         }};
       }})();
     </script>
@@ -4223,6 +4785,7 @@ def _workspace_script() -> str:
       const kindSpecs = __KIND_SPECS_JSON__;
       const state = {
         authorized: false,
+        currentWritable: false,
         mode: 'edit',
         originalPath: noteData.path || '',
         noteFolders: [],
@@ -4250,6 +4813,7 @@ def _workspace_script() -> str:
         deleteButton: document.getElementById('editor-delete'),
         folderPath: document.getElementById('workspace-folder-path'),
         createFolderButton: document.getElementById('workspace-create-folder'),
+        saveButton: document.getElementById('workspace-save'),
         noteFolderOptions: document.getElementById('editor-folder-options'),
         kindSummary: document.getElementById('editor-kind-summary'),
         kindTemplate: document.getElementById('editor-kind-template'),
@@ -4344,12 +4908,23 @@ def _workspace_script() -> str:
         }
       }
 
+      function canWriteCurrent(session) {
+        if (!session?.authenticated) return false;
+        if (session.role === 'admin') return true;
+        return noteData.visibility !== 'public' && session.nickname === noteData.owner;
+      }
+
       async function openWorkspace(mode) {
-        if (!state.authorized) {
+        const session = window.closedAkashicUI?.getSession?.() || {};
+        if (!session?.authenticated) {
           setSidebarPanel('edit');
-          showToast('먼저 관리자 토큰을 적용해줘.', 'warn');
+          showToast('먼저 로그인하거나 토큰을 적용해줘.', 'warn');
           window.closedAkashicUI?.openAuthModal?.();
-          if (!state.authorized) return;
+          return;
+        }
+        if (mode === 'edit' && !canWriteCurrent(session)) {
+          showToast('현재 세션은 이 노트를 수정할 수 없다.', 'warn');
+          return;
         }
         setSidebarPanel('edit');
         state.mode = mode;
@@ -4375,7 +4950,7 @@ def _workspace_script() -> str:
       function openFolderTools() {
         setSidebarPanel('edit');
         if (!state.authorized) {
-          showToast('먼저 관리자 토큰을 적용해줘.', 'warn');
+          showToast('먼저 로그인하거나 토큰을 적용해줘.', 'warn');
           window.closedAkashicUI?.openAuthModal?.();
           return;
         }
@@ -4518,8 +5093,9 @@ def _workspace_script() -> str:
             method: 'PUT',
             json: notePayload(path),
           });
-          setBanner('저장을 마쳤다.', 'success');
-          showToast('노트를 저장했다.', 'success');
+          const publicationRequested = Boolean(data.publication_request);
+          setBanner(publicationRequested ? '저장과 함께 publication 요청을 보냈다.' : '저장을 마쳤다.', 'success');
+          showToast(publicationRequested ? '저장 후 publication 요청을 보냈다.' : '노트를 저장했다.', 'success');
           const href = data.note?.href ? `${window.location.origin}${data.note.href}` : `${window.location.origin}/`;
           window.location.href = href;
         } catch (error) {
@@ -4577,6 +5153,7 @@ def _workspace_script() -> str:
       dom.suggestButton?.addEventListener('click', suggestPath);
       dom.deleteButton?.addEventListener('click', deleteNote);
       dom.createFolderButton?.addEventListener('click', createFolder);
+      dom.saveButton?.addEventListener('click', saveNote);
       dom.formKind?.addEventListener('input', updateKindGuide);
       dom.formKind?.addEventListener('change', updateKindGuide);
 
@@ -4587,7 +5164,8 @@ def _workspace_script() -> str:
       document.addEventListener('closed-akashic-cancel-request', closeWorkspace);
       document.addEventListener('closed-akashic-auth-change', async (event) => {
         const session = event.detail || {};
-        state.authorized = Boolean(session.authenticated && session.role === 'admin');
+        state.authorized = Boolean(session.authenticated);
+        state.currentWritable = canWriteCurrent(session);
         if (state.authorized) {
           await refreshFolders();
           setBanner('마크다운 원문을 수정한 뒤 상단 헤더의 Save로 저장한다.');
@@ -4597,8 +5175,9 @@ def _workspace_script() -> str:
       });
 
       const session = window.closedAkashicUI?.getSession?.();
-      if (session?.authenticated && session?.role === 'admin') {
+      if (session?.authenticated) {
         state.authorized = true;
+        state.currentWritable = canWriteCurrent(session);
         refreshFolders();
       }
       updateKindGuide();

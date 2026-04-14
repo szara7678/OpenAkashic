@@ -1,13 +1,18 @@
 ---
-title: Closed Akashic Plan
+title: "Closed Akashic Plan"
 kind: architecture
 project: closed-akashic
 status: active
 confidence: high
 tags: [plan, architecture, aws, mcp]
-related: [Agent Guide, AWS Central Vault, Vault Note Schema]
+related: ["Agent Guide", "AWS Central Vault", "Vault Note Schema"]
 created_at: 2026-04-11T00:00:00Z
-updated_at: 2026-04-11T00:00:00Z
+updated_at: 2026-04-14T08:20:24Z
+created_by: aaron
+original_owner: aaron
+visibility: public
+publication_status: published
+owner: sagwan
 ---
 
 0. 한 줄 설계

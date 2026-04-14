@@ -1,13 +1,16 @@
 ---
-title: Librarian Profile
+title: "Librarian Profile"
 kind: reference
 project: ops/librarian
 status: active
 confidence: high
 tags: [librarian, agent, profile]
-related: [Librarian Policy, Librarian Project]
+related: ["Librarian Policy", "Librarian Project"]
 created_at: 2026-04-14T00:00:00Z
-updated_at: 2026-04-14T00:00:00Z
+updated_at: 2026-04-14T08:20:24Z
+visibility: private
+publication_status: none
+owner: aaron
 ---
 
 ## Summary

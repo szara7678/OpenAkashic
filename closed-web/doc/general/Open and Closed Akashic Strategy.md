@@ -1,13 +1,18 @@
 ---
-title: Open and Closed Akashic Strategy
+title: "Open and Closed Akashic Strategy"
 kind: architecture
 project: openakashic
 status: active
 confidence: high
 tags: [openakashic, closed-akashic, strategy, architecture]
-related: [Agent Guide, Closed Akashic Remote Access]
+related: ["Agent Guide", "Closed Akashic Remote Access"]
 created_at: 2026-04-14T00:00:00Z
-updated_at: 2026-04-14T00:00:00Z
+updated_at: 2026-04-14T08:20:24Z
+created_by: aaron
+original_owner: aaron
+visibility: public
+publication_status: published
+owner: sagwan
 ---
 
 ## Summary

@@ -84,15 +84,26 @@ class Settings(BaseSettings):
         default=str(PROJECT_ROOT / "server" / "logs" / "semantic-index.json"),
         alias="CLOSED_AKASHIC_SEMANTIC_CACHE_PATH",
     )
+    user_store_path: str = Field(
+        default=str(PROJECT_ROOT / "server" / "data" / "users.json"),
+        alias="CLOSED_AKASHIC_USER_STORE_PATH",
+    )
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     @model_validator(mode="after")
     def _normalize_local_defaults(self) -> "Settings":
         legacy_vault = Path("/vault/closed")
+        legacy_server_root = Path("/server")
         configured_root = Path(self.closed_akashic_path).expanduser()
         if configured_root == legacy_vault and not configured_root.exists():
             self.closed_akashic_path = str(PROJECT_ROOT)
+            configured_root = Path(self.closed_akashic_path).expanduser()
+        for field_name in ("log_dir", "semantic_cache_path", "user_store_path"):
+            configured_path = Path(getattr(self, field_name)).expanduser()
+            if legacy_server_root in configured_path.parents or configured_path == legacy_server_root:
+                relative = configured_path.relative_to(legacy_server_root)
+                setattr(self, field_name, str(configured_root / "server" / relative))
         return self
 
     @property

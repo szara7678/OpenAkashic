@@ -1,13 +1,18 @@
 ---
-title: Kapathy LLM Wiki
+title: "Kapathy LLM Wiki"
 kind: concept
 project: closed-akashic
 status: active
 confidence: high
 tags: [llm, wiki, compounding-knowledge]
-related: [LLM Maintained Wiki, Agent Guide, Closed Akashic]
+related: ["LLM Maintained Wiki", "Agent Guide", "Closed Akashic"]
 created_at: 2026-04-11T00:00:00Z
-updated_at: 2026-04-11T00:00:00Z
+updated_at: 2026-04-14T08:20:24Z
+created_by: aaron
+original_owner: aaron
+visibility: public
+publication_status: published
+owner: sagwan
 ---
 
 # LLM Wiki

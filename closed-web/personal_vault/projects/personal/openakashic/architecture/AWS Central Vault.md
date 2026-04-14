@@ -1,13 +1,18 @@
 ---
-title: AWS Central Vault
+title: "AWS Central Vault"
 kind: architecture
 project: personal/openakashic
 status: active
 confidence: high
 tags: [aws, vault, mcp]
-related: [Agent Memory Workflow, Obsidian Workflow, Vault Note Schema]
+related: ["Agent Memory Workflow", "Obsidian Workflow", "Vault Note Schema"]
 created_at: 2026-04-11T00:00:00Z
-updated_at: 2026-04-11T00:00:00Z
+updated_at: 2026-04-14T08:20:24Z
+created_by: aaron
+original_owner: aaron
+visibility: public
+publication_status: published
+owner: sagwan
 ---
 
 ## Summary

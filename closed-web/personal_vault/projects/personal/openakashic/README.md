@@ -1,13 +1,18 @@
 ---
-title: OpenAkashic Project
+title: "OpenAkashic Project"
 kind: index
 project: personal/openakashic
 status: active
 confidence: high
 tags: [project, openakashic]
-related: [Project Memory Intake, AWS Central Vault, Agent Memory Workflow]
+related: ["Project Memory Intake", "AWS Central Vault", "Agent Memory Workflow"]
 created_at: 2026-04-13T00:00:00Z
-updated_at: 2026-04-13T00:00:00Z
+updated_at: 2026-04-14T08:20:24Z
+created_by: aaron
+original_owner: aaron
+visibility: public
+publication_status: published
+owner: sagwan
 ---
 
 ## Summary

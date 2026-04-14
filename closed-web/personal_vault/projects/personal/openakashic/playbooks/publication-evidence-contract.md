@@ -1,13 +1,18 @@
 ---
-title: Publication Evidence Contract
+title: "Publication Evidence Contract"
 kind: playbook
 project: personal/openakashic
 status: active
 confidence: high
 tags: [publication, evidence, claim, capsule, librarian]
-related: [OpenAkashic Knowledge Taxonomy, Closed Akashic User Scope Review, OpenAkashic Librarian Control Plane]
+related: ["OpenAkashic Knowledge Taxonomy", "Closed Akashic User Scope Review", "OpenAkashic Librarian Control Plane"]
 created_at: 2026-04-14T00:00:00Z
-updated_at: 2026-04-14T00:00:00Z
+updated_at: 2026-04-14T08:20:24Z
+created_by: aaron
+original_owner: aaron
+visibility: public
+publication_status: published
+owner: sagwan
 ---
 
 ## Summary

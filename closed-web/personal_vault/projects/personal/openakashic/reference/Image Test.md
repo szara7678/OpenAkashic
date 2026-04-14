@@ -6,8 +6,13 @@ status: active
 confidence: high
 tags: [image, test]
 related: ["Vault Note Schema"]
-updated_at: 2026-04-11T18:41:51Z
+updated_at: 2026-04-14T08:20:24Z
 created_at: 2026-04-11T18:41:06Z
+created_by: aaron
+original_owner: aaron
+visibility: public
+publication_status: published
+owner: sagwan
 ---
 
 ## Summary

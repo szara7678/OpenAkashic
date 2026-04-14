@@ -1,13 +1,18 @@
 ---
-title: Distributed Agent Memory Contract
+title: "Distributed Agent Memory Contract"
 kind: playbook
 project: closed-akashic
 status: active
 confidence: high
 tags: [agent, distributed, mcp, memory, codex, cursor, opencode]
-related: [Agent Guide, Project Memory Intake, Remote Agent Enrollment, Project Index Schema]
+related: ["Agent Guide", "Project Memory Intake", "Remote Agent Enrollment", "Project Index Schema"]
 created_at: 2026-04-13T00:00:00Z
-updated_at: 2026-04-13T00:00:00Z
+updated_at: 2026-04-14T08:20:24Z
+created_by: aaron
+original_owner: aaron
+visibility: public
+publication_status: published
+owner: sagwan
 ---
 
 ## Summary

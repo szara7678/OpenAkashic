@@ -1,13 +1,18 @@
 ---
-title: Closed Akashic User Scope Review
+title: "Closed Akashic User Scope Review"
 kind: reference
 project: personal/openakashic
 status: active
 confidence: high
 tags: [closed-akashic, review, scope, sharing, llm]
-related: [Open and Closed Akashic Strategy, LLM Maintained Wiki, OpenAkashic Project]
+related: ["Open and Closed Akashic Strategy", "LLM Maintained Wiki", "OpenAkashic Project"]
 created_at: 2026-04-14T00:00:00Z
-updated_at: 2026-04-14T05:30:00Z
+updated_at: 2026-04-14T08:20:24Z
+created_by: aaron
+original_owner: aaron
+visibility: public
+publication_status: published
+owner: sagwan
 ---
 
 ## Summary

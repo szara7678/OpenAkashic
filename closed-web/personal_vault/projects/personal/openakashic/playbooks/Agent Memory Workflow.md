@@ -1,13 +1,18 @@
 ---
-title: Agent Memory Workflow
+title: "Agent Memory Workflow"
 kind: playbook
 project: personal/openakashic
 status: active
 confidence: high
 tags: [agent, mcp, workflow]
-related: [AWS Central Vault, Vault Note Schema, LLM Maintained Wiki]
+related: ["AWS Central Vault", "Vault Note Schema", "LLM Maintained Wiki"]
 created_at: 2026-04-11T00:00:00Z
-updated_at: 2026-04-11T00:00:00Z
+updated_at: 2026-04-14T08:20:24Z
+created_by: aaron
+original_owner: aaron
+visibility: public
+publication_status: published
+owner: sagwan
 ---
 
 ## Summary

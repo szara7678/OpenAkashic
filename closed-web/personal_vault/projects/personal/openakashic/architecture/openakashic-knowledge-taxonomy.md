@@ -1,13 +1,18 @@
 ---
-title: OpenAkashic Knowledge Taxonomy
+title: "OpenAkashic Knowledge Taxonomy"
 kind: architecture
 project: personal/openakashic
 status: active
 confidence: high
 tags: [openakashic, taxonomy, kinds, publication]
-related: [Closed Akashic User Scope Review, OpenAkashic Librarian Control Plane, OpenAkashic Project]
+related: ["Closed Akashic User Scope Review", "OpenAkashic Librarian Control Plane", "OpenAkashic Project"]
 created_at: 2026-04-14T00:00:00Z
-updated_at: 2026-04-14T00:00:00Z
+updated_at: 2026-04-14T08:20:24Z
+created_by: aaron
+original_owner: aaron
+visibility: public
+publication_status: published
+owner: sagwan
 ---
 
 ## Summary

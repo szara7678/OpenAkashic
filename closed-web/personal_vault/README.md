@@ -1,13 +1,18 @@
 ---
-title: Closed Akashic Vault
+title: "Closed Akashic Vault"
 kind: index
 project: closed-akashic
 status: active
 confidence: high
 tags: [closed-akashic, graph]
-related: [AWS Central Vault, LLM Maintained Wiki, Obsidian Workflow]
+related: ["AWS Central Vault", "LLM Maintained Wiki", "Obsidian Workflow"]
 created_at: 2026-04-11T00:00:00Z
-updated_at: 2026-04-11T00:00:00Z
+updated_at: 2026-04-14T08:20:24Z
+created_by: aaron
+original_owner: aaron
+visibility: public
+publication_status: published
+owner: sagwan
 ---
 
 ## Summary

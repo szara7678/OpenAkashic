@@ -336,6 +336,9 @@ def request_publication(
     target = _normalize_visibility(target_visibility or "public")
     if target != "public":
         raise ValueError("Publication target must be public")
+    existing_request = _find_latest_publication_request(document.path)
+    if existing_request and existing_request.status in {"requested", "reviewing", "approved"}:
+        return existing_request
 
     source_frontmatter["publication_status"] = "requested"
     source_frontmatter["publication_requested_at"] = requested_at
@@ -440,6 +443,13 @@ def list_publication_requests(status: str | None = None) -> list[PublicationRequ
     return requests
 
 
+def _find_latest_publication_request(source_path: str) -> PublicationRequest | None:
+    for item in list_publication_requests():
+        if item.source_path == source_path:
+            return item
+    return None
+
+
 def set_publication_status(
     *,
     path: str,
@@ -462,7 +472,30 @@ def set_publication_status(
         frontmatter.setdefault("original_owner", frontmatter.get("owner") or get_settings().default_note_owner)
         frontmatter["visibility"] = "public"
         frontmatter["owner"] = "sagwan"
-    return write_document(path=document.path, body=document.body, metadata=frontmatter, allow_owner_change=True)
+    updated_request = write_document(path=document.path, body=document.body, metadata=frontmatter, allow_owner_change=True)
+    source_path = str(frontmatter.get("source_path") or "")
+    if source_path:
+        source_document = load_document(source_path)
+        source_frontmatter = dict(source_document.frontmatter)
+        _apply_governance_defaults(source_frontmatter)
+        source_frontmatter["publication_status"] = next_status
+        source_frontmatter["publication_decided_at"] = frontmatter["publication_decided_at"]
+        source_frontmatter["publication_decided_by"] = frontmatter["publication_decided_by"]
+        if reason is not None:
+            source_frontmatter["publication_decision_reason"] = reason.strip()
+        if next_status == "published":
+            source_frontmatter.setdefault("original_owner", source_frontmatter.get("owner") or get_settings().default_note_owner)
+            source_frontmatter["visibility"] = "public"
+            source_frontmatter["owner"] = "sagwan"
+        elif next_status == "rejected":
+            source_frontmatter["visibility"] = "private"
+        write_document(
+            path=source_document.path,
+            body=source_document.body,
+            metadata=source_frontmatter,
+            allow_owner_change=next_status == "published",
+        )
+    return updated_request
 
 
 def append_section(path: str, heading: str, content: str) -> VaultDocument:

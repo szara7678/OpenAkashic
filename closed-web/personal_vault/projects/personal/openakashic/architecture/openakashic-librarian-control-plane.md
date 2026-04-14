@@ -6,11 +6,13 @@ status: active
 confidence: high
 tags: [openakashic, architecture, librarian, closed-akashic, control-plane]
 related: ["Closed Akashic User Scope Review", "Librarian Project", "Agent Guide"]
-updated_at: 2026-04-14T04:45:48Z
+updated_at: 2026-04-14T08:20:24Z
 created_at: 2026-04-14T01:52:31Z
-owner: aaron
-visibility: private
-publication_status: none
+owner: sagwan
+visibility: public
+publication_status: published
+created_by: aaron
+original_owner: aaron
 ---
 
 ## Summary
