@@ -188,8 +188,6 @@ def _note_owner(frontmatter: dict[str, Any]) -> str:
 
 
 def _can_read_frontmatter(frontmatter: dict[str, Any], auth: AuthState) -> bool:
-    if _note_visibility(frontmatter) == "public":
-        return True
     return auth.authenticated and (_is_admin(auth) or _note_owner(frontmatter) == auth.nickname)
 
 
@@ -201,13 +199,13 @@ def _can_modify_frontmatter(frontmatter: dict[str, Any], auth: AuthState) -> boo
 
 def _assert_can_read_note_payload(note: dict[str, Any], auth: AuthState) -> None:
     if not _can_read_frontmatter(note, auth):
-        raise HTTPException(status_code=403, detail="Private notes can only be read by their owner or an admin")
+        raise HTTPException(status_code=403, detail="Notes can only be opened by their owner or an admin")
 
 
 def _assert_can_read_document(document_path: str, auth: AuthState) -> None:
     document = load_document(document_path)
     if not _can_read_frontmatter(document.frontmatter, auth):
-        raise HTTPException(status_code=403, detail="Private notes can only be read by their owner or an admin")
+        raise HTTPException(status_code=403, detail="Notes can only be opened by their owner or an admin")
 
 
 def _assert_can_modify_document(document_path: str, auth: AuthState) -> dict[str, Any]:
@@ -312,17 +310,7 @@ def prefixed_debug_page() -> str:
 
 @api.get("/graph-data")
 def graph_data(request: Request) -> dict[str, Any]:
-    auth = _auth_from_request(request)
-    graph = get_closed_graph()
-    readable_paths = {note["path"] for note in _filter_readable_notes(graph["nodes"], auth)}
-    return {
-        **graph,
-        "nodes": [node for node in graph["nodes"] if node["path"] in readable_paths],
-        "links": [
-            link for link in graph["links"]
-            if link.get("source") in readable_paths and link.get("target") in readable_paths
-        ],
-    }
+    return get_closed_graph()
 
 
 @api.get("/closed/graph-data")
@@ -465,7 +453,7 @@ def api_raw_note(
     try:
         document = load_document(path)
         if not _can_read_frontmatter(document.frontmatter, auth):
-            raise HTTPException(status_code=403, detail="Private notes can only be read by their owner or an admin")
+            raise HTTPException(status_code=403, detail="Notes can only be opened by their owner or an admin")
     except (FileNotFoundError, ValueError) as exc:
         raise _vault_http_error(exc) from exc
     return {
@@ -477,16 +465,7 @@ def api_raw_note(
 
 @api.get("/api/graph")
 def api_graph(auth: AuthState = Depends(require_agent_token)) -> dict[str, Any]:
-    graph = get_closed_graph()
-    readable_paths = {note["path"] for note in _filter_readable_notes(graph["nodes"], auth)}
-    return {
-        **graph,
-        "nodes": [node for node in graph["nodes"] if node["path"] in readable_paths],
-        "links": [
-            link for link in graph["links"]
-            if link.get("source") in readable_paths and link.get("target") in readable_paths
-        ],
-    }
+    return get_closed_graph()
 
 
 @api.get("/api/folders", dependencies=[Depends(require_agent_token)])

@@ -7,7 +7,7 @@ confidence: high
 tags: [librarian, memory]
 related: ["Librarian Project", "Librarian Profile"]
 created_at: 2026-04-14T00:00:00Z
-updated_at: 2026-04-14T05:20:51Z
+updated_at: 2026-04-14T06:40:56Z
 owner: aaron
 visibility: private
 publication_status: none
@@ -56,3 +56,8 @@ publication_status: none
 - Public artifacts are readable publicly, but admin/manager workflows control add, update, delete, move, and merge operations.
 - Publishing preserves `original_owner` and `created_by`, then transfers current stewardship to `owner=sagwan` with `visibility=public`.
 - The web token modal now mirrors the browser token into a same-site cookie so server-rendered private pages can be authorized until Google login exists.
+
+## 2026-04-14 Graph Visibility Correction
+- Restored graph visibility so `/graph-data` and `/api/graph` expose the full node/link topology regardless of note visibility.
+- Tightened note opening instead: note pages and note-content APIs now require owner or admin even for public artifacts.
+- This keeps relationship discovery visible while preserving content access control at the note-open boundary.
