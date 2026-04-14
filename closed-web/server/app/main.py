@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from contextlib import asynccontextmanager
 from typing import Any
 
@@ -19,7 +20,13 @@ from app.auth import (
     require_agent_token,
 )
 from app.config import get_settings
-from app.librarian import ensure_librarian_workspace, librarian_chat, librarian_status
+from app.librarian import (
+    ensure_librarian_workspace,
+    librarian_chat,
+    librarian_status,
+    load_librarian_settings,
+    save_librarian_settings,
+)
 from app.mcp_server import mcp
 from app.observability import (
     RequestLogMiddleware,
@@ -38,6 +45,15 @@ from app.site import (
     get_closed_note_by_slug,
     search_closed_notes,
 )
+from app.subordinate import (
+    enqueue_subordinate_task,
+    list_subordinate_tasks,
+    load_subordinate_settings,
+    run_subordinate_cycle,
+    save_subordinate_settings,
+    subordinate_chat,
+    subordinate_status,
+)
 from app.vault import (
     append_section,
     bootstrap_project_workspace,
@@ -49,6 +65,7 @@ from app.vault import (
     move_document,
     move_folder,
     normalize_project_key,
+    rename_actor_references,
     request_publication,
     read_asset_bytes,
     save_asset,
@@ -61,9 +78,11 @@ from app.vault import (
 from app.users import (
     authenticate_user,
     create_user,
+    list_users,
     public_user_record,
     rotate_user_token,
     update_user_profile,
+    update_user_role,
 )
 
 
@@ -152,20 +171,50 @@ class PublicationStatusPayload(BaseModel):
 
 
 class AuthSignupPayload(BaseModel):
-    nickname: str = Field(min_length=3)
+    username: str = Field(min_length=3)
+    nickname: str = Field(min_length=2)
     password: str = Field(min_length=8)
-    email: str | None = None
-    display_name: str | None = None
+    password_confirm: str = Field(min_length=8)
 
 
 class AuthLoginPayload(BaseModel):
-    identifier: str = Field(min_length=1)
+    username: str = Field(min_length=1)
     password: str = Field(min_length=8)
 
 
 class ProfileUpdatePayload(BaseModel):
-    display_name: str | None = None
-    email: str | None = None
+    nickname: str = Field(min_length=2)
+
+
+class UserRoleUpdatePayload(BaseModel):
+    username: str = Field(min_length=1)
+    role: str = Field(min_length=1)
+
+
+class LibrarianSettingsPayload(BaseModel):
+    provider: str | None = None
+    model: str | None = None
+    base_url: str | None = None
+    reasoning_effort: str | None = None
+    enabled_tools: list[str] | None = None
+
+
+class SubordinateSettingsPayload(BaseModel):
+    provider: str | None = None
+    base_url: str | None = None
+    model: str | None = None
+    enabled: bool | None = None
+    interval_sec: int | None = None
+    max_tasks_per_run: int | None = None
+    auto_review_publication_requests: bool | None = None
+    auto_request_publication_for_capsules: bool | None = None
+    enabled_task_types: list[str] | None = None
+
+
+class SubordinateTaskPayload(BaseModel):
+    kind: str = Field(min_length=1)
+    payload: dict[str, Any] = Field(default_factory=dict)
+    run_after: str | None = None
 
 
 def _route_prefix(request: Request) -> str:
@@ -209,6 +258,7 @@ def _session_payload(token: str | None) -> dict[str, Any]:
         "public_base_url": settings.public_base_url,
         "librarian_identity": librarian_identity_dict(),
         "librarian": librarian_status() if auth["authenticated"] else None,
+        "subordinate": subordinate_status() if auth["authenticated"] and auth["role"] == "admin" else None,
     }
 
 
@@ -341,14 +391,24 @@ def prefixed_graph_page(request: Request) -> str:
     return closed_graph_html(route_prefix="/closed", viewer_owner=auth.nickname, is_admin=_is_admin(auth))
 
 
+@api.get("/admin", response_class=HTMLResponse)
+def admin_page(request: Request) -> str:
+    return closed_debug_html(route_prefix=_route_prefix(request))
+
+
+@api.get("/closed/admin", response_class=HTMLResponse)
+def prefixed_admin_page() -> str:
+    return closed_debug_html(route_prefix="/closed")
+
+
 @api.get("/debug", response_class=HTMLResponse)
 def debug_page(request: Request) -> str:
-    return closed_debug_html(route_prefix=_route_prefix(request))
+    return admin_page(request)
 
 
 @api.get("/closed/debug", response_class=HTMLResponse)
 def prefixed_debug_page() -> str:
-    return closed_debug_html(route_prefix="/closed")
+    return prefixed_admin_page()
 
 
 @api.get("/graph-data")
@@ -459,12 +519,13 @@ def api_session(request: Request) -> dict[str, Any]:
 
 @api.post("/api/auth/signup")
 def api_auth_signup(payload: AuthSignupPayload) -> dict[str, Any]:
+    if payload.password != payload.password_confirm:
+        raise HTTPException(status_code=400, detail="Password confirmation does not match")
     try:
         user = create_user(
+            username=payload.username,
             nickname=payload.nickname,
             password=payload.password,
-            email=payload.email,
-            display_name=payload.display_name,
         )
     except ValueError as exc:
         raise _vault_http_error(exc) from exc
@@ -478,7 +539,7 @@ def api_auth_signup(payload: AuthSignupPayload) -> dict[str, Any]:
 
 @api.post("/api/auth/login")
 def api_auth_login(payload: AuthLoginPayload) -> dict[str, Any]:
-    user = authenticate_user(payload.identifier, payload.password)
+    user = authenticate_user(payload.username, payload.password)
     if not user:
         raise HTTPException(status_code=401, detail="Invalid login credentials")
     token = str(user.get("api_token") or "")
@@ -493,11 +554,10 @@ def api_auth_login(payload: AuthLoginPayload) -> dict[str, Any]:
 def api_profile(auth: AuthState = Depends(require_agent_token)) -> dict[str, Any]:
     return {
         "profile": {
+            "username": auth.username,
             "nickname": auth.nickname,
-            "display_name": auth.display_name or auth.nickname,
-            "email": auth.email,
             "role": auth.role,
-            "token": None if auth.token_label == "master" else "",
+            "token_label": auth.token_label,
         }
     }
 
@@ -507,25 +567,23 @@ def api_update_profile(
     payload: ProfileUpdatePayload,
     auth: AuthState = Depends(require_agent_token),
 ) -> dict[str, Any]:
-    if auth.token_label == "master":
-        raise HTTPException(status_code=403, detail="Master admin profile is managed outside local signup")
     try:
+        old_nickname = auth.nickname
         user = update_user_profile(
-            nickname=auth.nickname,
-            display_name=payload.display_name,
-            email=payload.email,
+            username=auth.username,
+            nickname=payload.nickname,
         )
+        new_nickname = str(user.get("nickname") or old_nickname)
+        migration = rename_actor_references(old_nickname, new_nickname)
     except ValueError as exc:
         raise _vault_http_error(exc) from exc
-    return {"profile": public_user_record(user)}
+    return {"profile": public_user_record(user), "migration": migration}
 
 
 @api.post("/api/profile/token")
 def api_rotate_profile_token(auth: AuthState = Depends(require_agent_token)) -> dict[str, Any]:
-    if auth.token_label == "master":
-        raise HTTPException(status_code=403, detail="Master admin token is managed outside local signup")
     try:
-        user = rotate_user_token(nickname=auth.nickname)
+        user = rotate_user_token(username=auth.username)
     except ValueError as exc:
         raise _vault_http_error(exc) from exc
     token = str(user.get("api_token") or "")
@@ -534,6 +592,105 @@ def api_rotate_profile_token(auth: AuthState = Depends(require_agent_token)) -> 
         "profile": public_user_record(user),
         "session": _session_payload(token),
     }
+
+
+@api.get("/api/admin/users")
+def api_admin_users(auth: AuthState = Depends(require_admin_token)) -> dict[str, Any]:
+    users = list_users()
+    return {"users": users, "count": len(users), "viewer": auth.nickname}
+
+
+@api.post("/api/admin/users/role")
+def api_admin_update_user_role(
+    payload: UserRoleUpdatePayload,
+    auth: AuthState = Depends(require_admin_token),
+) -> dict[str, Any]:
+    try:
+        user = update_user_role(username=payload.username, role=payload.role)
+    except ValueError as exc:
+        raise _vault_http_error(exc) from exc
+    return {
+        "user": public_user_record(user),
+        "updated_by": auth.nickname,
+    }
+
+
+@api.get("/api/admin/librarian")
+def api_admin_librarian_settings(auth: AuthState = Depends(require_admin_token)) -> dict[str, Any]:
+    return {
+        "settings": load_librarian_settings(),
+        "status": librarian_status(),
+        "viewer": auth.nickname,
+    }
+
+
+@api.post("/api/admin/librarian")
+def api_admin_update_librarian_settings(
+    payload: LibrarianSettingsPayload,
+    auth: AuthState = Depends(require_admin_token),
+) -> dict[str, Any]:
+    try:
+        settings_doc = save_librarian_settings(payload.model_dump(exclude_none=True))
+    except ValueError as exc:
+        raise _vault_http_error(exc) from exc
+    return {
+        "settings": settings_doc,
+        "status": librarian_status(),
+        "updated_by": auth.nickname,
+    }
+
+
+@api.get("/api/admin/subordinate")
+def api_admin_subordinate_settings(auth: AuthState = Depends(require_admin_token)) -> dict[str, Any]:
+    return {
+        "settings": load_subordinate_settings(),
+        "status": subordinate_status(),
+        "viewer": auth.nickname,
+    }
+
+
+@api.post("/api/admin/subordinate")
+def api_admin_update_subordinate_settings(
+    payload: SubordinateSettingsPayload,
+    auth: AuthState = Depends(require_admin_token),
+) -> dict[str, Any]:
+    settings_doc = save_subordinate_settings(payload.model_dump(exclude_none=True))
+    return {
+        "settings": settings_doc,
+        "status": subordinate_status(),
+        "updated_by": auth.nickname,
+    }
+
+
+@api.get("/api/admin/subordinate/tasks")
+def api_admin_subordinate_tasks(
+    status: str | None = Query(default=None),
+    auth: AuthState = Depends(require_admin_token),
+) -> dict[str, Any]:
+    tasks = list_subordinate_tasks(status=status)
+    return {"tasks": tasks, "count": len(tasks), "viewer": auth.nickname}
+
+
+@api.post("/api/admin/subordinate/tasks")
+def api_admin_enqueue_subordinate_task(
+    payload: SubordinateTaskPayload,
+    auth: AuthState = Depends(require_admin_token),
+) -> dict[str, Any]:
+    try:
+        task = enqueue_subordinate_task(
+            kind=payload.kind,
+            payload=payload.payload,
+            created_by=auth.nickname,
+            run_after=payload.run_after,
+        )
+    except ValueError as exc:
+        raise _vault_http_error(exc) from exc
+    return {"task": task}
+
+
+@api.post("/api/admin/subordinate/run")
+def api_admin_run_subordinate(auth: AuthState = Depends(require_admin_token)) -> dict[str, Any]:
+    return run_subordinate_cycle(reason=f"manual:{auth.nickname}")
 
 
 @api.get("/api/notes")
@@ -894,6 +1051,11 @@ def api_librarian_chat(payload: LibrarianChatRequest) -> dict[str, Any]:
     return librarian_chat(payload.message, payload.thread)
 
 
+@api.post("/api/subordinate/chat", dependencies=[Depends(require_admin_token)])
+def api_subordinate_chat(payload: LibrarianChatRequest) -> dict[str, Any]:
+    return subordinate_chat(payload.message, payload.thread)
+
+
 @api.get("/files/{path:path}")
 def api_file(path: str) -> FileResponse:
     target, mime_type = read_asset_bytes(path)
@@ -918,8 +1080,28 @@ mcp_mount = BearerTokenASGI(
 
 @asynccontextmanager
 async def lifespan(_: Starlette):
+    async def subordinate_loop() -> None:
+        while True:
+            try:
+                settings_doc = load_subordinate_settings()
+                if settings_doc.get("enabled"):
+                    run_subordinate_cycle(reason="interval")
+                await asyncio.sleep(max(60, int(settings_doc.get("interval_sec") or 900)))
+            except asyncio.CancelledError:
+                raise
+            except Exception:
+                await asyncio.sleep(120)
+
+    worker_task = asyncio.create_task(subordinate_loop())
     async with mcp.session_manager.run():
-        yield
+        try:
+            yield
+        finally:
+            worker_task.cancel()
+            try:
+                await worker_task
+            except asyncio.CancelledError:
+                pass
 
 
 _app = Starlette(

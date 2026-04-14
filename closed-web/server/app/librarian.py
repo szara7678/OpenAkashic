@@ -29,6 +29,79 @@ LIBRARIAN_README_PATH = "personal_vault/projects/ops/librarian/README.md"
 OPENAKASHIC_REVIEW_PATH = (
     "personal_vault/projects/personal/openakashic/reference/closed-akashic-user-scope-review.md"
 )
+LIBRARIAN_TOOL_NAMES = (
+    "exec_command",
+    "search_notes",
+    "read_note",
+    "append_note_section",
+    "upsert_note",
+    "request_publication",
+    "list_publication_requests",
+    "set_publication_status",
+)
+
+
+def librarian_settings_path() -> Path:
+    return Path(get_settings().user_store_path).with_name("librarian-settings.json")
+
+
+def _default_librarian_settings() -> dict[str, Any]:
+    settings = get_settings()
+    return {
+        "provider": settings.librarian_provider,
+        "model": settings.librarian_model,
+        "base_url": settings.librarian_base_url,
+        "reasoning_effort": settings.librarian_reasoning_effort,
+        "enabled_tools": list(LIBRARIAN_TOOL_NAMES),
+    }
+
+
+def load_librarian_settings() -> dict[str, Any]:
+    defaults = _default_librarian_settings()
+    path = librarian_settings_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if not path.exists():
+        path.write_text(json.dumps(defaults, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        return defaults
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8") or "{}")
+    except json.JSONDecodeError:
+        raw = {}
+    enabled_tools = [
+        tool_name
+        for tool_name in raw.get("enabled_tools", defaults["enabled_tools"])
+        if tool_name in LIBRARIAN_TOOL_NAMES
+    ]
+    return {
+        "provider": str(raw.get("provider") or defaults["provider"]).strip() or defaults["provider"],
+        "model": str(raw.get("model") or defaults["model"]).strip() or defaults["model"],
+        "base_url": str(raw.get("base_url") or defaults["base_url"]).strip(),
+        "reasoning_effort": str(raw.get("reasoning_effort") or defaults["reasoning_effort"]).strip()
+        or defaults["reasoning_effort"],
+        "enabled_tools": enabled_tools or list(defaults["enabled_tools"]),
+    }
+
+
+def save_librarian_settings(payload: dict[str, Any]) -> dict[str, Any]:
+    current = load_librarian_settings()
+    next_settings = {
+        "provider": str(payload.get("provider") or current["provider"]).strip() or current["provider"],
+        "model": str(payload.get("model") or current["model"]).strip() or current["model"],
+        "base_url": str(payload.get("base_url") or current["base_url"]).strip(),
+        "reasoning_effort": str(payload.get("reasoning_effort") or current["reasoning_effort"]).strip()
+        or current["reasoning_effort"],
+        "enabled_tools": [
+            tool_name
+            for tool_name in payload.get("enabled_tools", current["enabled_tools"])
+            if tool_name in LIBRARIAN_TOOL_NAMES
+        ],
+    }
+    if not next_settings["enabled_tools"]:
+        raise ValueError("At least one librarian tool must stay enabled")
+    path = librarian_settings_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(next_settings, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    return next_settings
 
 
 def ensure_librarian_workspace() -> dict[str, Any]:
@@ -110,16 +183,18 @@ def ensure_librarian_workspace() -> dict[str, Any]:
 def librarian_status() -> dict[str, Any]:
     ensure_librarian_workspace()
     settings = get_settings()
+    runtime = load_librarian_settings()
     return {
         "name": "Librarian",
         "identity": librarian_identity_dict(),
         "project": settings.librarian_project,
-        "provider": settings.librarian_provider,
-        "model": settings.librarian_model,
-        "base_url": settings.librarian_base_url,
-        "reasoning_effort": settings.librarian_reasoning_effort,
+        "provider": runtime["provider"],
+        "model": runtime["model"],
+        "base_url": runtime["base_url"],
+        "reasoning_effort": runtime["reasoning_effort"],
         "has_librarian_api_key": settings.has_librarian_api_key,
-        "tools": [tool["name"] for tool in _tool_registry()],
+        "tools": [tool["name"] for tool in _tool_registry(runtime["enabled_tools"])],
+        "available_tools": list(LIBRARIAN_TOOL_NAMES),
         "memory_paths": {
             "profile": LIBRARIAN_PROFILE_PATH,
             "policy": LIBRARIAN_POLICY_PATH,
@@ -132,7 +207,8 @@ def librarian_chat(message: str, thread: list[dict[str, str]] | None = None) -> 
     ensure_librarian_workspace()
     relevant_notes = _relevant_context(message)
     settings = get_settings()
-    if settings.librarian_provider.strip().lower() != "openai-compatible":
+    runtime = load_librarian_settings()
+    if runtime["provider"].strip().lower() != "openai-compatible":
         fallback = _codex_style_fallback(message, relevant_notes)
         _remember_interaction(message, fallback, [])
         return {
@@ -140,12 +216,12 @@ def librarian_chat(message: str, thread: list[dict[str, str]] | None = None) -> 
             "status": "codex_style_runtime_pending",
             "tool_events": [],
             "context_notes": relevant_notes,
-            "model": settings.librarian_model,
+            "model": runtime["model"],
         }
     if not settings.has_librarian_api_key:
         fallback = (
             "사서장용 모델 호출 키가 아직 서버 환경에 없어 "
-            f"`{settings.librarian_model}` 호출은 하지 못했다. "
+            f"`{runtime['model']}` 호출은 하지 못했다. "
             "대신 관련 노트와 정책 구조는 준비되어 있다."
         )
         _remember_interaction(message, fallback, [])
@@ -154,7 +230,7 @@ def librarian_chat(message: str, thread: list[dict[str, str]] | None = None) -> 
             "status": "needs_librarian_api_key",
             "tool_events": [],
             "context_notes": relevant_notes,
-            "model": settings.librarian_model,
+            "model": runtime["model"],
         }
 
     try:
@@ -167,14 +243,14 @@ def librarian_chat(message: str, thread: list[dict[str, str]] | None = None) -> 
             "status": "error",
             "tool_events": [],
             "context_notes": relevant_notes,
-            "model": get_settings().librarian_model,
+            "model": runtime["model"],
         }
 
     _remember_interaction(message, response["message"], response["tool_events"])
     return {
         **response,
         "context_notes": relevant_notes,
-        "model": get_settings().librarian_model,
+        "model": runtime["model"],
         "status": "ok",
     }
 
@@ -187,9 +263,10 @@ def _run_openai_librarian(
     from openai import OpenAI
 
     settings = get_settings()
+    runtime = load_librarian_settings()
     client = OpenAI(
         api_key=settings.librarian_api_key,
-        base_url=settings.librarian_base_url.strip() or None,
+        base_url=runtime["base_url"] or None,
     )
     instructions = _librarian_instructions(relevant_notes)
     messages = [{"role": "system", "content": instructions}, *_thread_to_messages(thread)]
@@ -198,9 +275,9 @@ def _run_openai_librarian(
 
     for _ in range(6):
         response = client.chat.completions.create(
-            model=settings.librarian_model,
+            model=runtime["model"],
             messages=messages,
-            tools=_tool_registry(),
+            tools=_tool_registry(runtime["enabled_tools"]),
             tool_choice="auto",
         )
         choice = response.choices[0].message
@@ -261,7 +338,7 @@ def _run_openai_librarian(
 
 def _codex_style_fallback(message: str, relevant_notes: list[dict[str, Any]]) -> str:
     """Return a useful response while the dedicated Codex-style runtime is wired."""
-    settings = get_settings()
+    runtime = load_librarian_settings()
     notes = "\n".join(
         f"- {item['title']} ({item['path']})" for item in relevant_notes[:4]
     )
@@ -270,7 +347,7 @@ def _codex_style_fallback(message: str, relevant_notes: list[dict[str, Any]]) ->
     return "\n".join(
         [
             "사서장 런타임은 지금 OpenClaw를 직접 호출하지 않고, 그 구조를 참고한 Codex-style 운용 모드로 설정되어 있다.",
-            f"참고 모델 라벨: `{settings.librarian_model}`",
+            f"참고 모델 라벨: `{runtime['model']}`",
             "",
             "현재 단계에서는 웹 권한, 메모리 작업공간, 관련 노트 검색, 공개신청 queue를 제공하고, 실제 장기 실행 에이전트 루프는 별도 런타임으로 연결해야 한다.",
             "",
@@ -321,8 +398,9 @@ def _thread_to_messages(thread: list[dict[str, str]]) -> list[dict[str, Any]]:
     return messages
 
 
-def _tool_registry() -> list[dict[str, Any]]:
-    return [
+def _tool_registry(enabled_tools: list[str] | None = None) -> list[dict[str, Any]]:
+    allowed = set(enabled_tools or LIBRARIAN_TOOL_NAMES)
+    catalog = [
         {
             "type": "function",
             "name": "exec_command",
@@ -443,6 +521,7 @@ def _tool_registry() -> list[dict[str, Any]]:
             },
         },
     ]
+    return [item for item in catalog if item["name"] in allowed]
 
 
 def _run_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:

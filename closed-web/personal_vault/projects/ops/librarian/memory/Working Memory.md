@@ -7,7 +7,7 @@ confidence: high
 tags: [librarian, memory]
 related: ["Librarian Project", "Librarian Profile"]
 created_at: 2026-04-14T00:00:00Z
-updated_at: 2026-04-14T08:35:27Z
+updated_at: 2026-04-14T10:01:07Z
 owner: aaron
 visibility: private
 publication_status: none
@@ -73,3 +73,14 @@ A local user-account flow was added with signup, login, profile update, and toke
 Publication save flow is now verified end to end: a regular user can save a note with visibility set to public, the source note stays private under the author, publication_status becomes requested, and a librarian request note is created under the sagwan-managed publication queue. Safe OpenAkashic and shared docs were promoted to public ownership under sagwan, while company-sensitive, portfolio, ops, and personal-private materials were left private.
 
 A follow-up bug in user account storage was fixed by remapping legacy /server paths to the active Closed Akashic vault root so signup/login now work in the deployed container environment.
+
+## 2026-04-14 Auth Admin And Resource Map Update
+- Split auth into `username` for login and mutable `nickname` for note ownership display.
+- Added seeded system users `aaron` (admin) and `sagwan` (manager) in `server/data/users.json`; `aaron` password now tracks the current master token as the bootstrap admin password.
+- Web auth modal now uses login/signup/profile only: signup requires username + nickname + password confirmation, profile exposes nickname edit, token copy/rotate, and logout.
+- Note page edit controls moved below the fixed header into the page top-right action rail; breadcrumb/title spacing was loosened.
+- `/admin` now replaces `/debug` in the shared header and serves a left-nav admin console with working Debug, Users, Roles, and Sagwan settings sections.
+- Added persisted librarian runtime settings in `server/data/librarian-settings.json`; admin UI can change provider/model/base_url/reasoning/tools and the librarian runtime now reads them.
+- MCP bearer auth now accepts non-master user tokens, and MCP note search/read/write paths respect `public + current owner private` rules.
+- Added agent guidance note `doc/agents/Agent Skills Contract.md` and refreshed token/debug docs to match the new auth/admin flow.
+- Added `doc/reference/Development Resource Map.md` and `doc/reference/Japanese Learning Resource Map.md` to anchor external reference sources inside the knowledge graph.

@@ -98,6 +98,7 @@ def get_closed_graph() -> dict[str, Any]:
                 "inbound": inbound_count[note.slug],
                 "outbound": outbound_count[note.slug],
                 "degree": degree,
+                "size": len(note.body),
             }
         )
 
@@ -385,6 +386,27 @@ def closed_note_html(
     }}
     body.left-collapsed .sidebar-resizer {{ display: none; }}
     .content {{ min-width: 0; padding: 0 clamp(18px, 4vw, 48px) 56px; }}
+    .page-actions {{
+      position: sticky;
+      top: calc(var(--closed-header-height) + 10px);
+      z-index: 42;
+      display: flex;
+      justify-content: flex-end;
+      margin: 0 0 18px;
+      pointer-events: none;
+    }}
+    .page-actions-row {{
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 8px;
+      border-radius: 10px;
+      border: 1px solid rgba(215, 226, 239, .82);
+      background: rgba(248, 250, 252, .92);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 12px 28px rgba(15, 23, 42, .08);
+      pointer-events: auto;
+    }}
     .appbar {{
       position: sticky;
       top: 0;
@@ -555,7 +577,7 @@ def closed_note_html(
     .nav-link small {{ display:block; color: var(--muted); font-size: 0.72rem; margin-top: 4px; overflow-wrap: anywhere; line-height: 1.35; }}
     .note-shell {{ max-width: 820px; margin: 0 auto; }}
     .note-top {{
-      display: grid; gap: 16px; margin-bottom: 26px; padding-bottom: 22px;
+      display: grid; gap: 22px; margin-bottom: 26px; padding-bottom: 22px;
       border-bottom: 1px solid var(--line);
     }}
     .path {{
@@ -781,7 +803,7 @@ def closed_note_html(
         <button class="side-tab active" type="button" data-sidebar-tab="explore">Explore</button>
         <button class="side-tab" type="button" data-sidebar-tab="info">Info</button>
         <button class="side-tab" type="button" data-sidebar-tab="relations">Relations</button>
-        <button class="side-tab" type="button" data-sidebar-tab="edit" data-admin-only hidden>Edit</button>
+        <button class="side-tab" type="button" data-sidebar-tab="edit" data-note-write-control hidden>Edit</button>
       </div>
       <section class="sidebar-panel" data-sidebar-panel="explore">
         <div class="search-wrap">
@@ -917,6 +939,13 @@ def closed_note_html(
       <div class="sidebar-resizer" id="sidebar-resizer" role="separator" aria-orientation="vertical" aria-label="Resize sidebar" title="Drag to resize"></div>
     </aside>
     <main class="content">
+      <div class="page-actions">
+        <div class="page-actions-row">
+          <button class="global-pill is-primary" id="global-edit-note" type="button" data-note-write-control data-edit-view="edit" hidden>Edit</button>
+          <button class="global-pill is-primary" id="global-save-note" type="button" data-note-write-control data-edit-view="save" hidden>Save</button>
+          <button class="global-pill" id="global-cancel-note" type="button" data-note-write-control data-edit-view="save" hidden>Cancel</button>
+        </div>
+      </div>
       <div class="note-shell">
         <header class="note-top read-view">
           <div class="path" aria-label="Note path">{path_breadcrumb}</div>
@@ -931,7 +960,7 @@ def closed_note_html(
         <section class="article-wrap">
           <article class="markdown read-view" id="read-content" data-edit-target="body">{payload["body_html"]}</article>
           <section class="inline-editor edit-view">
-            <span class="inline-hint" id="workspace-banner">마크다운 원문을 수정한 뒤 상단 헤더의 Save로 저장한다.</span>
+            <span class="inline-hint" id="workspace-banner">마크다운 원문을 수정한 뒤 우상단 Save로 저장한다.</span>
             <textarea class="editor-body-input" id="editor-body" placeholder="## Summary"></textarea>
             <div class="workspace-actions">
               <button class="action-button subtle" id="editor-delete" type="button">Delete Note</button>
@@ -1513,6 +1542,7 @@ def closed_graph_html(
             <div class="metric"><span>Degree</span><strong id="degree">-</strong></div>
             <div class="metric"><span>Project</span><strong id="project">-</strong></div>
             <div class="metric"><span>Path</span><strong id="path">-</strong></div>
+            <div class="metric"><span>Size</span><strong id="size">-</strong></div>
             <div class="metric"><span>Owner</span><strong id="owner">-</strong></div>
             <div class="metric"><span>Status</span><strong id="status">-</strong></div>
             <div class="metric"><span>Visibility</span><strong id="visibility">-</strong></div>
@@ -1563,6 +1593,14 @@ def closed_graph_html(
               <span>Max Degree</span>
               <input class="filter-input" id="graph-filter-max-degree" type="number" min="0" step="1" placeholder="auto" />
             </label>
+            <label class="filter-field">
+              <span>Min Size</span>
+              <input class="filter-input" id="graph-filter-min-size" type="number" min="0" step="50" value="0" />
+            </label>
+            <label class="filter-field">
+              <span>Max Size</span>
+              <input class="filter-input" id="graph-filter-max-size" type="number" min="0" step="50" placeholder="auto" />
+            </label>
           </div>
           <div class="filter-meta" id="graph-filter-meta">전체 그래프를 기준으로 필터를 적용한다.</div>
           <div class="row">
@@ -1601,7 +1639,7 @@ def closed_graph_html(
       auth: {{ authenticated: false, role: 'anonymous', nickname: '' }},
       visibleNodeIds: new Set(),
       visibleLinks: [],
-      filters: {{ kind: '', owner: '', query: '', path: '', minDegree: 0, maxDegree: '' }},
+      filters: {{ kind: '', owner: '', query: '', path: '', minDegree: 0, maxDegree: '', minSize: 0, maxSize: '' }},
     }};
     const leftCollapsedKey = 'closed-akashic-left-collapsed';
     const graphTabKey = 'closed-akashic-graph-tab';
@@ -1618,6 +1656,8 @@ def closed_graph_html(
     const filterPath = document.getElementById('graph-filter-path');
     const filterMinDegree = document.getElementById('graph-filter-min-degree');
     const filterMaxDegree = document.getElementById('graph-filter-max-degree');
+    const filterMinSize = document.getElementById('graph-filter-min-size');
+    const filterMaxSize = document.getElementById('graph-filter-max-size');
     const filterMeta = document.getElementById('graph-filter-meta');
     const filterReset = document.getElementById('graph-filter-reset');
     let searchTimer = null;
@@ -1681,6 +1721,8 @@ def closed_graph_html(
       const pathQuery = String(state.filters.path || '').trim().toLowerCase();
       const minDegree = Number(state.filters.minDegree || 0) || 0;
       const maxDegree = state.filters.maxDegree === '' ? Number.POSITIVE_INFINITY : Number(state.filters.maxDegree || 0);
+      const minSize = Number(state.filters.minSize || 0) || 0;
+      const maxSize = state.filters.maxSize === '' ? Number.POSITIVE_INFINITY : Number(state.filters.maxSize || 0);
       const haystack = [node.title, node.summary, node.path, node.project, node.kind, ...(node.tags || [])]
         .join(' ')
         .toLowerCase();
@@ -1690,6 +1732,8 @@ def closed_graph_html(
       if (pathQuery && !String(node.path || '').toLowerCase().includes(pathQuery)) return false;
       if ((node.degree || 0) < minDegree) return false;
       if ((node.degree || 0) > maxDegree) return false;
+      if ((node.size || 0) < minSize) return false;
+      if ((node.size || 0) > maxSize) return false;
       return true;
     }}
 
@@ -1895,6 +1939,7 @@ def closed_graph_html(
       document.getElementById('degree').textContent = String(node.degree ?? 0);
       document.getElementById('project').textContent = node.project || '-';
       document.getElementById('path').textContent = node.path || '-';
+      document.getElementById('size').textContent = `${{node.size || 0}} chars`;
       document.getElementById('owner').textContent = node.owner || '-';
       document.getElementById('status').textContent = node.status || '-';
       document.getElementById('visibility').textContent = node.visibility || '-';
@@ -1990,7 +2035,7 @@ def closed_graph_html(
     if (window.localStorage.getItem(leftCollapsedKey) === '1') setLeftCollapsed(true);
     setGraphTab(window.localStorage.getItem(graphTabKey) || 'explore');
     leftToggle?.addEventListener('click', () => setLeftCollapsed(!document.body.classList.contains('left-collapsed')));
-    const filterInputs = [filterKind, filterOwner, filterQuery, filterPath, filterMinDegree, filterMaxDegree];
+    const filterInputs = [filterKind, filterOwner, filterQuery, filterPath, filterMinDegree, filterMaxDegree, filterMinSize, filterMaxSize];
     filterInputs.forEach((field) => field?.addEventListener('input', () => {{
       state.filters.kind = String(filterKind?.value || '').trim().toLowerCase();
       state.filters.owner = String(filterOwner?.value || '').trim().toLowerCase();
@@ -1998,6 +2043,8 @@ def closed_graph_html(
       state.filters.path = String(filterPath?.value || '').trim();
       state.filters.minDegree = String(filterMinDegree?.value || '0').trim();
       state.filters.maxDegree = String(filterMaxDegree?.value || '').trim();
+      state.filters.minSize = String(filterMinSize?.value || '0').trim();
+      state.filters.maxSize = String(filterMaxSize?.value || '').trim();
       rebuildVisibleGraph();
     }}));
     filterReset?.addEventListener('click', () => {{
@@ -2007,7 +2054,9 @@ def closed_graph_html(
       if (filterPath) filterPath.value = '';
       if (filterMinDegree) filterMinDegree.value = '0';
       if (filterMaxDegree) filterMaxDegree.value = '';
-      state.filters = {{ kind: '', owner: '', query: '', path: '', minDegree: 0, maxDegree: '' }};
+      if (filterMinSize) filterMinSize.value = '0';
+      if (filterMaxSize) filterMaxSize.value = '';
+      state.filters = {{ kind: '', owner: '', query: '', path: '', minDegree: 0, maxDegree: '', minSize: 0, maxSize: '' }};
       rebuildVisibleGraph();
     }});
     noteFilterInput?.addEventListener('input', () => {{
@@ -2141,7 +2190,7 @@ def closed_debug_html(route_prefix: str = "") -> str:
     route_prefix = _normalize_prefix(route_prefix)
     api_base_json = json.dumps("", ensure_ascii=False)
     shared_styles = _shared_ui_styles()
-    shared_header = _shared_header_html(route_prefix, "Debug")
+    shared_header = _shared_header_html(route_prefix, "Admin")
     shared_shell = _shared_ui_shell(route_prefix)
     template = """<!doctype html>
 <html lang="ko">
@@ -2149,7 +2198,7 @@ def closed_debug_html(route_prefix: str = "") -> str:
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="icon" href="data:," />
-  <title>Closed Akashic Debug</title>
+  <title>Closed Akashic Admin</title>
   <style>
     :root {
       --bg: #f4f7fb;
@@ -2189,31 +2238,91 @@ def closed_debug_html(route_prefix: str = "") -> str:
       color: var(--ink);
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
-    body { padding: 28px clamp(16px, 3vw, 38px) 42px; }
+    .admin-layout {
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+      min-height: calc(100svh - var(--closed-header-height));
+    }
+    .admin-sidebar {
+      position: sticky;
+      top: var(--closed-header-height);
+      align-self: start;
+      display: grid;
+      gap: 14px;
+      height: calc(100svh - var(--closed-header-height));
+      padding: 28px 20px;
+      border-right: 1px solid var(--line);
+      background: rgba(248, 250, 252, .84);
+      backdrop-filter: blur(14px);
+    }
+    .admin-content {
+      min-width: 0;
+      padding: 28px clamp(16px, 3vw, 38px) 42px;
+    }
     a { color: var(--accent); text-decoration: none; }
     a:hover { text-decoration: underline; }
     button, input, select { font: inherit; }
-    .shell {
-      width: min(1280px, 100%);
-      margin: 0 auto;
+    .brand-kicker {
+      margin: 0 0 6px;
+      color: var(--accent-2);
+      font-size: .74rem;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .sidebar-title {
+      margin: 0;
+      font-size: 1.7rem;
+      line-height: 1;
+    }
+    .sidebar-copy {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: .92rem;
+    }
+    .admin-nav {
       display: grid;
+      gap: 8px;
+    }
+    .admin-nav-button {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 42px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, .88);
+      color: var(--ink);
+      font-weight: 700;
+      cursor: pointer;
+      text-align: left;
+      transition: background .16s ease, border-color .16s ease, transform .16s ease;
+    }
+    .admin-nav-button:hover {
+      background: rgba(255,255,255,.98);
+      border-color: var(--line-strong);
+      transform: translateX(2px);
+    }
+    .admin-nav-button.active {
+      background: rgba(37, 99, 235, .09);
+      border-color: rgba(37, 99, 235, .22);
+      color: var(--accent);
+      box-shadow: inset 3px 0 0 rgba(37, 99, 235, .88);
+    }
+    .admin-page {
+      display: flex;
+      flex-direction: column;
       gap: 18px;
     }
-    .topbar {
+    .page-head {
       display: flex;
       justify-content: space-between;
       gap: 18px;
       align-items: flex-start;
       padding-bottom: 18px;
       border-bottom: 1px solid var(--line);
-    }
-    .eyebrow {
-      margin: 0 0 8px;
-      color: var(--accent-2);
-      font-size: .74rem;
-      font-weight: 800;
-      letter-spacing: .08em;
-      text-transform: uppercase;
     }
     h1 {
       margin: 0;
@@ -2232,7 +2341,7 @@ def closed_debug_html(route_prefix: str = "") -> str:
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
-      justify-content: flex-end;
+      justify-content: flex-start;
     }
     .chip, .button {
       display: inline-flex;
@@ -2257,19 +2366,20 @@ def closed_debug_html(route_prefix: str = "") -> str:
       opacity: .48;
       cursor: not-allowed;
     }
-    .grid {
+    .panel-shell {
       display: grid;
-      grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
       gap: 18px;
-      align-items: start;
     }
-    .grid.filters-collapsed {
-      grid-template-columns: minmax(0, 1fr);
-    }
-    .grid.filters-collapsed .side {
+    .admin-panel[hidden] {
       display: none;
     }
-    .panel {
+    .overview-grid, .debug-grid {
+      display: grid;
+      gap: 18px;
+      grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
+      align-items: start;
+    }
+    .panel, .card {
       border: 1px solid var(--line);
       border-radius: 8px;
       background: var(--surface);
@@ -2283,8 +2393,6 @@ def closed_debug_html(route_prefix: str = "") -> str:
     }
     .card {
       padding: 16px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
       background: rgba(255, 255, 255, .84);
     }
     .card-title {
@@ -2586,8 +2694,64 @@ def closed_debug_html(route_prefix: str = "") -> str:
       overflow-wrap: anywhere;
       word-break: break-word;
     }
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: rgba(255,255,255,.78);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .data-table th, .data-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: .92rem;
+    }
+    .data-table th {
+      color: var(--muted);
+      font-size: .74rem;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+    .inline-form {
+      display: grid;
+      gap: 12px;
+    }
+    .tool-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .checkbox {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: rgba(255,255,255,.88);
+    }
+    .toolbar-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    .locked-copy {
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: .94rem;
+    }
     @media (max-width: 1040px) {
-      .grid { grid-template-columns: 1fr; }
+      .admin-layout { grid-template-columns: 1fr; }
+      .admin-sidebar {
+        position: static;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .overview-grid, .debug-grid { grid-template-columns: 1fr; }
       .side { position: static; }
       .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .request { grid-template-columns: 110px 70px minmax(0, 1fr); }
@@ -2596,14 +2760,15 @@ def closed_debug_html(route_prefix: str = "") -> str:
       .payload-grid { grid-template-columns: 1fr; }
     }
     @media (max-width: 720px) {
-      body { padding: 20px 14px 28px; }
-      .topbar { display: grid; }
+      .admin-content { padding: 20px 14px 28px; }
+      .page-head { display: grid; }
       .quicklinks, .actions { justify-content: flex-start; }
       .metrics, .filter-grid { grid-template-columns: 1fr; }
       .filter-grid .span-2 { grid-column: auto; }
       .request { grid-template-columns: 1fr; }
       .duration { text-align: left; }
       .detail-grid { grid-template-columns: 1fr; }
+      .tool-grid { grid-template-columns: 1fr; }
       .modal-shell { padding: 10px; place-items: stretch; }
       .modal { max-height: calc(100svh - 20px); }
       .modal-head, .modal-body { padding: 14px; }
@@ -2613,23 +2778,78 @@ def closed_debug_html(route_prefix: str = "") -> str:
 </head>
 <body class="closed-with-header">
   __SHARED_HEADER__
-  <main class="shell">
-    <header class="topbar">
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
       <div>
-        <p class="eyebrow">Closed Akashic</p>
-        <h1>Debug Console</h1>
-        <p class="lead">MCP, API, 페이지 요청을 한 화면에서 검색하고 시간순, 종류순, 상태순으로 좁혀 본다.</p>
+        <p class="brand-kicker">OpenAkashic</p>
+        <h1 class="sidebar-title">Admin</h1>
+        <p class="sidebar-copy">사용자, 역할, 디버그 요청, 사관 런타임 설정을 한 곳에서 관리한다.</p>
       </div>
-      <nav class="quicklinks">
-        <button class="chip" id="toggle-debug-filters" type="button" aria-pressed="false">Filters</button>
+      <nav class="admin-nav" aria-label="Admin sections">
+        <button class="admin-nav-button active" type="button" data-admin-nav="overview">Overview</button>
+        <button class="admin-nav-button" type="button" data-admin-nav="debug">Debug</button>
+        <button class="admin-nav-button" type="button" data-admin-nav="users">Users</button>
+        <button class="admin-nav-button" type="button" data-admin-nav="roles">Roles</button>
+        <button class="admin-nav-button" type="button" data-admin-nav="sagwan">Sagwan</button>
       </nav>
-    </header>
+      <p class="footer-note">관리자 토큰이 없으면 이 페이지는 개요만 보이고, 관리 기능은 잠금 상태로 남는다.</p>
+    </aside>
+    <main class="admin-content">
+      <div class="admin-page">
+        <header class="page-head">
+          <div>
+            <p class="brand-kicker">Closed Akashic</p>
+            <h1>Admin Console</h1>
+            <p class="lead">권한 모델, 사용자 계정, 사관 에이전트 설정, 요청 로그를 현재 OpenAkashic/Closed 통합 구조에 맞춰 관리한다.</p>
+          </div>
+          <nav class="quicklinks">
+            <button class="chip" id="admin-refresh-all" type="button">Refresh</button>
+          </nav>
+        </header>
 
-    <section class="grid" id="debug-grid">
-      <aside class="side">
-        <section class="card">
-          <h2 class="card-title">Filters</h2>
-          <div class="filter-grid">
+        <section class="panel-shell">
+          <section class="admin-panel" id="admin-panel-overview">
+            <div class="overview-grid">
+              <aside class="side">
+                <section class="card">
+                  <h2 class="card-title">Session</h2>
+                  <div class="status-line" id="admin-session-status">관리자 세션을 확인하는 중이다.</div>
+                </section>
+                <section class="card">
+                  <h2 class="card-title">Next Checks</h2>
+                  <div class="locked-copy">
+                    public 문서는 모두가 읽을 수 있고 private 문서는 owner/admin만 다룰 수 있다.
+                    사용자 토큰은 웹 로그인과 에이전트 API/MCP 모두에서 재사용한다.
+                  </div>
+                </section>
+              </aside>
+              <section class="panel">
+                <div class="metrics">
+                  <div class="metric"><span>Users</span><strong id="metric-users">0</strong></div>
+                  <div class="metric"><span>Admins</span><strong id="metric-admins">0</strong></div>
+                  <div class="metric"><span>Managers</span><strong id="metric-managers">0</strong></div>
+                  <div class="metric"><span>Librarian Tools</span><strong id="metric-tools">0</strong></div>
+                </div>
+                <div class="list">
+                  <section class="card">
+                    <h2 class="card-title">Librarian Runtime</h2>
+                    <div class="locked-copy" id="overview-librarian">사관 설정을 불러오는 중이다.</div>
+                  </section>
+                  <section class="card">
+                    <h2 class="card-title">Recent Requests</h2>
+                    <div class="locked-copy" id="overview-debug">최근 요청 상태를 불러오는 중이다.</div>
+                  </section>
+                </div>
+              </section>
+            </div>
+          </section>
+
+          <section class="admin-panel" id="admin-panel-debug" hidden>
+            <div class="debug-grid">
+              <aside class="side">
+                <section class="card">
+                  <h2 class="card-title">Filters</h2>
+                  <div class="filter-grid">
             <div class="field span-2">
               <label for="filter-q">Search</label>
               <input class="input" id="filter-q" placeholder="path, request id, user agent, cf-ray" />
@@ -2698,36 +2918,151 @@ def closed_debug_html(route_prefix: str = "") -> str:
               <input class="input" id="filter-request-id" placeholder="remote-mcp-test-..." />
             </div>
           </div>
-          <div class="actions">
-            <button class="button primary" id="refresh" type="button">Refresh</button>
-            <button class="button" id="reset" type="button">Reset</button>
-          </div>
-          <p class="status-line" id="load-status">필터를 조정하면 자동으로 다시 불러온다.</p>
+                  <div class="actions">
+                    <button class="button primary" id="refresh" type="button">Refresh</button>
+                    <button class="button" id="reset" type="button">Reset</button>
+                  </div>
+                  <p class="status-line" id="load-status">필터를 조정하면 자동으로 다시 불러온다.</p>
+                </section>
+                <p class="footer-note">요청 본문과 bearer token은 저장하지 않는다. 쿼리 문자열의 token, access_token, api_key 값은 로그에 남기기 전에 가린다.</p>
+              </aside>
+              <section class="panel">
+                <div class="metrics">
+                  <div class="metric"><span>Shown</span><strong id="metric-shown">0</strong></div>
+                  <div class="metric"><span>MCP</span><strong id="metric-mcp">0</strong></div>
+                  <div class="metric"><span>Errors</span><strong id="metric-errors">0</strong></div>
+                  <div class="metric"><span>Slowest</span><strong id="metric-slowest">0ms</strong></div>
+                </div>
+                <div class="list" id="request-list">
+                  <div class="empty">관리자 토큰을 적용하면 최근 요청을 불러온다.</div>
+                </div>
+              </section>
+            </div>
+          </section>
+
+          <section class="admin-panel" id="admin-panel-users" hidden>
+            <section class="panel">
+              <div class="list">
+                <section class="card">
+                  <h2 class="card-title">User Management</h2>
+                  <div class="toolbar-row">
+                    <input class="input" id="user-search" placeholder="username or nickname" />
+                    <button class="button" id="users-refresh" type="button">Refresh Users</button>
+                  </div>
+                  <p class="status-line" id="users-status">사용자 목록을 불러오면 여기서 검색하고 확인할 수 있다.</p>
+                </section>
+                <div style="overflow:auto;">
+                  <table class="data-table">
+                    <thead>
+                      <tr>
+                        <th>Username</th>
+                        <th>Nickname</th>
+                        <th>Role</th>
+                        <th>System</th>
+                        <th>Updated</th>
+                      </tr>
+                    </thead>
+                    <tbody id="users-table-body">
+                      <tr><td colspan="5" class="locked-copy">관리자 토큰이 필요하다.</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </section>
+          </section>
+
+          <section class="admin-panel" id="admin-panel-roles" hidden>
+            <div class="overview-grid">
+              <aside class="side">
+                <section class="card">
+                  <h2 class="card-title">Role Update</h2>
+                  <div class="inline-form">
+                    <label class="field">
+                      <span>Username</span>
+                      <select class="select" id="role-user"></select>
+                    </label>
+                    <label class="field">
+                      <span>Role</span>
+                      <select class="select" id="role-value">
+                        <option value="user">user</option>
+                        <option value="manager">manager</option>
+                        <option value="admin">admin</option>
+                      </select>
+                    </label>
+                  </div>
+                  <div class="actions">
+                    <button class="button primary" id="role-save" type="button">Save Role</button>
+                  </div>
+                  <p class="status-line" id="roles-status">관리자만 역할을 바꿀 수 있다.</p>
+                </section>
+              </aside>
+              <section class="panel">
+                <div class="list">
+                  <section class="card">
+                    <h2 class="card-title">Current Roles</h2>
+                    <div id="roles-summary" class="locked-copy">사용자 목록을 먼저 불러온다.</div>
+                  </section>
+                </div>
+              </section>
+            </div>
+          </section>
+
+          <section class="admin-panel" id="admin-panel-sagwan" hidden>
+            <div class="overview-grid">
+              <aside class="side">
+                <section class="card">
+                  <h2 class="card-title">Sagwan Settings</h2>
+                  <div class="inline-form">
+                    <label class="field">
+                      <span>Provider</span>
+                      <input class="input" id="librarian-provider" placeholder="codex-style or openai-compatible" />
+                    </label>
+                    <label class="field">
+                      <span>Model</span>
+                      <input class="input" id="librarian-model" placeholder="openai-codex/gpt-5.4" />
+                    </label>
+                    <label class="field">
+                      <span>Base URL</span>
+                      <input class="input" id="librarian-base-url" placeholder="optional" />
+                    </label>
+                    <label class="field">
+                      <span>Reasoning</span>
+                      <input class="input" id="librarian-reasoning" placeholder="medium" />
+                    </label>
+                  </div>
+                  <div class="actions">
+                    <button class="button primary" id="librarian-save" type="button">Save Settings</button>
+                  </div>
+                  <p class="status-line" id="librarian-save-status">사관 런타임 설정을 저장하면 다음 호출부터 적용된다.</p>
+                </section>
+              </aside>
+              <section class="panel">
+                <div class="list">
+                  <section class="card">
+                    <h2 class="card-title">Enabled Tools</h2>
+                    <div class="tool-grid" id="librarian-tools-grid">
+                      <div class="locked-copy">도구 구성을 불러오는 중이다.</div>
+                    </div>
+                  </section>
+                  <section class="card">
+                    <h2 class="card-title">Runtime Status</h2>
+                    <div class="locked-copy" id="librarian-runtime-status">사관 상태를 불러오는 중이다.</div>
+                  </section>
+                </div>
+              </section>
+            </div>
+          </section>
         </section>
-
-        <p class="footer-note">요청 본문과 bearer token은 저장하지 않는다. 쿼리 문자열의 token, access_token, api_key 값은 로그에 남기기 전에 가린다.</p>
-      </aside>
-
-      <section class="panel">
-        <div class="metrics">
-          <div class="metric"><span>Shown</span><strong id="metric-shown">0</strong></div>
-          <div class="metric"><span>MCP</span><strong id="metric-mcp">0</strong></div>
-          <div class="metric"><span>Errors</span><strong id="metric-errors">0</strong></div>
-          <div class="metric"><span>Slowest</span><strong id="metric-slowest">0ms</strong></div>
-        </div>
-        <div class="list" id="request-list">
-          <div class="empty">토큰을 입력하면 최근 요청을 불러온다.</div>
-        </div>
-      </section>
-    </section>
-  </main>
+      </div>
+    </main>
+  </div>
   __SHARED_SHELL__
   <div class="modal-shell" id="request-modal" hidden>
     <div class="modal-backdrop" data-close-modal></div>
     <section class="modal" role="dialog" aria-modal="true" aria-labelledby="request-modal-title">
       <header class="modal-head">
         <div>
-          <p class="eyebrow">Request detail</p>
+          <p class="brand-kicker">Request detail</p>
           <h2 class="modal-title" id="request-modal-title">Request</h2>
           <p class="status-line" id="request-modal-subtitle">요청과 응답 상세를 확인한다.</p>
         </div>
@@ -2741,12 +3076,31 @@ def closed_debug_html(route_prefix: str = "") -> str:
     (() => {
       const apiBase = __API_BASE_JSON__;
       const state = {
+        panel: 'overview',
         timer: null,
         loading: false,
         status: null,
         events: [],
+        users: [],
+        librarian: null,
       };
       const dom = {
+        navButtons: [...document.querySelectorAll('[data-admin-nav]')],
+        panels: {
+          overview: document.getElementById('admin-panel-overview'),
+          debug: document.getElementById('admin-panel-debug'),
+          users: document.getElementById('admin-panel-users'),
+          roles: document.getElementById('admin-panel-roles'),
+          sagwan: document.getElementById('admin-panel-sagwan'),
+        },
+        refreshAll: document.getElementById('admin-refresh-all'),
+        sessionStatus: document.getElementById('admin-session-status'),
+        overviewLibrarian: document.getElementById('overview-librarian'),
+        overviewDebug: document.getElementById('overview-debug'),
+        overviewUsers: document.getElementById('metric-users'),
+        overviewAdmins: document.getElementById('metric-admins'),
+        overviewManagers: document.getElementById('metric-managers'),
+        overviewTools: document.getElementById('metric-tools'),
         q: document.getElementById('filter-q'),
         kind: document.getElementById('filter-kind'),
         method: document.getElementById('filter-method'),
@@ -2768,8 +3122,23 @@ def closed_debug_html(route_prefix: str = "") -> str:
         modalSubtitle: document.getElementById('request-modal-subtitle'),
         modalBody: document.getElementById('request-modal-body'),
         modalClose: document.getElementById('request-modal-close'),
-        debugGrid: document.getElementById('debug-grid'),
-        filtersToggle: document.getElementById('toggle-debug-filters'),
+        userSearch: document.getElementById('user-search'),
+        usersRefresh: document.getElementById('users-refresh'),
+        usersStatus: document.getElementById('users-status'),
+        usersTableBody: document.getElementById('users-table-body'),
+        roleUser: document.getElementById('role-user'),
+        roleValue: document.getElementById('role-value'),
+        roleSave: document.getElementById('role-save'),
+        rolesStatus: document.getElementById('roles-status'),
+        rolesSummary: document.getElementById('roles-summary'),
+        librarianProvider: document.getElementById('librarian-provider'),
+        librarianModel: document.getElementById('librarian-model'),
+        librarianBaseUrl: document.getElementById('librarian-base-url'),
+        librarianReasoning: document.getElementById('librarian-reasoning'),
+        librarianToolsGrid: document.getElementById('librarian-tools-grid'),
+        librarianSave: document.getElementById('librarian-save'),
+        librarianSaveStatus: document.getElementById('librarian-save-status'),
+        librarianRuntimeStatus: document.getElementById('librarian-runtime-status'),
       };
 
       function token() {
@@ -2834,6 +3203,25 @@ def closed_debug_html(route_prefix: str = "") -> str:
         if (dom.statusMin.value) query.set('status_min', dom.statusMin.value);
         if (dom.requestId.value.trim()) query.set('request_id', dom.requestId.value.trim());
         return query;
+      }
+
+      function currentSession() {
+        return window.closedAkashicUI?.getSession?.() || { authenticated: false, role: 'anonymous' };
+      }
+
+      function isAdminSession() {
+        return Boolean(currentSession()?.authenticated && currentSession()?.role === 'admin');
+      }
+
+      function setPanel(next) {
+        state.panel = ['overview', 'debug', 'users', 'roles', 'sagwan'].includes(next) ? next : 'overview';
+        dom.navButtons.forEach((button) => {
+          button.classList.toggle('active', button.dataset.adminNav === state.panel);
+        });
+        Object.entries(dom.panels).forEach(([key, panel]) => {
+          if (!panel) return;
+          panel.hidden = key !== state.panel;
+        });
       }
 
       async function fetchJson(path) {
@@ -2945,11 +3333,14 @@ def closed_debug_html(route_prefix: str = "") -> str:
         const obs = status?.observability || {};
         const logState = obs.log_file_exists ? 'request log ready' : 'request log not found';
         setAuthText(`Unlocked. ${logState}. recent buffer ${obs.recent_count ?? 0}/${obs.recent_capacity ?? '-'}.`, 'ok');
+        if (dom.overviewDebug) {
+          dom.overviewDebug.textContent = `request log ${logState}, recent buffer ${obs.recent_count ?? 0}/${obs.recent_capacity ?? '-'}.`;
+        }
       }
 
       async function refresh() {
-        if (!token()) {
-          setAuthText('토큰을 입력하면 디버그 데이터를 볼 수 있다.', 'warn');
+        if (!isAdminSession()) {
+          setAuthText('관리자 로그인 뒤 디버그 요청을 볼 수 있다.', 'warn');
           setLoadText('Locked.');
           renderMetrics([]);
           renderList([]);
@@ -2997,13 +3388,155 @@ def closed_debug_html(route_prefix: str = "") -> str:
         refresh();
       }
 
+      function renderUsers() {
+        const q = String(dom.userSearch?.value || '').trim().toLowerCase();
+        const rows = state.users.filter((user) => {
+          const haystack = [user.username, user.nickname, user.role].join(' ').toLowerCase();
+          return !q || haystack.includes(q);
+        });
+        if (!rows.length) {
+          dom.usersTableBody.innerHTML = '<tr><td colspan="5" class="locked-copy">표시할 사용자가 없다.</td></tr>';
+          return;
+        }
+        dom.usersTableBody.innerHTML = rows.map((user) => `
+          <tr>
+            <td>${escapeHtml(user.username)}</td>
+            <td>${escapeHtml(user.nickname)}</td>
+            <td><span class="badge">${escapeHtml(user.role)}</span></td>
+            <td>${user.system ? 'yes' : 'no'}</td>
+            <td>${escapeHtml(fmtTime(user.updated_at))}</td>
+          </tr>
+        `).join('');
+      }
+
+      function syncRoleControls() {
+        const options = state.users.map((user) => `<option value="${escapeHtml(user.username)}">${escapeHtml(user.username)} (${escapeHtml(user.nickname)})</option>`).join('');
+        if (dom.roleUser) dom.roleUser.innerHTML = options;
+        const adminCount = state.users.filter((user) => user.role === 'admin').length;
+        const managerCount = state.users.filter((user) => user.role === 'manager').length;
+        if (dom.rolesSummary) {
+          dom.rolesSummary.textContent = `전체 ${state.users.length}명, admin ${adminCount}명, manager ${managerCount}명, user ${Math.max(0, state.users.length - adminCount - managerCount)}명`;
+        }
+        if (dom.overviewUsers) dom.overviewUsers.textContent = String(state.users.length);
+        if (dom.overviewAdmins) dom.overviewAdmins.textContent = String(adminCount);
+        if (dom.overviewManagers) dom.overviewManagers.textContent = String(managerCount);
+      }
+
+      async function refreshUsers() {
+        if (!isAdminSession()) {
+          dom.usersStatus.textContent = '관리자 로그인 뒤 사용자 목록을 볼 수 있다.';
+          dom.usersTableBody.innerHTML = '<tr><td colspan="5" class="locked-copy">관리자 토큰이 필요하다.</td></tr>';
+          return;
+        }
+        try {
+          const data = await fetchJson('/api/admin/users');
+          state.users = data.users || [];
+          dom.usersStatus.textContent = `${state.users.length}명의 사용자를 불러왔다.`;
+          renderUsers();
+          syncRoleControls();
+        } catch (error) {
+          dom.usersStatus.textContent = error.message;
+          dom.usersTableBody.innerHTML = '<tr><td colspan="5" class="locked-copy">사용자 목록을 불러오지 못했다.</td></tr>';
+        }
+      }
+
+      async function saveRole() {
+        if (!isAdminSession()) {
+          dom.rolesStatus.textContent = '관리자 로그인 뒤 역할을 바꿀 수 있다.';
+          return;
+        }
+        try {
+          const username = dom.roleUser?.value || '';
+          const role = dom.roleValue?.value || 'user';
+          if (!username) throw new Error('먼저 사용자를 선택해줘.');
+          await fetchJson('/api/admin/users/role', {
+            method: 'POST',
+            json: { username, role },
+          });
+          dom.rolesStatus.textContent = `${username} 역할을 ${role}로 저장했다.`;
+          await refreshUsers();
+        } catch (error) {
+          dom.rolesStatus.textContent = error.message;
+        }
+      }
+
+      function selectedLibrarianTools() {
+        return [...document.querySelectorAll('[data-librarian-tool]')].filter((input) => input.checked).map((input) => input.value);
+      }
+
+      function renderLibrarian(settings, status) {
+        state.librarian = { settings, status };
+        if (dom.librarianProvider) dom.librarianProvider.value = settings.provider || '';
+        if (dom.librarianModel) dom.librarianModel.value = settings.model || '';
+        if (dom.librarianBaseUrl) dom.librarianBaseUrl.value = settings.base_url || '';
+        if (dom.librarianReasoning) dom.librarianReasoning.value = settings.reasoning_effort || '';
+        const availableTools = status?.available_tools || [];
+        dom.librarianToolsGrid.innerHTML = availableTools.map((tool) => `
+          <label class="checkbox">
+            <input type="checkbox" data-librarian-tool value="${escapeHtml(tool)}" ${settings.enabled_tools?.includes(tool) ? 'checked' : ''} />
+            <span>${escapeHtml(tool)}</span>
+          </label>
+        `).join('');
+        if (dom.librarianRuntimeStatus) {
+          dom.librarianRuntimeStatus.textContent = `provider=${status.provider || '-'} · model=${status.model || '-'} · tools=${(status.tools || []).join(', ') || '-'}`;
+        }
+        if (dom.overviewLibrarian) {
+          dom.overviewLibrarian.textContent = `provider=${status.provider || '-'} · model=${status.model || '-'} · tools=${(status.tools || []).join(', ') || '-'}`;
+        }
+        if (dom.overviewTools) {
+          dom.overviewTools.textContent = String((status.tools || []).length);
+        }
+      }
+
+      async function refreshLibrarian() {
+        if (!isAdminSession()) {
+          if (dom.librarianRuntimeStatus) dom.librarianRuntimeStatus.textContent = '관리자 로그인 뒤 사관 설정을 볼 수 있다.';
+          if (dom.overviewLibrarian) dom.overviewLibrarian.textContent = '관리자 세션이 활성화되면 사관 런타임을 확인할 수 있다.';
+          return;
+        }
+        try {
+          const data = await fetchJson('/api/admin/librarian');
+          renderLibrarian(data.settings || {}, data.status || {});
+        } catch (error) {
+          if (dom.librarianRuntimeStatus) dom.librarianRuntimeStatus.textContent = error.message;
+        }
+      }
+
+      async function saveLibrarian() {
+        if (!isAdminSession()) {
+          dom.librarianSaveStatus.textContent = '관리자 로그인 뒤 사관 설정을 저장할 수 있다.';
+          return;
+        }
+        try {
+          const data = await fetchJson('/api/admin/librarian', {
+            method: 'POST',
+            json: {
+              provider: dom.librarianProvider?.value.trim() || '',
+              model: dom.librarianModel?.value.trim() || '',
+              base_url: dom.librarianBaseUrl?.value.trim() || '',
+              reasoning_effort: dom.librarianReasoning?.value.trim() || '',
+              enabled_tools: selectedLibrarianTools(),
+            },
+          });
+          dom.librarianSaveStatus.textContent = '사관 설정을 저장했다.';
+          renderLibrarian(data.settings || {}, data.status || {});
+        } catch (error) {
+          dom.librarianSaveStatus.textContent = error.message;
+        }
+      }
+
+      async function refreshAll() {
+        const session = currentSession();
+        dom.sessionStatus.textContent = session?.authenticated
+          ? `${session.nickname || session.username} (${session.role}) 세션이 연결되어 있다.`
+          : '지금은 익명 상태다. 관리자 계정으로 로그인하면 관리 기능이 열린다.';
+        await Promise.all([refresh(), refreshUsers(), refreshLibrarian()]);
+      }
+
       dom.refresh.addEventListener('click', refresh);
       dom.reset.addEventListener('click', resetFilters);
-      dom.filtersToggle.addEventListener('click', () => {
-        const collapsed = !dom.debugGrid.classList.contains('filters-collapsed');
-        dom.debugGrid.classList.toggle('filters-collapsed', collapsed);
-        dom.filtersToggle.setAttribute('aria-pressed', String(collapsed));
-      });
+      dom.navButtons.forEach((button) => button.addEventListener('click', () => setPanel(button.dataset.adminNav || 'overview')));
+      dom.refreshAll?.addEventListener('click', refreshAll);
       dom.list.addEventListener('click', (event) => {
         const item = event.target.closest('.request');
         if (!item) return;
@@ -3025,11 +3558,16 @@ def closed_debug_html(route_prefix: str = "") -> str:
       document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape' && !dom.modal.hidden) closeRequestDetail();
       });
-      document.addEventListener('closed-akashic-auth-change', refresh);
+      document.addEventListener('closed-akashic-auth-change', refreshAll);
       [dom.q, dom.kind, dom.method, dom.statusMin, dom.limit, dom.sort, dom.order, dom.requestId]
         .forEach((element) => element.addEventListener('input', scheduleRefresh));
+      dom.userSearch?.addEventListener('input', renderUsers);
+      dom.usersRefresh?.addEventListener('click', refreshUsers);
+      dom.roleSave?.addEventListener('click', saveRole);
+      dom.librarianSave?.addEventListener('click', saveLibrarian);
 
-      refresh();
+      setPanel('overview');
+      refreshAll();
     })();
   </script>
 </body>
@@ -3307,7 +3845,7 @@ def _graph_href(route_prefix: str) -> str:
 
 def _debug_href(route_prefix: str) -> str:
     route_prefix = _normalize_prefix(route_prefix)
-    return f"{route_prefix}/debug" if route_prefix else "/debug"
+    return f"{route_prefix}/admin" if route_prefix else "/admin"
 
 
 def _graph_data_href(route_prefix: str) -> str:
@@ -3873,13 +4411,6 @@ def _shared_ui_styles() -> str:
 
 def _shared_header_html(route_prefix: str, page_label: str, *, note_actions: bool = False) -> str:
     route_prefix = _normalize_prefix(route_prefix)
-    note_action_html = ""
-    if note_actions:
-        note_action_html = """
-          <button class="global-pill is-primary" id="global-edit-note" type="button" data-note-write-control data-edit-view="edit" hidden>Edit</button>
-          <button class="global-pill is-primary" id="global-save-note" type="button" data-note-write-control data-edit-view="save" hidden>Save</button>
-          <button class="global-pill" id="global-cancel-note" type="button" data-note-write-control data-edit-view="save" hidden>Cancel</button>
-        """
     return f"""
     <header class="global-header">
       <div class="global-brand">
@@ -3892,10 +4423,9 @@ def _shared_header_html(route_prefix: str, page_label: str, *, note_actions: boo
       <nav class="global-nav" aria-label="Primary">
         <a class="global-pill" href="{html.escape(_root_href(route_prefix))}">Home</a>
         <a class="global-pill" href="{html.escape(_graph_href(route_prefix))}">Graph</a>
-        <a class="global-pill" href="{html.escape(_debug_href(route_prefix))}">Debug</a>
+        <a class="global-pill" href="{html.escape(_debug_href(route_prefix))}">Admin</a>
       </nav>
       <div class="global-actions">
-        {note_action_html}
         <button class="global-pill global-auth-button" id="global-auth-trigger" type="button" data-tone="warn">
           <span class="auth-identity">
             <span class="auth-avatar" id="global-auth-avatar">G</span>
@@ -3916,19 +4446,18 @@ def _shared_ui_shell(route_prefix: str) -> str:
     <div class="global-modal" id="global-auth-modal" hidden>
       <div class="global-modal-backdrop" data-close-auth-modal></div>
       <section class="global-modal-card" role="dialog" aria-modal="true" aria-labelledby="global-auth-title">
-        <h2 id="global-auth-title">로그인과 토큰</h2>
-        <p>웹 로그인, 간단한 회원가입, 프로필 관리, 에이전트용 API 토큰 복사를 이 모달 하나에서 처리한다.</p>
-        <div class="auth-tabs" role="tablist" aria-label="Auth panels">
+        <h2 id="global-auth-title">계정과 프로필</h2>
+        <p>웹에서는 아이디와 비밀번호로 로그인하고, 로그인 뒤에는 닉네임과 에이전트용 토큰을 여기서 관리한다.</p>
+        <div class="auth-tabs" id="global-auth-tabs" role="tablist" aria-label="Auth panels">
           <button class="auth-tab active" type="button" data-auth-panel="login">Login</button>
           <button class="auth-tab" type="button" data-auth-panel="signup">Sign Up</button>
-          <button class="auth-tab" type="button" data-auth-panel="token">Token</button>
           <button class="auth-tab" type="button" data-auth-panel="profile">Profile</button>
         </div>
         <section class="auth-panel" data-auth-panel-view="login">
           <div class="global-modal-grid">
             <label class="auth-field">
-              <span>Nickname Or Email</span>
-              <input class="global-token-input" id="global-login-identifier" type="text" placeholder="nickname or email" autocomplete="username" />
+              <span>Username</span>
+              <input class="global-token-input" id="global-login-username" type="text" placeholder="your-id" autocomplete="username" />
             </label>
             <label class="auth-field">
               <span>Password</span>
@@ -3942,51 +4471,35 @@ def _shared_ui_shell(route_prefix: str) -> str:
         <section class="auth-panel" data-auth-panel-view="signup" hidden>
           <div class="global-modal-grid">
             <label class="auth-field">
+              <span>Username</span>
+              <input class="global-token-input" id="global-signup-username" type="text" placeholder="unique-id" autocomplete="username" />
+            </label>
+            <label class="auth-field">
               <span>Nickname</span>
-              <input class="global-token-input" id="global-signup-nickname" type="text" placeholder="your-id" autocomplete="username" />
-            </label>
-            <label class="auth-field">
-              <span>Display Name</span>
-              <input class="global-token-input" id="global-signup-display-name" type="text" placeholder="shown name" />
-            </label>
-            <label class="auth-field">
-              <span>Email</span>
-              <input class="global-token-input" id="global-signup-email" type="email" placeholder="name@example.com" autocomplete="email" />
+              <input class="global-token-input" id="global-signup-nickname" type="text" placeholder="shown name" />
             </label>
             <label class="auth-field">
               <span>Password</span>
               <input class="global-token-input" id="global-signup-password" type="password" placeholder="at least 8 characters" autocomplete="new-password" />
+            </label>
+            <label class="auth-field">
+              <span>Confirm Password</span>
+              <input class="global-token-input" id="global-signup-password-confirm" type="password" placeholder="repeat password" autocomplete="new-password" />
             </label>
           </div>
           <div class="global-modal-actions">
             <button class="global-pill is-primary" id="global-signup-submit" type="button">Create Account</button>
           </div>
         </section>
-        <section class="auth-panel" data-auth-panel-view="token" hidden>
-          <div class="global-modal-grid">
-            <label class="auth-field">
-              <span>Bearer Token</span>
-              <input class="global-token-input" id="global-token-input" type="password" placeholder="CLOSED_AKASHIC_TOKEN or user API token" autocomplete="off" />
-            </label>
-          </div>
-          <div class="global-modal-actions">
-            <button class="global-pill is-primary" id="global-token-apply" type="button">Apply</button>
-            <button class="global-pill" id="global-token-clear" type="button">Logout / Clear</button>
-          </div>
-        </section>
         <section class="auth-panel" data-auth-panel-view="profile" hidden>
           <div class="global-modal-grid">
             <label class="auth-field">
+              <span>Username</span>
+              <input class="global-token-input" id="global-profile-username" type="text" disabled />
+            </label>
+            <label class="auth-field">
               <span>Nickname</span>
-              <input class="global-token-input" id="global-profile-nickname" type="text" disabled />
-            </label>
-            <label class="auth-field">
-              <span>Display Name</span>
-              <input class="global-token-input" id="global-profile-display-name" type="text" placeholder="shown name" />
-            </label>
-            <label class="auth-field">
-              <span>Email</span>
-              <input class="global-token-input" id="global-profile-email" type="email" placeholder="name@example.com" />
+              <input class="global-token-input" id="global-profile-nickname" type="text" placeholder="shown name" />
             </label>
             <label class="auth-field">
               <span>Role</span>
@@ -4001,14 +4514,15 @@ def _shared_ui_shell(route_prefix: str) -> str:
             </label>
           </div>
           <div class="global-modal-actions">
-            <button class="global-pill is-primary" id="global-profile-save" type="button">Save Profile</button>
+            <button class="global-pill is-primary" id="global-profile-save" type="button">Save</button>
             <button class="global-pill" id="global-profile-rotate-token" type="button">Rotate Token</button>
+            <button class="global-pill" id="global-profile-logout" type="button">Logout</button>
           </div>
         </section>
         <div class="global-modal-actions">
           <button class="global-pill" id="global-token-close" type="button">Close</button>
         </div>
-        <div class="global-status" id="global-auth-status">토큰을 적용하면 이 브라우저에서만 관리자 상태가 유지된다.</div>
+        <div class="global-status" id="global-auth-status">로그인 뒤 발급된 토큰은 이 브라우저에만 저장된다.</div>
       </section>
     </div>
     <section class="librarian-fab" id="librarian-shell" data-admin-only hidden data-open="false">
@@ -4051,30 +4565,28 @@ def _shared_ui_shell(route_prefix: str) -> str:
           authName: document.getElementById('global-auth-name'),
           authRole: document.getElementById('global-auth-role'),
           authModal: document.getElementById('global-auth-modal'),
+          authTabStrip: document.getElementById('global-auth-tabs'),
           authTabs: [...document.querySelectorAll('[data-auth-panel]')],
           authPanels: [...document.querySelectorAll('[data-auth-panel-view]')],
-          authInput: document.getElementById('global-token-input'),
-          authApply: document.getElementById('global-token-apply'),
-          authClear: document.getElementById('global-token-clear'),
           authClose: document.getElementById('global-token-close'),
           authStatus: document.getElementById('global-auth-status'),
           authDismiss: [...document.querySelectorAll('[data-close-auth-modal]')],
-          loginIdentifier: document.getElementById('global-login-identifier'),
+          loginUsername: document.getElementById('global-login-username'),
           loginPassword: document.getElementById('global-login-password'),
           loginSubmit: document.getElementById('global-login-submit'),
+          signupUsername: document.getElementById('global-signup-username'),
           signupNickname: document.getElementById('global-signup-nickname'),
-          signupDisplayName: document.getElementById('global-signup-display-name'),
-          signupEmail: document.getElementById('global-signup-email'),
           signupPassword: document.getElementById('global-signup-password'),
+          signupPasswordConfirm: document.getElementById('global-signup-password-confirm'),
           signupSubmit: document.getElementById('global-signup-submit'),
+          profileUsername: document.getElementById('global-profile-username'),
           profileNickname: document.getElementById('global-profile-nickname'),
-          profileDisplayName: document.getElementById('global-profile-display-name'),
-          profileEmail: document.getElementById('global-profile-email'),
           profileRole: document.getElementById('global-profile-role'),
           profileToken: document.getElementById('global-profile-token'),
           profileTokenCopy: document.getElementById('global-profile-token-copy'),
           profileSave: document.getElementById('global-profile-save'),
           profileRotateToken: document.getElementById('global-profile-rotate-token'),
+          profileLogout: document.getElementById('global-profile-logout'),
           adminOnly: [...document.querySelectorAll('[data-admin-only]')],
           noteWriteControls: [...document.querySelectorAll('[data-note-write-control]')],
           editButton: document.getElementById('global-edit-note'),
@@ -4100,21 +4612,24 @@ def _shared_ui_shell(route_prefix: str) -> str:
             window.localStorage.removeItem(tokenStorageKey);
           }}
           syncTokenCookie(value);
-          if (dom.authInput) dom.authInput.value = value;
           if (dom.profileToken) dom.profileToken.value = value;
         }}
 
         function initialsFor(session) {{
-          const label = String(session?.display_name || session?.nickname || 'G').trim();
+          const label = String(session?.nickname || session?.username || 'G').trim();
           return (label[0] || 'G').toUpperCase();
         }}
 
         function setAuthPanel(panel) {{
-          const next = ['login', 'signup', 'token', 'profile'].includes(panel) ? panel : 'login';
+          const isAuthed = Boolean(state.session?.authenticated);
+          const next = isAuthed ? 'profile' : (['login', 'signup'].includes(panel) ? panel : 'login');
           dom.authTabs.forEach((button) => button.classList.toggle('active', button.dataset.authPanel === next));
           dom.authPanels.forEach((section) => {{
             section.hidden = section.dataset.authPanelView !== next;
           }});
+          if (dom.authTabStrip) {{
+            dom.authTabStrip.hidden = isAuthed;
+          }}
         }}
 
         function syncTokenCookie(value) {{
@@ -4131,7 +4646,7 @@ def _shared_ui_shell(route_prefix: str) -> str:
           const isUser = Boolean(session?.authenticated && session?.role !== 'admin');
           dom.authTrigger.dataset.tone = isAdmin ? 'admin' : isUser ? 'user' : 'warn';
           if (dom.authAvatar) dom.authAvatar.textContent = initialsFor(session);
-          if (dom.authName) dom.authName.textContent = session?.display_name || session?.nickname || 'Guest';
+          if (dom.authName) dom.authName.textContent = session?.nickname || 'Guest';
           if (dom.authRole) dom.authRole.textContent = session?.role || 'anonymous';
         }}
 
@@ -4154,9 +4669,8 @@ def _shared_ui_shell(route_prefix: str) -> str:
 
         function syncProfileFields() {{
           const session = state.session || {{}};
+          if (dom.profileUsername) dom.profileUsername.value = session.username || '';
           if (dom.profileNickname) dom.profileNickname.value = session.nickname || '';
-          if (dom.profileDisplayName) dom.profileDisplayName.value = session.display_name || session.nickname || '';
-          if (dom.profileEmail) dom.profileEmail.value = session.email || '';
           if (dom.profileRole) dom.profileRole.value = session.role || 'anonymous';
           if (dom.profileToken) dom.profileToken.value = token();
         }}
@@ -4203,7 +4717,7 @@ def _shared_ui_shell(route_prefix: str) -> str:
             if (!silent) {{
               setAuthStatus(
                 session?.authenticated
-                  ? `${{session.display_name || session.nickname || 'user'}} 계정으로 연결되었다.`
+                  ? `${{session.nickname || session.username || 'user'}} 계정으로 연결되었다.`
                   : '유효한 로그인 세션이나 토큰이 아직 없다.'
               );
             }}
@@ -4231,15 +4745,12 @@ def _shared_ui_shell(route_prefix: str) -> str:
         function openAuthModal() {{
           if (dom.authModal) dom.authModal.hidden = false;
           setAuthPanel(state.session?.authenticated ? 'profile' : 'login');
-          if (dom.authInput) {{
-            dom.authInput.value = token();
-          }}
           syncProfileFields();
           window.setTimeout(() => {{
             if (state.session?.authenticated) {{
-              dom.profileDisplayName?.focus();
+              dom.profileNickname?.focus();
             }} else {{
-              dom.loginIdentifier?.focus();
+              dom.loginUsername?.focus();
             }}
           }}, 40);
         }}
@@ -4256,15 +4767,6 @@ def _shared_ui_shell(route_prefix: str) -> str:
           if (dom.authModal) dom.authModal.hidden = true;
         }}
 
-        async function applyToken() {{
-          const value = dom.authInput?.value.trim() || '';
-          if (!value) {{
-            setAuthStatus('먼저 토큰을 넣어야 한다.');
-            return;
-          }}
-          await applyIssuedToken(value);
-        }}
-
         function clearToken() {{
           setStoredToken('');
           refreshSession();
@@ -4272,32 +4774,36 @@ def _shared_ui_shell(route_prefix: str) -> str:
         }}
 
         async function login() {{
-          const identifier = dom.loginIdentifier?.value.trim() || '';
+          const username = dom.loginUsername?.value.trim() || '';
           const password = dom.loginPassword?.value || '';
-          if (!identifier || !password) {{
-            setAuthStatus('로그인 식별자와 비밀번호를 모두 입력해줘.');
+          if (!username || !password) {{
+            setAuthStatus('아이디와 비밀번호를 모두 입력해줘.');
             return;
           }}
           const data = await requestJson('/api/auth/login', {{
             method: 'POST',
-            json: {{ identifier, password }},
+            json: {{ username, password }},
           }});
           await applyIssuedToken(data.token || '');
           setAuthStatus('로그인했다. 이 토큰으로 웹과 에이전트 둘 다 사용할 수 있다.');
         }}
 
         async function signup() {{
+          const username = dom.signupUsername?.value.trim() || '';
           const nickname = dom.signupNickname?.value.trim() || '';
           const password = dom.signupPassword?.value || '';
-          const display_name = dom.signupDisplayName?.value.trim() || '';
-          const email = dom.signupEmail?.value.trim() || '';
-          if (!nickname || !password) {{
-            setAuthStatus('회원가입에는 nickname과 password가 필요하다.');
+          const password_confirm = dom.signupPasswordConfirm?.value || '';
+          if (!username || !nickname || !password || !password_confirm) {{
+            setAuthStatus('회원가입에는 아이디, 닉네임, 비밀번호, 비밀번호 확인이 필요하다.');
+            return;
+          }}
+          if (password !== password_confirm) {{
+            setAuthStatus('비밀번호 확인이 일치하지 않는다.');
             return;
           }}
           const data = await requestJson('/api/auth/signup', {{
             method: 'POST',
-            json: {{ nickname, password, display_name, email }},
+            json: {{ username, nickname, password, password_confirm }},
           }});
           await applyIssuedToken(data.token || '');
           setAuthStatus('계정을 만들고 바로 로그인했다. 프로필 탭에서 API 토큰을 복사할 수 있다.');
@@ -4311,13 +4817,12 @@ def _shared_ui_shell(route_prefix: str) -> str:
           const data = await requestJson('/api/profile', {{
             method: 'POST',
             json: {{
-              display_name: dom.profileDisplayName?.value.trim() || '',
-              email: dom.profileEmail?.value.trim() || '',
+              nickname: dom.profileNickname?.value.trim() || '',
             }},
           }});
           await refreshSession({{ silent: true }});
           syncProfileFields();
-          setAuthStatus(`프로필을 저장했다: ${{data.profile?.display_name || state.session?.display_name || ''}}`);
+          setAuthStatus(`프로필을 저장했다: ${{data.profile?.nickname || state.session?.nickname || ''}}`);
         }}
 
         async function rotateProfileToken() {{
@@ -4416,27 +4921,25 @@ def _shared_ui_shell(route_prefix: str) -> str:
 
         dom.authTrigger?.addEventListener('click', openAuthModal);
         dom.authTabs.forEach((button) => button.addEventListener('click', () => setAuthPanel(button.dataset.authPanel || 'login')));
-        dom.authApply?.addEventListener('click', applyToken);
-        dom.authClear?.addEventListener('click', clearToken);
         dom.authClose?.addEventListener('click', closeAuthModal);
         dom.loginSubmit?.addEventListener('click', login);
         dom.signupSubmit?.addEventListener('click', signup);
         dom.profileSave?.addEventListener('click', saveProfile);
         dom.profileRotateToken?.addEventListener('click', rotateProfileToken);
         dom.profileTokenCopy?.addEventListener('click', copyProfileToken);
+        dom.profileLogout?.addEventListener('click', () => {{
+          clearToken();
+          closeAuthModal();
+        }});
         dom.authDismiss.forEach((node) => node.addEventListener('click', closeAuthModal));
         dom.loginPassword?.addEventListener('keydown', (event) => {{
           if (event.key === 'Enter') login();
         }});
-        dom.loginIdentifier?.addEventListener('keydown', (event) => {{
+        dom.loginUsername?.addEventListener('keydown', (event) => {{
           if (event.key === 'Enter') login();
         }});
-        dom.signupPassword?.addEventListener('keydown', (event) => {{
+        dom.signupPasswordConfirm?.addEventListener('keydown', (event) => {{
           if (event.key === 'Enter') signup();
-        }});
-        dom.authInput?.addEventListener('keydown', (event) => {{
-          if (event.key === 'Enter') applyToken();
-          if (event.key === 'Escape') closeAuthModal();
         }});
         dom.editButton?.addEventListener('click', () => document.dispatchEvent(new CustomEvent('closed-akashic-edit-request')));
         dom.saveButton?.addEventListener('click', () => document.dispatchEvent(new CustomEvent('closed-akashic-save-request')));
@@ -4904,7 +5407,7 @@ def _workspace_script() -> str:
       function setEditing(enabled) {
         document.body.classList.toggle('inline-editing', enabled);
         if (!enabled) {
-          setBanner('마크다운 원문을 수정한 뒤 상단 헤더의 Save로 저장한다.');
+          setBanner('마크다운 원문을 수정한 뒤 우상단 Save로 저장한다.');
         }
       }
 
@@ -5168,7 +5671,7 @@ def _workspace_script() -> str:
         state.currentWritable = canWriteCurrent(session);
         if (state.authorized) {
           await refreshFolders();
-          setBanner('마크다운 원문을 수정한 뒤 상단 헤더의 Save로 저장한다.');
+          setBanner('마크다운 원문을 수정한 뒤 우상단 Save로 저장한다.');
         } else {
           closeWorkspace();
         }

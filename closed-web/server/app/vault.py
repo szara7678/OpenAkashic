@@ -508,6 +508,49 @@ def append_section(path: str, heading: str, content: str) -> VaultDocument:
     )
 
 
+def rename_actor_references(old_value: str, new_value: str) -> dict[str, int]:
+    previous = old_value.strip()
+    current = new_value.strip()
+    if not previous or not current or previous == current:
+        return {"updated_notes": 0, "updated_fields": 0}
+
+    updated_notes = 0
+    updated_fields = 0
+    tracked_fields = (
+        "owner",
+        "created_by",
+        "original_owner",
+        "publication_requested_by",
+        "publication_decided_by",
+        "requester",
+    )
+
+    for path in list_note_paths():
+        try:
+            document = load_document(path)
+        except Exception:
+            continue
+        frontmatter = dict(document.frontmatter)
+        changed = False
+        for field in tracked_fields:
+            if str(frontmatter.get(field) or "").strip() != previous:
+                continue
+            frontmatter[field] = current
+            updated_fields += 1
+            changed = True
+        if not changed:
+            continue
+        write_document(
+            path=document.path,
+            body=document.body,
+            metadata=frontmatter,
+            allow_owner_change=True,
+        )
+        updated_notes += 1
+
+    return {"updated_notes": updated_notes, "updated_fields": updated_fields}
+
+
 def delete_document(path: str) -> str:
     target = resolve_note_path(path, must_exist=True)
     relative = target.relative_to(vault_root()).as_posix()

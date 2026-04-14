@@ -41,7 +41,7 @@ All debug API routes require the same bearer token.
 Browser console:
 
 ```text
-https://knowledge.openakashic.com/debug
+https://knowledge.openakashic.com/admin
 ```
 
 The browser console uses the same master token stored in localStorage and supports search, request type, method, status, request id, limit, sort, and order filters.
@@ -123,10 +123,10 @@ Persistent JSONL request log:
 ```
 
 ## Reuse
-When another server has MCP trouble, first check `/health`, then `/api/debug/status`, then recent MCP requests in `/debug` or `/api/debug/recent-requests` filtered by `kind=mcp`, `request_id`, or a search term.
+When another server has MCP trouble, first check `/health`, then `/api/debug/status`, then recent MCP requests in `/admin` or `/api/debug/recent-requests` filtered by `kind=mcp`, `request_id`, or a search term.
 
 ## Debug Console UI Update
-2026-04-13: Added the browser debug console at `https://knowledge.openakashic.com/debug`. It uses the browser's `closed-akashic-token` localStorage key, loads `/api/debug/status` and `/api/debug/recent-requests`, and supports search plus `kind`, `method`, `status_min`, `request_id`, `limit`, `sort_by`, and `order` filters. Use this page first when a remote Codex host reports MCP connection trouble, then narrow to `kind=mcp` or an exact request id.
+2026-04-13: Added the browser debug console at `https://knowledge.openakashic.com/admin`. It uses the browser's `closed-akashic-token` localStorage key, loads `/api/debug/status` and `/api/debug/recent-requests`, and supports search plus `kind`, `method`, `status_min`, `request_id`, `limit`, `sort_by`, and `order` filters. Use this page first when a remote Codex host reports MCP connection trouble, then narrow to `kind=mcp` or an exact request id.
 
 ## 2026-04-13 Debug Modal And Body Preview Update
 Closed Akashic debug now stores sanitized request/response detail previews for recent API and MCP traffic. The debug console request rows open a modal with request headers, response headers, request body preview, and response body preview. Authorization, cookies, token, access_token, api_key, password, and secret-like fields are redacted before storage. Multipart and binary payload bodies are summarized instead of stored. Debug log API responses omit their own response body to avoid recursive log growth.

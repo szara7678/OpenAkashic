@@ -4,9 +4,9 @@ import base64
 from pathlib import Path
 from typing import Any
 
-from mcp.server.fastmcp import FastMCP
+from mcp.server.fastmcp import Context, FastMCP
 
-from app.auth import format_json_text
+from app.auth import AuthState, auth_state_for_token, format_json_text
 from app.config import get_settings
 from app.observability import log_tail, observability_status, recent_requests
 from app.site import (
@@ -45,7 +45,7 @@ mcp = FastMCP(
         "Remote agents should use this MCP server as the central memory layer instead of local agent-knowledge clones. "
         "Read before major work, prefer existing notes, and write back concise linked notes after meaningful work. "
         "Use doc/ for operating docs, personal_vault/ for graph-linked working memory, and assets/images/ for uploaded images. "
-        "New notes default to owner=aaron and visibility=private. "
+        "New notes default to the current token owner's nickname and visibility=private. "
         "Scope is only a folder/context hint; access is controlled by owner, visibility, and publication_status. "
         "Do not publish raw source directly; use request_publication for explicit public promotion review."
     ),
@@ -106,14 +106,18 @@ def closed_akashic_note_resource(slug: str) -> str:
 
 
 @mcp.tool(title="Search Closed Akashic")
-def search_notes(query: str, limit: int = 8) -> dict[str, Any]:
+def search_notes(query: str, limit: int = 8, ctx: Context | None = None) -> dict[str, Any]:
     """Search the Closed Akashic vault by note title, tags, summary, and body."""
-    return search_closed_notes(query, limit=limit)
+    auth = _auth_from_ctx(ctx)
+    results = search_closed_notes(query, limit=limit)
+    filtered = [item for item in results.get("results", []) if _can_read_note_payload(item, auth)]
+    return {**results, "results": filtered, "count": len(filtered)}
 
 
 @mcp.tool(title="Read Closed Note")
-def read_note(slug: str | None = None, path: str | None = None) -> dict[str, Any]:
+def read_note(slug: str | None = None, path: str | None = None, ctx: Context | None = None) -> dict[str, Any]:
     """Read a note by slug or relative markdown path."""
+    auth = _auth_from_ctx(ctx)
     if slug:
         note = get_closed_note_by_slug(slug)
     elif path:
@@ -122,16 +126,26 @@ def read_note(slug: str | None = None, path: str | None = None) -> dict[str, Any
         raise ValueError("Provide either slug or path")
     if not note:
         raise ValueError("Note not found")
+    if not _can_read_note_payload(note, auth):
+        raise ValueError("Note is not readable for this token")
     return note
 
 
 @mcp.tool(title="List Closed Notes")
-def list_notes(folder: str | None = None) -> dict[str, Any]:
+def list_notes(folder: str | None = None, ctx: Context | None = None) -> dict[str, Any]:
     """List markdown note paths in Closed Akashic, optionally filtered by top-level folder."""
-    notes = list_note_paths()
-    if folder:
-        prefix = folder.strip("/").rstrip("/") + "/"
-        notes = [path for path in notes if path.startswith(prefix)]
+    auth = _auth_from_ctx(ctx)
+    notes: list[str] = []
+    prefix = folder.strip("/").rstrip("/") + "/" if folder else ""
+    for note_path in list_note_paths():
+        if prefix and not note_path.startswith(prefix):
+            continue
+        try:
+            document = load_document(note_path)
+        except Exception:
+            continue
+        if _can_read_frontmatter(document.frontmatter, auth):
+            notes.append(note_path)
     return {"notes": notes, "count": len(notes)}
 
 
@@ -228,14 +242,11 @@ def upsert_note(
     tags: list[str] | None = None,
     related: list[str] | None = None,
     metadata: dict[str, Any] | None = None,
+    ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Create or overwrite a Closed Akashic markdown note."""
-    write_metadata = dict(metadata or {})
-    write_metadata.pop("owner", None)
-    write_metadata.setdefault("created_by", "aaron")
-    visibility = str(write_metadata.get("visibility") or settings.default_note_visibility).strip().lower()
-    if visibility == "public":
-        write_metadata["owner"] = "sagwan"
+    auth = _auth_from_ctx(ctx)
+    write_metadata = _normalize_write_metadata(path=path, metadata=metadata or {}, auth=auth)
     doc = write_document(
         path=path,
         body=body,
@@ -247,11 +258,25 @@ def upsert_note(
         related=related,
         metadata=write_metadata,
     )
+    publication_request = None
+    wants_publication = not _is_admin(auth) and (
+        str((metadata or {}).get("visibility") or "").strip().lower() == "public"
+        or str(write_metadata.get("publication_status") or "").strip().lower() == "requested"
+    )
+    if wants_publication:
+        publication_request = request_publication(
+            path=doc.path,
+            requester=auth.nickname,
+            target_visibility="public",
+            rationale=None,
+            evidence_paths=[],
+        )
     note = get_closed_note(doc.path)
     return {
         "path": doc.path,
         "slug": note["slug"] if note else Path(doc.path).stem,
         "note": note,
+        "publication_request": publication_request.__dict__ if publication_request else None,
     }
 
 
@@ -262,11 +287,14 @@ def request_note_publication(
     target_visibility: str = "public",
     rationale: str | None = None,
     evidence_paths: list[str] | None = None,
+    ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Request librarian review for public publication. Source remains private by default."""
+    auth = _auth_from_ctx(ctx)
+    _assert_can_request_publication(path, auth)
     request = request_publication(
         path=path,
-        requester=requester,
+        requester=requester if _is_admin(auth) else auth.nickname,
         target_visibility=target_visibility,
         rationale=rationale,
         evidence_paths=evidence_paths,
@@ -293,8 +321,9 @@ def set_note_publication_status(path: str, status: str, reason: str | None = Non
 
 
 @mcp.tool(title="Append Closed Note Section")
-def append_note_section(path: str, heading: str, content: str) -> dict[str, Any]:
+def append_note_section(path: str, heading: str, content: str, ctx: Context | None = None) -> dict[str, Any]:
     """Append a new H2 section to an existing Closed Akashic markdown note."""
+    _assert_can_modify_document(path, _auth_from_ctx(ctx))
     doc = append_section(path, heading, content)
     note = get_closed_note(doc.path)
     return {
@@ -304,26 +333,30 @@ def append_note_section(path: str, heading: str, content: str) -> dict[str, Any]
 
 
 @mcp.tool(title="Delete Closed Note")
-def delete_note(path: str) -> dict[str, str]:
+def delete_note(path: str, ctx: Context | None = None) -> dict[str, str]:
     """Delete an existing markdown note from Closed Akashic."""
+    _assert_can_modify_document(path, _auth_from_ctx(ctx))
     return {"deleted": delete_document(path)}
 
 
 @mcp.tool(title="Move Closed Note")
-def move_note(path: str, new_path: str) -> dict[str, str]:
+def move_note(path: str, new_path: str, ctx: Context | None = None) -> dict[str, str]:
     """Move a note to a new relative markdown path."""
+    _assert_can_modify_document(path, _auth_from_ctx(ctx))
     return {"path": move_document(path, new_path)}
 
 
 @mcp.tool(title="Create Closed Folder")
-def create_folder(path: str) -> dict[str, str]:
+def create_folder(path: str, ctx: Context | None = None) -> dict[str, str]:
     """Create a folder inside an allowed Closed Akashic root."""
+    _auth_from_ctx(ctx)
     return {"path": ensure_folder(path)}
 
 
 @mcp.tool(title="Move Closed Folder")
-def rename_folder(path: str, new_path: str) -> dict[str, str]:
+def rename_folder(path: str, new_path: str, ctx: Context | None = None) -> dict[str, str]:
     """Move or rename a folder inside an allowed Closed Akashic root."""
+    _auth_from_ctx(ctx)
     return {"path": move_folder(path, new_path)}
 
 
@@ -333,8 +366,10 @@ def upload_image(
     content_base64: str,
     folder: str = "assets/images",
     alt: str | None = None,
+    ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Upload an image into Closed Akashic assets and return embeddable markdown."""
+    _auth_from_ctx(ctx)
     content = base64.b64decode(content_base64)
     asset = save_image(filename=filename, content=content, folder=folder, alt=alt)
     return {
@@ -347,11 +382,119 @@ def upload_image(
 
 
 @mcp.tool(title="Read Raw Closed Note")
-def read_raw_note(path: str) -> dict[str, Any]:
+def read_raw_note(path: str, ctx: Context | None = None) -> dict[str, Any]:
     """Read the raw frontmatter and markdown body for a note."""
+    auth = _auth_from_ctx(ctx)
     doc = load_document(path)
+    if not _can_read_frontmatter(doc.frontmatter, auth):
+        raise ValueError("Note is not readable for this token")
     return {
         "path": doc.path,
         "frontmatter": doc.frontmatter,
         "body": doc.body,
     }
+
+
+def _request_token_from_ctx(ctx: Context | None) -> str | None:
+    if not ctx:
+        return settings.bearer_token.strip() or None
+    request = getattr(getattr(ctx, "request_context", None), "request", None)
+    headers = getattr(request, "headers", None)
+    if not headers:
+        return settings.bearer_token.strip() or None
+    auth_header = headers.get("authorization", "")
+    if auth_header.lower().startswith("bearer "):
+        return auth_header[7:].strip() or None
+    return settings.bearer_token.strip() or None
+
+
+def _auth_from_ctx(ctx: Context | None) -> AuthState:
+    return auth_state_for_token(_request_token_from_ctx(ctx))
+
+
+def _is_admin(auth: AuthState) -> bool:
+    return auth.role == "admin"
+
+
+def _note_visibility(frontmatter: dict[str, Any]) -> str:
+    visibility = str(frontmatter.get("visibility") or settings.default_note_visibility).strip().lower()
+    return visibility if visibility in {"private", "public"} else "private"
+
+
+def _note_owner(frontmatter: dict[str, Any]) -> str:
+    return str(frontmatter.get("owner") or settings.default_note_owner).strip() or settings.default_note_owner
+
+
+def _can_read_frontmatter(frontmatter: dict[str, Any], auth: AuthState) -> bool:
+    if _note_visibility(frontmatter) == "public":
+        return True
+    return auth.authenticated and (_is_admin(auth) or _note_owner(frontmatter) == auth.nickname)
+
+
+def _can_modify_frontmatter(frontmatter: dict[str, Any], auth: AuthState) -> bool:
+    if _note_visibility(frontmatter) == "public":
+        return _is_admin(auth)
+    return auth.authenticated and (_is_admin(auth) or _note_owner(frontmatter) == auth.nickname)
+
+
+def _can_read_note_payload(note: dict[str, Any], auth: AuthState) -> bool:
+    return _can_read_frontmatter(note, auth)
+
+
+def _assert_can_modify_document(path: str, auth: AuthState) -> None:
+    document = load_document(path)
+    if not _can_modify_frontmatter(document.frontmatter, auth):
+        raise ValueError("Notes can only be modified by their owner or an admin")
+
+
+def _assert_can_request_publication(path: str, auth: AuthState) -> None:
+    if _is_admin(auth):
+        return
+    document = load_document(path)
+    if _note_owner(document.frontmatter) != auth.nickname:
+        raise ValueError("Users can only request publication for their own notes")
+
+
+def _normalize_write_metadata(*, path: str, metadata: dict[str, Any], auth: AuthState) -> dict[str, Any]:
+    next_metadata = dict(metadata)
+    next_metadata.pop("owner", None)
+    existing_frontmatter: dict[str, Any] = {}
+    is_existing = False
+    try:
+        existing_frontmatter = load_document(path).frontmatter
+        is_existing = True
+    except Exception:
+        existing_frontmatter = {}
+
+    requested_visibility = str(
+        next_metadata.get("visibility") or existing_frontmatter.get("visibility") or settings.default_note_visibility
+    ).strip().lower()
+    if requested_visibility not in {"private", "public"}:
+        requested_visibility = "private"
+    if not _is_admin(auth) and requested_visibility == "public":
+        next_metadata["publication_target_visibility"] = "public"
+        requested_visibility = "private"
+    next_metadata["visibility"] = requested_visibility
+
+    if is_existing:
+        if not _can_modify_frontmatter(existing_frontmatter, auth):
+            raise ValueError("Notes can only be modified by their owner or an admin")
+        owner = _note_owner(existing_frontmatter)
+        if requested_visibility == "public":
+            next_metadata.setdefault("original_owner", existing_frontmatter.get("original_owner") or owner)
+            owner = "sagwan"
+        next_metadata["owner"] = owner
+        next_metadata.setdefault("created_by", existing_frontmatter.get("created_by") or owner)
+    else:
+        next_metadata["created_by"] = next_metadata.get("created_by") or auth.nickname
+        next_metadata["owner"] = "sagwan" if _is_admin(auth) and requested_visibility == "public" else auth.nickname
+
+    publication_status = str(
+        next_metadata.get("publication_status") or existing_frontmatter.get("publication_status") or "none"
+    ).strip().lower()
+    if not _is_admin(auth) and next_metadata.get("publication_target_visibility") == "public":
+        publication_status = "requested"
+    if not _is_admin(auth) and publication_status not in {"none", "requested"}:
+        raise ValueError("Users can only set publication status to none or requested")
+    next_metadata["publication_status"] = publication_status or "none"
+    return next_metadata
