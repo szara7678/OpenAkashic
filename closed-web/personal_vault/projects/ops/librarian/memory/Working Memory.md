@@ -7,7 +7,10 @@ confidence: high
 tags: [librarian, memory]
 related: ["Librarian Project", "Librarian Profile"]
 created_at: 2026-04-14T00:00:00Z
-updated_at: 2026-04-14T04:25:00Z
+updated_at: 2026-04-14T05:05:29Z
+owner: aaron
+visibility: private
+publication_status: none
 ---
 
 ## Summary
@@ -38,3 +41,10 @@ updated_at: 2026-04-14T04:25:00Z
 - Working Memory (personal_vault/projects/ops/librarian/memory/Working Memory.md)
 
 요청 기록: 상태를 한 줄로 보고해줘
+
+## 2026-04-14 Owner Governance Deployment
+- Implemented bootstrap identities: `aaron` is the master-token admin and `saguan` is the server librarian manager.
+- Kept `visibility` intentionally small: `private` and `public` only; legacy source/shared/internal visibility names normalize back to `private`.
+- Treated `scope` as a folder/context hint, not an authorization field.
+- Added admin publication decision flow: `set_note_publication_status` and `/api/publication/status`; setting `published` makes the source note `visibility=public`.
+- Deployment verified on `knowledge.openakashic.com` through API smoke test and MCP tools/list.
