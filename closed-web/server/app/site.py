@@ -11,7 +11,7 @@ import markdown
 
 from app.config import get_settings
 from app.semantic_search import SemanticDocument, semantic_rank
-from app.vault import file_href, list_note_paths
+from app.vault import file_href, kind_catalog, kind_template_sections, list_note_paths, normalize_kind
 
 
 WIKI_LINK_PATTERN = re.compile(r"\[\[([^\]|#]+)(?:#([^\]|]+))?(?:\|([^\]]+))?\]\]")
@@ -35,6 +35,24 @@ class ClosedNote:
     summary: str
     body: str
     links: list[str]
+
+
+def _viewer_can_open_note(note: ClosedNote, viewer_owner: str | None, is_admin: bool) -> bool:
+    if is_admin:
+        return True
+    owner = (viewer_owner or "").strip()
+    return bool(owner and note.owner == owner)
+
+
+def _filter_notes_for_viewer(
+    notes: list[ClosedNote],
+    *,
+    viewer_owner: str | None = None,
+    is_admin: bool = False,
+) -> list[ClosedNote]:
+    if is_admin:
+        return notes
+    return [note for note in notes if _viewer_can_open_note(note, viewer_owner, is_admin)]
 
 
 def get_closed_graph() -> dict[str, Any]:
@@ -184,14 +202,21 @@ def search_closed_notes(query: str, limit: int = 12, route_prefix: str = "") -> 
     }
 
 
-def closed_note_html(note_slug: str | None = None, route_prefix: str = "") -> str:
+def closed_note_html(
+    note_slug: str | None = None,
+    route_prefix: str = "",
+    *,
+    viewer_owner: str | None = None,
+    is_admin: bool = False,
+) -> str:
     notes = _load_notes()
+    visible_notes = _filter_notes_for_viewer(notes, viewer_owner=viewer_owner, is_admin=is_admin)
     route_prefix = _normalize_prefix(route_prefix)
     note = next((item for item in notes if item.slug == note_slug), None) if note_slug else None
     note = note or next((item for item in notes if item.path.lower() == "readme.md"), None)
     note = note or (notes[0] if notes else _empty_note())
-    payload = _note_payload(note, notes, route_prefix)
-    note_links = _explorer_html(notes, note.slug, route_prefix)
+    payload = _note_payload(note, visible_notes or [note], route_prefix)
+    note_links = _explorer_html(visible_notes, note.slug, route_prefix)
     path_breadcrumb = _path_breadcrumb_html(payload["path"])
     shared_styles = _shared_ui_styles()
     shared_header = _shared_header_html(route_prefix, payload["title"], note_actions=True)
@@ -383,6 +408,27 @@ def closed_note_html(note_slug: str | None = None, route_prefix: str = "") -> st
       display: block;
     }}
     .brand-wrap {{ display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 18px; }}
+    .brand-actions {{ display: flex; align-items: center; gap: 8px; }}
+    .icon-button {{
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.92);
+      color: var(--muted);
+      cursor: pointer;
+      transition: transform .18s ease, background .18s ease, border-color .18s ease, color .18s ease;
+    }}
+    .icon-button:hover {{
+      transform: translateY(-1px);
+      background: rgba(255,255,255,.98);
+      border-color: var(--line-strong);
+      color: var(--ink);
+    }}
+    body.left-collapsed #toggle-left-sidebar {{ transform: rotate(180deg); }}
     .brand {{ margin: 0; font-size: 1.85rem; line-height: 1.05; font-weight: 780; letter-spacing: 0; }}
     .brand-kicker {{ margin: 0 0 6px; color: var(--accent-2); font-size: 0.76rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }}
     .sub {{ margin: 0; color: var(--muted); font-size: 0.94rem; line-height: 1.6; }}
@@ -698,6 +744,10 @@ def closed_note_html(note_slug: str | None = None, route_prefix: str = "") -> st
           <p class="brand-kicker">Closed Akashic</p>
           <h1 class="brand">Living Notes</h1>
         </div>
+        <div class="brand-actions">
+          <button class="icon-button" id="focus-global-search" type="button" aria-label="Focus Explorer Search" title="Focus Explorer Search">⌕</button>
+          <button class="icon-button" id="toggle-left-sidebar" type="button" aria-label="Toggle Sidebar" title="Toggle Sidebar">❮</button>
+        </div>
       </div>
       <p class="sub">링크된 노트를 따라 기억을 쌓고 다시 꺼내 쓰는 개인 지식 창고.</p>
       <div class="sidebar-tabs" role="tablist" aria-label="Workspace sidebar">
@@ -713,7 +763,7 @@ def closed_note_html(note_slug: str | None = None, route_prefix: str = "") -> st
         </div>
         <div class="section-label">Explorer</div>
         <nav class="nav" id="note-nav">
-          {note_links}
+          {note_links or '<p class="meta-copy">지금 열 수 있는 문서가 아직 없다.</p>'}
         </nav>
       </section>
       <section class="sidebar-panel" data-sidebar-panel="info">
@@ -812,6 +862,11 @@ def closed_note_html(note_slug: str | None = None, route_prefix: str = "") -> st
               <span class="field-label">Related</span>
               <input class="field-input" id="editor-related" placeholder="관련 노트 제목을 콤마로 구분" />
             </label>
+          </div>
+          <div class="workspace-card" style="margin-top:12px;">
+            <div class="meta-title" style="margin:0;">Kind Guide</div>
+            <div class="meta-copy" id="editor-kind-summary">kind를 고르면 권장 구조와 위치를 바로 보여준다.</div>
+            <pre class="workspace-template" id="editor-kind-template">## Summary</pre>
           </div>
         </section>
         <section class="meta-section">
@@ -1048,8 +1103,15 @@ def closed_note_html(note_slug: str | None = None, route_prefix: str = "") -> st
 </html>"""
 
 
-def closed_graph_html(route_prefix: str = "") -> str:
+def closed_graph_html(
+    route_prefix: str = "",
+    *,
+    viewer_owner: str | None = None,
+    is_admin: bool = False,
+) -> str:
     route_prefix = _normalize_prefix(route_prefix)
+    visible_notes = _filter_notes_for_viewer(_load_notes(), viewer_owner=viewer_owner, is_admin=is_admin)
+    note_links = _explorer_html(visible_notes, "", route_prefix)
     shared_styles = _shared_ui_styles()
     shared_header = _shared_header_html(route_prefix, "Graph")
     shared_shell = _shared_ui_shell(route_prefix)
@@ -1065,14 +1127,14 @@ def closed_graph_html(route_prefix: str = "") -> str:
       --bg: #f4f7fb;
       --panel: rgba(255, 255, 255, 0.86);
       --line: #d7e2ef;
+      --line-strong: #c5d3e5;
       --ink: #172033;
       --muted: #5d6b82;
       --accent: #2563eb;
       --accent-2: #0f766e;
       --warm: #ea580c;
       --shadow: 0 20px 40px rgba(15, 23, 42, 0.10);
-      --graph-hud-width: 420px;
-      --graph-info-width: 360px;
+      --closed-sidebar-width: 360px;
     }}
     * {{ box-sizing: border-box; }}
     * {{
@@ -1096,32 +1158,39 @@ def closed_graph_html(route_prefix: str = "") -> str:
       color: var(--ink);
       font-family: Inter, ui-sans-serif, system-ui, sans-serif;
       overflow: hidden;
+      transition: background .22s ease;
     }}
     button, input {{ font: inherit; }}
-    canvas {{ display: block; width: 100vw; height: calc(100svh - var(--closed-header-height)); cursor: grab; touch-action: none; }}
+    canvas {{
+      display: block;
+      width: 100vw;
+      height: calc(100svh - var(--closed-header-height));
+      cursor: grab;
+      touch-action: none;
+      transition: transform .24s ease;
+    }}
     canvas.grabbing {{ cursor: grabbing; }}
     .shell {{
-      position: fixed; inset: calc(var(--closed-header-height) + 18px) 18px 18px;
-      display: flex;
-      align-items: flex-start;
-      justify-content: flex-start;
-      gap: 14px;
-      pointer-events: none;
-    }}
-    .floating {{
+      position: fixed;
+      inset: var(--closed-header-height) auto 0 0;
+      width: var(--closed-sidebar-width);
       pointer-events: auto;
-      min-width: 240px;
-      max-width: min(560px, calc(100vw - 36px));
-      max-height: calc(100svh - 86px);
-      overflow: auto;
-      resize: both;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: var(--panel);
-      backdrop-filter: blur(12px);
-      box-shadow: var(--shadow);
+      transform: translateX(0);
+      transition: transform .24s ease;
+      z-index: 30;
     }}
-    .graph-menu {{ width: min(var(--graph-hud-width), calc(100vw - 36px)); }}
+    body.left-collapsed .shell {{
+      transform: translateX(calc(var(--closed-sidebar-width) * -1));
+    }}
+    .graph-menu {{
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      border-right: 1px solid var(--line);
+      background: rgba(248, 250, 252, .90);
+      backdrop-filter: blur(16px);
+      box-shadow: 20px 0 40px rgba(15, 23, 42, 0.06);
+    }}
     .graph-panel-tabs {{
       display: flex;
       gap: 6px;
@@ -1146,7 +1215,7 @@ def closed_graph_html(route_prefix: str = "") -> str:
       color: var(--accent);
     }}
     .graph-tab-panel {{ display: none; }}
-    .graph-menu[data-active-tab="search"] .graph-tab-panel[data-graph-panel="search"],
+    .graph-menu[data-active-tab="explore"] .graph-tab-panel[data-graph-panel="explore"],
     .graph-menu[data-active-tab="selection"] .graph-tab-panel[data-graph-panel="selection"],
     .graph-menu[data-active-tab="display"] .graph-tab-panel[data-graph-panel="display"] {{
       display: block;
@@ -1190,17 +1259,6 @@ def closed_graph_html(route_prefix: str = "") -> str:
       font-size: .78rem;
       font-weight: 800;
     }}
-    .floating.minimized {{
-      width: auto !important;
-      min-width: 0;
-      min-height: 0;
-      max-width: calc(100vw - 36px);
-      resize: none;
-      overflow: visible;
-    }}
-    .floating.minimized .floating-inner {{ display: none; }}
-    .floating.minimized .panel-bar {{ border-bottom: 0; padding: 8px; }}
-    .floating.minimized .panel-label {{ max-width: 42vw; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }}
     .eyebrow {{ margin: 0 0 8px; color: var(--accent-2); font-size: .74rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }}
     h1 {{ margin: 0 0 8px; font-size: clamp(1.8rem, 3vw, 2.4rem); line-height: 1.04; letter-spacing: 0; }}
     p {{ margin: 0; color: var(--muted); font-size: .95rem; line-height: 1.62; overflow-wrap: anywhere; }}
@@ -1239,30 +1297,73 @@ def closed_graph_html(route_prefix: str = "") -> str:
     }}
     .legend {{ margin-top: 14px; display: flex; gap: 12px; flex-wrap: wrap; color: var(--muted); font-size: .78rem; }}
     .legend i {{ display: inline-block; width: 10px; height: 10px; border-radius: 999px; margin-right: 6px; vertical-align: middle; }}
+    .brand-wrap {{ display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 18px; }}
+    .brand-kicker {{ margin: 0 0 6px; color: var(--accent-2); font-size: 0.76rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }}
+    .brand {{ margin: 0; font-size: 1.85rem; line-height: 1.05; font-weight: 780; letter-spacing: 0; }}
+    .brand-actions {{ display: flex; align-items: center; gap: 8px; }}
+    .icon-button {{
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--line);
+      background: rgba(255,255,255,.92); color: var(--muted); cursor: pointer;
+      transition: transform .18s ease, background .18s ease, border-color .18s ease, color .18s ease;
+    }}
+    .icon-button:hover {{ transform: translateY(-1px); background: rgba(255,255,255,.98); border-color: var(--line-strong); color: var(--ink); }}
+    body.left-collapsed #toggle-left-sidebar {{ transform: rotate(180deg); }}
+    .sub {{ margin: 0; color: var(--muted); font-size: 0.94rem; line-height: 1.6; }}
+    .search-wrap {{ position: relative; margin-bottom: 18px; }}
+    .search-results {{
+      position: absolute; top: calc(100% + 8px); left: 0; right: 0; z-index: 20;
+      display: none; padding: 8px; border-radius: 8px; background: #fff;
+      border: 1px solid var(--line); box-shadow: var(--shadow);
+    }}
+    .search-results.visible {{ display: block; }}
+    .search-result {{
+      display: block; padding: 10px 12px; border-radius: 8px; color: var(--ink);
+    }}
+    .search-result:hover {{ background: rgba(255,255,255,.86); text-decoration: none; }}
+    .search-result small {{ display: block; margin-top: 4px; color: var(--muted); }}
+    .section-label {{
+      margin: 18px 0 10px; color: var(--muted); font-size: 0.72rem; font-weight: 800;
+      letter-spacing: .08em; text-transform: uppercase;
+    }}
+    .nav {{ display: flex; flex-direction: column; gap: 6px; padding-right: 2px; }}
+    .folder-group {{
+      margin-left: calc(var(--depth, 0) * 2px);
+      border: 1px solid rgba(215, 226, 239, .66);
+      border-radius: 8px;
+      background: rgba(255,255,255,.46);
+      overflow: visible;
+    }}
+    .folder-group + .folder-group {{ margin-top: 8px; }}
+    .folder-summary {{
+      list-style: none; display: flex; align-items: center; gap: 10px; padding: 10px 12px; min-width: 0;
+      cursor: pointer; color: var(--ink); font-size: 0.84rem; font-weight: 700; background: rgba(255,255,255,.68);
+    }}
+    .folder-summary::-webkit-details-marker {{ display: none; }}
+    .folder-caret {{ display: inline-flex; flex: 0 0 12px; width: 12px; justify-content: center; color: var(--muted); transition: transform .16s ease; }}
+    .folder-group[open] > .folder-summary .folder-caret {{ transform: rotate(90deg); }}
+    .folder-children {{ display: flex; flex-direction: column; gap: 6px; margin-left: 14px; padding: 6px 6px 8px 10px; border-left: 1px solid rgba(197, 211, 229, .66); }}
+    .nav-link {{
+      display: block; padding: 10px 12px; border-radius: 8px; color: var(--ink); border: 1px solid transparent;
+      transition: background .18s ease, border-color .18s ease, transform .18s ease; min-width: 0;
+    }}
+    .nav-link:hover {{ background: rgba(255,255,255,.75); text-decoration: none; transform: translateX(2px); }}
+    .nav-link.active {{ background: rgba(37, 99, 235, .08); border-color: rgba(37, 99, 235, .2); box-shadow: inset 3px 0 0 rgba(37, 99, 235, .85); }}
+    .nav-link span {{ display: block; min-width: 0; overflow-wrap: anywhere; line-height: 1.34; }}
+    .nav-link small {{ display:block; color: var(--muted); font-size: 0.72rem; margin-top: 4px; overflow-wrap: anywhere; line-height: 1.35; }}
+    .panel-copy {{ color: var(--muted); font-size: .88rem; line-height: 1.6; }}
+    .selection-access {{ margin-top: 10px; color: var(--muted); font-size: .84rem; line-height: 1.55; }}
     @media (max-width: 980px) {{
       .shell {{
-        inset: 64px 10px 10px;
-        flex-direction: column;
-        align-items: stretch;
-        justify-content: flex-start;
+        inset: var(--closed-header-height) auto 0 0;
       }}
-      .floating {{
-        width: min(100%, var(--graph-hud-width));
-        max-width: 100%;
-        max-height: 42svh;
-        resize: vertical;
-      }}
-      .graph-menu {{ max-width: 100%; }}
-      .floating-inner {{ padding: 0 14px 14px; }}
-      .panel-bar {{ padding-left: 14px; }}
+      .graph-menu {{ width: min(100vw, 92vw); }}
     }}
     @media (max-width: 560px) {{
-      .shell {{ gap: 8px; }}
-      .floating {{ min-width: 0; max-height: 38svh; }}
       .meta-grid {{ grid-template-columns: 1fr; }}
       .row, .actions {{ gap: 7px; }}
       .chip, .search {{ min-width: 0; max-width: 100%; }}
-      .floating.minimized .panel-label {{ max-width: 62vw; }}
+      .graph-menu {{ width: min(100vw, 100%); }}
     }}
     {shared_styles}
   </style>
@@ -1271,22 +1372,35 @@ def closed_graph_html(route_prefix: str = "") -> str:
   {shared_header}
   <canvas id="graph"></canvas>
   <div class="shell">
-    <section class="graph-menu floating" id="graph-menu" data-active-tab="search">
+    <section class="graph-menu floating" id="graph-menu" data-active-tab="explore">
       <div class="panel-bar">
-        <span class="panel-label">Graph workspace</span>
-        <button class="panel-toggle" type="button" data-toggle-panel="graph-menu" aria-expanded="true">Hide</button>
+        <div class="brand-wrap" style="margin:0; width:100%;">
+          <div>
+            <p class="brand-kicker">Closed Akashic</p>
+            <h1 class="brand">Graph Inspector</h1>
+          </div>
+          <div class="brand-actions">
+            <button class="icon-button" id="focus-global-search" type="button" aria-label="Focus Explorer Search" title="Focus Explorer Search">⌕</button>
+            <button class="icon-button" id="toggle-left-sidebar" type="button" aria-label="Toggle Sidebar" title="Toggle Sidebar">❮</button>
+          </div>
+        </div>
       </div>
       <div class="graph-panel-tabs" role="tablist" aria-label="Graph panel tabs">
-        <button class="graph-panel-tab active" type="button" data-graph-tab="search">Search</button>
+        <button class="graph-panel-tab active" type="button" data-graph-tab="explore">Explore</button>
         <button class="graph-panel-tab" type="button" data-graph-tab="selection">Selection</button>
         <button class="graph-panel-tab" type="button" data-graph-tab="display">Display</button>
       </div>
       <div class="floating-inner">
-        <section class="graph-tab-panel" data-graph-panel="search">
-          <p class="eyebrow">Closed Akashic</p>
-          <h1>Graph View</h1>
-          <p>노트 사이의 연결을 훑어보고, 반복되는 주제와 연결 밀도가 높은 중심 노트를 빠르게 찾는다.</p>
-          <input class="search" id="graph-search" placeholder="노트, 태그, 경로 검색" />
+        <section class="graph-tab-panel" data-graph-panel="explore">
+          <p class="sub">그래프 전체 관계는 유지하되, 여기서는 현재 권한으로 열 수 있는 문서만 탐색하고 검색한다.</p>
+          <div class="search-wrap">
+            <input class="search" id="graph-note-filter" placeholder="열 수 있는 노트 제목이나 태그 검색" />
+            <div class="search-results" id="graph-search-results"></div>
+          </div>
+          <div class="section-label">Explorer</div>
+          <nav class="nav" id="graph-note-nav">
+            {note_links or '<p class="panel-copy">현재 권한으로 열 수 있는 문서가 없다.</p>'}
+          </nav>
           <div class="row">
             <a class="chip" href="{html.escape(_graph_href(route_prefix))}">Reset View</a>
             <span class="chip stats" id="stats">loading…</span>
@@ -1300,29 +1414,32 @@ def closed_graph_html(route_prefix: str = "") -> str:
             <div class="metric"><span>Degree</span><strong id="degree">-</strong></div>
             <div class="metric"><span>Project</span><strong id="project">-</strong></div>
             <div class="metric"><span>Path</span><strong id="path">-</strong></div>
+            <div class="metric"><span>Owner</span><strong id="owner">-</strong></div>
+            <div class="metric"><span>Status</span><strong id="status">-</strong></div>
+            <div class="metric"><span>Visibility</span><strong id="visibility">-</strong></div>
+            <div class="metric"><span>Publication</span><strong id="publication">-</strong></div>
           </div>
           <div class="tags" id="tags"></div>
           <div class="actions">
-            <a class="button" id="open-link" href="{html.escape(_root_href(route_prefix))}">Open Note</a>
+            <a class="button" id="open-link" href="{html.escape(_root_href(route_prefix))}" hidden>Open Note</a>
             <button class="button ghost" id="focus-link" type="button">Focus Selection</button>
           </div>
+          <div class="selection-access" id="selection-access">현재 세션으로 노트를 열 수 있는지 여기에서 확인한다.</div>
         </section>
         <section class="graph-tab-panel" data-graph-panel="display">
           <h2>Display</h2>
-          <p>패널은 이 한 곳에서 접고 펼친다. 모바일에서는 세로 리사이즈로 그래프 공간을 더 확보할 수 있다.</p>
+          <p>왼쪽 inspector는 접고 펼칠 수 있고, 그래프 자체는 모든 연결을 유지한다. 노트 열람은 owner/admin 경계에서만 제한된다.</p>
           <div class="legend">
-            <span><i style="background:#2563eb"></i>concept</span>
-            <span><i style="background:#0f766e"></i>playbook</span>
-            <span><i style="background:#ea580c"></i>incident/decision</span>
+            <span><i style="background:#2563eb"></i>architecture/dataset</span>
+            <span><i style="background:#0f766e"></i>policy/playbook/profile</span>
+            <span><i style="background:#ea580c"></i>evidence/experiment/request</span>
+            <span><i style="background:#7c3aed"></i>claim/capsule/roadmap</span>
           </div>
           <div class="row">
-            <button class="chip" id="graph-focus-search" type="button">Focus Search</button>
+            <button class="chip" id="graph-focus-search" type="button">Focus Explore</button>
             <button class="chip" id="graph-focus-selection" type="button">Focus Selection</button>
           </div>
         </section>
-        <div class="actions" style="margin-top: 16px;">
-          <button class="button ghost" id="graph-show-menu" type="button">Show Menu</button>
-        </div>
       </div>
     </section>
   </div>
@@ -1330,7 +1447,11 @@ def closed_graph_html(route_prefix: str = "") -> str:
   <script>
     const canvas = document.getElementById('graph');
     const ctx = canvas.getContext('2d');
-    const searchInput = document.getElementById('graph-search');
+    const noteFilterInput = document.getElementById('graph-note-filter');
+    const noteItems = [...document.querySelectorAll('#graph-note-nav .nav-link')];
+    const noteFolders = [...document.querySelectorAll('#graph-note-nav .folder-group')];
+    const searchBox = document.getElementById('graph-search-results');
+    const graphSearchEndpoint = '{html.escape(_search_href(route_prefix))}';
     const state = {{
       nodes: [],
       links: [],
@@ -1343,17 +1464,20 @@ def closed_graph_html(route_prefix: str = "") -> str:
       panning: false,
       lastX: 0,
       lastY: 0,
-      search: '',
       adjacency: new Map(),
       clusters: new Map(),
       activePointer: null,
+      auth: {{ authenticated: false, role: 'anonymous', nickname: '' }},
     }};
-    const panelStateKey = 'closed-akashic-graph-panels';
-    const panelToggles = [...document.querySelectorAll('[data-toggle-panel]')];
+    const leftCollapsedKey = 'closed-akashic-left-collapsed';
+    const graphTabKey = 'closed-akashic-graph-tab';
     const graphMenu = document.getElementById('graph-menu');
     const graphTabs = [...document.querySelectorAll('[data-graph-tab]')];
     const graphFocusSearch = document.getElementById('graph-focus-search');
     const graphFocusSelection = document.getElementById('graph-focus-selection');
+    const leftToggle = document.getElementById('toggle-left-sidebar');
+    const openLink = document.getElementById('open-link');
+    let searchTimer = null;
 
     function resize() {{
       const dpr = window.devicePixelRatio || 1;
@@ -1367,9 +1491,10 @@ def closed_graph_html(route_prefix: str = "") -> str:
     }}
 
     function nodeColor(node) {{
-      if (node.kind === 'concept') return '#2563eb';
-      if (node.kind === 'playbook' || node.kind === 'pattern') return '#0f766e';
-      if (node.kind === 'incident' || node.kind === 'decision') return '#ea580c';
+      if (['architecture', 'dataset'].includes(node.kind)) return '#2563eb';
+      if (['policy', 'playbook', 'profile'].includes(node.kind)) return '#0f766e';
+      if (['evidence', 'experiment', 'publication_request'].includes(node.kind)) return '#ea580c';
+      if (['claim', 'capsule', 'roadmap'].includes(node.kind)) return '#7c3aed';
       return '#334155';
     }}
 
@@ -1436,13 +1561,7 @@ def closed_graph_html(route_prefix: str = "") -> str:
     }}
 
     function nodeRadius(node) {{
-      const searchBoost = state.search && matchesSearch(node) ? 2 : 0;
-      return 7 + Math.min(14, node.degree * 1.7) + searchBoost;
-    }}
-
-    function matchesSearch(node) {{
-      const haystack = `${{node.title}} ${{node.path}} ${{(node.tags || []).join(' ')}}`.toLowerCase();
-      return state.search && haystack.includes(state.search);
+      return 7 + Math.min(14, node.degree * 1.7);
     }}
 
     function relatedToActive(node) {{
@@ -1539,8 +1658,7 @@ def closed_graph_html(route_prefix: str = "") -> str:
         const b = lookup.get(edge.target);
         if (!a || !b) continue;
         const active = state.selected && (edge.source === state.selected.id || edge.target === state.selected.id);
-        const searchHit = state.search && (matchesSearch(a) || matchesSearch(b));
-        ctx.strokeStyle = active ? 'rgba(37,99,235,.52)' : searchHit ? 'rgba(15,118,110,.34)' : 'rgba(100,116,139,.18)';
+        ctx.strokeStyle = active ? 'rgba(37,99,235,.52)' : 'rgba(100,116,139,.18)';
         ctx.lineWidth = active ? 1.5 / state.zoom : 1 / state.zoom;
         ctx.beginPath();
         ctx.moveTo(a.x, a.y);
@@ -1552,16 +1670,15 @@ def closed_graph_html(route_prefix: str = "") -> str:
         const active = state.selected && state.selected.id === node.id;
         const hovered = state.hover && state.hover.id === node.id;
         const related = relatedToActive(node);
-        const searchHit = matchesSearch(node);
         const radius = nodeRadius(node) + (active ? 5 : hovered ? 2 : 0);
         const color = active ? '#0f766e' : nodeColor(node);
         ctx.beginPath();
         ctx.fillStyle = color;
-        ctx.globalAlpha = active || related || hovered || searchHit || !state.search ? 0.96 : 0.42;
+        ctx.globalAlpha = active || related || hovered ? 0.96 : 0.7;
         ctx.arc(node.x, node.y, radius, 0, Math.PI * 2);
         ctx.fill();
 
-        if (active || hovered || searchHit) {{
+        if (active || hovered) {{
           ctx.beginPath();
           ctx.lineWidth = 2 / state.zoom;
           ctx.strokeStyle = 'rgba(255,255,255,.92)';
@@ -1569,7 +1686,7 @@ def closed_graph_html(route_prefix: str = "") -> str:
           ctx.stroke();
         }}
 
-        const label = active || hovered || related || searchHit || node.degree >= 4;
+        const label = active || hovered || related || node.degree >= 4;
         if (label) {{
           ctx.globalAlpha = active || hovered ? 1 : 0.82;
           ctx.fillStyle = '#172033';
@@ -1589,50 +1706,48 @@ def closed_graph_html(route_prefix: str = "") -> str:
       document.getElementById('degree').textContent = String(node.degree ?? 0);
       document.getElementById('project').textContent = node.project || '-';
       document.getElementById('path').textContent = node.path || '-';
+      document.getElementById('owner').textContent = node.owner || '-';
+      document.getElementById('status').textContent = node.status || '-';
+      document.getElementById('visibility').textContent = node.visibility || '-';
+      document.getElementById('publication').textContent = node.publication_status || '-';
       document.getElementById('tags').innerHTML = (node.tags || []).map(tag => `<span class="tag">#${{tag}}</span>`).join('') || '<span class="tag">#untagged</span>';
-      document.getElementById('open-link').href = `{html.escape(_notes_base(route_prefix))}/${{node.slug}}`;
+      openLink.href = `{html.escape(_notes_base(route_prefix))}/${{node.slug}}`;
+      syncSelectionAccess();
     }}
 
-    function readPanelState() {{
-      try {{
-        return JSON.parse(window.localStorage.getItem(panelStateKey) || '{{}}');
-      }} catch (error) {{
-        return {{}};
+    function canOpenNode(node) {{
+      if (!node) return false;
+      return Boolean(state.auth?.authenticated && (state.auth.role === 'admin' || state.auth.nickname === node.owner));
+    }}
+
+    function syncSelectionAccess() {{
+      const access = document.getElementById('selection-access');
+      if (!state.selected) {{
+        openLink.hidden = true;
+        if (access) access.textContent = '노드를 고르면 현재 세션에서 열 수 있는지 함께 표시한다.';
+        return;
+      }}
+      const allowed = canOpenNode(state.selected);
+      openLink.hidden = !allowed;
+      if (access) {{
+        access.textContent = allowed
+          ? '현재 세션은 이 노트를 열 수 있다.'
+          : '현재 세션은 이 노트를 열 수 없다. 그래프 관계만 확인 가능하다.';
       }}
     }}
 
-    function writePanelState(value) {{
-      window.localStorage.setItem(panelStateKey, JSON.stringify(value));
-    }}
-
-    function applyPanelState() {{
-      const saved = readPanelState();
-      panelToggles.forEach((button) => {{
-        const id = button.dataset.togglePanel;
-        const panel = document.getElementById(id);
-        const minimized = Boolean(saved[id]);
-        panel?.classList.toggle('minimized', minimized);
-        button.textContent = minimized ? 'Show' : 'Hide';
-        button.setAttribute('aria-expanded', minimized ? 'false' : 'true');
-      }});
-    }}
-
-    function setPanelMinimized(id, minimized) {{
-      const saved = readPanelState();
-      saved[id] = minimized;
-      writePanelState(saved);
-      applyPanelState();
-    }}
-
-    function togglePanel(id) {{
-      const saved = readPanelState();
-      setPanelMinimized(id, !saved[id]);
+    function setLeftCollapsed(collapsed) {{
+      document.body.classList.toggle('left-collapsed', collapsed);
+      leftToggle?.setAttribute('aria-pressed', String(collapsed));
+      window.localStorage.setItem(leftCollapsedKey, collapsed ? '1' : '0');
     }}
 
     function setGraphTab(tab) {{
-      const next = ['search', 'selection', 'display'].includes(tab) ? tab : 'search';
+      const next = ['explore', 'selection', 'display'].includes(tab) ? tab : 'explore';
       graphMenu?.setAttribute('data-active-tab', next);
       graphTabs.forEach((button) => button.classList.toggle('active', button.dataset.graphTab === next));
+      window.localStorage.setItem(graphTabKey, next);
+      setLeftCollapsed(false);
     }}
 
     function focusSelected() {{
@@ -1643,7 +1758,6 @@ def closed_graph_html(route_prefix: str = "") -> str:
 
     async function boot() {{
       resize();
-      applyPanelState();
       const data = await fetch('{html.escape(_graph_data_href(route_prefix))}').then(res => res.json());
       state.nodes = data.nodes;
       state.links = data.links;
@@ -1663,26 +1777,76 @@ def closed_graph_html(route_prefix: str = "") -> str:
     }}
 
     window.addEventListener('resize', resize);
-    searchInput.addEventListener('input', () => {{
-      state.search = searchInput.value.trim().toLowerCase();
-    }});
     document.getElementById('focus-link').addEventListener('click', focusSelected);
-    panelToggles.forEach((button) => {{
-      button.addEventListener('click', () => togglePanel(button.dataset.togglePanel));
-    }});
     graphTabs.forEach((button) => {{
-      button.addEventListener('click', () => setGraphTab(button.dataset.graphTab || 'search'));
+      button.addEventListener('click', () => setGraphTab(button.dataset.graphTab || 'explore'));
     }});
     graphFocusSearch?.addEventListener('click', () => {{
-      setPanelMinimized('graph-menu', false);
-      setGraphTab('search');
-      window.setTimeout(() => searchInput.focus(), 80);
+      setGraphTab('explore');
+      window.setTimeout(() => noteFilterInput?.focus(), 80);
     }});
     graphFocusSelection?.addEventListener('click', () => {{
-      setPanelMinimized('graph-menu', false);
       setGraphTab('selection');
       focusSelected();
     }});
+    if (window.localStorage.getItem(leftCollapsedKey) === '1') setLeftCollapsed(true);
+    setGraphTab(window.localStorage.getItem(graphTabKey) || 'explore');
+    leftToggle?.addEventListener('click', () => setLeftCollapsed(!document.body.classList.contains('left-collapsed')));
+    document.getElementById('focus-global-search')?.addEventListener('click', () => {{
+      setGraphTab('explore');
+      setLeftCollapsed(false);
+      window.setTimeout(() => noteFilterInput?.focus(), 80);
+    }});
+    noteFilterInput?.addEventListener('input', () => {{
+      const q = noteFilterInput.value.trim().toLowerCase();
+      for (const item of noteItems) {{
+        const hit = !q || item.dataset.title.includes(q);
+        item.style.display = hit ? '' : 'none';
+      }}
+      for (const folder of noteFolders) {{
+        const descendants = [...folder.querySelectorAll('.nav-link')];
+        const visible = descendants.some((item) => item.style.display !== 'none');
+        folder.style.display = visible ? '' : 'none';
+        if (q && visible) folder.open = true;
+      }}
+      window.clearTimeout(searchTimer);
+      if (!q) {{
+        searchBox?.classList.remove('visible');
+        if (searchBox) searchBox.innerHTML = '';
+        return;
+      }}
+      searchTimer = window.setTimeout(async () => {{
+        try {{
+          const res = await fetch(`${{graphSearchEndpoint}}?q=${{encodeURIComponent(q)}}&limit=6`);
+          const data = await res.json();
+          const results = (data.results || []).map((item) => `
+            <a class="search-result" href="${{item.href}}">
+              <strong>${{item.title}}</strong>
+              <small>${{item.summary || item.path || ''}}</small>
+            </a>
+          `).join('');
+          if (searchBox) {{
+            searchBox.innerHTML = results || '<div class="search-result"><strong>검색 결과 없음</strong></div>';
+            searchBox.classList.add('visible');
+          }}
+        }} catch (error) {{
+          searchBox?.classList.remove('visible');
+        }}
+      }}, 160);
+    }});
+    document.addEventListener('click', (event) => {{
+      if (!searchBox?.contains(event.target) && event.target !== noteFilterInput) {{
+        searchBox?.classList.remove('visible');
+      }}
+    }});
+    document.addEventListener('closed-akashic-auth-change', (event) => {{
+      state.auth = event.detail || {{ authenticated: false, role: 'anonymous', nickname: '' }};
+      syncSelectionAccess();
+    }});
+    const initialSession = window.closedAkashicUI?.getSession?.();
+    if (initialSession) {{
+      state.auth = initialSession;
+    }}
 
     canvas.addEventListener('pointerdown', (event) => {{
       const node = pick(event.clientX, event.clientY);
@@ -2803,7 +2967,7 @@ def _parse_note(root: Path, path: Path) -> ClosedNote:
         path=rel_path,
         slug=_slugify(path.stem),
         title=title,
-        kind=str(frontmatter.get("kind") or "note"),
+        kind=normalize_kind(str(frontmatter.get("kind") or "reference")),
         project=str(frontmatter.get("project") or "closed-akashic"),
         status=str(frontmatter.get("status") or "draft"),
         owner=str(frontmatter.get("owner") or get_settings().default_note_owner),
@@ -3768,6 +3932,16 @@ def _workspace_styles() -> str:
       font-size: .82rem;
       line-height: 1.55;
     }
+    .workspace-template {
+      margin: 0;
+      padding: 12px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: rgba(15, 23, 42, .04);
+      color: var(--ink);
+      white-space: pre-wrap;
+      font: 500 .82rem/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
     .toolbar-row {
       display: flex;
       gap: 8px;
@@ -4011,21 +4185,15 @@ def _workspace_controls_html() -> str:
 
 
 def _workspace_overlay_html() -> str:
-    return """
+    kind_options = "\n".join(
+        f'        <option value="{html.escape(item["kind"])}"></option>'
+        for item in kind_catalog()
+    )
+    return f"""
     <div class="workspace-shell" id="workspace-shell">
       <div class="toast" id="workspace-toast" data-tone="success"></div>
       <datalist id="editor-kind-options">
-        <option value="note"></option>
-        <option value="index"></option>
-        <option value="concept"></option>
-        <option value="playbook"></option>
-        <option value="architecture"></option>
-        <option value="schema"></option>
-        <option value="incident"></option>
-        <option value="decision"></option>
-        <option value="experiment"></option>
-        <option value="reference"></option>
-        <option value="workflow"></option>
+{kind_options}
       </datalist>
       <datalist id="editor-status-options">
         <option value="active"></option>
@@ -4039,9 +4207,20 @@ def _workspace_overlay_html() -> str:
 
 
 def _workspace_script() -> str:
-    return """
+    kind_specs = {
+        item["kind"]: {
+            "label": item["label"],
+            "summary": item["summary"],
+            "folder": item["folder"],
+            "sections": kind_template_sections(item["kind"]),
+        }
+        for item in kind_catalog()
+    }
+    kind_specs_json = json.dumps(kind_specs, ensure_ascii=False)
+    template = """
     (() => {
       const noteData = JSON.parse(document.getElementById('closed-note-data')?.textContent || '{}');
+      const kindSpecs = __KIND_SPECS_JSON__;
       const state = {
         authorized: false,
         mode: 'edit',
@@ -4072,6 +4251,8 @@ def _workspace_script() -> str:
         folderPath: document.getElementById('workspace-folder-path'),
         createFolderButton: document.getElementById('workspace-create-folder'),
         noteFolderOptions: document.getElementById('editor-folder-options'),
+        kindSummary: document.getElementById('editor-kind-summary'),
+        kindTemplate: document.getElementById('editor-kind-template'),
         toast: document.getElementById('workspace-toast'),
       };
 
@@ -4119,6 +4300,23 @@ def _workspace_script() -> str:
         target.innerHTML = [...new Set(values)].sort((a, b) => a.localeCompare(b)).map(
           (item) => `<option value=\"${escapeAttr(item)}\"></option>`
         ).join('');
+      }
+
+      function buildKindTemplate(kind) {
+        const spec = kindSpecs[kind] || kindSpecs.reference;
+        const body = (spec.sections || []).map((section) => `## ${section}\\n`).join('\\n');
+        return body.trim() || '## Summary';
+      }
+
+      function updateKindGuide() {
+        const rawKind = String(dom.formKind?.value || '').trim().toLowerCase().replace(/-/g, '_');
+        const spec = kindSpecs[rawKind] || kindSpecs.reference;
+        if (dom.kindSummary) {
+          dom.kindSummary.textContent = `${spec.label}: ${spec.summary} 권장 폴더는 ${spec.folder} 계열이다.`;
+        }
+        if (dom.kindTemplate) {
+          dom.kindTemplate.textContent = buildKindTemplate(rawKind);
+        }
       }
 
       async function requestJson(path, options = {}) {
@@ -4186,13 +4384,14 @@ def _workspace_script() -> str:
 
       function presetNewNote() {
         const inheritedProject = noteData.project && noteData.project !== 'closed-akashic' ? noteData.project : '';
+        const session = window.closedAkashicUI?.getSession?.() || {};
         state.originalPath = '';
         dom.formTitle.value = '';
         dom.formSummary.value = '';
         dom.formKind.value = 'reference';
         dom.formProject.value = inheritedProject;
         dom.formStatus.value = 'active';
-        dom.formOwner.value = 'personal';
+        dom.formOwner.value = session.nickname || noteData.owner || 'aaron';
         dom.formVisibility.value = 'private';
         dom.formPublicationStatus.value = 'none';
         dom.formScope.value = inheritedProject ? 'shared' : 'shared';
@@ -4200,8 +4399,9 @@ def _workspace_script() -> str:
         dom.formPath.value = '';
         dom.formTags.value = '';
         dom.formRelated.value = '';
-        dom.formBody.value = '## Summary\\n\\n';
+        dom.formBody.value = buildKindTemplate(dom.formKind.value) + '\\n';
         dom.folderPath.value = '';
+        updateKindGuide();
       }
 
       async function loadCurrentNote() {
@@ -4225,6 +4425,7 @@ def _workspace_script() -> str:
           dom.formRelated.value = Array.isArray(fm.related) ? fm.related.join(', ') : (noteData.related || []).join(', ');
           dom.formBody.value = raw.body || noteData.body || '## Summary\\n\\n';
           dom.folderPath.value = '';
+          updateKindGuide();
           setBanner('경로를 바꾸고 저장하면 기존 노트를 move한 뒤 내용을 저장한다.');
         } catch (error) {
           setBanner(error.message || '현재 노트를 불러오지 못했다.', 'error');
@@ -4376,6 +4577,8 @@ def _workspace_script() -> str:
       dom.suggestButton?.addEventListener('click', suggestPath);
       dom.deleteButton?.addEventListener('click', deleteNote);
       dom.createFolderButton?.addEventListener('click', createFolder);
+      dom.formKind?.addEventListener('input', updateKindGuide);
+      dom.formKind?.addEventListener('change', updateKindGuide);
 
       document.addEventListener('closed-akashic-edit-request', () => openWorkspace('edit'));
       document.addEventListener('closed-akashic-save-request', () => {
@@ -4398,8 +4601,10 @@ def _workspace_script() -> str:
         state.authorized = true;
         refreshFolders();
       }
+      updateKindGuide();
     })();
     """
+    return template.replace("__KIND_SPECS_JSON__", kind_specs_json)
 
 
 def _rewrite_markdown_image(match: re.Match[str], route_prefix: str) -> str:

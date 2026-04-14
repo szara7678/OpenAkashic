@@ -280,22 +280,30 @@ def _vault_http_error(exc: Exception) -> HTTPException:
 
 @api.get("/", response_class=HTMLResponse)
 def root(request: Request) -> str:
-    return closed_note_html(route_prefix=_route_prefix(request))
+    auth = _auth_from_request(request)
+    home_note = get_closed_home_note(route_prefix=_route_prefix(request))
+    _assert_can_read_note_payload(home_note, auth)
+    return closed_note_html(route_prefix=_route_prefix(request), viewer_owner=auth.nickname, is_admin=_is_admin(auth))
 
 
 @api.get("/closed", response_class=HTMLResponse)
-def prefixed_root() -> str:
-    return closed_note_html(route_prefix="/closed")
+def prefixed_root(request: Request) -> str:
+    auth = _auth_from_request(request)
+    home_note = get_closed_home_note(route_prefix="/closed")
+    _assert_can_read_note_payload(home_note, auth)
+    return closed_note_html(route_prefix="/closed", viewer_owner=auth.nickname, is_admin=_is_admin(auth))
 
 
 @api.get("/graph", response_class=HTMLResponse)
 def graph_page(request: Request) -> str:
-    return closed_graph_html(route_prefix=_route_prefix(request))
+    auth = _auth_from_request(request)
+    return closed_graph_html(route_prefix=_route_prefix(request), viewer_owner=auth.nickname, is_admin=_is_admin(auth))
 
 
 @api.get("/closed/graph", response_class=HTMLResponse)
-def prefixed_graph_page() -> str:
-    return closed_graph_html(route_prefix="/closed")
+def prefixed_graph_page(request: Request) -> str:
+    auth = _auth_from_request(request)
+    return closed_graph_html(route_prefix="/closed", viewer_owner=auth.nickname, is_admin=_is_admin(auth))
 
 
 @api.get("/debug", response_class=HTMLResponse)
@@ -364,12 +372,18 @@ def prefixed_note(request: Request, path: str = Query(min_length=1)) -> dict[str
 
 @api.get("/home")
 def home(request: Request) -> dict[str, Any]:
-    return get_closed_home_note(route_prefix=_route_prefix(request))
+    auth = _auth_from_request(request)
+    result = get_closed_home_note(route_prefix=_route_prefix(request))
+    _assert_can_read_note_payload(result, auth)
+    return result
 
 
 @api.get("/closed/home")
-def prefixed_home() -> dict[str, Any]:
-    return get_closed_home_note(route_prefix="/closed")
+def prefixed_home(request: Request) -> dict[str, Any]:
+    auth = _auth_from_request(request)
+    result = get_closed_home_note(route_prefix="/closed")
+    _assert_can_read_note_payload(result, auth)
+    return result
 
 
 @api.get("/notes/{slug}", response_class=HTMLResponse)
@@ -379,7 +393,12 @@ def note_page(request: Request, slug: str) -> str:
     if not note_data:
         raise HTTPException(status_code=404, detail="Note not found")
     _assert_can_read_note_payload(note_data, auth)
-    return closed_note_html(note_slug=slug, route_prefix=_route_prefix(request))
+    return closed_note_html(
+        note_slug=slug,
+        route_prefix=_route_prefix(request),
+        viewer_owner=auth.nickname,
+        is_admin=_is_admin(auth),
+    )
 
 
 @api.get("/closed/notes/{slug}", response_class=HTMLResponse)
@@ -389,7 +408,7 @@ def prefixed_note_page(request: Request, slug: str) -> str:
     if not note_data:
         raise HTTPException(status_code=404, detail="Note not found")
     _assert_can_read_note_payload(note_data, auth)
-    return closed_note_html(note_slug=slug, route_prefix="/closed")
+    return closed_note_html(note_slug=slug, route_prefix="/closed", viewer_owner=auth.nickname, is_admin=_is_admin(auth))
 
 
 @api.get("/api/session")

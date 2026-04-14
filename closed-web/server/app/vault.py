@@ -23,6 +23,109 @@ PROJECT_SUBFOLDERS = (
     "experiments",
     "reference",
 )
+KIND_CATALOG: list[dict[str, Any]] = [
+    {
+        "kind": "index",
+        "label": "Index",
+        "folder": "reference",
+        "summary": "프로젝트나 공간의 진입점과 지도.",
+        "sections": ["Summary", "Canonical Docs", "Active Surfaces", "Memory Map", "Reuse"],
+    },
+    {
+        "kind": "architecture",
+        "label": "Architecture",
+        "folder": "architecture",
+        "summary": "구조, 경계, 제어면, 데이터 흐름.",
+        "sections": ["Summary", "Context", "Design", "Interfaces", "Risks", "Reuse"],
+    },
+    {
+        "kind": "policy",
+        "label": "Policy",
+        "folder": "playbooks",
+        "summary": "권한, 승인 조건, 금지 규칙.",
+        "sections": ["Summary", "Policy", "Allowed Actions", "Disallowed Actions", "Reuse"],
+    },
+    {
+        "kind": "playbook",
+        "label": "Playbook",
+        "folder": "playbooks",
+        "summary": "반복 실행 절차와 운영 방법.",
+        "sections": ["Summary", "When To Use", "Steps", "Checks", "Reuse"],
+    },
+    {
+        "kind": "evidence",
+        "label": "Evidence",
+        "folder": "reference",
+        "summary": "공개 결과의 근거가 되는 문서, 파일, 재현 기록.",
+        "sections": ["Summary", "Source", "Method", "Artifacts", "Findings", "Limitations"],
+    },
+    {
+        "kind": "experiment",
+        "label": "Experiment",
+        "folder": "experiments",
+        "summary": "실험, 검증, 재현 시도.",
+        "sections": ["Summary", "Hypothesis", "Setup", "Results", "Follow-up"],
+    },
+    {
+        "kind": "dataset",
+        "label": "Dataset",
+        "folder": "reference",
+        "summary": "데이터셋, 표본, 파일 세트 설명.",
+        "sections": ["Summary", "Source", "Schema", "Coverage", "Usage Notes"],
+    },
+    {
+        "kind": "reference",
+        "label": "Reference",
+        "folder": "reference",
+        "summary": "짧게 다시 참조할 사실, 규약, 메모.",
+        "sections": ["Summary", "Reference", "Reuse"],
+    },
+    {
+        "kind": "claim",
+        "label": "Claim",
+        "folder": "reference",
+        "summary": "공개 가능한 사실 주장과 범위.",
+        "sections": ["Summary", "Claim", "Evidence Links", "Scope", "Caveats"],
+    },
+    {
+        "kind": "capsule",
+        "label": "Capsule",
+        "folder": "reference",
+        "summary": "공동 publish용 요약 산출물.",
+        "sections": ["Summary", "Outcome", "Evidence Links", "Practical Use", "Reuse"],
+    },
+    {
+        "kind": "roadmap",
+        "label": "Roadmap",
+        "folder": "reference",
+        "summary": "갭 분석과 다음 단계 계획.",
+        "sections": ["Summary", "Current State", "Gaps", "Next Milestones", "Open Questions"],
+    },
+    {
+        "kind": "profile",
+        "label": "Profile",
+        "folder": "reference",
+        "summary": "에이전트/주체의 역할과 성격.",
+        "sections": ["Summary", "Role", "Capabilities", "Constraints", "Reuse"],
+    },
+    {
+        "kind": "publication_request",
+        "label": "Publication Request",
+        "folder": "reference",
+        "summary": "공개 요청 패키지와 근거 묶음.",
+        "sections": ["Summary", "Source Note", "Requested Output", "Evidence Links", "Rationale", "Review Notes"],
+    },
+]
+KIND_KEYS = {item["kind"] for item in KIND_CATALOG}
+KIND_ALIASES = {
+    "note": "reference",
+    "concept": "reference",
+    "schema": "reference",
+    "workflow": "playbook",
+    "incident": "experiment",
+    "decision": "policy",
+    "pattern": "playbook",
+}
 VISIBILITY_VALUES = {"private", "public"}
 PUBLICATION_STATUS_VALUES = {
     "none",
@@ -170,9 +273,11 @@ def write_document(
         frontmatter["title"] = target.stem
 
     if kind:
-        frontmatter["kind"] = kind
+        frontmatter["kind"] = normalize_kind(kind)
     elif not frontmatter.get("kind"):
-        frontmatter["kind"] = "note"
+        frontmatter["kind"] = "reference"
+    else:
+        frontmatter["kind"] = normalize_kind(str(frontmatter.get("kind")))
 
     if project:
         frontmatter["project"] = project
@@ -627,6 +732,26 @@ def _normalize_publication_status(value: str) -> str:
     return normalized
 
 
+def kind_catalog() -> list[dict[str, Any]]:
+    return KIND_CATALOG
+
+
+def normalize_kind(value: str | None) -> str:
+    normalized = (value or "").strip().lower().replace("-", "_")
+    if not normalized:
+        return "reference"
+    resolved = KIND_ALIASES.get(normalized, normalized)
+    return resolved if resolved in KIND_KEYS else "reference"
+
+
+def kind_template_sections(kind: str | None) -> list[str]:
+    kind_key = normalize_kind(kind)
+    for item in KIND_CATALOG:
+        if item["kind"] == kind_key:
+            return list(item["sections"])
+    return ["Summary", "Reference", "Reuse"]
+
+
 def _now_iso() -> str:
     return datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
@@ -649,21 +774,25 @@ def suggest_note_path(
     scope: str | None = None,
     project: str | None = None,
 ) -> str:
-    kind_key = (kind or "").strip().lower()
+    kind_key = normalize_kind(kind)
     if preferred_folder:
         base = preferred_folder.strip().strip("/")
     elif project:
         if kind_key == "index":
             return f"{_project_workspace(project)}/README.md"
         by_kind = {
-            "concept": "reference",
-            "schema": "reference",
             "architecture": "architecture",
+            "policy": "playbooks",
             "playbook": "playbooks",
-            "incident": "incidents",
-            "decision": "decisions",
+            "evidence": "reference",
             "experiment": "experiments",
+            "dataset": "reference",
             "reference": "reference",
+            "claim": "reference",
+            "capsule": "reference",
+            "roadmap": "reference",
+            "profile": "reference",
+            "publication_request": "reference",
         }
         leaf = by_kind.get(kind_key, "reference")
         base = f"{_project_workspace(project)}/{leaf}"
@@ -671,21 +800,27 @@ def suggest_note_path(
         scope_key = (scope or "shared").strip().lower()
         if scope_key == "personal":
             by_kind = {
-                "concept": "personal_vault/personal/concepts",
+                "policy": "personal_vault/personal/playbooks",
                 "playbook": "personal_vault/personal/playbooks",
-                "decision": "personal_vault/personal/reference",
+                "evidence": "personal_vault/personal/reference",
+                "experiment": "personal_vault/personal/reference",
                 "reference": "personal_vault/personal/reference",
+                "roadmap": "personal_vault/personal/reference",
+                "profile": "personal_vault/personal/reference",
             }
         else:
             by_kind = {
-                "concept": "personal_vault/shared/concepts",
-                "schema": "personal_vault/shared/schemas",
                 "architecture": "personal_vault/shared/reference",
+                "policy": "personal_vault/shared/playbooks",
                 "playbook": "personal_vault/shared/playbooks",
-                "incident": "personal_vault/shared/reference",
-                "decision": "personal_vault/shared/reference",
+                "evidence": "personal_vault/shared/reference",
                 "experiment": "personal_vault/shared/reference",
+                "dataset": "personal_vault/shared/reference",
                 "reference": "personal_vault/shared/reference",
+                "claim": "personal_vault/shared/reference",
+                "capsule": "personal_vault/shared/reference",
+                "roadmap": "personal_vault/shared/reference",
+                "profile": "personal_vault/shared/reference",
             }
         base = by_kind.get(kind_key, "personal_vault/shared/reference")
     return f"{base}/{title.strip()}.md"
