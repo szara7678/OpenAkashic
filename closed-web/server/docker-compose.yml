@@ -1,0 +1,21 @@
+services:
+  closed-akashic-web:
+    build:
+      context: .
+    container_name: closed-akashic-web
+    user: "1000:1000"
+    restart: unless-stopped
+    mem_limit: 384m
+    cpus: "0.50"
+    env_file:
+      - .env
+    expose:
+      - "8001"
+    volumes:
+      - ..:/vault/closed
+    networks:
+      - ichimozzi_default
+
+networks:
+  ichimozzi_default:
+    external: true

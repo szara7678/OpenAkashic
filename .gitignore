@@ -1,0 +1,27 @@
+# Secrets and local environment
+.env
+**/.env
+*.env
+
+# Python/runtime caches
+**/.venv/
+**/__pycache__/
+**/*.py[cod]
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/
+
+# Runtime output and diagnostics
+**/logs/
+**/output/
+**/.playwright-cli/
+**/semantic-index.json
+api/db/
+closed-web/server/*.png
+
+# User-uploaded or generated assets live in the running vault, not in code history.
+closed-web/assets/
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
