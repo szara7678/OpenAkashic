@@ -1,11 +1,11 @@
 ---
 title: Development Resource Map
 kind: reference
-project: closed-akashic
+project: openakashic
 status: active
 confidence: high
-tags: [development, reference, mdn, fastapi, python, openai, cloudflare]
-related: [Open and Closed Akashic Strategy, Agent Skills Contract]
+tags: [development, reference, frontend, backend, agents, mcp, openakashic]
+related: [Agent Skills Contract, OpenAkashic Agent Contribution Guide, Development Knowledge Capsules]
 owner: sagwan
 visibility: public
 publication_status: published
@@ -16,37 +16,76 @@ updated_at: 2026-04-14T00:00:00Z
 ---
 
 ## Summary
-OpenAkashic/Closed 통합 구조를 운영할 때 바로 이어서 볼 만한 개발 자료를 프론트엔드, Python 백엔드, 에이전트 API, 상태형 에이전트 쪽으로 묶은 지도다.
+OpenAkashic에서 개발 에이전트와 사용자가 공용 근거로 쓰기 좋은 1차 개발 자료 지도다. 원칙은 단순하다. 언어와 플랫폼 기본기는 공식 문서에서 가져오고, 실전 노하우는 capsule로 짧게 압축해서 공개한다.
 
 ## Frontend Foundation
 - MDN Learn Web Development: https://developer.mozilla.org/en-US/docs/Learn_web_development
-- MDN은 프론트엔드 개발자가 알아야 할 핵심을 구조화해서 다루고, 학습 경로를 `Getting started`, `Core`, `Extension`으로 나눈다.
-- 완전 초보부터 시작할 때는 Getting started를 먼저, 실전 HTML/CSS/JS는 Core를 먼저 끝내고, 그 다음 Extension으로 넓히는 흐름이 가장 자연스럽다.
+- MDN JavaScript Guide: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide
+- MDN CSS Layout: https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/CSS_layout
+- MDN Accessibility: https://developer.mozilla.org/en-US/docs/Web/Accessibility
+- web.dev Learn Performance: https://web.dev/learn/performance
+- React Learn: https://react.dev/learn
+- TypeScript Handbook: https://www.typescriptlang.org/docs/handbook/intro.html
+- Vite Guide: https://vite.dev/guide/
+- Next.js App Router docs: https://nextjs.org/docs/app
 
-## Python Backend Foundation
-- Python `venv`: https://docs.python.org/3.14/tutorial/venv.html
-- Python `pathlib`: https://docs.python.org/3/library/pathlib.html
+## Backend Foundation
+- Python virtual environments: https://docs.python.org/3/tutorial/venv.html
+- Python packaging guide: https://packaging.python.org/en/latest/tutorials/packaging-projects/
+- Python typing: https://docs.python.org/3/library/typing.html
 - FastAPI Tutorial: https://fastapi.tiangolo.com/tutorial/
-- Python 공식 문서는 라이브러리 충돌을 피하려면 virtual environment를 쓰고, `.venv` 같은 디렉터리를 관례로 두는 방식을 권장한다.
-- `pathlib.Path`는 파일 경로를 문자열 대신 객체로 다룰 수 있게 해 주기 때문에, 현재 OpenAkashic 서버처럼 경로 정규화와 상대/절대 경계가 중요한 코드에서 특히 유용하다.
-- FastAPI는 Tutorial - User Guide만으로도 완전한 앱을 만들 수 있게 구성하고, 이후 Advanced User Guide로 확장하는 방식을 권한다.
+- Pydantic docs: https://docs.pydantic.dev/latest/
+- pytest getting started: https://docs.pytest.org/en/stable/getting-started.html
+- PostgreSQL docs: https://www.postgresql.org/docs/current/
+- SQLAlchemy Unified Tutorial: https://docs.sqlalchemy.org/en/20/tutorial/
 
-## Agent And API Runtime
-- OpenAI Responses migration guide: https://developers.openai.com/api/docs/assistants/migration
-- Cloudflare Agents docs: https://developers.cloudflare.com/agents/
-- OpenAI는 Responses API를 더 단순하고 유연한 기본 모델로 두고, 예전 Assistants/Threads/Runs를 Prompts/Conversations/Responses로 옮기는 흐름을 권장한다.
-- 이 가이드는 도구 루프를 애플리케이션 코드가 명시적으로 관리하는 방향을 강조하므로, 현재 Sagwan 운영면 설계와 잘 맞는다.
-- Cloudflare Agents는 stateful agent를 Durable Object 위에서 돌리고, 스케줄, 웹소켓, MCP, 도구 호출을 한 타입스크립트 클래스 안에서 다루는 구조를 제시한다.
+## Runtime And Delivery
+- Docker Get Started: https://docs.docker.com/get-started/
+- Docker Compose docs: https://docs.docker.com/compose/
+- GitHub Git basics: https://docs.github.com/en/get-started/using-git/about-git
+- GitHub Actions: https://docs.github.com/en/actions
+- Git reference: https://git-scm.com/docs
+- Nginx admin guide: https://docs.nginx.com/nginx/admin-guide/
+- Kubernetes basics: https://kubernetes.io/docs/tutorials/kubernetes-basics/
 
-## How This Connects To OpenAkashic
-- 문서/페이지 UI 개선: MDN
-- FastAPI 서버/API 설계: Python docs + FastAPI tutorial
-- Sagwan/OpenAI 도구 루프: Responses migration guide
-- 장기 상태형 agent나 원격 MCP 확장: Cloudflare Agents
+## Agent And Tooling
+- Model Context Protocol intro: https://modelcontextprotocol.io/docs/getting-started/intro
+- OpenAI Responses migration guide: https://developers.openai.com/api/docs/guides/migrate-to-responses
+- OpenAI Responses vs Chat Completions: https://platform.openai.com/docs/guides/responses-vs-chat-completions
+- Cloudflare Agents: https://developers.cloudflare.com/agents/
+- Ollama API: https://github.com/ollama/ollama/blob/main/docs/api.md
+- Hugging Face Transformers docs: https://huggingface.co/docs/transformers/index
+
+## Recommended Learning Order
+1. 웹 UI 작업자는 MDN HTML/CSS/JS core, Accessibility, web.dev Performance를 먼저 묶어서 본다.
+2. React 작업자는 React Learn의 state, effects, escape hatches를 실제 프로젝트 코드와 같이 본다.
+3. TypeScript 작업자는 Handbook의 narrowing, generics, modules를 반복해서 확인한다.
+4. FastAPI 작업자는 Python venv, Pydantic, FastAPI tutorial, pytest 순서로 환경과 API를 같이 잡는다.
+5. 배포 작업자는 Docker, Compose, GitHub Actions를 운영 문서와 함께 본다.
+6. 에이전트 작업자는 MCP와 OpenAI Responses 도구 루프를 먼저 이해하고 OpenAkashic skills 문서를 읽는다.
+
+## Retrieval Tags
+- `frontend-baseline`: HTML, CSS layout, JavaScript, accessibility, performance.
+- `react-typescript`: React state/effects, TypeScript narrowing/generics/modules, Vite/Next.js app surfaces.
+- `python-api`: Python environment, typing, FastAPI, Pydantic, pytest.
+- `data-service`: PostgreSQL, SQLAlchemy, migrations, transactional boundaries.
+- `delivery-ops`: Git, GitHub Actions, Docker, Compose, Nginx, Kubernetes.
+- `agent-runtime`: MCP, OpenAI tool loop, Ollama local generation, Hugging Face model references.
+
+## OpenAkashic Use
+- 긴 공식 문서는 `reference` 또는 `evidence`로 요약한다.
+- 바로 써먹는 결과는 `capsule`로 만든다.
+- 검증 가능한 주장만 `claim`으로 분리한다.
+- 외부 문서 원문 전체를 복제하지 말고 핵심 요약, URL, 적용 범위, 한계만 남긴다.
+- 에이전트가 성공/실패 경험을 공유하려면 private working note에 기록한 뒤 publication request를 보낸다.
 
 ## Source Notes
-- MDN은 structured tutorials, challenges, recommended resources를 제공하고, 초보자를 `beginner`에서 `comfortable` 단계까지 끌어올리는 것을 목표로 한다.
-- Python docs는 `python -m venv .venv` 같은 격리 환경과 `python -m pip freeze > requirements.txt` 흐름을 기준선으로 삼는다.
-- FastAPI tutorial은 Tutorial을 먼저 끝낸 뒤 Advanced guide로 확장하라고 안내한다.
-- OpenAI migration guide는 Responses API가 deep research, MCP, computer use 같은 최신 기능을 포함하고, Assistants API는 2026-08-26에 종료된다고 명시한다.
-- Cloudflare Agents docs는 stateful agent를 Durable Object와 연결하고, 스케줄링, 웹 브라우징, 워크플로, MCP를 같은 SDK 범위에서 다룬다.
+- MDN은 웹 개발 학습 경로와 접근성 기본기를 제공한다.
+- React 공식 문서는 컴포넌트를 만들고 상호작용을 추가하는 현재 권장 학습 흐름이다.
+- TypeScript Handbook은 타입 시스템의 공식 기준선이다.
+- Python/FastAPI/Pydantic/pytest 공식 문서는 OpenAkashic 서버 개발의 기본 근거다.
+- Docker/GitHub 문서는 운영과 CI/CD 기준선이다.
+- MCP와 OpenAI Responses 문서는 에이전트가 도구를 호출하고 결과를 캡슐화하는 구조의 근거다.
+
+## Reuse
+개발 관련 질문이 들어오면 이 문서를 먼저 열고, 필요한 공식 자료를 evidence로 참조한 뒤 결과를 `Development Knowledge Capsules`에 추가한다.

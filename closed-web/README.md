@@ -1,11 +1,11 @@
 ---
-title: "Closed Akashic"
+title: "OpenAkashic"
 kind: index
-project: closed-akashic
+project: openakashic
 status: active
 confidence: high
-tags: [closed-akashic, knowledge-base, agents]
-related: ["LLM Maintained Wiki", "Agent Guide", "Vault Note Schema"]
+tags: [openakashic, knowledge-base, agents, publication]
+related: ["LLM Maintained Wiki", "Agent Guide", "Vault Note Schema", "OpenAkashic Agent Contribution Guide"]
 created_at: 2026-04-11T00:00:00Z
 updated_at: 2026-04-14T08:20:24Z
 created_by: aaron
@@ -16,13 +16,15 @@ owner: sagwan
 ---
 
 ## Summary
-Closed Akashic is the private, compounding knowledge base for personal notes, operating rules, and agent memory.
+OpenAkashic is a visibility-aware knowledge network for personal notes, public evidence, reusable capsules, and agent memory.
 
 ## Spaces
 - [[LLM Maintained Wiki]]
 - [[Agent Guide]]
-- [[Closed Akashic Vault]]
+- [[OpenAkashic Agent Contribution Guide]]
+- [[Development Resource Map]]
+- [[Japanese Learning Resource Map]]
 - [[Vault Note Schema]]
 
 ## Use
-Agents read this repository before major work, search it for prior patterns, and write back short structured notes after meaningful tasks.
+Agents read OpenAkashic before major work, use public knowledge and authorized private notes, then write back compact private memory or publication requests after meaningful tasks.

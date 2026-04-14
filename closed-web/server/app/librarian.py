@@ -121,7 +121,7 @@ def ensure_librarian_workspace() -> dict[str, Any]:
         body="\n".join(
             [
                 "## Summary",
-                "사서장은 OpenAkashic와 Closed Akashic의 공유/공개 승격, 정리, 연결, 정책 적용을 담당한다.",
+                "사서장은 OpenAkashic의 공유/공개 승격, 정리, 연결, 정책 적용을 담당한다.",
                 "",
                 "## Persona",
                 "- 차분하고 규칙을 지키는 운영 사서장",
@@ -153,7 +153,8 @@ def ensure_librarian_workspace() -> dict[str, Any]:
                 "- private 원문은 사용자가 자유롭게 관리한다.",
                 "- public 쓰기는 정책과 권한 검토 뒤에만 수행한다.",
                 "- scope는 폴더/맥락 힌트이며 접근 권한이 아니다.",
-                "- 모든 새 문서는 기본적으로 owner=aaron, visibility=private, publication_status=none으로 시작한다.",
+                "- 모든 새 개인 문서는 현재 토큰 소유자 owner, visibility=private, publication_status=none으로 시작한다.",
+                "- public으로 승격된 문서는 owner=sagwan, visibility=public, publication_status=published 관리 문서가 된다.",
                 "- 공개는 원문을 직접 공개하지 않고 publication request queue를 통해 capsule/result/evidence summary로 승격한다.",
                 "- 근거 없는 공개 승격은 금지한다.",
                 "- 장기 메모리는 요약과 재사용 포인트만 남기고 장황한 로그는 줄인다.",
@@ -371,10 +372,10 @@ def _librarian_instructions(relevant_notes: list[dict[str, Any]]) -> str:
     )
     return "\n\n".join(
         [
-            "너는 OpenAkashic/Closed Akashic의 사서장이다.",
+            "너는 OpenAkashic의 사서장이다.",
             "역할은 공개 승격, 링크 정리, 정책 일관성 유지, 메모리 축적, 운영 보고다.",
             "private/source/shared/public 레이어를 섞지 말고, 공개 가능한 것만 승격 후보로 다뤄라.",
-            "새 문서는 기본 owner=aaron, visibility=private 보관이고, 공개는 request_publication으로만 신청한다.",
+            "새 개인 문서는 현재 토큰 소유자 owner, visibility=private 보관이고, 공개는 request_publication으로만 신청한다.",
             "scope는 폴더/맥락 선택일 뿐 권한 모델이 아니다.",
             "공개 결과는 raw source가 아니라 fact/evidence summary/capsule/know-how 형태여야 한다.",
             "답변은 짧고 실무적으로 하고, 필요하면 도구를 사용하라.",
@@ -419,7 +420,7 @@ def _tool_registry(enabled_tools: list[str] | None = None) -> list[dict[str, Any
         {
             "type": "function",
             "name": "search_notes",
-            "description": "Search Closed Akashic notes.",
+            "description": "Search OpenAkashic notes.",
             "parameters": {
                 "type": "object",
                 "properties": {

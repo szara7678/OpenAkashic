@@ -1,7 +1,7 @@
 ---
 title: AGENTS
 kind: reference
-project: closed-akashic
+project: openakashic
 status: active
 confidence: high
 tags: []
@@ -15,13 +15,13 @@ updated_at: 2026-04-14T08:20:24Z
 created_at: 2026-04-14T08:20:24Z
 ---
 
-# Closed Akashic Agent Rules
+# OpenAkashic Agent Rules
 
-Closed Akashic is a maintained private memory store, not a dump folder.
+OpenAkashic is a visibility-aware knowledge network, personal memory store, publication workflow, and agent collaboration surface.
 
 ## Default behavior
 
-1. Read Closed Akashic before major work.
+1. Read OpenAkashic before major work.
 2. Reuse existing notes before writing a parallel explanation.
 3. Write back one compact note or one precise update after meaningful work.
 4. Keep notes small, linked, and reusable.
@@ -31,7 +31,7 @@ Closed Akashic is a maintained private memory store, not a dump folder.
 
 Every remote Codex, Cursor, OpenCode, or similar agent should follow the same flow:
 
-1. Use the main Closed Akashic server over MCP or authenticated API as the central memory layer.
+1. Use the main OpenAkashic server over MCP or authenticated API as the central memory layer.
 2. Do not require, clone, or update local `agent-knowledge` folders for normal work.
 3. Open the matching project index at `personal_vault/projects/<scope>/<project>/README.md`.
 4. Search related notes before implementation, debugging, or deployment work.
@@ -40,7 +40,7 @@ Every remote Codex, Cursor, OpenCode, or similar agent should follow the same fl
 ## Codex bootstrap
 
 - Each Codex host should keep a short `~/.codex/AGENTS.md` that points to this MCP server.
-- Each Codex host should register `closed-akashic` in `~/.codex/config.toml`.
+- Each Codex host should register the OpenAkashic MCP endpoint in `~/.codex/config.toml`.
 - Project repositories may still have their own `AGENTS.md` for project-specific rules, but memory behavior should stay centralized here.
 
 ## Remote access
@@ -50,7 +50,7 @@ Every remote Codex, Cursor, OpenCode, or similar agent should follow the same fl
 - Authenticated MCP: `https://knowledge.openakashic.com/mcp`
 - Bearer token env var for local agents: `CLOSED_AKASHIC_TOKEN`
 
-Use the main server as the canonical shared memory surface. Do not let each server keep its own divergent Closed Akashic clone for normal retrieval and write-back.
+Use the main server as the canonical shared memory surface. Do not let each server keep its own divergent OpenAkashic clone for normal retrieval and write-back.
 
 ## Writing rules
 
@@ -73,8 +73,8 @@ Use the main server as the canonical shared memory surface. Do not let each serv
 
 - Give each active project a `personal_vault/projects/<scope>/<project>/README.md` index note.
 - Put canonical source docs in the project repo itself, usually `doc/README.md`, `doc/plan.md`, `doc/UPDATE.md`, `doc/TroubleShooting.md` when available.
-- Keep only distilled patterns, incidents, decisions, and reusable references in Closed Akashic.
-- Do not copy whole project docs into Closed Akashic when an index note and links are enough.
+- Keep only distilled patterns, incidents, decisions, and reusable references in OpenAkashic.
+- Do not copy whole project docs into OpenAkashic when an index note and links are enough.
 - Let the project folder structure follow the project. Use `bootstrap_project`, `create_folder`, `rename_folder`, and `move_note` instead of forcing one taxonomy.
 
 ## Good write-back targets
@@ -94,4 +94,4 @@ Use the main server as the canonical shared memory surface. Do not let each serv
 - `upsert_note` or `append_note_section` for write-back
 - `upload_image` for screenshots or diagrams
 
-See [agent.md](/home/ec2-user/Akashic/ClosedAkashic/doc/agents/agent.md), [Distributed Agent Memory Contract.md](/home/ec2-user/Akashic/ClosedAkashic/doc/agents/Distributed%20Agent%20Memory%20Contract.md), [Project Memory Intake.md](/home/ec2-user/Akashic/ClosedAkashic/personal_vault/shared/playbooks/Project%20Memory%20Intake.md), and [Remote Agent Enrollment.md](/home/ec2-user/Akashic/ClosedAkashic/personal_vault/shared/playbooks/Remote%20Agent%20Enrollment.md) for the longer workflow.
+See `doc/agents/OpenAkashic Agent Contribution Guide.md`, `doc/agents/Agent Skills Contract.md`, `doc/agents/User Token Agent Access.md`, and `personal_vault/projects/personal/openakashic/playbooks/publication-evidence-contract.md` for the longer workflow.

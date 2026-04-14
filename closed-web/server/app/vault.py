@@ -282,7 +282,7 @@ def write_document(
     if project:
         frontmatter["project"] = project
     elif not frontmatter.get("project"):
-        frontmatter["project"] = "closed-akashic"
+        frontmatter["project"] = "openakashic"
 
     if status:
         frontmatter["status"] = status
@@ -667,11 +667,11 @@ def resolve_note_path(path: str, *, must_exist: bool) -> Path:
     if not normalized.parts:
         raise ValueError("Invalid note path")
     if not _is_allowed_note_path(normalized):
-        raise ValueError("Path must stay within an allowed Closed Akashic note root")
+        raise ValueError("Path must stay within an allowed OpenAkashic note root")
 
     target = (root / normalized).resolve()
     if root not in target.parents:
-        raise ValueError("Path escapes Closed Akashic root")
+        raise ValueError("Path escapes OpenAkashic root")
     if must_exist and not target.exists():
         raise FileNotFoundError(normalized.as_posix())
     return target
@@ -699,7 +699,7 @@ def resolve_asset_path(path: str, *, must_exist: bool) -> Path:
         raise ValueError("Asset path must stay inside assets/")
     target = (root / safe_path).resolve()
     if root not in target.parents:
-        raise ValueError("Asset path escapes Closed Akashic root")
+        raise ValueError("Asset path escapes OpenAkashic root")
     if must_exist and not target.exists():
         raise FileNotFoundError(safe_path.as_posix())
     return target
@@ -715,10 +715,10 @@ def resolve_folder_path(path: str, *, must_exist: bool) -> Path:
     if safe_path.suffix:
         raise ValueError("Folder path must point to a directory")
     if safe_path.parts[0] not in set(get_settings().writable_root_list):
-        raise ValueError("Folder path must stay inside an allowed Closed Akashic root")
+        raise ValueError("Folder path must stay inside an allowed OpenAkashic root")
     target = (root / safe_path).resolve()
     if root not in target.parents:
-        raise ValueError("Folder path escapes Closed Akashic root")
+        raise ValueError("Folder path escapes OpenAkashic root")
     if must_exist and not target.exists():
         raise FileNotFoundError(safe_path.as_posix())
     return target

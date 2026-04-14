@@ -1,7 +1,7 @@
 ---
 title: "Agent Guide"
 kind: playbook
-project: closed-akashic
+project: openakashic
 status: active
 confidence: high
 tags: [agent, codex, cursor, opencode, memory]
@@ -16,23 +16,23 @@ owner: sagwan
 ---
 
 ## Summary
-Codex, Cursor, OpenCode and similar agents should treat Closed Akashic as a persistent working memory, not as a one-shot retrieval dump.
+Codex, Cursor, OpenCode and similar agents should treat OpenAkashic as a persistent working memory and public contribution network, not as a one-shot retrieval dump.
 
 The intended access path is remote MCP and authenticated API access to the main server, so agents on other machines can use the same memory instead of cloning a local copy and drifting apart.
 
 Local `agent-knowledge` clones are no longer part of the default workflow. Each Codex host should use a small `~/.codex/AGENTS.md` plus the shared MCP registration instead.
 
 ## Core Model
-Closed Akashic sits between raw work and future work.
+OpenAkashic sits between raw work and future work.
 
 - Raw sources stay in repos, logs, docs, tickets, recordings, and external references.
-- Closed Akashic stores the distilled reusable knowledge as short linked markdown notes.
+- OpenAkashic stores the distilled reusable knowledge as short linked markdown notes.
 - Agents should read before acting and write back after meaningful work.
 
 The goal is compounding memory. Useful context should survive past one chat session.
 
 ## Agent Contract
-Every agent using Closed Akashic should follow these rules:
+Every agent using OpenAkashic should follow these rules:
 
 1. Search memory before starting substantial work.
 2. Prefer existing notes over inventing new parallel explanations.
@@ -41,7 +41,7 @@ Every agent using Closed Akashic should follow these rules:
 5. Record uncertainty clearly with `status` and `confidence`.
 
 ## Recommended Workflow
-1. Verify the host has `CLOSED_AKASHIC_TOKEN` and the `closed-akashic` MCP server registered.
+1. Verify the host has `CLOSED_AKASHIC_TOKEN` and the OpenAkashic MCP server registered. The historical config key may still be `closed-akashic` for compatibility.
 2. Read [[Codex Central Memory Setup]], [[Distributed Agent Memory Contract]], [[Project Memory Intake]], and [[Vault Note Schema]] for the shared operating model.
 3. Open the matching project index under `personal_vault/projects/<scope>/<project>/README.md`, or bootstrap it if missing.
 4. Search for related incidents, patterns, concepts, and playbooks.
@@ -63,7 +63,7 @@ Every agent using Closed Akashic should follow these rules:
 - Prefer one note per reusable idea instead of one huge session log.
 
 ## Retrieval Rules
-When an agent searches Closed Akashic, prioritize:
+When an agent searches OpenAkashic, prioritize:
 
 - same project
 - same failure mode
@@ -93,15 +93,15 @@ Codex, Cursor, OpenCode, Claude Code, and similar agents can all use the same re
 - Cursor can use the repository as shared context and follow the same note schema.
 - OpenCode and other terminal agents can treat this repository as an append-and-link memory store.
 
-The shared rule is simple: do not treat Closed Akashic as a dumping ground. Treat it like maintained infrastructure.
+The shared rule is simple: do not treat OpenAkashic as a dumping ground. Treat it like maintained infrastructure.
 
 ## Relationship To Local Bootstrap Files
 
-Closed Akashic replaces the old local `agent-knowledge` bootstrap repository.
+OpenAkashic replaces the old local `agent-knowledge` bootstrap repository.
 
-- `~/.codex/AGENTS.md`: tiny host-level instruction to use Closed Akashic MCP
+- `~/.codex/AGENTS.md`: tiny host-level instruction to use OpenAkashic MCP
 - project repo `doc/`: canonical feature docs, plans, updates, troubleshooting
-- Closed Akashic: operating docs, distilled cross-session memory, reusable patterns, project indexes, incidents, decisions
+- OpenAkashic: operating docs, distilled cross-session memory, reusable patterns, project indexes, incidents, decisions
 
 The key idea is to avoid duplicating whole project docs while still retaining the reusable memory that should survive beyond one repository checkout.
 
@@ -113,7 +113,7 @@ That note should:
 
 - identify whether the project is `personal` or `company`
 - point to the canonical docs in the actual project repo
-- link to local incidents, playbooks, architecture notes, and references already stored in Closed Akashic
+- link to local incidents, playbooks, architecture notes, and references already stored in OpenAkashic
 - stay short enough that an agent can use it as an intake page before searching deeper
 
 ## Remote Access Contract
@@ -131,17 +131,17 @@ For many agents across many servers, use this split:
 
 - `~/.codex/AGENTS.md`: points the agent to the central MCP memory
 - project repo `doc/`: canonical product truth
-- Closed Akashic: distilled cross-session memory over MCP
+- OpenAkashic: distilled cross-session memory over MCP
 
 That keeps onboarding light on each server while still giving every agent the same persistent memory.
 
 ## Suggested Session Prompt
-Use this operating prompt when attaching an agent to Closed Akashic:
+Use this operating prompt when attaching an agent to OpenAkashic:
 
-> Before major work, search Closed Akashic for related notes. Reuse existing patterns when possible. After meaningful work, update the best matching note or create one short structured note with links to related concepts and incidents.
+> Before major work, search OpenAkashic for related notes. Reuse existing patterns when possible. After meaningful work, update the best matching note or create one short structured note with links to related concepts and incidents.
 
 ## Storage Shape
-Closed Akashic currently has two main zones:
+OpenAkashic currently has two main zones:
 
 - `doc/` for concepts, operating philosophy, and agent instructions
 - `personal_vault/` for structured working notes and graph-linked operational memory

@@ -1,10 +1,10 @@
 ---
-title: "Closed Akashic Plan"
+title: "OpenAkashic Plan"
 kind: architecture
-project: closed-akashic
+project: openakashic
 status: active
 confidence: high
-tags: [plan, architecture, aws, mcp]
+tags: [plan, architecture, aws, mcp, openakashic]
 related: ["Agent Guide", "AWS Central Vault", "Vault Note Schema"]
 created_at: 2026-04-11T00:00:00Z
 updated_at: 2026-04-14T08:20:24Z

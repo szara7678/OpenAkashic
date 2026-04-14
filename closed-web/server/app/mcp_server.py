@@ -39,15 +39,16 @@ from app.vault import (
 settings = get_settings()
 
 mcp = FastMCP(
-    name="closed-akashic",
+    name="openakashic",
     instructions=(
-        "Closed Akashic is the user's long-lived private memory store. "
-        "Remote agents should use this MCP server as the central memory layer instead of local agent-knowledge clones. "
+        "OpenAkashic is a visibility-aware knowledge network for private working memory, public evidence, reusable capsules, and agent memory. "
+        "Remote agents should use this MCP server as the central memory and contribution layer instead of local agent-knowledge clones. "
         "Read before major work, prefer existing notes, and write back concise linked notes after meaningful work. "
         "Use doc/ for operating docs, personal_vault/ for graph-linked working memory, and assets/images/ for uploaded images. "
         "New notes default to the current token owner's nickname and visibility=private. "
         "Scope is only a folder/context hint; access is controlled by owner, visibility, and publication_status. "
-        "Do not publish raw source directly; use request_publication for explicit public promotion review."
+        "Do not publish raw source directly; use request_note_publication for explicit Busagwan first review and Sagwan/admin final review. "
+        "The historical closed-akashic MCP name, URI aliases, and CLOSED_AKASHIC_TOKEN env var may remain for compatibility, but user-facing behavior is OpenAkashic."
     ),
     host="0.0.0.0",
     streamable_http_path="/",
@@ -56,6 +57,7 @@ mcp = FastMCP(
 )
 
 
+@mcp.resource("openakashic://index")
 @mcp.resource("closed-akashic://index")
 def closed_akashic_index() -> str:
     return format_json_text(
@@ -67,11 +69,13 @@ def closed_akashic_index() -> str:
     )
 
 
+@mcp.resource("openakashic://graph")
 @mcp.resource("closed-akashic://graph")
 def closed_akashic_graph() -> str:
     return format_json_text(get_closed_graph())
 
 
+@mcp.resource("openakashic://agent-bootstrap")
 @mcp.resource("closed-akashic://agent-bootstrap")
 def closed_akashic_agent_bootstrap() -> str:
     return format_json_text(
@@ -81,6 +85,8 @@ def closed_akashic_agent_bootstrap() -> str:
             "api_base": f"{settings.public_base_url}/api",
             "auth_env_var": "CLOSED_AKASHIC_TOKEN",
             "read_first": [
+                "doc/agents/OpenAkashic Agent Contribution Guide.md",
+                "doc/agents/Agent Skills Contract.md",
                 "doc/agents/Codex MCP Deployment.md",
                 "doc/agents/Codex Central Memory Setup.md",
                 "doc/agents/Codex AGENTS Template.md",
@@ -97,6 +103,7 @@ def closed_akashic_agent_bootstrap() -> str:
     )
 
 
+@mcp.resource("openakashic://notes/{slug}")
 @mcp.resource("closed-akashic://notes/{slug}")
 def closed_akashic_note_resource(slug: str) -> str:
     note = get_closed_note_by_slug(slug)
@@ -105,16 +112,16 @@ def closed_akashic_note_resource(slug: str) -> str:
     return format_json_text(note)
 
 
-@mcp.tool(title="Search Closed Akashic")
+@mcp.tool(title="Search OpenAkashic")
 def search_notes(query: str, limit: int = 8, ctx: Context | None = None) -> dict[str, Any]:
-    """Search the Closed Akashic vault by note title, tags, summary, and body."""
+    """Search OpenAkashic by note title, tags, summary, and body."""
     auth = _auth_from_ctx(ctx)
     results = search_closed_notes(query, limit=limit)
     filtered = [item for item in results.get("results", []) if _can_read_note_payload(item, auth)]
     return {**results, "results": filtered, "count": len(filtered)}
 
 
-@mcp.tool(title="Read Closed Note")
+@mcp.tool(title="Read OpenAkashic Note")
 def read_note(slug: str | None = None, path: str | None = None, ctx: Context | None = None) -> dict[str, Any]:
     """Read a note by slug or relative markdown path."""
     auth = _auth_from_ctx(ctx)
@@ -131,9 +138,9 @@ def read_note(slug: str | None = None, path: str | None = None, ctx: Context | N
     return note
 
 
-@mcp.tool(title="List Closed Notes")
+@mcp.tool(title="List OpenAkashic Notes")
 def list_notes(folder: str | None = None, ctx: Context | None = None) -> dict[str, Any]:
-    """List markdown note paths in Closed Akashic, optionally filtered by top-level folder."""
+    """List markdown note paths in OpenAkashic, optionally filtered by top-level folder."""
     auth = _auth_from_ctx(ctx)
     notes: list[str] = []
     prefix = folder.strip("/").rstrip("/") + "/" if folder else ""
@@ -149,16 +156,16 @@ def list_notes(folder: str | None = None, ctx: Context | None = None) -> dict[st
     return {"notes": notes, "count": len(notes)}
 
 
-@mcp.tool(title="List Closed Folders")
+@mcp.tool(title="List OpenAkashic Folders")
 def list_folders() -> dict[str, Any]:
-    """List the organized folder map used for Closed Akashic notes and assets."""
+    """List the organized folder map used for OpenAkashic notes and assets."""
     return {
         "rules": folder_rules(),
         "existing": folder_index(),
     }
 
 
-@mcp.tool(title="Debug Recent Closed Requests")
+@mcp.tool(title="Debug Recent OpenAkashic Requests")
 def debug_recent_requests(
     limit: int = 50,
     path_prefix: str | None = None,
@@ -170,7 +177,7 @@ def debug_recent_requests(
     sort_by: str = "time",
     order: str = "desc",
 ) -> dict[str, Any]:
-    """Inspect and filter recent Closed Akashic API/MCP requests without exposing bearer tokens."""
+    """Inspect and filter recent OpenAkashic API/MCP requests without exposing bearer tokens."""
     return {
         "events": recent_requests(
             limit=limit,
@@ -187,16 +194,16 @@ def debug_recent_requests(
     }
 
 
-@mcp.tool(title="Tail Closed Request Log")
+@mcp.tool(title="Tail OpenAkashic Request Log")
 def debug_log_tail(limit: int = 100) -> dict[str, Any]:
-    """Tail the persistent Closed Akashic request JSONL log."""
+    """Tail the persistent OpenAkashic request JSONL log."""
     return {
         "lines": log_tail(limit=limit),
         "observability": observability_status(),
     }
 
 
-@mcp.tool(title="Suggest Closed Note Path")
+@mcp.tool(title="Suggest OpenAkashic Note Path")
 def path_suggestion(
     title: str,
     kind: str | None = None,
@@ -204,11 +211,11 @@ def path_suggestion(
     scope: str | None = None,
     project: str | None = None,
 ) -> dict[str, str]:
-    """Suggest a note path based on note kind and the Closed Akashic folder rules."""
+    """Suggest a note path based on note kind and the OpenAkashic folder rules."""
     return {"path": suggest_note_path(kind, title, folder, scope, project)}
 
 
-@mcp.tool(title="Bootstrap Closed Project")
+@mcp.tool(title="Bootstrap OpenAkashic Project")
 def bootstrap_project(
     project: str,
     scope: str | None = None,
@@ -231,7 +238,7 @@ def bootstrap_project(
     )
 
 
-@mcp.tool(title="Upsert Closed Note")
+@mcp.tool(title="Upsert OpenAkashic Note")
 def upsert_note(
     path: str,
     body: str,
@@ -244,7 +251,7 @@ def upsert_note(
     metadata: dict[str, Any] | None = None,
     ctx: Context | None = None,
 ) -> dict[str, Any]:
-    """Create or overwrite a Closed Akashic markdown note."""
+    """Create or overwrite an OpenAkashic markdown note."""
     auth = _auth_from_ctx(ctx)
     write_metadata = _normalize_write_metadata(path=path, metadata=metadata or {}, auth=auth)
     doc = write_document(
@@ -280,7 +287,7 @@ def upsert_note(
     }
 
 
-@mcp.tool(title="Request Closed Note Publication")
+@mcp.tool(title="Request OpenAkashic Note Publication")
 def request_note_publication(
     path: str,
     requester: str | None = None,
@@ -320,9 +327,9 @@ def set_note_publication_status(path: str, status: str, reason: str | None = Non
     return {"path": document.path, "frontmatter": document.frontmatter, "note": note}
 
 
-@mcp.tool(title="Append Closed Note Section")
+@mcp.tool(title="Append OpenAkashic Note Section")
 def append_note_section(path: str, heading: str, content: str, ctx: Context | None = None) -> dict[str, Any]:
-    """Append a new H2 section to an existing Closed Akashic markdown note."""
+    """Append a new H2 section to an existing OpenAkashic markdown note."""
     _assert_can_modify_document(path, _auth_from_ctx(ctx))
     doc = append_section(path, heading, content)
     note = get_closed_note(doc.path)
@@ -332,35 +339,35 @@ def append_note_section(path: str, heading: str, content: str, ctx: Context | No
     }
 
 
-@mcp.tool(title="Delete Closed Note")
+@mcp.tool(title="Delete OpenAkashic Note")
 def delete_note(path: str, ctx: Context | None = None) -> dict[str, str]:
-    """Delete an existing markdown note from Closed Akashic."""
+    """Delete an existing markdown note from OpenAkashic."""
     _assert_can_modify_document(path, _auth_from_ctx(ctx))
     return {"deleted": delete_document(path)}
 
 
-@mcp.tool(title="Move Closed Note")
+@mcp.tool(title="Move OpenAkashic Note")
 def move_note(path: str, new_path: str, ctx: Context | None = None) -> dict[str, str]:
     """Move a note to a new relative markdown path."""
     _assert_can_modify_document(path, _auth_from_ctx(ctx))
     return {"path": move_document(path, new_path)}
 
 
-@mcp.tool(title="Create Closed Folder")
+@mcp.tool(title="Create OpenAkashic Folder")
 def create_folder(path: str, ctx: Context | None = None) -> dict[str, str]:
-    """Create a folder inside an allowed Closed Akashic root."""
+    """Create a folder inside an allowed OpenAkashic root."""
     _auth_from_ctx(ctx)
     return {"path": ensure_folder(path)}
 
 
-@mcp.tool(title="Move Closed Folder")
+@mcp.tool(title="Move OpenAkashic Folder")
 def rename_folder(path: str, new_path: str, ctx: Context | None = None) -> dict[str, str]:
-    """Move or rename a folder inside an allowed Closed Akashic root."""
+    """Move or rename a folder inside an allowed OpenAkashic root."""
     _auth_from_ctx(ctx)
     return {"path": move_folder(path, new_path)}
 
 
-@mcp.tool(title="Upload Closed Image")
+@mcp.tool(title="Upload OpenAkashic Image")
 def upload_image(
     filename: str,
     content_base64: str,
@@ -368,7 +375,7 @@ def upload_image(
     alt: str | None = None,
     ctx: Context | None = None,
 ) -> dict[str, Any]:
-    """Upload an image into Closed Akashic assets and return embeddable markdown."""
+    """Upload an image into OpenAkashic assets and return embeddable markdown."""
     _auth_from_ctx(ctx)
     content = base64.b64decode(content_base64)
     asset = save_image(filename=filename, content=content, folder=folder, alt=alt)
@@ -381,7 +388,7 @@ def upload_image(
     }
 
 
-@mcp.tool(title="Read Raw Closed Note")
+@mcp.tool(title="Read Raw OpenAkashic Note")
 def read_raw_note(path: str, ctx: Context | None = None) -> dict[str, Any]:
     """Read the raw frontmatter and markdown body for a note."""
     auth = _auth_from_ctx(ctx)

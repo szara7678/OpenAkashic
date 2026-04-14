@@ -57,7 +57,11 @@ def _filter_notes_for_viewer(
     return [note for note in notes if _viewer_can_open_note(note, viewer_owner, is_admin)]
 
 
-def get_closed_graph() -> dict[str, Any]:
+def get_closed_graph(
+    *,
+    viewer_owner: str | None = None,
+    is_admin: bool = False,
+) -> dict[str, Any]:
     notes = _load_notes()
     by_title = {note.title.lower(): note for note in notes}
     by_slug = {note.slug.lower(): note for note in notes}
@@ -99,6 +103,10 @@ def get_closed_graph() -> dict[str, Any]:
                 "outbound": outbound_count[note.slug],
                 "degree": degree,
                 "size": len(note.body),
+                "can_open": _viewer_can_open_note(note, viewer_owner, is_admin),
+                "can_write": bool(
+                    is_admin or (note.visibility != "public" and viewer_owner and note.owner == viewer_owner)
+                ),
             }
         )
 
@@ -106,7 +114,7 @@ def get_closed_graph() -> dict[str, Any]:
         "nodes": sorted(nodes, key=lambda item: (-item["degree"], item["title"])),
         "links": edges,
         "meta": {
-            "vault": "closed-akashic",
+            "vault": "openakashic",
             "note_count": len(nodes),
             "link_count": len(edges),
             "source": get_settings().closed_akashic_path,
@@ -260,7 +268,7 @@ def closed_note_html(
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="icon" href="data:," />
-  <title>{html.escape(payload["title"])} | Closed Akashic</title>
+  <title>{html.escape(payload["title"])} | OpenAkashic</title>
   <style>
     :root {{
       --bg: #f4f7fb;
@@ -794,7 +802,7 @@ def closed_note_html(
     <aside class="sidebar" id="workspace-sidebar" data-active-panel="explore">
       <div class="brand-wrap">
         <div>
-          <p class="brand-kicker">Closed Akashic</p>
+          <p class="brand-kicker">OpenAkashic</p>
           <h1 class="brand">Living Notes</h1>
         </div>
       </div>
@@ -1197,7 +1205,7 @@ def closed_graph_html(
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="icon" href="data:," />
-  <title>Closed Akashic Graph</title>
+  <title>OpenAkashic Graph</title>
   <style>
     :root {{
       --bg: #f4f7fb;
@@ -1508,7 +1516,7 @@ def closed_graph_html(
       <div class="panel-bar">
         <div class="brand-wrap" style="margin:0; width:100%;">
           <div>
-            <p class="brand-kicker">Closed Akashic</p>
+            <p class="brand-kicker">OpenAkashic</p>
             <h1 class="brand">Graph Inspector</h1>
           </div>
         </div>
@@ -1951,8 +1959,7 @@ def closed_graph_html(
 
     function canOpenNode(node) {{
       if (!node) return false;
-      if (node.visibility === 'public') return true;
-      return Boolean(state.auth?.authenticated && (state.auth.role === 'admin' || state.auth.nickname === node.owner));
+      return Boolean(node.can_open);
     }}
 
     function syncSelectionAccess() {{
@@ -1967,7 +1974,7 @@ def closed_graph_html(
       if (access) {{
         access.textContent = allowed
           ? (state.selected.visibility === 'public'
-              ? '이 노트는 public이라 현재 세션으로 바로 열 수 있다.'
+              ? '이 노트는 public 공개 문서라 현재 세션으로 바로 열 수 있다.'
               : '현재 세션은 이 노트를 열 수 있다.')
           : '현재 세션은 이 노트를 열 수 없다. 그래프 관계만 확인 가능하다.';
       }}
@@ -2198,7 +2205,7 @@ def closed_debug_html(route_prefix: str = "") -> str:
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="icon" href="data:," />
-  <title>Closed Akashic Admin</title>
+  <title>OpenAkashic Admin</title>
   <style>
     :root {
       --bg: #f4f7fb;
@@ -2791,6 +2798,7 @@ def closed_debug_html(route_prefix: str = "") -> str:
         <button class="admin-nav-button" type="button" data-admin-nav="users">Users</button>
         <button class="admin-nav-button" type="button" data-admin-nav="roles">Roles</button>
         <button class="admin-nav-button" type="button" data-admin-nav="sagwan">Sagwan</button>
+        <button class="admin-nav-button" type="button" data-admin-nav="busagwan">Busagwan</button>
       </nav>
       <p class="footer-note">관리자 토큰이 없으면 이 페이지는 개요만 보이고, 관리 기능은 잠금 상태로 남는다.</p>
     </aside>
@@ -2798,9 +2806,9 @@ def closed_debug_html(route_prefix: str = "") -> str:
       <div class="admin-page">
         <header class="page-head">
           <div>
-            <p class="brand-kicker">Closed Akashic</p>
+            <p class="brand-kicker">OpenAkashic</p>
             <h1>Admin Console</h1>
-            <p class="lead">권한 모델, 사용자 계정, 사관 에이전트 설정, 요청 로그를 현재 OpenAkashic/Closed 통합 구조에 맞춰 관리한다.</p>
+            <p class="lead">권한 모델, 사용자 계정, 사관/부사관 에이전트 설정, 요청 로그를 현재 OpenAkashic 구조에 맞춰 관리한다.</p>
           </div>
           <nav class="quicklinks">
             <button class="chip" id="admin-refresh-all" type="button">Refresh</button>
@@ -3052,6 +3060,60 @@ def closed_debug_html(route_prefix: str = "") -> str:
               </section>
             </div>
           </section>
+
+          <section class="admin-panel" id="admin-panel-busagwan" hidden>
+            <div class="overview-grid">
+              <aside class="side">
+                <section class="card">
+                  <h2 class="card-title">Busagwan Settings</h2>
+                  <div class="inline-form">
+                    <label class="field">
+                      <span>Provider</span>
+                      <input class="input" id="subordinate-provider" placeholder="ollama" />
+                    </label>
+                    <label class="field">
+                      <span>Base URL</span>
+                      <input class="input" id="subordinate-base-url" placeholder="http://127.0.0.1:11434" />
+                    </label>
+                    <label class="field">
+                      <span>Model</span>
+                      <input class="input" id="subordinate-model" placeholder="gemma4:e4b" />
+                    </label>
+                    <label class="field">
+                      <span>Interval Sec</span>
+                      <input class="input" id="subordinate-interval" type="number" min="60" step="60" />
+                    </label>
+                    <label class="field">
+                      <span>Max Tasks Per Run</span>
+                      <input class="input" id="subordinate-max-tasks" type="number" min="1" max="8" step="1" />
+                    </label>
+                  </div>
+                  <div class="toolbar-row">
+                    <label class="checkbox"><input id="subordinate-enabled" type="checkbox" /> <span>enabled</span></label>
+                    <label class="checkbox"><input id="subordinate-auto-review" type="checkbox" /> <span>auto review publication</span></label>
+                    <label class="checkbox"><input id="subordinate-auto-capsule-request" type="checkbox" /> <span>auto request capsule</span></label>
+                  </div>
+                  <div class="actions">
+                    <button class="button primary" id="subordinate-save" type="button">Save Settings</button>
+                    <button class="button" id="subordinate-run" type="button">Run Once</button>
+                  </div>
+                  <p class="status-line" id="subordinate-save-status">부사관 반복 작업 설정을 저장하고 수동 실행할 수 있다.</p>
+                </section>
+              </aside>
+              <section class="panel">
+                <div class="list">
+                  <section class="card">
+                    <h2 class="card-title">Runtime Status</h2>
+                    <div class="locked-copy" id="subordinate-runtime-status">부사관 상태를 불러오는 중이다.</div>
+                  </section>
+                  <section class="card">
+                    <h2 class="card-title">Queue</h2>
+                    <div class="locked-copy" id="subordinate-queue-status">큐를 불러오는 중이다.</div>
+                  </section>
+                </div>
+              </section>
+            </div>
+          </section>
         </section>
       </div>
     </main>
@@ -3083,6 +3145,7 @@ def closed_debug_html(route_prefix: str = "") -> str:
         events: [],
         users: [],
         librarian: null,
+        subordinate: null,
       };
       const dom = {
         navButtons: [...document.querySelectorAll('[data-admin-nav]')],
@@ -3092,6 +3155,7 @@ def closed_debug_html(route_prefix: str = "") -> str:
           users: document.getElementById('admin-panel-users'),
           roles: document.getElementById('admin-panel-roles'),
           sagwan: document.getElementById('admin-panel-sagwan'),
+          busagwan: document.getElementById('admin-panel-busagwan'),
         },
         refreshAll: document.getElementById('admin-refresh-all'),
         sessionStatus: document.getElementById('admin-session-status'),
@@ -3139,6 +3203,19 @@ def closed_debug_html(route_prefix: str = "") -> str:
         librarianSave: document.getElementById('librarian-save'),
         librarianSaveStatus: document.getElementById('librarian-save-status'),
         librarianRuntimeStatus: document.getElementById('librarian-runtime-status'),
+        subordinateProvider: document.getElementById('subordinate-provider'),
+        subordinateBaseUrl: document.getElementById('subordinate-base-url'),
+        subordinateModel: document.getElementById('subordinate-model'),
+        subordinateInterval: document.getElementById('subordinate-interval'),
+        subordinateMaxTasks: document.getElementById('subordinate-max-tasks'),
+        subordinateEnabled: document.getElementById('subordinate-enabled'),
+        subordinateAutoReview: document.getElementById('subordinate-auto-review'),
+        subordinateAutoCapsuleRequest: document.getElementById('subordinate-auto-capsule-request'),
+        subordinateSave: document.getElementById('subordinate-save'),
+        subordinateRun: document.getElementById('subordinate-run'),
+        subordinateSaveStatus: document.getElementById('subordinate-save-status'),
+        subordinateRuntimeStatus: document.getElementById('subordinate-runtime-status'),
+        subordinateQueueStatus: document.getElementById('subordinate-queue-status'),
       };
 
       function token() {
@@ -3214,7 +3291,7 @@ def closed_debug_html(route_prefix: str = "") -> str:
       }
 
       function setPanel(next) {
-        state.panel = ['overview', 'debug', 'users', 'roles', 'sagwan'].includes(next) ? next : 'overview';
+        state.panel = ['overview', 'debug', 'users', 'roles', 'sagwan', 'busagwan'].includes(next) ? next : 'overview';
         dom.navButtons.forEach((button) => {
           button.classList.toggle('active', button.dataset.adminNav === state.panel);
         });
@@ -3224,11 +3301,16 @@ def closed_debug_html(route_prefix: str = "") -> str:
         });
       }
 
-      async function fetchJson(path) {
+      async function fetchJson(path, options = {}) {
         if (window.closedAkashicUI?.requestJson) {
-          return window.closedAkashicUI.requestJson(path);
+          return window.closedAkashicUI.requestJson(path, options);
         }
-        const response = await fetch(`${apiBase}${path}`, { mode: 'cors' });
+        const request = { mode: 'cors', method: options.method || 'GET', headers: options.headers || {} };
+        if (options.json !== undefined) {
+          request.headers = { ...request.headers, 'Content-Type': 'application/json' };
+          request.body = JSON.stringify(options.json);
+        }
+        const response = await fetch(`${apiBase}${path}`, request);
         if (!response.ok) throw new Error(`${response.status} ${response.statusText}`.trim());
         return response.json();
       }
@@ -3525,12 +3607,85 @@ def closed_debug_html(route_prefix: str = "") -> str:
         }
       }
 
+      function renderSubordinate(settings, status) {
+        state.subordinate = { settings, status };
+        if (dom.subordinateProvider) dom.subordinateProvider.value = settings.provider || '';
+        if (dom.subordinateBaseUrl) dom.subordinateBaseUrl.value = settings.base_url || '';
+        if (dom.subordinateModel) dom.subordinateModel.value = settings.model || '';
+        if (dom.subordinateInterval) dom.subordinateInterval.value = settings.interval_sec || 900;
+        if (dom.subordinateMaxTasks) dom.subordinateMaxTasks.value = settings.max_tasks_per_run || 2;
+        if (dom.subordinateEnabled) dom.subordinateEnabled.checked = Boolean(settings.enabled);
+        if (dom.subordinateAutoReview) dom.subordinateAutoReview.checked = Boolean(settings.auto_review_publication_requests);
+        if (dom.subordinateAutoCapsuleRequest) dom.subordinateAutoCapsuleRequest.checked = Boolean(settings.auto_request_publication_for_capsules);
+        const queue = status?.queue || {};
+        if (dom.subordinateRuntimeStatus) {
+          dom.subordinateRuntimeStatus.textContent = `provider=${settings.provider || '-'} · model=${settings.model || '-'} · interval=${settings.interval_sec || '-'}s`;
+        }
+        if (dom.subordinateQueueStatus) {
+          dom.subordinateQueueStatus.textContent = `pending=${queue.pending ?? 0} · running=${queue.running ?? 0} · done=${queue.done ?? 0} · failed=${queue.failed ?? 0}`;
+        }
+      }
+
+      async function refreshSubordinate() {
+        if (!isAdminSession()) {
+          if (dom.subordinateRuntimeStatus) dom.subordinateRuntimeStatus.textContent = '관리자 로그인 뒤 부사관 설정을 볼 수 있다.';
+          if (dom.subordinateQueueStatus) dom.subordinateQueueStatus.textContent = '관리자 세션이 활성화되면 큐를 확인할 수 있다.';
+          return;
+        }
+        try {
+          const data = await fetchJson('/api/admin/subordinate');
+          renderSubordinate(data.settings || {}, data.status || {});
+        } catch (error) {
+          if (dom.subordinateRuntimeStatus) dom.subordinateRuntimeStatus.textContent = error.message;
+        }
+      }
+
+      async function saveSubordinate() {
+        if (!isAdminSession()) {
+          dom.subordinateSaveStatus.textContent = '관리자 로그인 뒤 부사관 설정을 저장할 수 있다.';
+          return;
+        }
+        try {
+          const data = await fetchJson('/api/admin/subordinate', {
+            method: 'POST',
+            json: {
+              provider: dom.subordinateProvider?.value.trim() || '',
+              base_url: dom.subordinateBaseUrl?.value.trim() || '',
+              model: dom.subordinateModel?.value.trim() || '',
+              enabled: Boolean(dom.subordinateEnabled?.checked),
+              interval_sec: Number(dom.subordinateInterval?.value || 900),
+              max_tasks_per_run: Number(dom.subordinateMaxTasks?.value || 2),
+              auto_review_publication_requests: Boolean(dom.subordinateAutoReview?.checked),
+              auto_request_publication_for_capsules: Boolean(dom.subordinateAutoCapsuleRequest?.checked),
+            },
+          });
+          dom.subordinateSaveStatus.textContent = '부사관 설정을 저장했다.';
+          renderSubordinate(data.settings || {}, data.status || {});
+        } catch (error) {
+          dom.subordinateSaveStatus.textContent = error.message;
+        }
+      }
+
+      async function runSubordinate() {
+        if (!isAdminSession()) {
+          dom.subordinateSaveStatus.textContent = '관리자 로그인 뒤 부사관을 실행할 수 있다.';
+          return;
+        }
+        try {
+          const data = await fetchJson('/api/admin/subordinate/run', { method: 'POST' });
+          dom.subordinateSaveStatus.textContent = `수동 실행 완료: ${(data.processed || []).length}개 처리`;
+          await refreshSubordinate();
+        } catch (error) {
+          dom.subordinateSaveStatus.textContent = error.message;
+        }
+      }
+
       async function refreshAll() {
         const session = currentSession();
         dom.sessionStatus.textContent = session?.authenticated
           ? `${session.nickname || session.username} (${session.role}) 세션이 연결되어 있다.`
           : '지금은 익명 상태다. 관리자 계정으로 로그인하면 관리 기능이 열린다.';
-        await Promise.all([refresh(), refreshUsers(), refreshLibrarian()]);
+        await Promise.all([refresh(), refreshUsers(), refreshLibrarian(), refreshSubordinate()]);
       }
 
       dom.refresh.addEventListener('click', refresh);
@@ -3565,6 +3720,8 @@ def closed_debug_html(route_prefix: str = "") -> str:
       dom.usersRefresh?.addEventListener('click', refreshUsers);
       dom.roleSave?.addEventListener('click', saveRole);
       dom.librarianSave?.addEventListener('click', saveLibrarian);
+      dom.subordinateSave?.addEventListener('click', saveSubordinate);
+      dom.subordinateRun?.addEventListener('click', runSubordinate);
 
       setPanel('overview');
       refreshAll();
@@ -3719,7 +3876,7 @@ def _parse_note(root: Path, path: Path) -> ClosedNote:
         slug=_slugify(path.stem),
         title=title,
         kind=normalize_kind(str(frontmatter.get("kind") or "reference")),
-        project=str(frontmatter.get("project") or "closed-akashic"),
+        project=str(frontmatter.get("project") or "openakashic"),
         status=str(frontmatter.get("status") or "draft"),
         owner=str(frontmatter.get("owner") or get_settings().default_note_owner),
         visibility=str(frontmatter.get("visibility") or get_settings().default_note_visibility),
@@ -3799,9 +3956,9 @@ def _empty_note() -> ClosedNote:
     return ClosedNote(
         path="README.md",
         slug="readme",
-        title="Closed Akashic",
+        title="OpenAkashic",
         kind="index",
-        project="closed-akashic",
+        project="openakashic",
         status="empty",
         owner=get_settings().default_note_owner,
         visibility=get_settings().default_note_visibility,
@@ -3809,7 +3966,7 @@ def _empty_note() -> ClosedNote:
         tags=[],
         related=[],
         summary="아직 노트가 없습니다.",
-        body="## Summary\nClosed Akashic vault is empty.",
+        body="## Summary\nOpenAkashic vault is empty.",
         links=[],
     )
 
@@ -4313,6 +4470,28 @@ def _shared_ui_styles() -> str:
       align-items: center;
       justify-content: space-between;
     }
+    .agent-chat-tabs {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .agent-chat-tab {
+      min-height: 32px;
+      padding: 0 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(215, 226, 239, .9);
+      background: rgba(255,255,255,.86);
+      color: var(--muted);
+      font: inherit;
+      font-size: .78rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .agent-chat-tab.active {
+      background: rgba(37,99,235,.10);
+      border-color: rgba(37,99,235,.20);
+      color: var(--accent);
+    }
     .librarian-kicker {
       margin: 0 0 4px;
       color: var(--accent-2);
@@ -4416,7 +4595,7 @@ def _shared_header_html(route_prefix: str, page_label: str, *, note_actions: boo
       <div class="global-brand">
         <div class="global-brand-mark">OA</div>
         <div class="global-brand-copy">
-          <div class="global-brand-title">OpenAkashic / Closed</div>
+          <div class="global-brand-title">OpenAkashic</div>
           <div class="global-brand-subtitle">{html.escape(page_label)}</div>
         </div>
       </div>
@@ -4530,23 +4709,27 @@ def _shared_ui_shell(route_prefix: str) -> str:
         <div class="librarian-head">
           <div class="librarian-head-row">
             <div>
-              <p class="librarian-kicker">Librarian</p>
-              <h2 class="librarian-title">사서장</h2>
-              <p class="librarian-subtitle">관리자 상태에서만 보이는 운영 사서장이다. 명령을 내리거나 보고를 받을 수 있다.</p>
+              <p class="librarian-kicker">OpenAkashic Agents</p>
+              <h2 class="librarian-title" id="agent-chat-title">사관</h2>
+              <p class="librarian-subtitle" id="agent-chat-subtitle">관리자 상태에서 사관에게 운영 명령을 내리거나 보고를 받을 수 있다.</p>
             </div>
             <button class="librarian-close" id="librarian-close" type="button" aria-label="Close librarian">×</button>
+          </div>
+          <div class="agent-chat-tabs" role="tablist" aria-label="Agent chat tabs">
+            <button class="agent-chat-tab active" type="button" data-agent-tab="sagwan">사관</button>
+            <button class="agent-chat-tab" type="button" data-agent-tab="busagwan">부사관</button>
           </div>
         </div>
         <div class="librarian-messages" id="librarian-messages"></div>
         <div class="librarian-compose">
-          <textarea class="librarian-textarea" id="librarian-input" placeholder="사서장에게 요청하거나 보고를 받아보세요."></textarea>
+          <textarea class="librarian-textarea" id="librarian-input" placeholder="선택한 에이전트에게 요청하거나 보고를 받아보세요."></textarea>
           <div class="librarian-compose-row" style="margin-top:10px;">
-            <div class="librarian-tools" id="librarian-status">관리자 토큰이 활성화되면 사서장과 대화할 수 있다.</div>
+            <div class="librarian-tools" id="librarian-status">관리자 토큰이 활성화되면 사관/부사관과 대화할 수 있다.</div>
             <button class="global-pill is-primary" id="librarian-send" type="button">Send</button>
           </div>
         </div>
       </div>
-      <button class="librarian-launcher" id="librarian-launcher" type="button">사서장</button>
+      <button class="librarian-launcher" id="librarian-launcher" type="button">Chat</button>
     </section>
     <script type="application/json" id="closed-global-config">{config}</script>
     <script>
@@ -4554,9 +4737,32 @@ def _shared_ui_shell(route_prefix: str) -> str:
         const config = JSON.parse(document.getElementById('closed-global-config')?.textContent || '{{}}');
         const apiBase = String(config.apiBase || '').replace(/\\/$/, '');
         const tokenStorageKey = 'closed-akashic-token';
-        const threadStorageKey = 'closed-akashic-librarian-thread';
+        const activeAgentStorageKey = 'openakashic-active-agent';
+        const agents = {{
+          sagwan: {{
+            label: '사관',
+            meta: 'Sagwan',
+            endpoint: '/api/librarian/chat',
+            empty: '관리자 토큰이 활성화되면 사관에게 운영 명령이나 정리 요청을 보낼 수 있다.',
+            waiting: '사관이 답변을 준비하는 중이다.',
+            ready: '사관이 응답했다.',
+            failed: '사관 요청 실패',
+            subtitle: '관리자 상태에서 사관에게 운영 명령을 내리거나 보고를 받을 수 있다.',
+          }},
+          busagwan: {{
+            label: '부사관',
+            meta: 'Busagwan',
+            endpoint: '/api/subordinate/chat',
+            empty: '부사관은 반복 작업, 1차 리뷰, 크롤링 요약, capsule 초안을 돕는다.',
+            waiting: '부사관이 답변을 준비하는 중이다.',
+            ready: '부사관이 응답했다.',
+            failed: '부사관 요청 실패',
+            subtitle: '부사관은 반복 정리와 publication 1차 검토를 맡는 보조 에이전트다.',
+          }},
+        }};
         const state = {{
           session: {{ authenticated: false, role: 'anonymous', capabilities: [] }},
+          activeAgent: window.localStorage.getItem(activeAgentStorageKey) || 'sagwan',
           thread: [],
         }};
         const dom = {{
@@ -4595,6 +4801,9 @@ def _shared_ui_shell(route_prefix: str) -> str:
           librarianShell: document.getElementById('librarian-shell'),
           librarianLauncher: document.getElementById('librarian-launcher'),
           librarianClose: document.getElementById('librarian-close'),
+          agentTitle: document.getElementById('agent-chat-title'),
+          agentSubtitle: document.getElementById('agent-chat-subtitle'),
+          agentTabs: [...document.querySelectorAll('[data-agent-tab]')],
           librarianMessages: document.getElementById('librarian-messages'),
           librarianInput: document.getElementById('librarian-input'),
           librarianSend: document.getElementById('librarian-send'),
@@ -4667,6 +4876,10 @@ def _shared_ui_shell(route_prefix: str) -> str:
           if (dom.authStatus) dom.authStatus.textContent = message;
         }}
 
+        function reloadForAuthChange() {{
+          window.setTimeout(() => window.location.reload(), 140);
+        }}
+
         function syncProfileFields() {{
           const session = state.session || {{}};
           if (dom.profileUsername) dom.profileUsername.value = session.username || '';
@@ -4724,7 +4937,7 @@ def _shared_ui_shell(route_prefix: str) -> str:
             if (dom.librarianStatus) {{
               dom.librarianStatus.textContent = isAdmin
                 ? `모델: ${{session?.librarian?.model || 'unknown'}}`
-                : '관리자 토큰이 활성화되면 사서장과 대화할 수 있다.';
+                : '관리자 토큰이 활성화되면 사관/부사관과 대화할 수 있다.';
             }}
             syncProfileFields();
             dispatchAuthChange();
@@ -4771,6 +4984,7 @@ def _shared_ui_shell(route_prefix: str) -> str:
           setStoredToken('');
           refreshSession();
           setAuthStatus('토큰을 지웠다. 지금은 읽기 전용이다.');
+          reloadForAuthChange();
         }}
 
         async function login() {{
@@ -4786,6 +5000,7 @@ def _shared_ui_shell(route_prefix: str) -> str:
           }});
           await applyIssuedToken(data.token || '');
           setAuthStatus('로그인했다. 이 토큰으로 웹과 에이전트 둘 다 사용할 수 있다.');
+          reloadForAuthChange();
         }}
 
         async function signup() {{
@@ -4807,6 +5022,7 @@ def _shared_ui_shell(route_prefix: str) -> str:
           }});
           await applyIssuedToken(data.token || '');
           setAuthStatus('계정을 만들고 바로 로그인했다. 프로필 탭에서 API 토큰을 복사할 수 있다.');
+          reloadForAuthChange();
         }}
 
         async function saveProfile() {{
@@ -4848,9 +5064,21 @@ def _shared_ui_shell(route_prefix: str) -> str:
           }}
         }}
 
+        function activeAgent() {{
+          return agents[state.activeAgent] ? state.activeAgent : 'sagwan';
+        }}
+
+        function threadStorageKey() {{
+          return `openakashic-agent-thread-${{activeAgent()}}`;
+        }}
+
+        function escapeHtml(value) {{
+          return String(value || '').replace(/[&<>]/g, (ch) => ({{'&':'&amp;','<':'&lt;','>':'&gt;'}}[ch]));
+        }}
+
         function loadThread() {{
           try {{
-            const raw = window.localStorage.getItem(threadStorageKey);
+            const raw = window.localStorage.getItem(threadStorageKey());
             state.thread = raw ? JSON.parse(raw) : [];
           }} catch (error) {{
             state.thread = [];
@@ -4858,28 +5086,45 @@ def _shared_ui_shell(route_prefix: str) -> str:
         }}
 
         function saveThread() {{
-          window.localStorage.setItem(threadStorageKey, JSON.stringify(state.thread.slice(-20)));
+          window.localStorage.setItem(threadStorageKey(), JSON.stringify(state.thread.slice(-20)));
         }}
 
         function renderThread() {{
           if (!dom.librarianMessages) return;
+          const agent = agents[activeAgent()];
           if (!state.thread.length) {{
-            dom.librarianMessages.innerHTML = '<div class="librarian-message" data-role="assistant"><div class="librarian-message-meta">Librarian</div><div>관리자 토큰이 활성화되면 사서장에게 운영 명령이나 정리 요청을 보낼 수 있다.</div></div>';
+            dom.librarianMessages.innerHTML = `<div class="librarian-message" data-role="assistant"><div class="librarian-message-meta">${{agent.meta}}</div><div>${{agent.empty}}</div></div>`;
             return;
           }}
           dom.librarianMessages.innerHTML = state.thread.map((item) => `
             <div class="librarian-message" data-role="${{item.role}}">
-              <div class="librarian-message-meta">${{item.role === 'assistant' ? 'Librarian' : 'You'}}</div>
-              <div>${{String(item.content || '').replace(/[&<>]/g, (ch) => ({{'&':'&amp;','<':'&lt;','>':'&gt;'}}[ch]))}}</div>
+              <div class="librarian-message-meta">${{item.role === 'assistant' ? agent.meta : 'You'}}</div>
+              <div>${{escapeHtml(item.content)}}</div>
             </div>
           `).join('');
           dom.librarianMessages.scrollTop = dom.librarianMessages.scrollHeight;
+        }}
+
+        function setActiveAgent(agentKey) {{
+          if (!agents[agentKey]) agentKey = 'sagwan';
+          state.activeAgent = agentKey;
+          window.localStorage.setItem(activeAgentStorageKey, agentKey);
+          const agent = agents[agentKey];
+          dom.agentTabs.forEach((button) => button.classList.toggle('active', button.dataset.agentTab === agentKey));
+          if (dom.agentTitle) dom.agentTitle.textContent = agent.label;
+          if (dom.agentSubtitle) dom.agentSubtitle.textContent = agent.subtitle;
+          if (dom.librarianStatus && !(state.session?.authenticated && state.session?.role === 'admin')) {{
+            dom.librarianStatus.textContent = '관리자 토큰이 활성화되면 사관/부사관과 대화할 수 있다.';
+          }}
+          loadThread();
+          renderThread();
         }}
 
         function toggleLibrarian(open) {{
           if (!dom.librarianShell) return;
           dom.librarianShell.dataset.open = open ? 'true' : 'false';
           if (open) {{
+            setActiveAgent(activeAgent());
             renderThread();
             window.setTimeout(() => dom.librarianInput?.focus(), 80);
           }}
@@ -4890,14 +5135,15 @@ def _shared_ui_shell(route_prefix: str) -> str:
             openAuthModal();
             return;
           }}
+          const agent = agents[activeAgent()];
           const message = dom.librarianInput?.value.trim() || '';
           if (!message) return;
           state.thread.push({{ role: 'user', content: message }});
           dom.librarianInput.value = '';
           renderThread();
-          if (dom.librarianStatus) dom.librarianStatus.textContent = '사서장이 답변을 준비하는 중이다.';
+          if (dom.librarianStatus) dom.librarianStatus.textContent = agent.waiting;
           try {{
-            const data = await requestJson('/api/librarian/chat', {{
+            const data = await requestJson(agent.endpoint, {{
               method: 'POST',
               json: {{
                 message,
@@ -4910,12 +5156,12 @@ def _shared_ui_shell(route_prefix: str) -> str:
             if (dom.librarianStatus) {{
               dom.librarianStatus.textContent = data.model
                 ? `모델: ${{data.model}}`
-                : '사서장이 응답했다.';
+                : agent.ready;
             }}
           }} catch (error) {{
-            state.thread.push({{ role: 'assistant', content: error.message || '사서장 요청에 실패했다.' }});
+            state.thread.push({{ role: 'assistant', content: error.message || `${{agent.label}} 요청에 실패했다.` }});
             renderThread();
-            if (dom.librarianStatus) dom.librarianStatus.textContent = error.message || '사서장 요청 실패';
+            if (dom.librarianStatus) dom.librarianStatus.textContent = error.message || agent.failed;
           }}
         }}
 
@@ -4946,6 +5192,7 @@ def _shared_ui_shell(route_prefix: str) -> str:
         dom.cancelButton?.addEventListener('click', () => document.dispatchEvent(new CustomEvent('closed-akashic-cancel-request')));
         dom.librarianLauncher?.addEventListener('click', () => toggleLibrarian(dom.librarianShell?.dataset.open !== 'true'));
         dom.librarianClose?.addEventListener('click', () => toggleLibrarian(false));
+        dom.agentTabs.forEach((button) => button.addEventListener('click', () => setActiveAgent(button.dataset.agentTab || 'sagwan')));
         dom.librarianSend?.addEventListener('click', sendToLibrarian);
         dom.librarianInput?.addEventListener('keydown', (event) => {{
           if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {{
@@ -4953,8 +5200,7 @@ def _shared_ui_shell(route_prefix: str) -> str:
           }}
         }});
 
-        loadThread();
-        renderThread();
+        setActiveAgent(activeAgent());
         if (token()) {{
           setStoredToken(token());
           refreshSession({{ silent: true }});
@@ -5461,7 +5707,7 @@ def _workspace_script() -> str:
       }
 
       function presetNewNote() {
-        const inheritedProject = noteData.project && noteData.project !== 'closed-akashic' ? noteData.project : '';
+        const inheritedProject = noteData.project && !['closed-akashic', 'openakashic'].includes(noteData.project) ? noteData.project : '';
         const session = window.closedAkashicUI?.getSession?.() || {};
         state.originalPath = '';
         dom.formTitle.value = '';

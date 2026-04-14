@@ -90,9 +90,9 @@ settings = get_settings()
 configure_observability(settings.log_dir, settings.recent_request_limit)
 
 api = FastAPI(
-    title="Closed Akashic",
+    title="OpenAkashic",
     version="0.2.0",
-    description="Private published knowledge base and agent memory surface for the Closed Akashic repository.",
+    description="Visibility-aware knowledge network, personal vault, publication workflow, and agent memory surface.",
 )
 
 api.add_middleware(
@@ -413,7 +413,8 @@ def prefixed_debug_page() -> str:
 
 @api.get("/graph-data")
 def graph_data(request: Request) -> dict[str, Any]:
-    return get_closed_graph()
+    auth = _auth_from_request(request)
+    return get_closed_graph(viewer_owner=auth.nickname, is_admin=_is_admin(auth))
 
 
 @api.get("/closed/graph-data")
@@ -703,7 +704,7 @@ def api_list_notes(
         results = search_closed_notes(q, limit=limit)
         readable = _filter_readable_notes(results.get("results", []), auth)
         return {**results, "results": readable, "count": len(readable)}
-    graph = get_closed_graph()
+    graph = get_closed_graph(viewer_owner=auth.nickname, is_admin=_is_admin(auth))
     nodes = _filter_readable_notes(graph["nodes"], auth)
     return {
         "notes": nodes[:limit],
@@ -755,7 +756,7 @@ def api_raw_note(
 
 @api.get("/api/graph")
 def api_graph(auth: AuthState = Depends(require_agent_token)) -> dict[str, Any]:
-    return get_closed_graph()
+    return get_closed_graph(viewer_owner=auth.nickname, is_admin=_is_admin(auth))
 
 
 @api.get("/api/folders", dependencies=[Depends(require_agent_token)])
