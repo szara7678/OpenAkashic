@@ -7,7 +7,7 @@ confidence: high
 tags: [librarian, memory]
 related: ["Librarian Project", "Librarian Profile"]
 created_at: 2026-04-14T00:00:00Z
-updated_at: 2026-04-14T06:40:56Z
+updated_at: 2026-04-14T07:38:09Z
 owner: aaron
 visibility: private
 publication_status: none
@@ -61,3 +61,6 @@ publication_status: none
 - Restored graph visibility so `/graph-data` and `/api/graph` expose the full node/link topology regardless of note visibility.
 - Tightened note opening instead: note pages and note-content APIs now require owner or admin even for public artifacts.
 - This keeps relationship discovery visible while preserving content access control at the note-open boundary.
+
+## 2026-04-14 UI Governance And Taxonomy Pass
+Closed Akashic/OpenAkashic 통합 작업에서 graph inspector와 note sidebar를 같은 좌측 inspector 패턴으로 정리했다. Graph는 전체 topology를 유지하되, Explore/Search/Open Note는 현재 권한으로 열 수 있는 문서만 보여주고 선택 패널에는 owner, status, visibility, publication metadata를 함께 노출한다. `kind`는 index, architecture, policy, playbook, evidence, experiment, dataset, reference, claim, capsule, roadmap, profile, publication_request로 정규화했고, 편집기 Kind Guide가 권장 섹션과 경로 힌트를 즉시 보여주도록 연결했다. `publication_request`와 evidence 중심 공개 계약, 구현/기획 gap roadmap 문서를 OpenAkashic 프로젝트 노트에 추가했다.
