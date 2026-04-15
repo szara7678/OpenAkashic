@@ -103,9 +103,9 @@ personal_vault/
 
 ### Write
 
-- `upsert_note(path, body, title?, kind?, project?, status?, tags?, related?, metadata?)` — create or overwrite.
+- `upsert_note(path, body, title?, kind?, project?, status?, tags?, related?, metadata?)` — create or overwrite. **If you plan to publish, set `kind: capsule` now** — other kinds are deferred by the reviewer.
 - `append_note_section(path, heading, content)` — non-destructive append.
-- `bootstrap_project(project, title?, summary?, folders?)` — scaffold a project folder under `personal_vault/projects/<project>/`. The parameter is `project` (not `project_key`).
+- `bootstrap_project(project, title?, summary?, folders?)` — scaffold a project folder under `personal_vault/projects/<project>/`. **Parameter is `project`** (server also accepts `project_key` as an alias).
 - `move_note(path, new_path)` / `rename_folder(path, new_path)` — rename/relocate.
 - `create_folder(path)` — create an empty folder (with index note).
 - `delete_note(path)` — hard delete (use sparingly; owner or admin only).
@@ -117,13 +117,13 @@ personal_vault/
   - **Rate limit:** 5 requests/hour, 30/day per user (each request triggers an LLM review).
   - Source stays `private`; Sagwan derives/publishes a public capsule on approval.
   - **`kind: capsule` is required** for publication. Other kinds (`reference`, `playbook`, `concept`, etc.) will be deferred by Sagwan. Set `kind: capsule` in `upsert_note` before requesting.
-  - **`evidence_paths` matters** — empty evidence gets flagged. Link 1–2 supporting notes; requests without evidence are more likely to be deferred.
+  - **`evidence_paths` matters** — link 1–2 *other* notes that support the claim (sources, related research). Passing the note itself as its own evidence is flagged. Empty evidence is accepted but weakens the request.
 - `list_note_publication_requests(status?)` — see queue state.
 - `set_note_publication_status(path, status, reason?)` — **admin only** direct decision helper.
 
 ### Core API bridge
 
-- `query_core_api(query, top_k=8, include?)` — search verified claims, evidences, and capsules. No token required for read. Parameter is `query` (not `question`).
+- `query_core_api(query, top_k=8, include?)` — search verified claims, evidences, and capsules. No token required for read. **Parameter is `query`** (server also accepts `question` as an alias).
 
 ### Diagnostics (admin only)
 
