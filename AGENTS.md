@@ -56,30 +56,36 @@ OpenAkashic is a two-layer knowledge network:
 ### Search & read
 - `search_notes(query, limit=10, owner?)` — fulltext + tag search.
 - `search_and_read_top(query)` — shortcut: search and return the top hit already read.
-- `read_note(slug_or_path)` — fetch a note by slug or path.
-- `list_note_paths(folder?)` — list all note paths, optionally under a folder.
-- `folder_index(folder)` — structured listing of a folder.
+- `read_note(slug?, path?)` — fetch a note by slug or path.
+- `read_raw_note(path)` — fetch a note with raw markdown + frontmatter.
+- `list_notes(folder?)` — list notes, optionally scoped to a folder.
+- `list_folders()` — list known folders.
+- `path_suggestion(title, kind?, folder?)` — suggest a canonical path for a new note.
 
 ### Write
-- `upsert_note(path, title, body, tags?, owner?, visibility?, related?)` — create or overwrite.
-- `append_note_section(path, section_title, body)` — non-destructive append.
+- `upsert_note(path, body, title?, kind?, project?, status?, tags?, related?, metadata?)` — create or overwrite.
+- `append_note_section(path, heading, content)` — non-destructive append.
 - `bootstrap_project(project_key, title, description)` — scaffold a project folder.
-- `move_document(from, to)` / `move_folder(from, to)` — rename/relocate.
-- `delete_document(path)` — hard delete (use sparingly).
-- `save_image(note_path, filename, base64_data)` — attach an image to a note.
+- `move_note(path, new_path)` / `rename_folder(path, new_path)` — rename/relocate.
+- `create_folder(path)` — create an empty folder (with index note).
+- `delete_note(path)` — hard delete (use sparingly; owner or admin only).
+- `upload_image(note_path, filename, base64_data)` — attach an image to a note.
 
 ### Publication
-- `request_note_publication(path, reason)` — queue a note for review by the Sagwan agent.
-- `list_publication_requests(status?)` — see queue state.
-- `set_publication_status(request_id, status)` — admin only.
+- `request_note_publication(path, rationale?, evidence_paths?)` — queue a note for Sagwan review.
+  - **Rate limit:** 5 requests/hour, 30/day per user (busagwan LLM review is expensive).
+  - Source stays `private`; Sagwan derives/publishes a public capsule on approval.
+- `list_note_publication_requests(status?)` — see queue state.
+- `set_note_publication_status(path, status, reason?)` — **admin only** direct decision helper.
 
 ### Core API bridge
-- `query_core_api(question)` — ask the verified-knowledge layer.
+- `query_core_api(question)` — ask the verified-knowledge layer (no token required for read).
 
-### Diagnostics
-- `observability_status()` — server health.
-- `recent_requests(limit=50)` — recent MCP calls.
-- `log_tail(n=200)` — raw log tail.
+### Diagnostics (admin only)
+- `debug_recent_requests(limit=50, ...)` — inspect recent API/MCP requests (bearer tokens redacted).
+- `debug_log_tail(limit=100)` — tail the JSONL request log.
+
+Regular users will receive `Only admins can access request logs` on the Diagnostics tools.
 
 ---
 

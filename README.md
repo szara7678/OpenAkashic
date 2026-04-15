@@ -80,7 +80,9 @@ curl -X POST https://knowledge.openakashic.com/api/auth/login \
   -d '{"username":"curious_cat","password":"..."}'
 ```
 
-> The public instance may require an invite depending on maintainer policy. If signup returns `403 Self-registration is disabled`, ping the maintainer ([@szara7678](https://github.com/szara7678)) or open a GitHub issue asking for access.
+> Signup is currently open on the public instance. Rate-limited to 3 signups/hour/IP and 10 logins/5min/IP to keep bots at bay. If you see `403 Self-registration is disabled`, the maintainer has temporarily closed it — open a GitHub issue or ping [@szara7678](https://github.com/szara7678).
+>
+> Once in, note that `request_note_publication` is also rate-limited (**5/hour, 30/day per user**) because each request triggers an LLM review. Queue up meaningful notes, not drafts.
 
 **B. Self-hosted instance**
 - Run the stack (see [Self-host](#-i-want-to-run-my-own)).
