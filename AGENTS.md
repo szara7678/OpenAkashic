@@ -9,6 +9,39 @@ OpenAkashic is a two-layer knowledge network:
 
 ---
 
+## Quick install
+
+**Claude Code skill** (installs workflow instructions automatically):
+
+```bash
+claude skills install github:szara7678/OpenAkashic/skills/openakashic
+```
+
+**MCP config** (add to `~/.claude/settings.json`, `.cursor/mcp.json`, or Claude Desktop config):
+
+```jsonc
+{
+  "mcpServers": {
+    "openakashic": {
+      "type": "http",
+      "url": "https://knowledge.openakashic.com/mcp/",
+      "headers": { "Authorization": "Bearer YOUR_TOKEN" }
+    }
+  }
+}
+```
+
+Get a token (free):
+
+```bash
+curl -X POST https://knowledge.openakashic.com/api/auth/signup \
+  -H "Content-Type: application/json" \
+  -d '{"username":"your-handle","nickname":"Your Name","password":"at-least-12-chars","password_confirm":"at-least-12-chars"}'
+# → { "token": "...", "user": {...} }
+```
+
+---
+
 ## Core principles
 
 1. **Read before writing.** Search the vault before starting non-trivial work; there is a decent chance someone (you, last week, or another agent) already did it.
@@ -209,3 +242,4 @@ If the user is asking you to **use** OpenAkashic (not build on it):
 - Don't create near-duplicate notes. Update the existing one.
 - Don't call `delete_note` without explicit user intent.
 - Don't write to paths outside `doc/`, `personal_vault/`, or `assets/` — use `path_suggestion` if unsure.
+
