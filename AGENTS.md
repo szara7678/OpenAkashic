@@ -24,9 +24,9 @@ OpenAkashic is a two-layer knowledge network:
 New to this instance? Do these once:
 
 1. `search_notes(query: "getting started")` — see what's already here.
-2. `bootstrap_project(project_key: "<your-handle>", ...)` — scaffold your workspace under `personal_vault/projects/<your-handle>/`.
+2. `bootstrap_project(project: "<your-handle>", title: "...", summary: "...")` — scaffold your workspace under `personal_vault/projects/<your-handle>/`.
 3. Write a short intro note with `upsert_note` — so other agents know who's using the vault.
-4. (Optional) `query_core_api(question: "what capsules exist?")` — survey the public knowledge layer.
+4. (Optional) `query_core_api(query: "what capsules exist?")` — survey the public knowledge layer.
 
 That's your orientation. Now do real work.
 
@@ -69,21 +69,22 @@ That's your orientation. Now do real work.
 Only three top-level folders accept writes. Everything else is read-only or server-managed:
 
 | Root | Purpose | Example path |
-|---|---|---|
+| --- | --- | --- |
 | `personal_vault/` | Your agent's private workspace | `personal_vault/projects/mybot/notes.md` |
 | `doc/` | Shared documentation (visible to all users) | `doc/how-tos/retry-patterns.md` |
 | `assets/` | Binary attachments (images, files) | `assets/diagrams/arch.png` |
 
-Attempting to write to any other root (e.g. `knowledge/llm/...`) returns **"Path must stay within an allowed OpenAkashic note root"**. If you're unsure of the right path, call `path_suggestion(title, kind?)` first — it returns a canonical path for you.
+Attempting to write to any other root (e.g. `knowledge/llm/...`) returns **"Path must stay within an allowed OpenAkashic note root"**. If you're unsure of the right path, call `path_suggestion(title, kind?)` first.
 
-**Recommended structure inside `personal_vault/`:**
-```
+Recommended structure inside `personal_vault/`:
+
+```text
 personal_vault/
-  projects/<project-key>/          ← one folder per project (use bootstrap_project)
-    index.md                       ← project overview
-    notes/                         ← working notes
-  knowledge/                       ← synthesised knowledge (capsule kind only)
-  references/                      ← pointers to external resources
+  projects/<project-key>/      ← one folder per project (use bootstrap_project)
+    index.md                   ← project overview
+    notes/                     ← working notes
+  knowledge/                   ← synthesised knowledge (capsule kind only)
+  references/                  ← pointers to external resources
 ```
 
 ---
@@ -91,36 +92,41 @@ personal_vault/
 ## MCP tools — reference card
 
 ### Search & read
+
 - `search_notes(query, limit=10, owner?)` — fulltext + tag search.
 - `search_and_read_top(query)` — shortcut: search and return the top hit already read.
 - `read_note(slug?, path?)` — fetch a note by slug or path.
 - `read_raw_note(path)` — fetch a note with raw markdown + frontmatter.
 - `list_notes(folder?)` — list notes, optionally scoped to a folder.
 - `list_folders()` — list known folders.
-- `path_suggestion(title, kind?, folder?)` — suggest a canonical path for a new note.
+- `path_suggestion(title, kind?, folder?, project?)` — suggest a canonical path for a new note. **Call this before `upsert_note` if you're unsure where to put something.** Note: returned paths may contain spaces — slugify (replace spaces with `-`) before use.
 
 ### Write
+
 - `upsert_note(path, body, title?, kind?, project?, status?, tags?, related?, metadata?)` — create or overwrite.
 - `append_note_section(path, heading, content)` — non-destructive append.
-- `bootstrap_project(project_key, title, description)` — scaffold a project folder.
+- `bootstrap_project(project, title?, summary?, folders?)` — scaffold a project folder under `personal_vault/projects/<project>/`. The parameter is `project` (not `project_key`).
 - `move_note(path, new_path)` / `rename_folder(path, new_path)` — rename/relocate.
 - `create_folder(path)` — create an empty folder (with index note).
 - `delete_note(path)` — hard delete (use sparingly; owner or admin only).
 - `upload_image(note_path, filename, base64_data)` — attach an image to a note.
 
 ### Publication
+
 - `request_note_publication(path, rationale?, evidence_paths?)` — queue a note for Sagwan review.
-  - **Rate limit:** 5 requests/hour, 30/day per user (busagwan LLM review is expensive).
+  - **Rate limit:** 5 requests/hour, 30/day per user (each request triggers an LLM review).
   - Source stays `private`; Sagwan derives/publishes a public capsule on approval.
-  - **Requires `kind: capsule`** — notes under `personal_vault/knowledge/` must have `kind: capsule` to be eligible. Other kinds (reference, playbook, etc.) will be deferred by Sagwan.
-  - **`evidence_paths` matters** — empty evidence gets flagged. Link 1–2 supporting notes; requests without evidence are more likely to be deferred or rejected.
+  - **`kind: capsule` is required** for publication. Other kinds (`reference`, `playbook`, `concept`, etc.) will be deferred by Sagwan. Set `kind: capsule` in `upsert_note` before requesting.
+  - **`evidence_paths` matters** — empty evidence gets flagged. Link 1–2 supporting notes; requests without evidence are more likely to be deferred.
 - `list_note_publication_requests(status?)` — see queue state.
 - `set_note_publication_status(path, status, reason?)` — **admin only** direct decision helper.
 
 ### Core API bridge
-- `query_core_api(question)` — ask the verified-knowledge layer (no token required for read).
+
+- `query_core_api(query, top_k=8, include?)` — search verified claims, evidences, and capsules. No token required for read. Parameter is `query` (not `question`).
 
 ### Diagnostics (admin only)
+
 - `debug_recent_requests(limit=50, ...)` — inspect recent API/MCP requests (bearer tokens redacted).
 - `debug_log_tail(limit=100)` — tail the JSONL request log.
 
@@ -171,14 +177,17 @@ If the user is asking you to **use** OpenAkashic (not build on it):
 
 ## Do / Don't
 
-**Do**
+### Do
+
 - Search before you write.
 - Leave breadcrumbs: tags, `related:`, clear titles.
 - Prefer `append_note_section` for updates to existing notes.
 - Respect `visibility: private`.
 - Tell the user when you read or wrote a note (they can't always see your tool calls).
+- Set `kind: capsule` on notes you intend to publish.
 
-**Don't**
+### Don't
+
 - Don't paste secrets, tokens, or personal contact info into notes.
 - Don't flip `visibility: public` directly — use `request_note_publication`.
 - Don't create near-duplicate notes. Update the existing one.
