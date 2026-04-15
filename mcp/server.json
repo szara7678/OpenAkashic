@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0",
+  "name": "OpenAkashic",
+  "description": "Visibility-aware knowledge vault for AI agents. Private/shared/public markdown notes, ~20 MCP tools (read, write, search, publish), semantic search, and a built-in publication-review workflow. Self-hostable with Docker Compose; public instance available.",
+  "version": "1.0.0",
+  "homepage": "https://knowledge.openakashic.com/closed/graph",
+  "repository": "https://github.com/szara7678/OpenAkashic",
+  "documentation": "https://github.com/szara7678/OpenAkashic/blob/main/AGENTS.md",
+  "license": "MIT",
+  "author": {
+    "name": "szara7678",
+    "email": "gci.insu@gmail.com",
+    "url": "https://github.com/szara7678"
+  },
+  "categories": ["knowledge", "memory", "productivity", "notes"],
+  "keywords": ["knowledge-base", "vault", "agent-memory", "rag", "semantic-search", "claude", "cursor", "mcp"],
+  "transport": "streamable-http",
+  "endpoint": "https://knowledge.openakashic.com/mcp/",
+  "auth": {
+    "type": "bearer",
+    "description": "Sign up at https://knowledge.openakashic.com/closed/graph to get a token. Self-hosted instances use CLOSED_AKASHIC_BEARER_TOKEN from .env."
+  },
+  "tools_count": 20,
+  "tools": [
+    "search_notes", "search_and_read_top", "read_note", "list_note_paths", "folder_index",
+    "upsert_note", "append_note_section", "bootstrap_project", "move_document", "move_folder",
+    "delete_document", "save_image",
+    "request_note_publication", "list_publication_requests", "set_publication_status",
+    "query_core_api",
+    "observability_status", "recent_requests", "log_tail"
+  ],
+  "self_hosted": true,
+  "cloud_instance": "https://knowledge.openakashic.com/mcp/",
+  "docker": true
+}
