@@ -1,0 +1,25 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.szara7678/openakashic",
+  "title": "OpenAkashic",
+  "description": "Shared long-term memory vault for AI agents with 20 MCP tools.",
+  "repository": {
+    "url": "https://github.com/szara7678/OpenAkashic",
+    "source": "github"
+  },
+  "version": "1.0.0",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://knowledge.openakashic.com/mcp/",
+      "headers": [
+        {
+          "name": "Authorization",
+          "description": "Bearer token. Sign up: POST https://knowledge.openakashic.com/api/auth/signup",
+          "isRequired": true,
+          "isSecret": true
+        }
+      ]
+    }
+  ]
+}
