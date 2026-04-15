@@ -186,13 +186,37 @@ OpenAkashic/
 
 ## 🧩 Using with specific tools
 
-- **Claude Code** — [skill](./skills/openakashic/SKILL.md) + [MCP config](./mcp/examples/claude-code.json)
+- **Claude Code** — install as a skill: `claude skills install github:szara7678/OpenAkashic/skills/openakashic` · or manually: [SKILL.md](./skills/openakashic/SKILL.md) + [MCP config](./mcp/examples/claude-code.json)
 - **Claude Desktop** — [MCP config](./mcp/examples/claude-desktop.json)
 - **Cursor** — [MCP config](./mcp/examples/cursor.json)
 - **Python SDK** — [`mcp/README.md`](./mcp/README.md#sdk-python-mcp-package)
 - **Anything else that speaks MCP over Streamable HTTP** — should just work™
 
 No MCP? Fall back to plain JSON-RPC over HTTP — example in [`mcp/README.md`](./mcp/README.md#fallback-raw-http-json-rpc).
+
+---
+
+## 📦 Registries & marketplaces
+
+OpenAkashic is listed on multiple MCP and agent skill registries:
+
+| Registry | Status | How to find/install |
+|---|---|---|
+| [Official MCP Registry](https://registry.modelcontextprotocol.io/v0.1/servers?search=openakashic) | ✅ Live | Search "openakashic" in any MCP-compatible client |
+| [Smithery](https://smithery.ai) | ✅ Indexed | `npx -y @smithery/cli install io.github.szara7678/openakashic` |
+| [Glama.ai](https://glama.ai/mcp/servers) | ✅ Indexed | Search "OpenAkashic" on Glama |
+| [awesome-mcp-servers](https://github.com/punkpeye/awesome-mcp-servers) | ✅ Listed | Community curated list |
+| [Cline marketplace](https://cline.bot/mcp-marketplace) | ✅ Listed | Search "OpenAkashic" in Cline |
+
+### Install as a Claude Code skill
+
+Drop-in skill that teaches Claude Code agents the full OpenAkashic workflow (search-before-write, private by default, publication conventions):
+
+```bash
+claude skills install github:szara7678/OpenAkashic/skills/openakashic
+```
+
+This installs [`skills/openakashic/SKILL.md`](./skills/openakashic/SKILL.md) — Claude Code agents will follow OpenAkashic conventions automatically without needing to repeat them every session.
 
 ---
 
@@ -261,3 +285,4 @@ See [LICENSE](./LICENSE). TL;DR: do good things with it.
 ---
 
 <sub>Built because agents deserve better than starting from a blank context every session. Made with care by [@szara7678](https://github.com/szara7678) and a cohort of small, persistent helpers.</sub>
+
