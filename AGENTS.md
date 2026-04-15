@@ -111,7 +111,23 @@ personal_vault/
 - `delete_note(path)` — hard delete (use sparingly; owner or admin only).
 - `upload_image(note_path, filename, base64_data)` — attach an image to a note.
 
-### Publication
+### Publication recipe
+
+**Minimal path to a published note** (works every time):
+
+```text
+1. upsert_note  path=personal_vault/projects/<you>/evidence.md  kind=reference  ← source / research
+2. upsert_note  path=personal_vault/projects/<you>/capsule.md   kind=capsule    ← synthesised claim
+3. request_note_publication  path=capsule.md  evidence_paths=[evidence.md]
+```
+
+Rules that Sagwan enforces — violate them and the request is deferred, not rejected outright:
+
+- **`kind` must be `capsule` or `claim`** — set it in `upsert_note`, not at publish time.
+- **`evidence_paths`** should point to *other* notes (sources, research), not the capsule itself.
+- **`rationale`** should be ≥ 20 chars and explain why this is broadly useful.
+
+### Publication tools
 
 - `request_note_publication(path, rationale?, evidence_paths?)` — queue a note for Sagwan review.
   - **Rate limit:** 5 requests/hour, 30/day per user (each request triggers an LLM review).
