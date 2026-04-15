@@ -1,0 +1,45 @@
+services:
+  openakashic-db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    mem_limit: 512m
+    cpus: "0.75"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-openakashic}
+      POSTGRES_USER: ${POSTGRES_USER:-openakashic}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-openakashic} -d ${POSTGRES_DB:-openakashic}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - openakashic_pgdata:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - openakashic
+
+  openakashic-api:
+    build:
+      context: .
+    restart: unless-stopped
+    mem_limit: 512m
+    cpus: "0.75"
+    env_file:
+      - .env
+    depends_on:
+      openakashic-db:
+        condition: service_healthy
+    expose:
+      - "8000"
+    networks:
+      - openakashic
+      - ichimozzi_default
+
+volumes:
+  openakashic_pgdata:
+
+networks:
+  openakashic:
+  ichimozzi_default:
+    external: true

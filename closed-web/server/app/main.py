@@ -1,0 +1,1509 @@
+from __future__ import annotations
+
+import asyncio
+import json as _json
+import logging as _logging
+import threading
+import time
+import urllib.request as _urlrequest
+import urllib.error as _urlerror
+from collections import defaultdict
+from contextlib import asynccontextmanager
+from typing import Any
+
+# ── 인증 엔드포인트 rate limit ────────────────────────────────────────────────
+# signup: IP당 1시간 내 3회 (대량 계정 생성 방지)
+# login:  IP당 5분 내 10회 (브루트포스 방지)
+_AUTH_RATE_LOCK = threading.Lock()
+_SIGNUP_ATTEMPTS: dict[str, list[float]] = defaultdict(list)
+_LOGIN_ATTEMPTS: dict[str, list[float]] = defaultdict(list)
+_SIGNUP_WINDOW_SEC = 3600
+_SIGNUP_LIMIT = 3
+_LOGIN_WINDOW_SEC = 300
+_LOGIN_LIMIT = 10
+
+def _client_ip(request: Request) -> str:
+    xff = request.headers.get("x-forwarded-for", "")
+    if xff:
+        return xff.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+def _check_rate_limit(attempts: dict[str, list[float]], ip: str, window: int, limit: int, msg: str) -> None:
+    now = time.monotonic()
+    with _AUTH_RATE_LOCK:
+        attempts[ip] = [t for t in attempts[ip] if now - t < window]
+        if len(attempts[ip]) >= limit:
+            raise HTTPException(status_code=429, detail=msg)
+        attempts[ip].append(now)
+
+from fastapi import Depends, FastAPI, File, Form, HTTPException, Query, Request, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, StreamingResponse
+from pydantic import BaseModel, Field
+from starlette.applications import Starlette
+from starlette.routing import Mount, Route
+
+from app.auth import (
+    AuthState,
+    BearerTokenASGI,
+    auth_state_dict,
+    librarian_identity_dict,
+    require_admin_token,
+    require_agent_token,
+)
+from app.config import get_settings
+from app.librarian import (
+    ensure_librarian_workspace,
+    librarian_chat,
+    librarian_status,
+    load_librarian_settings,
+    save_librarian_settings,
+)
+from app.core_api_bridge import sync_published_note
+from app.mcp_server import mcp
+from app.observability import (
+    RequestLogMiddleware,
+    configure_observability,
+    log_tail,
+    observability_status,
+    recent_requests,
+)
+from app.site import (
+    closed_debug_html,
+    closed_graph_html,
+    closed_note_html,
+    get_closed_graph,
+    get_closed_home_note,
+    get_closed_note,
+    get_closed_note_by_slug,
+    search_closed_notes,
+)
+from app.sagwan_loop import (
+    load_sagwan_settings,
+    pending_publication_request_count,
+    run_sagwan_approval_cycle,
+    run_sagwan_curation_cycle,
+    save_sagwan_settings,
+)
+from app.subordinate import (
+    enqueue_subordinate_task,
+    list_subordinate_tasks,
+    load_subordinate_settings,
+    run_subordinate_cycle,
+    save_subordinate_settings,
+    subordinate_chat,
+    subordinate_status,
+)
+from app.vault import (
+    append_section,
+    bootstrap_project_workspace,
+    delete_document,
+    folder_index,
+    folder_rules,
+    list_note_paths,
+    list_publication_requests,
+    load_document,
+    move_document,
+    move_folder,
+    normalize_project_key,
+    rename_actor_references,
+    request_publication,
+    read_asset_bytes,
+    save_asset,
+    save_image,
+    set_publication_status,
+    ensure_folder,
+    suggest_note_path,
+    write_document,
+)
+from app.users import (
+    SAGWAN_SYSTEM_OWNER,
+    authenticate_user,
+    change_user_password,
+    create_user,
+    list_users,
+    public_user_record,
+    rotate_user_token,
+    update_user_profile,
+    update_user_role,
+)
+
+
+settings = get_settings()
+configure_observability(settings.log_dir, settings.recent_request_limit)
+
+api = FastAPI(
+    title="OpenAkashic",
+    version="0.2.0",
+    description="Visibility-aware knowledge network, personal vault, publication workflow, and agent memory surface.",
+)
+
+api.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origin_list,
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+class NoteWriteRequest(BaseModel):
+    path: str = Field(min_length=1)
+    body: str = Field(min_length=1)
+    title: str | None = None
+    kind: str | None = None
+    project: str | None = None
+    status: str | None = None
+    tags: list[str] | None = None
+    related: list[str] | None = None
+    metadata: dict[str, Any] | None = None
+
+
+class NoteAppendRequest(BaseModel):
+    path: str = Field(min_length=1)
+    heading: str = Field(min_length=1)
+    content: str = Field(min_length=1)
+
+
+class NoteDeleteRequest(BaseModel):
+    path: str = Field(min_length=1)
+
+
+class NoteMoveRequest(BaseModel):
+    path: str = Field(min_length=1)
+    new_path: str = Field(min_length=1)
+
+
+class FolderRequest(BaseModel):
+    path: str = Field(min_length=1)
+
+
+class FolderMoveRequest(BaseModel):
+    path: str = Field(min_length=1)
+    new_path: str = Field(min_length=1)
+
+
+class ProjectBootstrapRequest(BaseModel):
+    project: str = Field(min_length=1)
+    scope: str | None = None
+    title: str | None = None
+    summary: str | None = None
+    canonical_docs: list[str] | None = None
+    folders: list[str] | None = None
+    tags: list[str] | None = None
+    related: list[str] | None = None
+
+
+class LibrarianChatRequest(BaseModel):
+    message: str = Field(min_length=1)
+    thread: list[dict[str, str]] = Field(default_factory=list)
+    current_note_path: str | None = None
+    current_note_slug: str | None = None
+
+
+class PublicationRequestPayload(BaseModel):
+    path: str = Field(min_length=1)
+    requester: str | None = None
+    target_visibility: str = "public"
+    rationale: str | None = None
+    evidence_paths: list[str] = Field(default_factory=list)
+
+
+class PublicationStatusPayload(BaseModel):
+    path: str = Field(min_length=1)
+    status: str = Field(min_length=1)
+    reason: str | None = None
+
+
+class AuthSignupPayload(BaseModel):
+    username: str = Field(min_length=3)
+    nickname: str = Field(min_length=2)
+    password: str = Field(min_length=8)
+    password_confirm: str = Field(min_length=8)
+
+
+class AuthLoginPayload(BaseModel):
+    username: str = Field(min_length=1)
+    password: str = Field(min_length=8)
+
+
+class ProfileUpdatePayload(BaseModel):
+    nickname: str = Field(min_length=2)
+
+
+class PasswordChangePayload(BaseModel):
+    current_password: str = Field(min_length=1)
+    new_password: str = Field(min_length=8)
+    new_password_confirm: str = Field(min_length=8)
+
+
+class UserRoleUpdatePayload(BaseModel):
+    username: str = Field(min_length=1)
+    role: str = Field(min_length=1)
+
+
+class LibrarianSettingsPayload(BaseModel):
+    provider: str | None = None
+    model: str | None = None
+    base_url: str | None = None
+    reasoning_effort: str | None = None
+    enabled_tools: list[str] | None = None
+
+
+class SubordinateSettingsPayload(BaseModel):
+    provider: str | None = None
+    base_url: str | None = None
+    model: str | None = None
+    enabled: bool | None = None
+    interval_sec: int | None = None
+    max_tasks_per_run: int | None = None
+    auto_review_publication_requests: bool | None = None
+    auto_request_publication_for_capsules: bool | None = None
+    enabled_task_types: list[str] | None = None
+
+
+class SubordinateTaskPayload(BaseModel):
+    kind: str = Field(min_length=1)
+    payload: dict[str, Any] = Field(default_factory=dict)
+    run_after: str | None = None
+
+
+def _route_prefix(request: Request) -> str:
+    host = request.headers.get("host", "")
+    return "/closed" if host.startswith("openakashic.com") else ""
+
+
+def _project_key(project: str, scope: str | None = None) -> str:
+    return normalize_project_key(project, scope)
+
+
+def _request_token(request: Request) -> str | None:
+    auth_header = request.headers.get("authorization", "")
+    if auth_header.lower().startswith("bearer "):
+        token = auth_header[7:].strip()
+        return token or None
+    cookie_token = request.cookies.get("closed_akashic_token", "").strip()
+    if cookie_token:
+        return cookie_token
+    return None
+
+
+def _auth_from_request(request: Request) -> AuthState:
+    from app.auth import auth_state_for_token
+
+    return auth_state_for_token(_request_token(request))
+
+
+def _is_admin(auth: AuthState) -> bool:
+    return auth.role == "admin" or "librarian:admin" in auth.capabilities
+
+
+def _can_manage_publication(auth: AuthState) -> bool:
+    return _is_admin(auth) or "publication:manage" in auth.capabilities
+
+
+def _session_payload(token: str | None, *, include_agents: bool = True) -> dict[str, Any]:
+    auth = auth_state_dict(token)
+    payload: dict[str, Any] = {
+        **auth,
+        "public_base_url": settings.public_base_url,
+    }
+    if include_agents:
+        payload["librarian_identity"] = librarian_identity_dict()
+        payload["librarian"] = librarian_status() if auth["authenticated"] else None
+        payload["subordinate"] = subordinate_status() if auth["authenticated"] and auth["role"] == "admin" else None
+    return payload
+
+
+def _note_visibility(frontmatter: dict[str, Any]) -> str:
+    visibility = str(frontmatter.get("visibility") or settings.default_note_visibility).strip().lower()
+    return visibility if visibility in {"private", "public"} else "private"
+
+
+def _note_owner(frontmatter: dict[str, Any]) -> str:
+    return str(frontmatter.get("owner") or settings.default_note_owner).strip() or settings.default_note_owner
+
+
+def _can_read_frontmatter(frontmatter: dict[str, Any], auth: AuthState) -> bool:
+    if _note_visibility(frontmatter) == "public":
+        return True
+    return auth.authenticated and (_is_admin(auth) or _note_owner(frontmatter) == auth.nickname)
+
+
+def _can_modify_frontmatter(frontmatter: dict[str, Any], auth: AuthState) -> bool:
+    if _note_visibility(frontmatter) == "public":
+        return _is_admin(auth)
+    return auth.authenticated and (_is_admin(auth) or _note_owner(frontmatter) == auth.nickname)
+
+
+def _assert_can_read_note_payload(note: dict[str, Any], auth: AuthState) -> None:
+    if not _can_read_frontmatter(note, auth):
+        raise HTTPException(status_code=403, detail="Notes can only be opened by their owner or an admin")
+
+
+def _assert_can_read_document(document_path: str, auth: AuthState) -> None:
+    document = load_document(document_path)
+    if not _can_read_frontmatter(document.frontmatter, auth):
+        raise HTTPException(status_code=403, detail="Notes can only be opened by their owner or an admin")
+
+
+def _assert_can_modify_document(document_path: str, auth: AuthState) -> dict[str, Any]:
+    document = load_document(document_path)
+    if not _can_modify_frontmatter(document.frontmatter, auth):
+        raise HTTPException(status_code=403, detail="Notes can only be modified by their owner or an admin")
+    return document.frontmatter
+
+
+def _filter_readable_notes(notes: list[dict[str, Any]], auth: AuthState) -> list[dict[str, Any]]:
+    return [note for note in notes if _can_read_frontmatter(note, auth)]
+
+
+def _normalize_write_metadata(payload: NoteWriteRequest, auth: AuthState) -> dict[str, Any]:
+    metadata = dict(payload.metadata or {})
+    existing_frontmatter: dict[str, Any] = {}
+    is_existing = False
+    try:
+        existing_frontmatter = load_document(payload.path).frontmatter
+        is_existing = True
+    except (FileNotFoundError, ValueError):
+        existing_frontmatter = {}
+
+    requested_visibility = str(
+        metadata.get("visibility") or existing_frontmatter.get("visibility") or settings.default_note_visibility
+    ).strip().lower().replace("-", "_")
+    if requested_visibility not in {"private", "public"}:
+        requested_visibility = "private"
+    if not _is_admin(auth) and requested_visibility == "public":
+        metadata["publication_target_visibility"] = "public"
+        requested_visibility = "private"
+    metadata["visibility"] = requested_visibility
+
+    if is_existing:
+        if not _can_modify_frontmatter(existing_frontmatter, auth):
+            raise HTTPException(status_code=403, detail="Notes can only be modified by their owner or an admin")
+        owner = _note_owner(existing_frontmatter)
+        if requested_visibility == "public":
+            metadata.setdefault("original_owner", existing_frontmatter.get("original_owner") or owner)
+            owner = SAGWAN_SYSTEM_OWNER
+        metadata["owner"] = owner
+    else:
+        metadata["created_by"] = metadata.get("created_by") or auth.nickname
+        metadata["owner"] = SAGWAN_SYSTEM_OWNER if requested_visibility == "public" else auth.nickname
+
+    publication_status = str(
+        metadata.get("publication_status") or existing_frontmatter.get("publication_status") or "none"
+    ).strip().lower().replace("-", "_")
+    if not _is_admin(auth) and metadata.get("publication_target_visibility") == "public":
+        publication_status = "requested"
+    if not _is_admin(auth) and publication_status not in {"none", "requested"}:
+        raise HTTPException(status_code=403, detail="Users can only set publication status to none or requested")
+    metadata["publication_status"] = publication_status
+    return metadata
+
+
+def _assert_can_request_publication(path: str, auth: AuthState) -> None:
+    if _is_admin(auth):
+        return
+    document = load_document(path)
+    owner = str(document.frontmatter.get("owner") or settings.default_note_owner).strip()
+    if owner != auth.nickname:
+        raise HTTPException(status_code=403, detail="Users can only request publication for their own notes")
+
+
+def _vault_http_error(exc: Exception) -> HTTPException:
+    if isinstance(exc, FileNotFoundError):
+        return HTTPException(status_code=404, detail=str(exc))
+    if isinstance(exc, FileExistsError):
+        return HTTPException(status_code=409, detail=str(exc))
+    if isinstance(exc, ValueError):
+        return HTTPException(status_code=400, detail=str(exc))
+    return HTTPException(status_code=500, detail=exc.__class__.__name__)
+
+
+@api.get("/", response_class=HTMLResponse)
+def root(request: Request) -> str:
+    auth = _auth_from_request(request)
+    return closed_note_html(route_prefix=_route_prefix(request), viewer_owner=auth.nickname, is_admin=_is_admin(auth))
+
+
+@api.get("/closed", response_class=HTMLResponse)
+def prefixed_root(request: Request) -> str:
+    auth = _auth_from_request(request)
+    return closed_note_html(route_prefix="/closed", viewer_owner=auth.nickname, is_admin=_is_admin(auth))
+
+
+@api.get("/graph", response_class=HTMLResponse)
+def graph_page(request: Request) -> str:
+    auth = _auth_from_request(request)
+    return closed_graph_html(route_prefix=_route_prefix(request), viewer_owner=auth.nickname, is_admin=_is_admin(auth))
+
+
+@api.get("/closed/graph", response_class=HTMLResponse)
+def prefixed_graph_page(request: Request) -> str:
+    auth = _auth_from_request(request)
+    return closed_graph_html(route_prefix="/closed", viewer_owner=auth.nickname, is_admin=_is_admin(auth))
+
+
+@api.get("/admin", response_class=HTMLResponse)
+def admin_page(request: Request):
+    auth = _auth_from_request(request)
+    prefix = _route_prefix(request)
+    if not _is_admin(auth):
+        return RedirectResponse(f"{prefix}/graph", status_code=303)
+    return HTMLResponse(closed_debug_html(route_prefix=prefix))
+
+
+@api.get("/closed/admin", response_class=HTMLResponse)
+def prefixed_admin_page(request: Request):
+    auth = _auth_from_request(request)
+    if not _is_admin(auth):
+        return RedirectResponse("/closed/graph", status_code=303)
+    return HTMLResponse(closed_debug_html(route_prefix="/closed"))
+
+
+@api.get("/debug", response_class=HTMLResponse)
+def debug_page(request: Request):
+    return admin_page(request)
+
+
+@api.get("/closed/debug", response_class=HTMLResponse)
+def prefixed_debug_page(request: Request):
+    return prefixed_admin_page(request)
+
+
+@api.get("/graph-data")
+def graph_data(request: Request) -> dict[str, Any]:
+    auth = _auth_from_request(request)
+    return get_closed_graph(viewer_owner=auth.nickname, is_admin=_is_admin(auth))
+
+
+@api.get("/closed/graph-data")
+def prefixed_graph_data(request: Request) -> dict[str, Any]:
+    return graph_data(request)
+
+
+@api.get("/search")
+def search(
+    request: Request,
+    q: str = Query(min_length=1),
+    limit: int = Query(default=12, ge=1, le=50),
+) -> dict[str, Any]:
+    auth = _auth_from_request(request)
+    results = search_closed_notes(q, limit, route_prefix=_route_prefix(request))
+    readable = _filter_readable_notes(results.get("results", []), auth)
+    return {**results, "results": readable, "count": len(readable)}
+
+
+@api.get("/closed/search")
+def prefixed_search(
+    request: Request,
+    q: str = Query(min_length=1),
+    limit: int = Query(default=12, ge=1, le=50),
+) -> dict[str, Any]:
+    auth = _auth_from_request(request)
+    results = search_closed_notes(q, limit, route_prefix="/closed")
+    readable = _filter_readable_notes(results.get("results", []), auth)
+    return {**results, "results": readable, "count": len(readable)}
+
+
+@api.get("/note")
+def note(request: Request, path: str = Query(min_length=1)) -> dict[str, Any]:
+    auth = _auth_from_request(request)
+    result = get_closed_note(path, route_prefix=_route_prefix(request))
+    if not result:
+        raise HTTPException(status_code=404, detail="Note not found")
+    _assert_can_read_note_payload(result, auth)
+    return result
+
+
+@api.get("/closed/note")
+def prefixed_note(request: Request, path: str = Query(min_length=1)) -> dict[str, Any]:
+    auth = _auth_from_request(request)
+    result = get_closed_note(path, route_prefix="/closed")
+    if not result:
+        raise HTTPException(status_code=404, detail="Note not found")
+    _assert_can_read_note_payload(result, auth)
+    return result
+
+
+@api.get("/home")
+def home(request: Request) -> dict[str, Any]:
+    auth = _auth_from_request(request)
+    result = get_closed_home_note(
+        route_prefix=_route_prefix(request),
+        viewer_owner=auth.nickname,
+        is_admin=_is_admin(auth),
+    )
+    return result
+
+
+@api.get("/closed/home")
+def prefixed_home(request: Request) -> dict[str, Any]:
+    auth = _auth_from_request(request)
+    result = get_closed_home_note(
+        route_prefix="/closed",
+        viewer_owner=auth.nickname,
+        is_admin=_is_admin(auth),
+    )
+    return result
+
+
+@api.get("/notes/{slug}", response_class=HTMLResponse)
+def note_page(request: Request, slug: str) -> str:
+    auth = _auth_from_request(request)
+    note_data = get_closed_note_by_slug(slug, route_prefix=_route_prefix(request))
+    if not note_data:
+        raise HTTPException(status_code=404, detail="Note not found")
+    _assert_can_read_note_payload(note_data, auth)
+    return closed_note_html(
+        note_slug=slug,
+        route_prefix=_route_prefix(request),
+        viewer_owner=auth.nickname,
+        is_admin=_is_admin(auth),
+    )
+
+
+@api.get("/closed/notes/{slug}", response_class=HTMLResponse)
+def prefixed_note_page(request: Request, slug: str) -> str:
+    auth = _auth_from_request(request)
+    note_data = get_closed_note_by_slug(slug, route_prefix="/closed")
+    if not note_data:
+        raise HTTPException(status_code=404, detail="Note not found")
+    _assert_can_read_note_payload(note_data, auth)
+    return closed_note_html(note_slug=slug, route_prefix="/closed", viewer_owner=auth.nickname, is_admin=_is_admin(auth))
+
+
+@api.get("/api/session")
+def api_session(request: Request, include: str | None = Query(default=None)) -> dict[str, Any]:
+    include_agents = include is None or "agents" in {part.strip() for part in include.split(",")}
+    return _session_payload(_request_token(request), include_agents=include_agents)
+
+
+@api.post("/api/auth/signup")
+def api_auth_signup(request: Request, payload: AuthSignupPayload) -> dict[str, Any]:
+    _check_rate_limit(
+        _SIGNUP_ATTEMPTS,
+        _client_ip(request),
+        _SIGNUP_WINDOW_SEC,
+        _SIGNUP_LIMIT,
+        "Too many signup attempts — try again in 1 hour",
+    )
+    if not get_settings().open_signup:
+        raise HTTPException(status_code=403, detail="Self-registration is disabled — contact an admin")
+    if payload.password != payload.password_confirm:
+        raise HTTPException(status_code=400, detail="Password confirmation does not match")
+    try:
+        user = create_user(
+            username=payload.username,
+            nickname=payload.nickname,
+            password=payload.password,
+        )
+    except ValueError as exc:
+        raise _vault_http_error(exc) from exc
+    token = str(user.get("api_token") or "")
+    return {
+        "token": token,
+        "user": public_user_record(user),
+        "session": _session_payload(token),
+    }
+
+
+@api.post("/api/auth/login")
+def api_auth_login(request: Request, payload: AuthLoginPayload) -> dict[str, Any]:
+    _check_rate_limit(
+        _LOGIN_ATTEMPTS,
+        _client_ip(request),
+        _LOGIN_WINDOW_SEC,
+        _LOGIN_LIMIT,
+        "Too many login attempts — try again in 5 minutes",
+    )
+    user = authenticate_user(payload.username, payload.password)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid login credentials")
+    token = str(user.get("api_token") or "")
+    return {
+        "token": token,
+        "user": public_user_record(user),
+        "session": _session_payload(token),
+    }
+
+
+@api.get("/api/profile")
+def api_profile(auth: AuthState = Depends(require_agent_token)) -> dict[str, Any]:
+    return {
+        "profile": {
+            "username": auth.username,
+            "nickname": auth.nickname,
+            "role": auth.role,
+            "token_label": auth.token_label,
+        }
+    }
+
+
+@api.post("/api/profile")
+def api_update_profile(
+    payload: ProfileUpdatePayload,
+    auth: AuthState = Depends(require_agent_token),
+) -> dict[str, Any]:
+    try:
+        old_nickname = auth.nickname
+        user = update_user_profile(
+            username=auth.username,
+            nickname=payload.nickname,
+        )
+        new_nickname = str(user.get("nickname") or old_nickname)
+        migration = rename_actor_references(old_nickname, new_nickname)
+    except ValueError as exc:
+        raise _vault_http_error(exc) from exc
+    return {"profile": public_user_record(user), "migration": migration}
+
+
+@api.post("/api/profile/password")
+def api_change_password(
+    payload: PasswordChangePayload,
+    auth: AuthState = Depends(require_agent_token),
+) -> dict[str, Any]:
+    if payload.new_password != payload.new_password_confirm:
+        raise HTTPException(status_code=400, detail="New password confirmation does not match")
+    try:
+        user = change_user_password(
+            username=auth.username,
+            current_password=payload.current_password,
+            new_password=payload.new_password,
+        )
+    except ValueError as exc:
+        raise _vault_http_error(exc) from exc
+    token = str(user.get("api_token") or "")
+    return {
+        "profile": public_user_record(user),
+        "token": token,
+        "session": _session_payload(token),
+    }
+
+
+@api.post("/api/profile/token")
+def api_rotate_profile_token(auth: AuthState = Depends(require_agent_token)) -> dict[str, Any]:
+    try:
+        user = rotate_user_token(username=auth.username)
+    except ValueError as exc:
+        raise _vault_http_error(exc) from exc
+    token = str(user.get("api_token") or "")
+    return {
+        "token": token,
+        "profile": public_user_record(user),
+        "session": _session_payload(token),
+    }
+
+
+@api.get("/api/admin/users")
+def api_admin_users(auth: AuthState = Depends(require_admin_token)) -> dict[str, Any]:
+    users = list_users()
+    return {"users": users, "count": len(users), "viewer": auth.nickname}
+
+
+@api.post("/api/admin/users/create")
+def api_admin_create_user(
+    payload: AuthSignupPayload,
+    auth: AuthState = Depends(require_admin_token),
+) -> dict[str, Any]:
+    """Admin-only user creation — works regardless of open_signup setting."""
+    if payload.password != payload.password_confirm:
+        raise HTTPException(status_code=400, detail="Password confirmation does not match")
+    try:
+        user = create_user(
+            username=payload.username,
+            nickname=payload.nickname,
+            password=payload.password,
+        )
+    except ValueError as exc:
+        raise _vault_http_error(exc) from exc
+    return {"user": public_user_record(user), "api_token": user.get("api_token"), "created_by": auth.nickname}
+
+
+@api.post("/api/admin/users/role")
+def api_admin_update_user_role(
+    payload: UserRoleUpdatePayload,
+    auth: AuthState = Depends(require_admin_token),
+) -> dict[str, Any]:
+    try:
+        user = update_user_role(username=payload.username, role=payload.role)
+    except ValueError as exc:
+        raise _vault_http_error(exc) from exc
+    return {
+        "user": public_user_record(user),
+        "updated_by": auth.nickname,
+    }
+
+
+@api.get("/api/admin/librarian")
+def api_admin_librarian_settings(auth: AuthState = Depends(require_admin_token)) -> dict[str, Any]:
+    return {
+        "settings": load_librarian_settings(),
+        "status": librarian_status(),
+        "viewer": auth.nickname,
+    }
+
+
+@api.post("/api/admin/librarian")
+def api_admin_update_librarian_settings(
+    payload: LibrarianSettingsPayload,
+    auth: AuthState = Depends(require_admin_token),
+) -> dict[str, Any]:
+    try:
+        settings_doc = save_librarian_settings(payload.model_dump(exclude_none=True))
+    except ValueError as exc:
+        raise _vault_http_error(exc) from exc
+    return {
+        "settings": settings_doc,
+        "status": librarian_status(),
+        "updated_by": auth.nickname,
+    }
+
+
+@api.get("/api/admin/subordinate")
+def api_admin_subordinate_settings(auth: AuthState = Depends(require_admin_token)) -> dict[str, Any]:
+    return {
+        "settings": load_subordinate_settings(),
+        "status": subordinate_status(),
+        "viewer": auth.nickname,
+    }
+
+
+@api.post("/api/admin/subordinate")
+def api_admin_update_subordinate_settings(
+    payload: SubordinateSettingsPayload,
+    auth: AuthState = Depends(require_admin_token),
+) -> dict[str, Any]:
+    settings_doc = save_subordinate_settings(payload.model_dump(exclude_none=True))
+    return {
+        "settings": settings_doc,
+        "status": subordinate_status(),
+        "updated_by": auth.nickname,
+    }
+
+
+@api.get("/api/admin/subordinate/tasks")
+def api_admin_subordinate_tasks(
+    status: str | None = Query(default=None),
+    auth: AuthState = Depends(require_admin_token),
+) -> dict[str, Any]:
+    tasks = list_subordinate_tasks(status=status)
+    return {"tasks": tasks, "count": len(tasks), "viewer": auth.nickname}
+
+
+@api.post("/api/admin/subordinate/tasks")
+def api_admin_enqueue_subordinate_task(
+    payload: SubordinateTaskPayload,
+    auth: AuthState = Depends(require_admin_token),
+) -> dict[str, Any]:
+    try:
+        task = enqueue_subordinate_task(
+            kind=payload.kind,
+            payload=payload.payload,
+            created_by=auth.nickname,
+            run_after=payload.run_after,
+        )
+    except ValueError as exc:
+        raise _vault_http_error(exc) from exc
+    return {"task": task}
+
+
+@api.post("/api/admin/subordinate/run")
+def api_admin_run_subordinate(auth: AuthState = Depends(require_admin_token)) -> dict[str, Any]:
+    return run_subordinate_cycle(reason=f"manual:{auth.nickname}")
+
+
+@api.get("/api/admin/sagwan/settings")
+def api_admin_get_sagwan_settings(auth: AuthState = Depends(require_admin_token)) -> dict[str, Any]:
+    return load_sagwan_settings()
+
+
+@api.put("/api/admin/sagwan/settings")
+def api_admin_put_sagwan_settings(
+    payload: dict[str, Any],
+    auth: AuthState = Depends(require_admin_token),
+) -> dict[str, Any]:
+    return save_sagwan_settings(payload)
+
+
+@api.post("/api/admin/sagwan/run")
+def api_admin_run_sagwan(auth: AuthState = Depends(require_admin_token)) -> dict[str, Any]:
+    return run_sagwan_approval_cycle(reason=f"manual:{auth.nickname}")
+
+
+@api.post("/api/admin/sagwan/curate")
+def api_admin_run_sagwan_curate(auth: AuthState = Depends(require_admin_token)) -> dict[str, Any]:
+    return run_sagwan_curation_cycle(reason=f"manual:{auth.nickname}")
+
+
+@api.post("/api/admin/core/resync")
+def api_admin_core_resync(
+    path: str | None = Query(default=None, description="specific note path; if omitted, rescans all published capsules/references"),
+    force: bool = Query(default=True),
+    auth: AuthState = Depends(require_admin_token),
+) -> dict[str, Any]:
+    """Re-sync published notes to Core API. Admin only. Use after changing the sync logic
+    (e.g. key_points parser) to regenerate Core API records for existing capsules.
+    force=True (default) drops stored core_api_id and creates fresh records.
+    """
+    logger_ = _logging.getLogger(__name__)
+    targets: list[str]
+    if path:
+        targets = [path]
+    else:
+        targets = []
+        for rel in list_note_paths():
+            try:
+                fm = load_document(rel).frontmatter
+            except Exception:
+                continue
+            if str(fm.get("publication_status") or "").lower() != "published":
+                continue
+            if str(fm.get("kind") or "").lower() not in {"capsule", "reference", "claim"}:
+                continue
+            targets.append(rel)
+
+    synced: list[dict[str, Any]] = []
+    errors: list[dict[str, Any]] = []
+    for rel in targets:
+        try:
+            doc = load_document(rel)
+            new_id = sync_published_note(doc.frontmatter, doc.body, rel, force=force)
+            if not new_id:
+                errors.append({"path": rel, "error": "sync returned None"})
+                continue
+            next_fm = dict(doc.frontmatter)
+            next_fm["core_api_id"] = new_id
+            try:
+                write_document(path=rel, body=doc.body, metadata=next_fm, allow_owner_change=True)
+            except Exception as exc:
+                logger_.error("admin resync: failed to persist core_api_id for %s: %s", rel, exc)
+                errors.append({"path": rel, "error": f"persist: {exc}"})
+                continue
+            synced.append({"path": rel, "core_api_id": new_id})
+        except Exception as exc:
+            errors.append({"path": rel, "error": str(exc)})
+    return {"synced": synced, "errors": errors, "count": len(synced), "requested_by": auth.nickname}
+
+
+@api.get("/api/core/search")
+def api_core_search(
+    q: str = Query(..., min_length=1),
+    top_k: int = Query(default=8, ge=1, le=50),
+    include: str | None = Query(default=None, description="comma-separated: claims,capsules,evidences"),
+    compact: bool = Query(default=False),
+    auth: AuthState = Depends(require_agent_token),
+) -> dict[str, Any]:
+    """Agent-facing wrapper around the Core API /query endpoint.
+
+    Use this for validated public knowledge (claims/capsules/evidences). For
+    personal_vault / doc searches, use /api/notes?q=… instead.
+    """
+    settings_obj = get_settings()
+    url = settings_obj.core_api_url.rstrip("/") + "/query"
+    payload: dict[str, Any] = {"query": q, "top_k": top_k}
+    if include:
+        kinds = [part.strip() for part in include.split(",") if part.strip()]
+        if kinds:
+            payload["include"] = kinds
+    try:
+        req = _urlrequest.Request(
+            url,
+            data=_json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with _urlrequest.urlopen(req, timeout=10) as resp:
+            body = _json.loads(resp.read().decode("utf-8"))
+    except _urlerror.URLError as exc:
+        raise HTTPException(status_code=502, detail=f"Core API unreachable: {exc}") from exc
+    if compact:
+        results = body.get("results") or {}
+        body["results"] = {
+            kind: [
+                {k: item[k] for k in ("id", "title", "summary", "confidence") if k in item}
+                for item in items
+            ]
+            for kind, items in results.items()
+        }
+    return body
+
+
+_COMPACT_LIST_FIELDS = ("path", "slug", "title", "kind", "owner", "visibility", "publication_status", "summary", "score")
+
+
+def _compact_list(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    return [{k: item[k] for k in _COMPACT_LIST_FIELDS if k in item} for item in items]
+
+
+@api.get("/api/notes")
+def api_list_notes(
+    q: str | None = Query(default=None),
+    kind: str | None = Query(default=None),
+    tags: list[str] | None = Query(default=None),
+    limit: int = Query(default=20, ge=1, le=100),
+    compact: bool = Query(default=False, description="strip to path/title/kind/summary/score"),
+    auth: AuthState = Depends(require_agent_token),
+) -> dict[str, Any]:
+    if q:
+        results = search_closed_notes(q, limit=limit, kind=kind, tags=tags)
+        readable = _filter_readable_notes(results.get("results", []), auth)
+        if compact:
+            readable = _compact_list(readable)
+        return {**results, "results": readable, "count": len(readable)}
+    graph = get_closed_graph(viewer_owner=auth.nickname, is_admin=_is_admin(auth))
+    nodes = _filter_readable_notes(graph["nodes"], auth)
+    if kind:
+        nodes = [n for n in nodes if n.get("kind") == kind]
+    if tags:
+        tag_set = {t.strip().lower() for t in tags}
+        nodes = [n for n in nodes if tag_set.issubset({t.lower() for t in (n.get("tags") or [])})]
+    notes = nodes[:limit]
+    if compact:
+        notes = _compact_list(notes)
+    return {
+        "notes": notes,
+        "count": min(len(nodes), limit),
+    }
+
+
+@api.get("/api/notes/{slug}")
+def api_note_by_slug(
+    slug: str,
+    auth: AuthState = Depends(require_agent_token),
+) -> dict[str, Any]:
+    result = get_closed_note_by_slug(slug)
+    if not result:
+        raise HTTPException(status_code=404, detail="Note not found")
+    _assert_can_read_note_payload(result, auth)
+    return result
+
+
+@api.get("/api/note")
+def api_note_by_path(
+    path: str = Query(min_length=1),
+    compact: bool = Query(default=False, description="drop body_html, related_notes, backlinks"),
+    auth: AuthState = Depends(require_agent_token),
+) -> dict[str, Any]:
+    result = get_closed_note(path)
+    if not result:
+        raise HTTPException(status_code=404, detail="Note not found")
+    _assert_can_read_note_payload(result, auth)
+    if compact:
+        for k in ("body_html", "related_notes", "backlinks"):
+            result.pop(k, None)
+    return result
+
+
+@api.get("/api/raw-note")
+def api_raw_note(
+    path: str = Query(min_length=1),
+    auth: AuthState = Depends(require_agent_token),
+) -> dict[str, Any]:
+    try:
+        document = load_document(path)
+        if not _can_read_frontmatter(document.frontmatter, auth):
+            raise HTTPException(status_code=403, detail="Notes can only be opened by their owner or an admin")
+    except (FileNotFoundError, ValueError) as exc:
+        raise _vault_http_error(exc) from exc
+    return {
+        "path": document.path,
+        "frontmatter": document.frontmatter,
+        "body": document.body,
+    }
+
+
+@api.get("/api/graph")
+def api_graph(auth: AuthState = Depends(require_agent_token)) -> dict[str, Any]:
+    return get_closed_graph(viewer_owner=auth.nickname, is_admin=_is_admin(auth))
+
+
+@api.get("/api/folders", dependencies=[Depends(require_agent_token)])
+def api_folders() -> dict[str, Any]:
+    return {
+        "rules": folder_rules(),
+        "existing": folder_index(),
+    }
+
+
+@api.get("/api/debug/status", dependencies=[Depends(require_agent_token)])
+def api_debug_status() -> dict[str, Any]:
+    return {
+        "status": "ok",
+        "mcp_endpoint": f"{settings.public_base_url}/mcp/",
+        "api_base": f"{settings.public_base_url}/api",
+        "token_required": bool(settings.bearer_token.strip()),
+        "writable_roots": settings.writable_root_list,
+        "librarian": librarian_status(),
+        "observability": observability_status(),
+    }
+
+
+@api.get("/api/debug/recent-requests", dependencies=[Depends(require_agent_token)])
+def api_debug_recent_requests(
+    limit: int = Query(default=50, ge=1, le=500),
+    path_prefix: str | None = Query(default=None),
+    status_min: int | None = Query(default=None, ge=100, le=599),
+    request_id: str | None = Query(default=None),
+    method: str | None = Query(default=None),
+    kind: str | None = Query(default=None),
+    q: str | None = Query(default=None),
+    sort_by: str = Query(default="time"),
+    order: str = Query(default="desc"),
+) -> dict[str, Any]:
+    events = recent_requests(
+        limit=limit,
+        path_prefix=path_prefix,
+        status_min=status_min,
+        request_id=request_id,
+        method=method,
+        kind=kind,
+        q=q,
+        sort_by=sort_by,
+        order=order,
+    )
+    return {
+        "events": events,
+        "count": len(events),
+        "observability": observability_status(),
+    }
+
+
+@api.get("/api/debug/log-tail", dependencies=[Depends(require_agent_token)])
+def api_debug_log_tail(limit: int = Query(default=100, ge=1, le=500)) -> dict[str, Any]:
+    lines = log_tail(limit=limit)
+    return {
+        "lines": lines,
+        "count": len(lines),
+        "observability": observability_status(),
+    }
+
+
+@api.get("/api/path-suggestion", dependencies=[Depends(require_agent_token)])
+def api_path_suggestion(
+    title: str = Query(min_length=1),
+    kind: str | None = Query(default=None),
+    folder: str | None = Query(default=None),
+    scope: str | None = Query(default=None),
+    project: str | None = Query(default=None),
+) -> dict[str, str]:
+    return {"path": suggest_note_path(kind, title, folder, scope, project)}
+
+
+@api.put("/api/note")
+def api_upsert_note(
+    payload: NoteWriteRequest,
+    auth: AuthState = Depends(require_agent_token),
+) -> dict[str, Any]:
+    try:
+        metadata = _normalize_write_metadata(payload, auth)
+        document = write_document(
+            path=payload.path,
+            body=payload.body,
+            title=payload.title,
+            kind=payload.kind,
+            project=payload.project,
+            status=payload.status,
+            tags=payload.tags,
+            related=payload.related,
+            metadata=metadata,
+            allow_owner_change=metadata.get("owner") == "sagwan" and metadata.get("visibility") == "public",
+        )
+        publication_request_data: dict[str, Any] | None = None
+        wants_publication = not _is_admin(auth) and (
+            str((payload.metadata or {}).get("visibility") or "").strip().lower() == "public"
+            or str(metadata.get("publication_status") or "").strip().lower() == "requested"
+        )
+        if wants_publication:
+            request = request_publication(
+                path=document.path,
+                requester=auth.nickname,
+                target_visibility="public",
+                rationale=None,
+                evidence_paths=[],
+            )
+            publication_request_data = request.__dict__
+    except (FileNotFoundError, ValueError) as exc:
+        raise _vault_http_error(exc) from exc
+    result = get_closed_note(document.path)
+    warnings: list[str] = []
+    requested_kind = (payload.kind or "").strip().lower()
+    effective_kind = str(document.frontmatter.get("kind") or "").strip().lower()
+    if requested_kind and effective_kind and requested_kind != effective_kind:
+        warnings.append(f"kind '{requested_kind}' normalized to '{effective_kind}'")
+    return {
+        "path": document.path,
+        "note": result,
+        "publication_request": publication_request_data,
+        "warnings": warnings,
+    }
+
+
+@api.post("/api/note/append")
+def api_append_note(
+    payload: NoteAppendRequest,
+    auth: AuthState = Depends(require_agent_token),
+) -> dict[str, Any]:
+    try:
+        _assert_can_modify_document(payload.path, auth)
+        document = append_section(payload.path, payload.heading, payload.content)
+    except (FileNotFoundError, ValueError) as exc:
+        raise _vault_http_error(exc) from exc
+    result = get_closed_note(document.path)
+    return {"path": document.path, "note": result}
+
+
+@api.api_route("/api/note", methods=["DELETE"])
+async def api_delete_note(
+    request: Request,
+    auth: AuthState = Depends(require_agent_token),
+) -> dict[str, Any]:
+    payload = NoteDeleteRequest(**(await request.json()))
+    try:
+        _assert_can_modify_document(payload.path, auth)
+        deleted = delete_document(payload.path)
+    except (FileNotFoundError, ValueError) as exc:
+        raise _vault_http_error(exc) from exc
+    return {"deleted": deleted}
+
+
+@api.post("/api/note/move")
+def api_move_note(
+    payload: NoteMoveRequest,
+    auth: AuthState = Depends(require_agent_token),
+) -> dict[str, str]:
+    try:
+        _assert_can_modify_document(payload.path, auth)
+        moved = move_document(payload.path, payload.new_path)
+    except (FileNotFoundError, FileExistsError, ValueError) as exc:
+        raise _vault_http_error(exc) from exc
+    return {"path": moved}
+
+
+@api.post("/api/folder", dependencies=[Depends(require_agent_token)])
+def api_create_folder(payload: FolderRequest) -> dict[str, str]:
+    try:
+        return {"path": ensure_folder(payload.path)}
+    except ValueError as exc:
+        raise _vault_http_error(exc) from exc
+
+
+@api.post("/api/folder/move", dependencies=[Depends(require_agent_token)])
+def api_move_folder(payload: FolderMoveRequest) -> dict[str, str]:
+    try:
+        return {"path": move_folder(payload.path, payload.new_path)}
+    except (FileNotFoundError, FileExistsError, ValueError) as exc:
+        raise _vault_http_error(exc) from exc
+
+
+@api.post("/api/project/bootstrap", dependencies=[Depends(require_agent_token)])
+def api_bootstrap_project(payload: ProjectBootstrapRequest) -> dict[str, Any]:
+    return bootstrap_project_workspace(
+        project=_project_key(payload.project, payload.scope),
+        title=payload.title,
+        summary=payload.summary,
+        canonical_docs=payload.canonical_docs,
+        folders=payload.folders,
+        tags=payload.tags,
+        related=payload.related,
+    )
+
+
+@api.post("/api/publication/request")
+def api_request_publication(
+    payload: PublicationRequestPayload,
+    auth: AuthState = Depends(require_agent_token),
+) -> dict[str, Any]:
+    try:
+        _assert_can_request_publication(payload.path, auth)
+        request = request_publication(
+            path=payload.path,
+            requester=payload.requester if _is_admin(auth) else auth.nickname,
+            target_visibility=payload.target_visibility,
+            rationale=payload.rationale,
+            evidence_paths=payload.evidence_paths,
+        )
+    except (FileNotFoundError, ValueError) as exc:
+        raise _vault_http_error(exc) from exc
+    warnings: list[str] = []
+    if not (payload.rationale or "").strip():
+        warnings.append("rationale is empty — reviewers rely on it to judge publication")
+    elif len((payload.rationale or "").strip()) < 20:
+        warnings.append("rationale is very short (<20 chars) — consider expanding")
+    if not payload.evidence_paths:
+        warnings.append("evidence_paths is empty — link supporting notes to strengthen the request")
+    return {"request": request.__dict__, "warnings": warnings}
+
+
+@api.get("/api/publication/requests")
+def api_publication_requests(
+    status: str | None = Query(default=None),
+    auth: AuthState = Depends(require_agent_token),
+) -> dict[str, Any]:
+    if not _can_manage_publication(auth):
+        raise HTTPException(status_code=403, detail="Only admins or managers can list publication requests")
+    requests = list_publication_requests(status=status)
+    return {
+        "requests": [item.__dict__ for item in requests],
+        "count": len(requests),
+    }
+
+
+@api.post("/api/publication/status")
+def api_publication_status(
+    payload: PublicationStatusPayload,
+    auth: AuthState = Depends(require_admin_token),
+) -> dict[str, Any]:
+    try:
+        document = set_publication_status(
+            path=payload.path,
+            status=payload.status,
+            decider=auth.nickname,
+            reason=payload.reason,
+        )
+    except (FileNotFoundError, ValueError) as exc:
+        raise _vault_http_error(exc) from exc
+    core_api_id = None
+    if payload.status == "published":
+        core_api_id = sync_published_note(
+            frontmatter=document.frontmatter,
+            body=document.body,
+            note_path=document.path,
+        )
+        if core_api_id:
+            try:
+                from app.vault import write_document
+                fm = dict(document.frontmatter)
+                fm["core_api_id"] = core_api_id
+                document = write_document(
+                    path=document.path,
+                    body=document.body,
+                    metadata=fm,
+                    allow_owner_change=True,
+                )
+            except Exception as exc:
+                import logging
+                logging.getLogger(__name__).error("publication/status: failed to persist core_api_id on %s: %s", document.path, exc)
+    return {"path": document.path, "frontmatter": document.frontmatter, "core_api_id": core_api_id}
+
+
+@api.post("/api/assets/images", dependencies=[Depends(require_agent_token)])
+async def api_upload_image(
+    file: UploadFile = File(...),
+    folder: str = Form(default="assets/images"),
+    alt: str | None = Form(default=None),
+) -> dict[str, Any]:
+    content = await file.read()
+    try:
+        asset = save_image(
+            filename=file.filename or "image.png",
+            content=content,
+            folder=folder,
+            alt=alt,
+        )
+    except ValueError as exc:
+        raise _vault_http_error(exc) from exc
+    return {
+        "path": asset.path,
+        "url": asset.url,
+        "markdown": asset.markdown,
+        "mime_type": asset.mime_type,
+        "size": asset.size,
+    }
+
+
+@api.post("/api/assets/files", dependencies=[Depends(require_agent_token)])
+async def api_upload_file(
+    file: UploadFile = File(...),
+    folder: str = Form(default="assets/files"),
+    label: str | None = Form(default=None),
+) -> dict[str, Any]:
+    content = await file.read()
+    try:
+        asset = save_asset(
+            filename=file.filename or "file",
+            content=content,
+            folder=folder,
+            label=label,
+        )
+    except ValueError as exc:
+        raise _vault_http_error(exc) from exc
+    return {
+        "path": asset.path,
+        "url": asset.url,
+        "markdown": asset.markdown,
+        "mime_type": asset.mime_type,
+        "size": asset.size,
+    }
+
+
+@api.get("/api/librarian/status", dependencies=[Depends(require_admin_token)])
+def api_librarian_status() -> dict[str, Any]:
+    ensure_librarian_workspace()
+    return librarian_status()
+
+
+@api.post("/api/librarian/chat", dependencies=[Depends(require_admin_token)])
+def api_librarian_chat(payload: LibrarianChatRequest) -> dict[str, Any]:
+    ensure_librarian_workspace()
+    note_path = payload.current_note_path
+    if not note_path and payload.current_note_slug:
+        resolved = get_closed_note_by_slug(payload.current_note_slug)
+        if resolved:
+            note_path = resolved.get("path")
+    return librarian_chat(
+        payload.message,
+        payload.thread,
+        current_note_path=note_path,
+    )
+
+
+@api.post("/api/subordinate/chat", dependencies=[Depends(require_admin_token)])
+async def api_subordinate_chat(payload: LibrarianChatRequest) -> StreamingResponse:
+    """
+    SSE 스트리밍으로 응답한다.
+    gemma4:e4b 같은 대형 로컬 모델은 응답에 60초+ 걸릴 수 있어
+    Cloudflare tunnel이 끊기므로, 5초마다 keep-alive(:)를 보내 연결을 유지한다.
+    최종 데이터는 'event: result\ndata: <JSON>\n\n' 형식으로 전송된다.
+    """
+    import json as _json
+
+    async def _stream():
+        result_holder: list[dict[str, Any]] = []
+        error_holder: list[str] = []
+
+        async def _run():
+            try:
+                result_holder.append(
+                    await asyncio.to_thread(subordinate_chat, payload.message, payload.thread)
+                )
+            except Exception as exc:
+                error_holder.append(str(exc))
+
+        task = asyncio.create_task(_run())
+        while not task.done():
+            yield ": keep-alive\n\n"
+            try:
+                await asyncio.wait_for(asyncio.shield(task), timeout=5)
+            except asyncio.TimeoutError:
+                pass
+
+        if error_holder:
+            yield f"event: error\ndata: {_json.dumps({'error': error_holder[0]}, ensure_ascii=False)}\n\n"
+        else:
+            yield f"event: result\ndata: {_json.dumps(result_holder[0], ensure_ascii=False)}\n\n"
+
+    return StreamingResponse(
+        _stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+        },
+    )
+
+
+@api.get("/files/{path:path}")
+def api_file(path: str) -> FileResponse:
+    target, mime_type = read_asset_bytes(path)
+    return FileResponse(target, media_type=mime_type, content_disposition_type="inline")
+
+
+@api.get("/closed/files/{path:path}")
+def api_prefixed_file(path: str) -> FileResponse:
+    target, mime_type = read_asset_bytes(path)
+    return FileResponse(target, media_type=mime_type, content_disposition_type="inline")
+
+
+@api.get("/health")
+def health() -> dict[str, str]:
+    return {"status": "ok"}
+
+
+mcp_mount = BearerTokenASGI(
+    mcp.streamable_http_app()
+)
+
+
+@asynccontextmanager
+async def lifespan(_: Starlette):
+    async def subordinate_loop() -> None:
+        while True:
+            try:
+                settings_doc = load_subordinate_settings()
+                if settings_doc.get("enabled"):
+                    await asyncio.to_thread(run_subordinate_cycle, reason="interval")
+                await asyncio.sleep(max(60, int(settings_doc.get("interval_sec") or 900)))
+            except asyncio.CancelledError:
+                raise
+            except Exception:
+                await asyncio.sleep(120)
+
+    async def sagwan_loop() -> None:
+        # 사관(sagwan) 승인 루틴: interval 도달 OR 대기 요청 수가 batch_trigger 이상이면 실행.
+        # 짧게 sleep 하면서 배치 조건을 체크한다.
+        while True:
+            try:
+                s = load_sagwan_settings()
+                if s.get("enabled"):
+                    pending = await asyncio.to_thread(pending_publication_request_count)
+                    if pending >= int(s.get("batch_trigger") or 3):
+                        await asyncio.to_thread(run_sagwan_approval_cycle, reason="batch_trigger")
+                    else:
+                        await asyncio.to_thread(run_sagwan_approval_cycle, reason="interval")
+                await asyncio.sleep(max(60, int(s.get("interval_sec") or 600)))
+            except asyncio.CancelledError:
+                raise
+            except Exception:
+                await asyncio.sleep(180)
+
+    async def sagwan_curation_loop() -> None:
+        # 사관 정제(큐레이션) 루틴: 기본 1시간마다 raw 노트 파생/재동기화 유도.
+        while True:
+            try:
+                s = load_sagwan_settings()
+                if s.get("enabled"):
+                    await asyncio.to_thread(run_sagwan_curation_cycle, reason="interval")
+                await asyncio.sleep(max(300, int(s.get("curation_interval_sec") or 3600)))
+            except asyncio.CancelledError:
+                raise
+            except Exception:
+                await asyncio.sleep(600)
+
+    worker_task = asyncio.create_task(subordinate_loop())
+    sagwan_task = asyncio.create_task(sagwan_loop())
+    curation_task = asyncio.create_task(sagwan_curation_loop())
+    async with mcp.session_manager.run():
+        try:
+            yield
+        finally:
+            worker_task.cancel()
+            sagwan_task.cancel()
+            curation_task.cancel()
+            for task in (worker_task, sagwan_task, curation_task):
+                try:
+                    await task
+                except asyncio.CancelledError:
+                    pass
+
+
+_app = Starlette(
+    routes=[
+        Route(
+            "/mcp",
+            endpoint=lambda request: RedirectResponse(url="/mcp/", status_code=308),
+            methods=["GET", "POST", "DELETE"],
+        ),
+        Route(
+            "/closed/mcp",
+            endpoint=lambda request: RedirectResponse(url="/closed/mcp/", status_code=308),
+            methods=["GET", "POST", "DELETE"],
+        ),
+        Mount("/mcp", app=mcp_mount),
+        Mount("/closed/mcp", app=mcp_mount),
+        Mount("/", app=api),
+    ],
+    lifespan=lifespan,
+)
+
+app = RequestLogMiddleware(_app)
