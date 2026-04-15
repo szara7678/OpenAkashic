@@ -804,7 +804,7 @@ def render_document(frontmatter: dict[str, Any], body: str) -> str:
 
 
 def _apply_governance_defaults(frontmatter: dict[str, Any]) -> None:
-    owner = str(frontmatter.get("owner") or get_settings().default_note_owner).strip() or "aaron"
+    owner = str(frontmatter.get("owner") or get_settings().default_note_owner).strip() or "admin"
     visibility = _normalize_visibility(str(frontmatter.get("visibility") or get_settings().default_note_visibility))
     publication_status = _normalize_publication_status(str(frontmatter.get("publication_status") or "none"))
     frontmatter["owner"] = owner

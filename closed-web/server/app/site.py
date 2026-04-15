@@ -7793,7 +7793,7 @@ def _workspace_script() -> str:
         dom.formKind.value = 'reference';
         dom.formProject.value = inheritedProject;
         dom.formStatus.value = 'active';
-        dom.formOwner.value = session.nickname || noteData.owner || 'aaron';
+        dom.formOwner.value = session.nickname || noteData.owner || 'admin';
         dom.formVisibility.value = 'private';
         dom.formPublicationStatus.value = 'none';
         dom.formScope.value = inheritedProject ? 'shared' : 'shared';
@@ -7816,7 +7816,7 @@ def _workspace_script() -> str:
           dom.formKind.value = fm.kind || noteData.kind || '';
           dom.formProject.value = fm.project || noteData.project || '';
           dom.formStatus.value = fm.status || noteData.status || 'active';
-          dom.formOwner.value = fm.owner || noteData.owner || 'aaron';
+          dom.formOwner.value = fm.owner || noteData.owner || 'admin';
           dom.formVisibility.value = fm.visibility || noteData.visibility || 'private';
           dom.formPublicationStatus.value = fm.publication_status || noteData.publication_status || 'none';
           dom.formScope.value = (raw.path || noteData.path || '').startsWith('personal_vault/personal/') ? 'personal' : 'shared';

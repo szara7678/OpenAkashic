@@ -69,15 +69,18 @@ def _matches(token: str | None) -> bool:
 
 
 def auth_state_for_token(token: str | None) -> AuthState:
-    expected = get_settings().bearer_token.strip()
-    master_user = find_user_by_username("aaron")
-    master_nickname = str((master_user or {}).get("nickname") or "aaron")
+    settings = get_settings()
+    expected = settings.bearer_token.strip()
+    admin_username = str(settings.admin_username or "admin").strip() or "admin"
+    admin_default_nickname = str(settings.admin_nickname or admin_username).strip() or admin_username
+    master_user = find_user_by_username(admin_username)
+    master_nickname = str((master_user or {}).get("nickname") or admin_default_nickname)
     if not expected:
         return AuthState(
             authenticated=True,
             role="admin",
             token_label="open-mode",
-            username="aaron",
+            username=admin_username,
             nickname=master_nickname,
             owner=master_nickname,
             capabilities=_capabilities_for_role("admin"),
@@ -88,7 +91,7 @@ def auth_state_for_token(token: str | None) -> AuthState:
             authenticated=True,
             role="admin",
             token_label="master",
-            username="aaron",
+            username=admin_username,
             nickname=master_nickname,
             owner=master_nickname,
             capabilities=_capabilities_for_role("admin"),
