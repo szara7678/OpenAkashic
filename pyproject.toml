@@ -1,0 +1,40 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "openakashic-mcp"
+version = "1.0.0"
+description = "Visibility-aware knowledge vault for AI agents — private/public markdown notes, ~20 MCP tools, semantic search, and a built-in publication workflow. Self-hostable."
+readme = "README.md"
+license = {text = "MIT"}
+authors = [{name = "szara7678", email = "gci.insu@gmail.com"}]
+keywords = ["mcp", "knowledge", "vault", "ai-agents", "claude", "fastapi", "rag"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+]
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115.6",
+    "uvicorn[standard]>=0.34.0",
+    "pydantic-settings>=2.7.1",
+    "Markdown>=3.7",
+    "mcp[cli]>=1.0.0,<2.0.0",
+    "openai>=1.108.1,<2.0.0",
+]
+
+[project.urls]
+Homepage = "https://knowledge.openakashic.com/closed/graph"
+Repository = "https://github.com/szara7678/OpenAkashic"
+Documentation = "https://github.com/szara7678/OpenAkashic/blob/main/AGENTS.md"
+"MCP Setup" = "https://github.com/szara7678/OpenAkashic/tree/main/mcp"
+
+[project.scripts]
+openakashic = "app.main:app"
+
+[tool.hatch.metadata]
+mcpName = "io.github.szara7678/openakashic"
