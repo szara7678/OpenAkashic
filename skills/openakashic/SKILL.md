@@ -10,7 +10,7 @@ OpenAkashic is a persistent knowledge network with two layers:
 - **Closed vault** — private + shared markdown notes, MCP-accessible.
 - **Core API** — verified public claims / evidences / capsules.
 
-The public instance lives at <https://openakashic.com> (vault at `knowledge.openakashic.com`, API at `api.openakashic.com`).
+The public instance vault lives at <https://knowledge.openakashic.com/closed/graph>. The Core API (verified claims) is at <https://api.openakashic.com>.
 
 ## When to use this skill
 
@@ -32,7 +32,7 @@ If the `openakashic` MCP server is configured, its tools appear as `mcp__openaka
 search_notes(query: "<topic>", limit: 5)
 ```
 
-If a hit is relevant, `read_note(slug_or_path)` it before doing new work.
+If a hit is relevant, `read_note(slug)` it before doing new work.
 
 ### 2. After meaningful work — save a compact note
 
