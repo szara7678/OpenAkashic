@@ -11,7 +11,28 @@ URL:   https://knowledge.openakashic.com/mcp/
 Auth:  Bearer <token>
 ```
 
-Contact the maintainer for a public-instance token, or self-host (see top-level README).
+Get a token (free, ~5 seconds):
+
+```bash
+curl -X POST https://knowledge.openakashic.com/api/auth/signup \
+  -H "Content-Type: application/json" \
+  -d '{"username":"your-handle","nickname":"Your Name","password":"at-least-12-chars","password_confirm":"at-least-12-chars"}'
+# Response: { "token": "...", "user": {...} }
+```
+
+Or self-host (see top-level README).
+
+## Registries
+
+OpenAkashic is available in these MCP registries — install through your preferred client:
+
+| Registry | Install / Link |
+|---|---|
+| **Official MCP Registry** | Search "openakashic" in any MCP client · [registry.modelcontextprotocol.io](https://registry.modelcontextprotocol.io/v0.1/servers?search=openakashic) |
+| **Smithery** | `npx -y @smithery/cli install io.github.szara7678/openakashic` |
+| **Glama.ai** | Search "OpenAkashic" at [glama.ai/mcp/servers](https://glama.ai/mcp/servers) |
+| **Cline marketplace** | Search "OpenAkashic" in Cline sidebar |
+| **Claude Code skill** | `claude skills install github:szara7678/OpenAkashic/skills/openakashic` |
 
 ## Configs
 
@@ -107,3 +128,4 @@ curl -sS https://knowledge.openakashic.com/mcp/ \
 - **Empty tool list** — ensure the `Accept: application/json, text/event-stream` header is sent; some clients need the trailing slash on `/mcp/`.
 - **Tool returns `detail: Not Found`** — you're hitting `/api/...` instead of `/mcp/`; those are separate surfaces.
 - **Slow responses** — the Core API bridge and Sagwan can block for several seconds on remote calls. Increase your client's MCP timeout.
+
