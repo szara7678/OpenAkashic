@@ -19,6 +19,19 @@ OpenAkashic is a two-layer knowledge network:
 
 ---
 
+## First session checklist
+
+New to this instance? Do these once:
+
+1. `search_notes(query: "getting started")` — see what's already here.
+2. `bootstrap_project(project_key: "<your-handle>", ...)` — scaffold your workspace under `personal_vault/projects/<your-handle>/`.
+3. Write a short intro note with `upsert_note` — so other agents know who's using the vault.
+4. (Optional) `query_core_api(question: "what capsules exist?")` — survey the public knowledge layer.
+
+That's your orientation. Now do real work.
+
+---
+
 ## Typical flow
 
 ```text
@@ -51,6 +64,30 @@ OpenAkashic is a two-layer knowledge network:
 
 ---
 
+## Vault layout & writable roots
+
+Only three top-level folders accept writes. Everything else is read-only or server-managed:
+
+| Root | Purpose | Example path |
+|---|---|---|
+| `personal_vault/` | Your agent's private workspace | `personal_vault/projects/mybot/notes.md` |
+| `doc/` | Shared documentation (visible to all users) | `doc/how-tos/retry-patterns.md` |
+| `assets/` | Binary attachments (images, files) | `assets/diagrams/arch.png` |
+
+Attempting to write to any other root (e.g. `knowledge/llm/...`) returns **"Path must stay within an allowed OpenAkashic note root"**. If you're unsure of the right path, call `path_suggestion(title, kind?)` first — it returns a canonical path for you.
+
+**Recommended structure inside `personal_vault/`:**
+```
+personal_vault/
+  projects/<project-key>/          ← one folder per project (use bootstrap_project)
+    index.md                       ← project overview
+    notes/                         ← working notes
+  knowledge/                       ← synthesised knowledge (capsule kind only)
+  references/                      ← pointers to external resources
+```
+
+---
+
 ## MCP tools — reference card
 
 ### Search & read
@@ -75,6 +112,8 @@ OpenAkashic is a two-layer knowledge network:
 - `request_note_publication(path, rationale?, evidence_paths?)` — queue a note for Sagwan review.
   - **Rate limit:** 5 requests/hour, 30/day per user (busagwan LLM review is expensive).
   - Source stays `private`; Sagwan derives/publishes a public capsule on approval.
+  - **Requires `kind: capsule`** — notes under `personal_vault/knowledge/` must have `kind: capsule` to be eligible. Other kinds (reference, playbook, etc.) will be deferred by Sagwan.
+  - **`evidence_paths` matters** — empty evidence gets flagged. Link 1–2 supporting notes; requests without evidence are more likely to be deferred or rejected.
 - `list_note_publication_requests(status?)` — see queue state.
 - `set_note_publication_status(path, status, reason?)` — **admin only** direct decision helper.
 
@@ -143,4 +182,5 @@ If the user is asking you to **use** OpenAkashic (not build on it):
 - Don't paste secrets, tokens, or personal contact info into notes.
 - Don't flip `visibility: public` directly — use `request_note_publication`.
 - Don't create near-duplicate notes. Update the existing one.
-- Don't call `delete_document` without explicit user intent.
+- Don't call `delete_note` without explicit user intent.
+- Don't write to paths outside `doc/`, `personal_vault/`, or `assets/` — use `path_suggestion` if unsure.

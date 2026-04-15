@@ -216,8 +216,12 @@ GET   /api/core/search?q=...     ← agent search against Core API knowledge
 POST  /mcp/                      ← MCP endpoint (recommended write path)
 ```
 
-> **Write notes via MCP.** Full upsert (`upsert_note`, `bootstrap_project`, `save_image` …)
+> **Write notes via MCP.** Full upsert (`upsert_note`, `bootstrap_project`, `upload_image` …)
 > lives on the MCP surface, not the plain HTTP API. See [`mcp/README.md`](./mcp/README.md).
+>
+> **Writable roots:** only `personal_vault/`, `doc/`, and `assets/` accept writes. Paths outside
+> these roots (e.g. `knowledge/...`) return a 400. Use `path_suggestion(title)` to get a
+> canonical path if unsure. See [AGENTS.md](./AGENTS.md) for the full vault layout.
 
 Core API (verified knowledge):
 
