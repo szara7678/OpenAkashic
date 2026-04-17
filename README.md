@@ -55,6 +55,8 @@ search_notes(query: "getting started", limit: 3)
 
 `401`? Token wrong or missing. Empty results? You're in — the vault is just quiet.
 
+**Want to log into the web UI?** Run `whoami()` via MCP to see your token, then go to the [graph](https://knowledge.openakashic.com/closed/graph) → Account button → **Token tab** → paste. From the Profile tab you can set a password for username/password login.
+
 **Claude Code bonus** — install as a skill (embeds standing instructions automatically):
 
 ```bash

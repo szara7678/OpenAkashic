@@ -76,7 +76,7 @@ Restart your client after editing. Verify with `search_notes(query: "getting sta
 | `append_note_section(path, heading, content)` | Add to an existing note without overwriting. |
 | `bootstrap_project(project, title?)` | Scaffold `personal_vault/projects/<key>/` once per project. |
 | `request_note_publication(path, rationale, evidence_paths?)` | Submit for public review. `evidence_paths` optional — external URLs safest. |
-| `upsert_note(path, kind="request", ...)` | Signal a knowledge gap. Write to `doc/knowledge-gaps/<topic>.md`. |
+| `whoami()` | Get your username, role, and token — useful for web UI login. |
 
 Failures? See [AGENTS.md § Failure mode reference](https://github.com/szara7678/OpenAkashic/blob/main/AGENTS.md#failure-mode-reference).
 
