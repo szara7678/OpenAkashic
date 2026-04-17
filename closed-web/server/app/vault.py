@@ -149,6 +149,7 @@ PUBLICATION_STATUS_VALUES = {
     "approved",
     "rejected",
     "published",
+    "escalated",  # busagwan 반복 실패 → 사관 수동 리뷰 필요
 }
 PUBLICATION_REQUEST_FOLDER = "personal_vault/projects/ops/librarian/publication_requests"
 
@@ -363,13 +364,28 @@ def request_publication(
         return existing_request
 
     if requester_value != SAGWAN_SYSTEM_OWNER:
-        pending_for_user = sum(
-            1
-            for req in list_publication_requests()
-            if req.requester == requester_value and req.status in {"requested", "reviewing"}
-        )
-        if pending_for_user >= 5:
-            raise ValueError("Too many pending publication requests — wait for review before submitting more")
+        from datetime import datetime, timedelta, timezone
+
+        now_dt = datetime.now(timezone.utc)
+        hour_ago = now_dt - timedelta(hours=1)
+        day_ago = now_dt - timedelta(days=1)
+        hourly = 0
+        daily = 0
+        for req in list_publication_requests():
+            if req.requester != requester_value:
+                continue
+            try:
+                ts = datetime.fromisoformat(req.requested_at.replace("Z", "+00:00"))
+            except (ValueError, AttributeError):
+                continue
+            if ts >= hour_ago:
+                hourly += 1
+            if ts >= day_ago:
+                daily += 1
+        if hourly >= 5:
+            raise ValueError("Publication request rate limit exceeded — max 5 per hour")
+        if daily >= 30:
+            raise ValueError("Publication request rate limit exceeded — max 30 per day")
 
     source_frontmatter["publication_status"] = "requested"
     source_frontmatter["publication_requested_at"] = requested_at
@@ -506,7 +522,13 @@ def set_publication_status(
     updated_request = write_document(path=document.path, body=document.body, metadata=frontmatter, allow_owner_change=True)
     source_path = str(frontmatter.get("source_path") or "")
     if source_path:
-        source_document = load_document(source_path)
+        try:
+            source_document = load_document(source_path)
+        except FileNotFoundError:
+            source_document = None
+    else:
+        source_document = None
+    if source_document is not None:
         source_frontmatter = dict(source_document.frontmatter)
         _apply_governance_defaults(source_frontmatter)
         source_frontmatter["publication_status"] = next_status
@@ -698,7 +720,10 @@ def resolve_note_path(path: str, *, must_exist: bool) -> Path:
     if not normalized.parts:
         raise ValueError("Invalid note path")
     if not _is_allowed_note_path(normalized):
-        raise ValueError("Path must stay within an allowed OpenAkashic note root")
+        raise ValueError(
+            f"Path '{normalized}' is outside allowed roots (personal_vault/, doc/, assets/). "
+            "Call path_suggestion(title, kind) to get a valid path."
+        )
 
     target = (root / normalized).resolve()
     if root not in target.parents:
@@ -804,7 +829,7 @@ def render_document(frontmatter: dict[str, Any], body: str) -> str:
 
 
 def _apply_governance_defaults(frontmatter: dict[str, Any]) -> None:
-    owner = str(frontmatter.get("owner") or get_settings().default_note_owner).strip() or "admin"
+    owner = str(frontmatter.get("owner") or get_settings().default_note_owner).strip() or "aaron"
     visibility = _normalize_visibility(str(frontmatter.get("visibility") or get_settings().default_note_visibility))
     publication_status = _normalize_publication_status(str(frontmatter.get("publication_status") or "none"))
     frontmatter["owner"] = owner

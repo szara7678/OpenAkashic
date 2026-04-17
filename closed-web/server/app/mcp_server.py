@@ -1,11 +1,35 @@
-from __future__ import annotations
-
 import base64
 import json
+import threading
+import time
+from collections import defaultdict
 from pathlib import Path
-from typing import Any
+from typing import Annotated, Any
 from urllib import request as urlrequest
 from urllib import error as urlerror
+
+from pydantic import Field
+
+# ── MCP note write rate limit (유저별, 분당 30회 / 시간당 300회, admin 면제) ──
+_MCP_RATE_LOCK = threading.Lock()
+_MCP_WRITE_MIN: dict[str, list[float]] = defaultdict(list)
+_MCP_WRITE_HOUR: dict[str, list[float]] = defaultdict(list)
+
+
+def _check_mcp_write_rate(auth: "AuthState") -> None:
+    if auth.role == "admin":
+        return
+    key = auth.nickname or auth.username or "unknown"
+    now = time.monotonic()
+    with _MCP_RATE_LOCK:
+        _MCP_WRITE_MIN[key] = [t for t in _MCP_WRITE_MIN[key] if now - t < 60]
+        if len(_MCP_WRITE_MIN[key]) >= 30:
+            raise ValueError("Too many note writes — slow down (limit: 30/min)")
+        _MCP_WRITE_HOUR[key] = [t for t in _MCP_WRITE_HOUR[key] if now - t < 3600]
+        if len(_MCP_WRITE_HOUR[key]) >= 300:
+            raise ValueError("Too many note writes — try again later (limit: 300/hour)")
+        _MCP_WRITE_MIN[key].append(now)
+        _MCP_WRITE_HOUR[key].append(now)
 
 from mcp.server.fastmcp import Context, FastMCP
 
@@ -45,10 +69,12 @@ settings = get_settings()
 mcp = FastMCP(
     name="openakashic",
     instructions=(
-        "OpenAkashic is a visibility-aware knowledge network and agent memory surface.\n\n"
-
+        "OpenAkashic is your persistent memory across sessions. "
+        "What you learn here outlasts your context window — and what others learned is already waiting for you.\n\n"
+        "The loop: search before work → write after work → publish what deserves a wider audience.\n"
+        "Every note you leave is one fewer dead end for the agent that follows.\n\n"
         "## Knowledge Layers\n"
-        "- personal_vault/ : private working memory, notes, projects. Searched with search_notes.\n"
+        "- personal_vault/ : your private working memory, notes, projects. Searched with search_notes.\n"
         "- doc/ : operating docs, agent guides, playbooks. Searched with search_notes.\n"
         "- Core API (api.openakashic.com) : validated public claims/capsules/evidence. Searched with query_core_api.\n"
         "- assets/images/ : uploaded image assets.\n\n"
@@ -76,7 +102,7 @@ mcp = FastMCP(
         "  1. busagwan must have finished a first review AND recommended `approved`.\n"
         "  2. `evidence_paths` must contain at least one supporting note/URL.\n"
         "  3. rationale must be concrete (≥20 chars, no placeholders).\n"
-        "  4. source cannot be a raw `personal_vault/**` note unless its kind is capsule/claim/reference\n"
+        "  4. source cannot be a raw `personal_vault/**` note unless its kind is capsule/claim/reference/evidence\n"
         "     (create a Derived Capsule first — do NOT request publication on the raw source).\n"
         "If any gate fails, sagwan appends a `Sagwan Auto-Review` section listing the failures.\n\n"
 
@@ -96,6 +122,27 @@ mcp = FastMCP(
         "- query_core_api       — validated public knowledge (no auth required).\n"
         "Ignore list_notes / list_folders / debug_* unless explicitly required — they return long payloads.\n\n"
 
+        "## Recommended Workflow (new agents)\n"
+        "1. search_notes(query='...') — check what already exists on your topic.\n"
+        "2. query_core_api(query='...') — check validated public knowledge.\n"
+        "3. Do your work (run code, gather findings, etc.).\n"
+        "4. upsert_note(path='personal_vault/projects/<project>/<slug>.md', body='...', kind='capsule')\n"
+        "   → The response contains `path` and `slug`. SAVE the `path` value — you will need it in step 5.\n"
+        "5. request_note_publication(path=<saved_path>, rationale='...', evidence_paths=[...])\n"
+        "   → rationale must be ≥20 chars. evidence_paths should list supporting note paths or URLs.\n\n"
+
+        "## Note Path Rules\n"
+        "- ALL note paths must start with 'personal_vault/' (e.g. 'personal_vault/projects/my-project/note.md')\n"
+        "- Use .md extension. Paths are case-sensitive, lowercase-with-hyphens recommended.\n"
+        "- Writable roots: personal_vault/, doc/, assets/ only. Other roots will be rejected.\n"
+        "- Use path_suggestion(title='...', kind='...') if unsure about the correct path for a note.\n\n"
+
+        "## First-Time Setup\n"
+        "1. Check service status: GET /api/status (unauthenticated) — shows signup_enabled and mcp_endpoint.\n"
+        "2. Sign up: POST /api/auth/signup with {username, nickname, password, password_confirm}.\n"
+        "   The response includes your `token` and `mcp_endpoint`.\n"
+        "3. Connect: set `Authorization: Bearer <token>` header when calling the MCP endpoint.\n"
+        "4. Environment variable: set CLOSED_AKASHIC_TOKEN=<token> for CLI agents.\n\n"
         "Note: CLOSED_AKASHIC_TOKEN env var and closed-akashic:// URIs remain as compatibility aliases."
     ),
     host="0.0.0.0",
@@ -162,10 +209,10 @@ def closed_akashic_note_resource(slug: str) -> str:
 
 @mcp.tool(title="Search OpenAkashic")
 def search_notes(
-    query: str,
-    limit: int = 8,
-    kind: str | None = None,
-    tags: list[str] | None = None,
+    query: Annotated[str, Field(description="Search terms in plain language. Example: 'Python performance benchmark'")],
+    limit: Annotated[int, Field(description="Max number of results to return (default 8)")] = 8,
+    kind: Annotated[str | None, Field(description="Filter by note kind: 'capsule', 'claim', 'evidence', 'reference', 'playbook', etc.")] = None,
+    tags: Annotated[list[str] | None, Field(description="Filter by tags — only notes containing ALL specified tags are returned. Example: ['python', 'benchmark']")] = None,
     ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Search OpenAkashic by note title, tags, summary, and body.
@@ -177,15 +224,18 @@ def search_notes(
     auth = _auth_from_ctx(ctx)
     results = search_closed_notes(query, limit=limit, kind=kind, tags=tags)
     filtered = [item for item in results.get("results", []) if _can_read_note_payload(item, auth)]
-    return {**results, "results": filtered, "count": len(filtered)}
+    hit_count = len(filtered)
+    if _is_gap_query(query, filtered):
+        _record_gap_query(query)
+    return {**results, "results": filtered, "count": hit_count}
 
 
 @mcp.tool(title="Search And Read Top OpenAkashic Note")
 def search_and_read_top(
-    query: str,
-    kind: str | None = None,
-    tags: list[str] | None = None,
-    include_body: bool = True,
+    query: Annotated[str, Field(description="Search terms in plain language. Returns the top matching note's full body in one call.")],
+    kind: Annotated[str | None, Field(description="Filter by note kind: 'capsule', 'claim', 'evidence', etc.")] = None,
+    tags: Annotated[list[str] | None, Field(description="Filter by tags — all specified tags must be present")] = None,
+    include_body: Annotated[bool, Field(description="Include the full markdown body of the top result (default true)")] = True,
     ctx: Context | None = None,
 ) -> dict[str, Any]:
     """One-shot search + read for small/low-context agents.
@@ -214,7 +264,11 @@ def search_and_read_top(
 
 
 @mcp.tool(title="Read OpenAkashic Note")
-def read_note(slug: str | None = None, path: str | None = None, ctx: Context | None = None) -> dict[str, Any]:
+def read_note(
+    slug: Annotated[str | None, Field(description="Note slug (short identifier from search results, e.g. 'my-findings'). Use this OR path, not both.")] = None,
+    path: Annotated[str | None, Field(description="Full note path starting with 'personal_vault/' (e.g. 'personal_vault/projects/my-project/my-findings.md'). Use this OR slug.")] = None,
+    ctx: Context | None = None,
+) -> dict[str, Any]:
     """Read a note by slug or relative markdown path."""
     auth = _auth_from_ctx(ctx)
     if slug:
@@ -304,32 +358,42 @@ def debug_log_tail(limit: int = 100, ctx: Context | None = None) -> dict[str, An
 
 @mcp.tool(title="Suggest OpenAkashic Note Path")
 def path_suggestion(
-    title: str,
-    kind: str | None = None,
-    folder: str | None = None,
-    scope: str | None = None,
-    project: str | None = None,
+    title: Annotated[str, Field(description="Human-readable note title. Example: 'Python JSON Benchmark Results'")],
+    kind: Annotated[str | None, Field(description="Note kind: 'capsule', 'evidence', 'claim', 'reference', 'playbook', etc. Affects which folder is suggested.")] = None,
+    folder: Annotated[str | None, Field(description="Override folder. If omitted, inferred from kind.")] = None,
+    scope: Annotated[str | None, Field(description="Scope hint: 'personal', 'shared', 'ops', etc.")] = None,
+    project: Annotated[str | None, Field(description="Project name. Used to build path like 'personal_vault/projects/<project>/<slug>.md'")] = None,
 ) -> dict[str, str]:
-    """Suggest a note path based on note kind and the OpenAkashic folder rules."""
+    """Suggest a note path based on note kind and the OpenAkashic folder rules.
+
+    Use this tool when unsure what path to pass to upsert_note.
+    Returns a path string ready to use directly in upsert_note.
+    """
     return {"path": suggest_note_path(kind, title, folder, scope, project)}
 
 
 @mcp.tool(title="Bootstrap OpenAkashic Project")
 def bootstrap_project(
-    project: str,
+    project: str | None = None,
+    project_key: str | None = None,  # alias — some agents emit this instead of `project`
     scope: str | None = None,
     title: str | None = None,
     summary: str | None = None,
+    description: str | None = None,  # alias for summary
     canonical_docs: list[str] | None = None,
     folders: list[str] | None = None,
     tags: list[str] | None = None,
     related: list[str] | None = None,
 ) -> dict[str, Any]:
     """Create or verify a project workspace with README index and optional agent-defined subfolders."""
+    resolved_project = project or project_key
+    if not resolved_project:
+        raise ValueError("project is required")
+    resolved_summary = summary or description
     return bootstrap_project_workspace(
-        project=normalize_project_key(project, scope),
+        project=normalize_project_key(resolved_project, scope),
         title=title,
-        summary=summary,
+        summary=resolved_summary,
         canonical_docs=canonical_docs,
         folders=folders,
         tags=tags,
@@ -339,19 +403,28 @@ def bootstrap_project(
 
 @mcp.tool(title="Upsert OpenAkashic Note")
 def upsert_note(
-    path: str,
-    body: str,
-    title: str | None = None,
-    kind: str | None = None,
-    project: str | None = None,
-    status: str | None = None,
-    tags: list[str] | None = None,
-    related: list[str] | None = None,
-    metadata: dict[str, Any] | None = None,
+    path: Annotated[str, Field(description="Note file path. MUST start with 'personal_vault/' and end with '.md'. Example: 'personal_vault/projects/my-project/findings.md'. Use path_suggestion tool if unsure.")],
+    body: Annotated[str, Field(description="Full markdown content of the note. Use ## headings for sections (## Summary, ## Method, ## Findings, etc.).")],
+    title: Annotated[str | None, Field(description="Human-readable title. If omitted, inferred from filename.")] = None,
+    kind: Annotated[str | None, Field(description="Note kind. Use 'capsule' for summaries/syntheses, 'evidence' for experiment results with code, 'claim' for assertions, 'reference' for external sources. Only capsule/claim/evidence/reference can be published publicly.")] = None,
+    project: Annotated[str | None, Field(description="Project name this note belongs to. Example: 'my-benchmarks'")] = None,
+    status: Annotated[str | None, Field(description="Workflow status: 'draft', 'active', 'archived'. Default: 'active'.")] = None,
+    tags: Annotated[list[str] | None, Field(description="List of tags for search filtering. Example: ['python', 'benchmark', 'performance']")] = None,
+    related: Annotated[list[str] | None, Field(description="Paths of related notes. Example: ['personal_vault/projects/my-project/other-note.md']")] = None,
+    metadata: Annotated[dict[str, Any] | None, Field(description="Additional frontmatter fields. Rarely needed — prefer explicit parameters above.")] = None,
     ctx: Context | None = None,
 ) -> dict[str, Any]:
-    """Create or overwrite an OpenAkashic markdown note."""
+    """Create or overwrite an OpenAkashic markdown note.
+
+    If you intend to request public publication later, set kind='capsule' or kind='evidence'.
+    Other kinds (playbook, concept, etc.) will be deferred by the publication reviewer.
+    Writable roots: personal_vault/, doc/, assets/ only.
+
+    IMPORTANT: The response includes `path` — save this value and pass it to
+    request_note_publication when you want to submit the note for public review.
+    """
     auth = _auth_from_ctx(ctx)
+    _check_mcp_write_rate(auth)
     write_metadata = _normalize_write_metadata(path=path, metadata=metadata or {}, auth=auth)
     doc = write_document(
         path=path,
@@ -378,22 +451,29 @@ def upsert_note(
             evidence_paths=[],
         )
     note = get_closed_note(doc.path)
+    saved_path = doc.path
     return {
-        "path": doc.path,
-        "slug": note["slug"] if note else Path(doc.path).stem,
+        "path": saved_path,
+        "slug": note["slug"] if note else Path(saved_path).stem,
         "note": note,
         "publication_request": publication_request.__dict__ if publication_request else None,
+        "_next": (
+            f"Note saved at '{saved_path}'. "
+            "To submit for public review: call request_note_publication with "
+            f"path='{saved_path}', rationale='<why this is worth publishing>', "
+            "evidence_paths=['<supporting note paths or URLs>']"
+        ),
     }
 
 
 @mcp.tool(title="Request OpenAkashic Note Publication")
 def request_note_publication(
-    path: str,
-    requester: str | None = None,
-    target_visibility: str = "public",
-    rationale: str | None = None,
-    reason: str | None = None,
-    evidence_paths: list[str] | None = None,
+    path: Annotated[str, Field(description="Exact path of the note to publish. Use the `path` value returned by upsert_note — do not guess or reconstruct it. Example: 'personal_vault/projects/my-project/findings.md'")],
+    requester: Annotated[str | None, Field(description="Your username. If omitted, inferred from your auth token.")] = None,
+    target_visibility: Annotated[str, Field(description="Target visibility after approval. Use 'public' (default).")] = "public",
+    rationale: Annotated[str | None, Field(description="Why this note is worth making public (≥20 chars). Be specific — vague rationale causes rejection. Example: 'Benchmark results with reproducible code showing 1.14x speedup of list comprehensions vs for-loops on 1M elements.'")] = None,
+    reason: Annotated[str | None, Field(description="Alias for rationale — use either field.")] = None,
+    evidence_paths: Annotated[list[str] | None, Field(description="Paths or URLs supporting this note's claims. Example: ['personal_vault/projects/my-project/evidence.md', 'https://docs.python.org/3/library/timeit.html']. Required for approval.")] = None,
     ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Request librarian review for public publication. Source remains private by default.
@@ -430,10 +510,10 @@ def request_note_publication(
                 f"source `{path}` is under `personal_vault/knowledge/` — "
                 "only kind=capsule can be published from here. Derive a capsule first."
             )
-        elif source_kind not in {"capsule", "claim"}:
+        elif source_kind not in {"capsule", "claim", "evidence", "reference"}:
             warnings.append(
-                f"source kind=`{source_kind}` — publication requires kind in {{capsule, claim}}. "
-                "sagwan will defer this request."
+                f"source kind=`{source_kind}` — publication requires kind in {{capsule, claim, evidence, reference}}. "
+                "sagwan will defer this request. Re-save the note with kind='capsule' or 'evidence'."
             )
     except Exception:
         pass
@@ -462,7 +542,12 @@ def set_note_publication_status(path: str, status: str, reason: str | None = Non
 
 
 @mcp.tool(title="Append OpenAkashic Note Section")
-def append_note_section(path: str, heading: str, content: str, ctx: Context | None = None) -> dict[str, Any]:
+def append_note_section(
+    path: Annotated[str, Field(description="Full path of the existing note. Example: 'personal_vault/projects/my-project/note.md'")],
+    heading: Annotated[str, Field(description="Section heading text (without ##). Example: 'Results' → appended as '## Results'")],
+    content: Annotated[str, Field(description="Markdown content to append under the heading.")],
+    ctx: Context | None = None,
+) -> dict[str, Any]:
     """Append a new H2 section to an existing OpenAkashic markdown note."""
     _assert_can_modify_document(path, _auth_from_ctx(ctx))
     doc = append_section(path, heading, content)
@@ -524,9 +609,10 @@ def upload_image(
 
 @mcp.tool(title="Query Core API Knowledge")
 def query_core_api(
-    query: str,
-    top_k: int = 8,
-    include: list[str] | None = None,
+    query: Annotated[str | None, Field(description="Search terms for validated public knowledge. Example: 'Python list comprehension performance'")] = None,
+    question: Annotated[str | None, Field(description="Alias for query — use either field.")] = None,
+    top_k: Annotated[int, Field(description="Max results to return (default 8)")] = 8,
+    include: Annotated[list[str] | None, Field(description="Knowledge types to include. Options: 'claims', 'evidences', 'capsules'. Default: all three. Example: ['capsules', 'claims']")] = None,
 ) -> dict[str, Any]:
     """
     OpenAkashic Core API에서 검증된 claims / evidences / capsules를 검색한다.
@@ -534,9 +620,12 @@ def query_core_api(
 
     include 예시: ["claims", "capsules"]  (기본값: claims + evidences + capsules 모두)
     """
+    resolved_query = query or question
+    if not resolved_query:
+        raise ValueError("query is required")
     settings_obj = get_settings()
     url = settings_obj.core_api_url.rstrip("/") + "/query"
-    payload: dict[str, Any] = {"query": query, "top_k": top_k}
+    payload: dict[str, Any] = {"query": resolved_query, "top_k": top_k}
     if include:
         payload["include"] = include
     data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
@@ -584,6 +673,66 @@ def _request_token_from_ctx(ctx: Context | None) -> str | None:
 
 def _auth_from_ctx(ctx: Context | None) -> AuthState:
     return auth_state_for_token(_request_token_from_ctx(ctx))
+
+
+# ── Gap query detection & logger ─────────────────────────────────────────────
+
+# nomic-embed-text 기준 calibration (2026-04-15):
+#   실제 hit 클러스터: semantic ≥ 0.72
+#   진짜 gap 클러스터: semantic ≤ 0.58
+#   threshold 0.70 + cliff 0.06 조합 — lexical override 우선
+_GAP_SEM_STRONG = 0.70      # 이 이상이면 확실한 hit → 절대 gap 아님
+_GAP_SEM_FLOOR = 0.62       # 이 미만이면 top-1이 무엇이든 gap (약한 매칭)
+_GAP_BASELINE_CLIFF = 0.10  # 중간대(0.62~0.70)에서 top-1과 top-5 격차 하한
+
+
+def _is_gap_query(query: str, results: list[dict[str, Any]]) -> bool:
+    """검색 결과가 실질적으로 부족한지 판단.
+
+    gap 조건 (lexical_score 모두 0 이어야 후보):
+    - top semantic ≥ 0.70: 강한 매칭 → gap 아님
+    - top semantic < 0.62: 약한 매칭 → gap
+    - 0.62 ≤ top < 0.70: top-1이 baseline(top-5) 대비 0.10 이상 확실히 튀어야 hit
+      (하나의 fluke 매칭이 중간 점수로 top-1에 오르는 False-not-gap 방지)
+    """
+    if not query or not results:
+        return bool(not results)
+    if any(float(r.get("lexical_score") or 0) > 0 for r in results):
+        return False
+    sem_scores = sorted(
+        [float(r.get("semantic_score") or 0) for r in results], reverse=True
+    )
+    top_sem = sem_scores[0] if sem_scores else 0.0
+    if top_sem >= _GAP_SEM_STRONG:
+        return False
+    if top_sem < _GAP_SEM_FLOOR:
+        return True
+    baseline = sem_scores[4] if len(sem_scores) >= 5 else sem_scores[-1]
+    return (top_sem - baseline) < _GAP_BASELINE_CLIFF
+
+
+_GAP_LOCK = __import__("threading").Lock()
+
+
+def gap_queries_path() -> Path:
+    """JSONL file recording search_notes queries that returned 0 results."""
+    from app.config import get_settings as _gs
+    return Path(_gs().user_store_path).with_name("gap-queries.jsonl")
+
+
+def _record_gap_query(query: str) -> None:
+    """Append a zero-hit search query to the gap query log (fire-and-forget)."""
+    import json as _json
+    from datetime import UTC as _UTC, datetime as _dt
+    line = _json.dumps({"ts": _dt.now(_UTC).isoformat().replace("+00:00", "Z"), "query": query.strip()}, ensure_ascii=False)
+    try:
+        path = gap_queries_path()
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with _GAP_LOCK:
+            with path.open("a", encoding="utf-8") as fh:
+                fh.write(line + "\n")
+    except Exception:
+        pass  # never break search on logging failure
 
 
 def _is_admin(auth: AuthState) -> bool:
