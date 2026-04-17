@@ -98,12 +98,14 @@ mcp = FastMCP(
         "- Scope (folder path) is a context hint only, not an access control mechanism.\n\n"
 
         "## Publication Governance (important)\n"
-        "sagwan's approval loop enforces 4 hard gates; failing any keeps the request at `reviewing`:\n"
+        "sagwan's approval loop enforces 3 hard gates; failing any keeps the request at `reviewing`:\n"
         "  1. busagwan must have finished a first review AND recommended `approved`.\n"
-        "  2. `evidence_paths` must contain at least one supporting note/URL.\n"
-        "  3. rationale must be concrete (≥20 chars, no placeholders).\n"
-        "  4. source cannot be a raw `personal_vault/**` note unless its kind is capsule/claim/reference/evidence\n"
+        "  2. rationale must be concrete (≥20 chars, no placeholders).\n"
+        "  3. source cannot be a raw `personal_vault/**` note unless its kind is capsule/claim/reference/evidence\n"
         "     (create a Derived Capsule first — do NOT request publication on the raw source).\n"
+        "evidence_paths is optional (soft signal, not a hard gate). External URLs are safest.\n"
+        "Internal note paths are read by sagwan for verification but are NEVER published — they stay private.\n"
+        "If evidence is absent, sagwan applies stricter self-completeness criteria to the capsule body.\n"
         "If any gate fails, sagwan appends a `Sagwan Auto-Review` section listing the failures.\n\n"
 
         "## Agent Memory Protocol\n"
@@ -473,7 +475,7 @@ def request_note_publication(
     target_visibility: Annotated[str, Field(description="Target visibility after approval. Use 'public' (default).")] = "public",
     rationale: Annotated[str | None, Field(description="Why this note is worth making public (≥20 chars). Be specific — vague rationale causes rejection. Example: 'Benchmark results with reproducible code showing 1.14x speedup of list comprehensions vs for-loops on 1M elements.'")] = None,
     reason: Annotated[str | None, Field(description="Alias for rationale — use either field.")] = None,
-    evidence_paths: Annotated[list[str] | None, Field(description="Paths or URLs supporting this note's claims. Example: ['personal_vault/projects/my-project/evidence.md', 'https://docs.python.org/3/library/timeit.html']. Required for approval.")] = None,
+    evidence_paths: Annotated[list[str] | None, Field(description="Optional. External URLs or internal note paths that support this note's claims. External URLs (https://...) are recommended — they carry no privacy risk. Internal note paths (e.g. 'personal_vault/...') are read by sagwan for verification but are NEVER published and stay at their original visibility. Omitting evidence is allowed; sagwan applies stricter self-completeness criteria to evidence-free requests.")] = None,
     ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Request librarian review for public publication. Source remains private by default.
@@ -498,7 +500,11 @@ def request_note_publication(
     elif len(effective_rationale) < 20:
         warnings.append("rationale is very short (<20 chars) — consider expanding")
     if not (evidence_paths or []):
-        warnings.append("evidence_paths is empty — link supporting notes to strengthen the request")
+        warnings.append(
+            "evidence_paths is empty — sagwan will apply stricter self-completeness criteria. "
+            "Consider adding external URLs (https://...) as evidence; internal note paths are also accepted "
+            "and stay private (never published)."
+        )
     # 거버넌스 게이트 미리 안내 — 사관 승인 루프가 아래 조건 중 하나라도 어기면 deferred 처리한다.
     try:
         source_doc = load_document(path)
@@ -821,3 +827,4 @@ def _normalize_write_metadata(*, path: str, metadata: dict[str, Any], auth: Auth
         raise ValueError("Users can only set publication status to none or requested")
     next_metadata["publication_status"] = publication_status or "none"
     return next_metadata
+
