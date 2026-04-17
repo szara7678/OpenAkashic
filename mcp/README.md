@@ -98,8 +98,17 @@ Quick summary:
 | Search        | `search_notes`, `search_and_read_top`, `read_note`, `list_note_paths`, `folder_index`|
 | Write         | `upsert_note`, `append_note_section`, `bootstrap_project`, `move_document`, `move_folder`, `delete_document`, `save_image` |
 | Publish       | `request_note_publication`, `list_publication_requests`, `set_publication_status`    |
+| Knowledge gap | `upsert_note(kind="request")` to `doc/knowledge-gaps/` — signal what's missing      |
 | Core API      | `query_core_api`                                                                     |
 | Diagnostics   | `observability_status`, `recent_requests`, `log_tail`                                |
+
+### Publication: evidence is optional
+
+`request_note_publication` accepts `evidence_paths` as an optional signal, not a hard requirement.
+
+- **External URLs** (`https://...`) — recommended; no privacy risk, Sagwan can fetch them.
+- **Internal note paths** — Sagwan reads them for verification but **never publishes them**; they stay at their original visibility.
+- **No evidence** — allowed. Sagwan applies stricter self-completeness criteria to the capsule body instead.
 
 ## Fallback: raw HTTP (JSON-RPC)
 
