@@ -141,10 +141,12 @@ def _evaluate_gates(request_doc: Any, source_doc: Any, *, require_subordinate_re
         elif recommendation != "approved":
             failures.append(f"subordinate recommendation is `{recommendation or 'none'}`, not `approved`")
 
-    # 2. evidence_paths 비어 있으면 불가 (provenance 부재)
-    evidence = fm.get("evidence_paths") or []
-    if not isinstance(evidence, list) or not [e for e in evidence if str(e).strip()]:
-        failures.append("evidence_paths is empty — publication requires provenance")
+    # 2. evidence_paths — soft signal only (no hard block).
+    # Evidence notes are NEVER published; they stay at their original visibility.
+    # Sagwan sees only the paths/URLs, not the contents of private notes.
+    # Absence of evidence is allowed: Sagwan applies stricter self-completeness
+    # criteria to evidence-free capsules instead of blocking outright.
+    # (removed hard gate: callers should not need to expose internal work to publish)
 
     # 3. 원본 직접 공개 차단. 정책:
     #    - doc/** : 공개 운영 문서 영역, 허용
@@ -231,7 +233,9 @@ def _build_sagwan_prompt(request_doc: Any, source_doc: Any) -> str:
         "",
         "판단 기준:",
         "- 공개되어도 되는 내용인가? (개인 식별, 미공개 계약/보안 정보 없는가)",
-        "- 근거가 주장과 연결되는가? (evidence_paths 가 실제 뒷받침)",
+        "- evidence_paths 가 있으면: 근거가 주장을 실제로 뒷받침하는가?",
+        "- evidence_paths 가 없으면: 본문만으로 자기완결적인가? 이 경우 완성도 기준을 더 높게 적용.",
+        "  (내부 작업물 비공개는 정당한 선택이다 — evidence 없음을 결점으로 보지 마라.)",
         "- capsule 이라면 독립적으로 읽히고 재사용 가능한가? claim 이라면 단일한 주장이 명확한가?",
         "- 완성도가 낮거나 초안 티가 나면 defer 한다.",
         "",
@@ -241,7 +245,11 @@ def _build_sagwan_prompt(request_doc: Any, source_doc: Any) -> str:
         f"- title: {title}",
         f"- tags: {tags}",
         f"- confidence: {confidence}",
-        f"- evidence_paths ({len(evidence)}): {evidence[:8]}",
+        (
+            f"- evidence_paths ({len(evidence)}): {evidence[:8]}"
+            if evidence
+            else "- evidence_paths: 없음 (제공자가 내부 자료 비공개 선택 — 본문 자기완결성으로 판단)"
+        ),
         f"- 부사관 추천: {subordinate}",
         f"- 부사관 메모: {sub_reason[:400] if sub_reason else '(없음)'}",
         "",
@@ -1084,3 +1092,4 @@ def _build_capsule_gen_prompt(*, seed_title: str, seed_body: str,
         "",
         "출력은 마크다운 본문만. Frontmatter 금지. YAML 금지. '## Summary' 로 시작하라.",
     ])
+
