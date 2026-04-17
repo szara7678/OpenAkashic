@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 import json
+import os
+import re
 from pathlib import Path
 import subprocess
 from typing import Any
@@ -9,6 +11,7 @@ from typing import Any
 from app.auth import librarian_identity_dict
 from app.config import get_settings
 from app.site import get_closed_note, search_closed_notes
+from app.users import SAGWAN_SYSTEM_OWNER
 from app.vault import (
     append_section,
     bootstrap_project_workspace,
@@ -29,6 +32,9 @@ LIBRARIAN_README_PATH = "personal_vault/projects/ops/librarian/README.md"
 OPENAKASHIC_REVIEW_PATH = (
     "personal_vault/projects/personal/openakashic/reference/closed-akashic-user-scope-review.md"
 )
+# 부사관 메모리 — 사서장이 부사관 경험을 참조하기 위해 읽는다
+SUBORDINATE_MEMORY_PATH = "personal_vault/projects/ops/librarian/memory/Subordinate Working Memory.md"
+
 LIBRARIAN_TOOL_NAMES = (
     "exec_command",
     "search_notes",
@@ -38,6 +44,7 @@ LIBRARIAN_TOOL_NAMES = (
     "request_publication",
     "list_publication_requests",
     "set_publication_status",
+    "enqueue_task",
 )
 
 
@@ -204,12 +211,78 @@ def librarian_status() -> dict[str, Any]:
     }
 
 
-def librarian_chat(message: str, thread: list[dict[str, str]] | None = None) -> dict[str, Any]:
+def librarian_chat(
+    message: str,
+    thread: list[dict[str, str]] | None = None,
+    *,
+    current_note_path: str | None = None,
+) -> dict[str, Any]:
     ensure_librarian_workspace()
-    relevant_notes = _relevant_context(message)
+    relevant_notes = _relevant_context(message, current_note_path=current_note_path)
     settings = get_settings()
     runtime = load_librarian_settings()
-    if runtime["provider"].strip().lower() != "openai-compatible":
+    provider = runtime["provider"].strip().lower()
+
+    if provider == "claude-cli":
+        import shutil
+        if shutil.which("claude"):
+            # 호스트/컨테이너에 claude binary가 있으면 subprocess ReAct 루프 사용
+            try:
+                response = _run_claude_cli_librarian(message, thread or [], relevant_notes)
+            except Exception as exc:
+                failure = f"사서장 CLI 호출 중 오류가 발생했다: {exc}"
+                _remember_interaction(message, failure, [])
+                return {
+                    "message": failure,
+                    "status": "error",
+                    "tool_events": [],
+                    "context_notes": relevant_notes,
+                    "model": "claude-cli",
+                }
+            _remember_interaction(message, response["message"], response["tool_events"])
+            return {
+                **response,
+                "context_notes": relevant_notes,
+                "model": "claude-cli",
+                "status": "ok",
+            }
+        elif settings.has_librarian_api_key:
+            # binary 없이 ANTHROPIC_API_KEY가 있으면 OpenAI compat(Anthropic) 폴백
+            try:
+                response = _run_openai_librarian(message, thread or [], relevant_notes)
+            except Exception as exc:
+                failure = f"사서장 Anthropic API 호출 중 오류가 발생했다: {exc}"
+                _remember_interaction(message, failure, [])
+                return {
+                    "message": failure,
+                    "status": "error",
+                    "tool_events": [],
+                    "context_notes": relevant_notes,
+                    "model": runtime["model"],
+                }
+            _remember_interaction(message, response["message"], response["tool_events"])
+            return {
+                **response,
+                "context_notes": relevant_notes,
+                "model": runtime["model"],
+                "status": "ok",
+            }
+        else:
+            fallback = (
+                "사서장 claude-cli 런타임이 준비되지 않았다. "
+                "컨테이너에 claude binary가 없고 ANTHROPIC_API_KEY도 설정되지 않았다. "
+                "env 파일에 ANTHROPIC_API_KEY를 추가하거나 컨테이너에 claude CLI를 설치하라."
+            )
+            _remember_interaction(message, fallback, [])
+            return {
+                "message": fallback,
+                "status": "needs_claude_cli_or_api_key",
+                "tool_events": [],
+                "context_notes": relevant_notes,
+                "model": runtime["model"],
+            }
+
+    if provider != "openai-compatible":
         fallback = _codex_style_fallback(message, relevant_notes)
         _remember_interaction(message, fallback, [])
         return {
@@ -256,6 +329,163 @@ def librarian_chat(message: str, thread: list[dict[str, str]] | None = None) -> 
     }
 
 
+def _invoke_claude_cli(prompt: str, model: str | None = None) -> str:
+    """claude -p CLI를 subprocess로 호출해 응답 텍스트를 반환한다."""
+    try:
+        cmd = ["claude", "-p", "--tools", "", "--output-format", "text"]
+        if model:
+            cmd.extend(["--model", model])
+        cmd.append(prompt)
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=180,
+            env={**os.environ},
+        )
+        if result.returncode == 0:
+            return result.stdout.strip()
+        return f"[CLI 오류 {result.returncode}] {result.stderr.strip()[:400]}"
+    except FileNotFoundError:
+        return "[CLI 오류] claude 명령어를 찾을 수 없다. PATH를 확인하라."
+    except subprocess.TimeoutExpired:
+        return "[CLI 오류] 응답 시간 초과 (120초)"
+    except Exception as exc:
+        return f"[CLI 오류] {exc}"
+
+
+def _cli_tool_definitions(enabled_tools: list[str] | None = None) -> str:
+    """사관이 사용할 수 있는 도구 목록과 호출 형식을 반환한다."""
+    allowed = set(enabled_tools or LIBRARIAN_TOOL_NAMES)
+    signatures = {
+        "exec_command": "exec_command(command: str, cwd?: str, timeout_sec?: int) — 서버 명령 실행",
+        "search_notes": "search_notes(query: str, limit?: int) — 노트 검색",
+        "read_note": "read_note(path: str) — 노트 읽기",
+        "append_note_section": "append_note_section(path: str, heading: str, content: str) — 노트에 섹션 추가",
+        "upsert_note": "upsert_note(path: str, body: str, title?: str, kind?: str, project?: str) — 노트 생성/수정",
+        "request_publication": "request_publication(path: str, requester?: str, rationale?: str, evidence_paths?: list) — 공개 신청",
+        "list_publication_requests": "list_publication_requests(status?: str) — 공개 신청 목록",
+        "set_publication_status": "set_publication_status(path: str, status: str, reason?: str) — 공개 상태 변경 (status: requested|reviewing|approved|rejected|published)",
+        "enqueue_task": 'enqueue_task(kind: str, payload: dict) — 부사관 태스크 큐에 추가. kind: crawl_url|draft_capsule|draft_claim|sync_to_core_api|analyze_search_gaps. crawl_url payload: {"url": "...", "folder": "..."}, draft_capsule payload: {"source_path": "..."}, draft_claim payload: {"source_path": "..."}, sync_to_core_api payload: {"limit": 10}, analyze_search_gaps payload: {"max_new": 10}',
+    }
+    lines = [
+        "## 사용 가능한 도구",
+        *[f"- {sig}" for name, sig in signatures.items() if name in allowed],
+        "",
+        "도구가 필요하면 다음 형식으로 한 번에 하나씩 출력하라:",
+        "<<TOOL_CALL>>",
+        '{"name": "도구이름", "arguments": {"key": "value"}}',
+        "<</TOOL_CALL>>",
+        "",
+        "최종 답변은 반드시 다음 형식으로 출력하라:",
+        "<<FINAL>>",
+        "답변 내용",
+        "<</FINAL>>",
+    ]
+    return "\n".join(lines)
+
+
+def _build_cli_prompt(
+    instructions: str,
+    tool_defs: str,
+    history: str,
+    message: str,
+    tool_exchange: str,
+) -> str:
+    """단일 claude -p 호출용 프롬프트를 조립한다."""
+    parts = [instructions, tool_defs]
+    if history:
+        parts.append(f"## 대화 이력\n{history}")
+    parts.append(f"## 현재 요청\n사용자: {message}")
+    if tool_exchange:
+        parts.append(f"## 도구 실행 내역\n{tool_exchange}")
+    parts.append(
+        "위 내용을 바탕으로 처리하라.\n"
+        "절대 지켜야 할 규칙:\n"
+        "1. 너는 vault 파일시스템에 직접 접근할 수 없다. 파일 읽기/쓰기/검색/실행은 반드시 위에 명시된 도구를 <<TOOL_CALL>> JSON으로 호출해야 한다.\n"
+        "2. 파일 작성/수정이 요청됐다면 반드시 upsert_note 또는 append_note_section 도구를 실제로 호출해라. 호출 없이 '작성됐습니다'라고 말하지 마라(거짓말 금지).\n"
+        "3. '파일이 없다', '권한이 없다' 같은 추측으로 포기하지 마라. 먼저 도구를 실제로 호출해 확인하라.\n"
+        "4. 한 번에 하나의 <<TOOL_CALL>>만 출력하라. 결과는 다음 턴에 `## 도구 실행 내역`으로 주어진다.\n"
+        "5. 도구 호출과 최종 답변을 동시에 출력하지 마라. 모든 필요한 도구 호출이 끝난 뒤에만 <<FINAL>>을 작성하라."
+    )
+    return "\n\n".join(parts)
+
+
+def _run_claude_cli_librarian(
+    message: str,
+    thread: list[dict[str, str]],
+    relevant_notes: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """claude -p CLI를 이용한 ReAct 루프로 사관 응답을 생성한다."""
+    runtime = load_librarian_settings()
+    instructions = _librarian_instructions(relevant_notes)
+    tool_defs = _cli_tool_definitions(runtime["enabled_tools"])
+    history = "\n".join(
+        f"{'사용자' if item.get('role') == 'user' else '사서장'}: {item.get('content', '')[:600]}"
+        for item in (thread or [])[-12:]
+        if item.get("role") in {"user", "assistant"} and item.get("content", "").strip()
+    )
+
+    tool_events: list[dict[str, Any]] = []
+    tool_exchange = ""
+
+    for _iteration in range(14):
+        prompt = _build_cli_prompt(instructions, tool_defs, history, message, tool_exchange)
+        reply = _invoke_claude_cli(prompt, runtime.get("model") or None)
+
+        if not reply or reply.startswith("[CLI 오류]"):
+            return {"message": reply or "사서장이 응답을 만들지 못했다.", "tool_events": tool_events}
+
+        # 도구 호출 파싱 — 먼저 마커 형식, 없으면 JSON 블록 탐지(백업)
+        tool_payload: str | None = None
+        tool_match = re.search(r"<<TOOL_CALL>>\s*(.*?)\s*<</TOOL_CALL>>", reply, re.DOTALL)
+        if tool_match:
+            tool_payload = tool_match.group(1).strip()
+        else:
+            # 마커 없이 raw JSON으로 온 경우 fenced code 또는 단독 JSON 추출
+            fenced = re.search(r"```(?:json)?\s*(\{.*?\"name\".*?\})\s*```", reply, re.DOTALL)
+            if fenced:
+                tool_payload = fenced.group(1).strip()
+            else:
+                brace = re.search(r"(\{[^{}]*\"name\"\s*:\s*\"[a-z_]+\"\s*,\s*\"arguments\"\s*:\s*\{.*?\}\s*\})", reply, re.DOTALL)
+                if brace:
+                    tool_payload = brace.group(1).strip()
+        if tool_payload:
+            name = ""
+            args: dict[str, Any] = {}
+            try:
+                call = json.loads(tool_payload)
+                name = str(call.get("name", ""))
+                args = dict(call.get("arguments", {}))
+            except Exception as exc:
+                tool_events.append({"name": "_parse_error", "arguments": {"payload": tool_payload[:400]}, "result": {"error": str(exc)}})
+                tool_exchange += f"\n### _parse_error\n오류: {exc}\n"
+                continue
+            if name:
+                try:
+                    result = _run_tool(name, args)
+                except Exception as exc:
+                    result = {"error": f"{type(exc).__name__}: {exc}"}
+                tool_events.append({"name": name, "arguments": args, "result": result})
+                tool_exchange += (
+                    f"\n### {name}\n"
+                    f"인자: {json.dumps(args, ensure_ascii=False)[:400]}\n"
+                    f"결과: {json.dumps(result, ensure_ascii=False)[:1500]}\n"
+                )
+                continue
+
+        # 최종 답변 추출
+        final_match = re.search(r"<<FINAL>>\s*(.*?)\s*<</FINAL>>", reply, re.DOTALL)
+        text = (
+            final_match.group(1).strip()
+            if final_match
+            else re.sub(r"<</?(?:TOOL_CALL|FINAL)>>", "", reply).strip()
+        )
+        return {"message": text or "사서장이 응답을 만들지 못했다.", "tool_events": tool_events}
+
+    return {"message": "사서장이 최대 반복 횟수(14)에 도달했다.", "tool_events": tool_events}
+
+
 def _run_openai_librarian(
     message: str,
     thread: list[dict[str, str]],
@@ -265,9 +495,11 @@ def _run_openai_librarian(
 
     settings = get_settings()
     runtime = load_librarian_settings()
+    # claude-cli provider → Anthropic OpenAI-compat endpoint 사용
+    effective_base_url = runtime["base_url"] or settings.librarian_effective_base_url or None
     client = OpenAI(
         api_key=settings.librarian_api_key,
-        base_url=runtime["base_url"] or None,
+        base_url=effective_base_url,
     )
     instructions = _librarian_instructions(relevant_notes)
     messages = [{"role": "system", "content": instructions}, *_thread_to_messages(thread)]
@@ -364,6 +596,7 @@ def _librarian_instructions(relevant_notes: list[dict[str, Any]]) -> str:
     profile = _read_note_safely(LIBRARIAN_PROFILE_PATH)
     policy = _read_note_safely(LIBRARIAN_POLICY_PATH)
     memory = _read_note_safely(LIBRARIAN_MEMORY_PATH)
+    subordinate_memory = _read_note_safely(SUBORDINATE_MEMORY_PATH)
     notes_block = "\n\n".join(
         [
             f"[{item['title']}] {item['path']}\nSummary: {item['summary']}"
@@ -372,17 +605,18 @@ def _librarian_instructions(relevant_notes: list[dict[str, Any]]) -> str:
     )
     return "\n\n".join(
         [
-            "너는 OpenAkashic의 사서장이다.",
-            "역할은 공개 승격, 링크 정리, 정책 일관성 유지, 메모리 축적, 운영 보고다.",
+            "너는 OpenAkashic의 사서장(sagwan)이다.",
+            "역할: 공개 승격 최종 결정, 정책 일관성 유지, 운영 메모리 축적, 부사관(busagwan) 감독 및 태스크 위임.",
             "private/source/shared/public 레이어를 섞지 말고, 공개 가능한 것만 승격 후보로 다뤄라.",
-            "새 개인 문서는 현재 토큰 소유자 owner, visibility=private 보관이고, 공개는 request_publication으로만 신청한다.",
+            "새 개인 문서는 visibility=private으로 시작하고, 공개는 request_publication → 부사관 1차 리뷰 → 사서장 최종 결정 순서를 지킨다.",
             "scope는 폴더/맥락 선택일 뿐 권한 모델이 아니다.",
             "공개 결과는 raw source가 아니라 fact/evidence summary/capsule/know-how 형태여야 한다.",
-            "답변은 짧고 실무적으로 하고, 필요하면 도구를 사용하라.",
-            "중요한 운영 판단이나 재사용 가치가 높은 정보는 memory_write 제안 형태로 드러내라.",
+            "반복 작업(URL 크롤링, capsule 초안, Core API 동기화)은 enqueue_task로 부사관에게 위임하라.",
+            "답변은 짧고 실무적으로. 도구가 필요하면 사용하라. 중요 판단은 append_note_section으로 Working Memory에 남겨라.",
             f"## Profile\n{profile}",
             f"## Policy\n{policy}",
-            f"## Working Memory\n{memory}",
+            f"## Librarian Working Memory\n{memory}",
+            f"## Subordinate (busagwan) Working Memory\n{subordinate_memory or '아직 없음'}",
             f"## Relevant Notes\n{notes_block or '없음'}",
         ]
     )
@@ -521,6 +755,32 @@ def _tool_registry(enabled_tools: list[str] | None = None) -> list[dict[str, Any
                 "additionalProperties": False,
             },
         },
+        {
+            "type": "function",
+            "name": "enqueue_task",
+            "description": (
+                "Queue a background task for the subordinate agent (busagwan). "
+                "Use for repetitive or long-running work: crawling URLs, drafting capsules, syncing to Core API, or processing knowledge gaps. "
+                "kind=crawl_url: payload requires 'url'; optional 'folder', 'project'. "
+                "kind=draft_capsule: payload requires 'source_path'. "
+                "kind=draft_claim: payload requires 'source_path' — extracts atomic factual claims (measurements, experiments, observations) and creates kind=claim notes. "
+                "kind=sync_to_core_api: payload optionally has 'limit' (default 10). "
+                "kind=analyze_search_gaps: payload optionally has 'max_new' (default 10) — processes gap-queries.jsonl and creates candidate gap notes."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "kind": {
+                        "type": "string",
+                        "enum": ["crawl_url", "draft_capsule", "draft_claim", "sync_to_core_api", "analyze_search_gaps"],
+                    },
+                    "payload": {"type": "object"},
+                    "run_after": {"type": "string", "description": "ISO8601 datetime to delay execution"},
+                },
+                "required": ["kind", "payload"],
+                "additionalProperties": False,
+            },
+        },
     ]
     return [item for item in catalog if item["name"] in allowed]
 
@@ -547,7 +807,7 @@ def _run_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
             title=arguments.get("title"),
             kind=arguments.get("kind"),
             project=arguments.get("project"),
-            metadata={"owner": "sagwan", "created_by": "sagwan"},
+            metadata={"owner": SAGWAN_SYSTEM_OWNER, "created_by": SAGWAN_SYSTEM_OWNER},
         )
         return {"path": doc.path, "title": doc.frontmatter.get("title")}
     if name == "request_publication":
@@ -570,6 +830,15 @@ def _run_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
             reason=arguments.get("reason"),
         )
         return {"path": doc.path, "frontmatter": doc.frontmatter}
+    if name == "enqueue_task":
+        from app.subordinate import enqueue_subordinate_task
+        task = enqueue_subordinate_task(
+            kind=arguments["kind"],
+            payload=dict(arguments.get("payload") or {}),
+            created_by="sagwan",
+            run_after=arguments.get("run_after"),
+        )
+        return {"queued": True, "task_id": task["id"], "kind": task["kind"], "status": task["status"]}
     return {"error": f"Unknown tool: {name}"}
 
 
@@ -600,17 +869,33 @@ def _tool_exec_command(arguments: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _relevant_context(message: str) -> list[dict[str, Any]]:
+def _relevant_context(
+    message: str,
+    *,
+    current_note_path: str | None = None,
+) -> list[dict[str, Any]]:
     preferred_paths = [
         LIBRARIAN_README_PATH,
         LIBRARIAN_PROFILE_PATH,
         LIBRARIAN_POLICY_PATH,
         LIBRARIAN_MEMORY_PATH,
+        SUBORDINATE_MEMORY_PATH,   # 부사관 경험 교차 공유
         OPENAKASHIC_REVIEW_PATH,
     ]
     by_path: dict[str, dict[str, Any]] = {}
 
+    # 사용자가 현재 열람 중인 노트를 최우선 컨텍스트로 포함한다.
+    # (UI에서 채팅 시 명시적으로 전달. preferred_paths 뒤에 merge 하지 않고 앞에 두어 잘림 없이 보존.)
+    current_ctx: dict[str, Any] | None = None
+    if current_note_path:
+        note = get_closed_note(current_note_path)
+        if note:
+            current_ctx = {**_note_context(note), "is_current_note": True}
+            by_path[current_note_path] = current_ctx
+
     for path in preferred_paths:
+        if path in by_path:
+            continue
         note = get_closed_note(path)
         if note:
             by_path[path] = _note_context(note)
@@ -622,7 +907,12 @@ def _relevant_context(message: str) -> list[dict[str, Any]]:
             continue
         by_path.setdefault(note["path"], _note_context(note))
 
-    return list(by_path.values())[:8]
+    ordered = list(by_path.values())[:10]
+    # 현재 노트는 맨 앞 고정 (검색/preferred 순서에 밀리지 않도록)
+    if current_ctx and ordered and ordered[0] is not current_ctx:
+        ordered = [current_ctx] + [item for item in ordered if item is not current_ctx]
+        ordered = ordered[:10]
+    return ordered
 
 
 def _note_context(note: dict[str, Any]) -> dict[str, Any]:

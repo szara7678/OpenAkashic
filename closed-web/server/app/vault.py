@@ -2,13 +2,29 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import UTC, datetime
+import json
 import mimetypes
 from pathlib import Path
 import re
+import threading
 from typing import Any
 from uuid import uuid4
 
+# ── per-file write lock ──────────────────────────────────────────────────────
+# read-modify-write 패턴(append_section 등)의 lost-update 방지.
+# 단일 프로세스 내 스레드 경합이 대상이므로 threading.Lock 으로 충분.
+_path_locks: dict[str, threading.Lock] = {}
+_path_locks_guard = threading.Lock()
+
+
+def _get_path_lock(abs_path: str) -> threading.Lock:
+    with _path_locks_guard:
+        if abs_path not in _path_locks:
+            _path_locks[abs_path] = threading.Lock()
+        return _path_locks[abs_path]
+
 from app.config import get_settings
+from app.users import SAGWAN_SYSTEM_OWNER
 
 
 IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".avif"}
@@ -134,6 +150,7 @@ PUBLICATION_STATUS_VALUES = {
     "approved",
     "rejected",
     "published",
+    "escalated",  # busagwan 반복 실패 → 사관 수동 리뷰 필요
 }
 PUBLICATION_REQUEST_FOLDER = "personal_vault/projects/ops/librarian/publication_requests"
 
@@ -262,62 +279,76 @@ def write_document(
     related: list[str] | None = None,
     metadata: dict[str, Any] | None = None,
     allow_owner_change: bool = False,
+    metadata_replace: bool = False,
 ) -> VaultDocument:
     target = resolve_note_path(path, must_exist=False)
-    existing = load_document(path) if target.exists() else None
-    frontmatter = dict(existing.frontmatter if existing else {})
+    with _get_path_lock(str(target.resolve())):
+        existing = load_document(path) if target.exists() else None
+        if metadata_replace and metadata is not None:
+            frontmatter = dict(metadata)
+            if existing and not allow_owner_change:
+                frontmatter["owner"] = existing.frontmatter.get("owner")
+        else:
+            frontmatter = dict(existing.frontmatter if existing else {})
 
-    if title:
-        frontmatter["title"] = title
-    elif not frontmatter.get("title"):
-        frontmatter["title"] = target.stem
+        if title:
+            frontmatter["title"] = title
+        elif not frontmatter.get("title"):
+            frontmatter["title"] = target.stem
 
-    if kind:
-        frontmatter["kind"] = normalize_kind(kind)
-    elif not frontmatter.get("kind"):
-        frontmatter["kind"] = "reference"
-    else:
-        frontmatter["kind"] = normalize_kind(str(frontmatter.get("kind")))
+        if kind:
+            frontmatter["kind"] = normalize_kind(kind)
+        elif not frontmatter.get("kind"):
+            frontmatter["kind"] = "reference"
+        else:
+            frontmatter["kind"] = normalize_kind(str(frontmatter.get("kind")))
 
-    if project:
-        frontmatter["project"] = project
-    elif not frontmatter.get("project"):
-        frontmatter["project"] = "openakashic"
+        if project:
+            frontmatter["project"] = project
+        elif not frontmatter.get("project"):
+            frontmatter["project"] = "openakashic"
 
-    if status:
-        frontmatter["status"] = status
-    elif not frontmatter.get("status"):
-        frontmatter["status"] = "active"
+        if status:
+            frontmatter["status"] = status
+        elif not frontmatter.get("status"):
+            frontmatter["status"] = "active"
 
-    if not frontmatter.get("confidence"):
-        frontmatter["confidence"] = "high"
+        if not frontmatter.get("confidence"):
+            frontmatter["confidence"] = "high"
 
-    if tags is not None:
-        frontmatter["tags"] = tags
-    elif "tags" not in frontmatter:
-        frontmatter["tags"] = []
+        if tags is not None:
+            frontmatter["tags"] = tags
+        elif "tags" not in frontmatter:
+            frontmatter["tags"] = []
 
-    if related is not None:
-        frontmatter["related"] = related
-    elif "related" not in frontmatter:
-        frontmatter["related"] = []
+        if related is not None:
+            frontmatter["related"] = related
+        elif "related" not in frontmatter:
+            frontmatter["related"] = []
 
-    if metadata:
-        next_metadata = dict(metadata)
-        if existing and not allow_owner_change and "owner" in next_metadata:
-            next_metadata["owner"] = existing.frontmatter.get("owner")
-        frontmatter.update(next_metadata)
+        if metadata:
+            next_metadata = dict(metadata)
+            if existing and not allow_owner_change and "owner" in next_metadata:
+                next_metadata["owner"] = existing.frontmatter.get("owner")
+            frontmatter.update(next_metadata)
 
-    _apply_governance_defaults(frontmatter)
+        _apply_governance_defaults(frontmatter)
 
-    now = datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
-    frontmatter["updated_at"] = now
-    if "created_at" not in frontmatter:
-        frontmatter["created_at"] = now
+        now = datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+        frontmatter["updated_at"] = now
+        if "created_at" not in frontmatter:
+            frontmatter["created_at"] = now
 
-    target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(render_document(frontmatter, body), encoding="utf-8")
-    return load_document(path)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(render_document(frontmatter, body), encoding="utf-8")
+        # 노트 캐시 무효화 — site.py의 TTL 캐시를 즉시 비워 다음 검색이 최신 데이터를 반환하도록.
+        # lazy import로 순환 임포트 방지 (site → vault, 역방향 금지).
+        try:
+            from app.site import invalidate_notes_cache as _inv
+            _inv()
+        except Exception:
+            pass
+        return load_document(path)
 
 
 def request_publication(
@@ -339,6 +370,30 @@ def request_publication(
     existing_request = _find_latest_publication_request(document.path)
     if existing_request and existing_request.status in {"requested", "reviewing", "approved"}:
         return existing_request
+
+    if requester_value != SAGWAN_SYSTEM_OWNER:
+        from datetime import datetime, timedelta, timezone
+
+        now_dt = datetime.now(timezone.utc)
+        hour_ago = now_dt - timedelta(hours=1)
+        day_ago = now_dt - timedelta(days=1)
+        hourly = 0
+        daily = 0
+        for req in list_publication_requests():
+            if req.requester != requester_value:
+                continue
+            try:
+                ts = datetime.fromisoformat(req.requested_at.replace("Z", "+00:00"))
+            except (ValueError, AttributeError):
+                continue
+            if ts >= hour_ago:
+                hourly += 1
+            if ts >= day_ago:
+                daily += 1
+        if hourly >= 5:
+            raise ValueError("Publication request rate limit exceeded — max 5 per hour")
+        if daily >= 30:
+            raise ValueError("Publication request rate limit exceeded — max 30 per day")
 
     source_frontmatter["publication_status"] = "requested"
     source_frontmatter["publication_requested_at"] = requested_at
@@ -389,7 +444,7 @@ def request_publication(
         tags=["librarian", "publication", "request"],
         related=[str(source_frontmatter.get("title", ""))] if source_frontmatter.get("title") else [],
         metadata={
-            "owner": "sagwan",
+            "owner": SAGWAN_SYSTEM_OWNER,
             "visibility": "private",
             "publication_status": "reviewing",
             "source_path": document.path,
@@ -475,7 +530,13 @@ def set_publication_status(
     updated_request = write_document(path=document.path, body=document.body, metadata=frontmatter, allow_owner_change=True)
     source_path = str(frontmatter.get("source_path") or "")
     if source_path:
-        source_document = load_document(source_path)
+        try:
+            source_document = load_document(source_path)
+        except FileNotFoundError:
+            source_document = None
+    else:
+        source_document = None
+    if source_document is not None:
         source_frontmatter = dict(source_document.frontmatter)
         _apply_governance_defaults(source_frontmatter)
         source_frontmatter["publication_status"] = next_status
@@ -667,7 +728,10 @@ def resolve_note_path(path: str, *, must_exist: bool) -> Path:
     if not normalized.parts:
         raise ValueError("Invalid note path")
     if not _is_allowed_note_path(normalized):
-        raise ValueError("Path must stay within an allowed OpenAkashic note root")
+        raise ValueError(
+            f"Path '{normalized}' is outside allowed roots (personal_vault/, doc/, assets/). "
+            "Call path_suggestion(title, kind) to get a valid path."
+        )
 
     target = (root / normalized).resolve()
     if root not in target.parents:
@@ -745,12 +809,22 @@ def parse_yamlish(value: str) -> dict[str, Any]:
             continue
         key, raw = line.split(":", 1)
         raw = raw.strip()
-        if raw.startswith("[") and raw.endswith("]"):
-            output[key.strip()] = [
-                item.strip().strip("\"'")
-                for item in raw[1:-1].split(",")
-                if item.strip()
-            ]
+        if raw.startswith("[") or raw.startswith("{"):
+            # JSON 형식 (render_document가 complex value에 json.dumps 사용)
+            try:
+                output[key.strip()] = json.loads(raw)
+                continue
+            except (json.JSONDecodeError, ValueError):
+                pass
+            # fallback: 단순 inline 리스트 파싱 (문자열 아이템만)
+            if raw.startswith("[") and raw.endswith("]"):
+                output[key.strip()] = [
+                    item.strip().strip("\"'")
+                    for item in raw[1:-1].split(",")
+                    if item.strip()
+                ]
+            else:
+                output[key.strip()] = raw.strip("\"'")
         else:
             output[key.strip()] = raw.strip("\"'")
     return output
@@ -762,8 +836,19 @@ def render_document(frontmatter: dict[str, Any], body: str) -> str:
         if value is None or value == "":
             continue
         if isinstance(value, list):
-            rendered = ", ".join(_quote_yaml(str(item)) for item in value if str(item).strip())
-            lines.append(f"{key}: [{rendered}]")
+            # dict를 포함하거나 콤마가 포함된 문자열이 있으면 JSON으로 직렬화.
+            # parse_yamlish가 JSON을 우선 파싱해 안전하게 역직렬화.
+            needs_json = any(
+                isinstance(item, (dict, list)) or (isinstance(item, str) and "," in item)
+                for item in value
+            )
+            if needs_json:
+                lines.append(f"{key}: {json.dumps(value, ensure_ascii=False)}")
+            else:
+                rendered = ", ".join(_quote_yaml(str(item)) for item in value if str(item).strip())
+                lines.append(f"{key}: [{rendered}]")
+        elif isinstance(value, dict):
+            lines.append(f"{key}: {json.dumps(value, ensure_ascii=False)}")
         else:
             lines.append(f"{key}: {_quote_yaml(str(value))}")
     lines.append("---")

@@ -1,12 +1,54 @@
 from __future__ import annotations
 
 import asyncio
+import json as _json
+import logging as _logging
+import threading
+import time
+import urllib.request as _urlrequest
+import urllib.error as _urlerror
+from collections import defaultdict
 from contextlib import asynccontextmanager
 from typing import Any
 
+# ── 인증 엔드포인트 rate limit ────────────────────────────────────────────────
+# signup: IP당 1시간 내 10회
+#   (2026-04-16) 3→10 상향 조정: 외부 에이전트 테스트/개발 시 IP 공유 환경에서
+#   정상 사용도 차단됨. 대량 계정 생성은 hourly 10으로도 충분히 억제.
+#   운영 안정화 후 재조정 필요 — 너무 낮으면 Docker 내부망 전체가 차단됨.
+# login:  IP당 5분 내 10회 (브루트포스 방지)
+_AUTH_RATE_LOCK = threading.Lock()
+_SIGNUP_ATTEMPTS: dict[str, list[float]] = defaultdict(list)
+_LOGIN_ATTEMPTS: dict[str, list[float]] = defaultdict(list)
+_SIGNUP_WINDOW_SEC = 3600
+_SIGNUP_LIMIT = 10
+_LOGIN_WINDOW_SEC = 300
+_LOGIN_LIMIT = 10
+# note 생성/수정: 유저(nickname)당 1분 내 30회, 1시간 내 300회
+_NOTE_WRITE_ATTEMPTS: dict[str, list[float]] = defaultdict(list)
+_NOTE_WRITE_WINDOW_SEC = 60
+_NOTE_WRITE_LIMIT = 30
+_NOTE_WRITE_HOURLY: dict[str, list[float]] = defaultdict(list)
+_NOTE_WRITE_HOURLY_WINDOW_SEC = 3600
+_NOTE_WRITE_HOURLY_LIMIT = 300
+
+def _client_ip(request: Request) -> str:
+    xff = request.headers.get("x-forwarded-for", "")
+    if xff:
+        return xff.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+def _check_rate_limit(attempts: dict[str, list[float]], ip: str, window: int, limit: int, msg: str) -> None:
+    now = time.monotonic()
+    with _AUTH_RATE_LOCK:
+        attempts[ip] = [t for t in attempts[ip] if now - t < window]
+        if len(attempts[ip]) >= limit:
+            raise HTTPException(status_code=429, detail=msg)
+        attempts[ip].append(now)
+
 from fastapi import Depends, FastAPI, File, Form, HTTPException, Query, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, StreamingResponse
 from pydantic import BaseModel, Field
 from starlette.applications import Starlette
 from starlette.routing import Mount, Route
@@ -27,6 +69,7 @@ from app.librarian import (
     load_librarian_settings,
     save_librarian_settings,
 )
+from app.core_api_bridge import sync_published_note
 from app.mcp_server import mcp
 from app.observability import (
     RequestLogMiddleware,
@@ -45,6 +88,13 @@ from app.site import (
     get_closed_note_by_slug,
     search_closed_notes,
 )
+from app.sagwan_loop import (
+    load_sagwan_settings,
+    pending_publication_request_count,
+    run_sagwan_approval_cycle,
+    run_sagwan_curation_cycle,
+    save_sagwan_settings,
+)
 from app.subordinate import (
     enqueue_subordinate_task,
     list_subordinate_tasks,
@@ -60,6 +110,7 @@ from app.vault import (
     delete_document,
     folder_index,
     folder_rules,
+    list_note_paths,
     list_publication_requests,
     load_document,
     move_document,
@@ -76,11 +127,15 @@ from app.vault import (
     write_document,
 )
 from app.users import (
+    SAGWAN_SYSTEM_OWNER,
     authenticate_user,
+    change_user_password,
     create_user,
+    find_user_by_token,
     list_users,
     public_user_record,
     rotate_user_token,
+    set_first_time_password,
     update_user_profile,
     update_user_role,
 )
@@ -154,6 +209,8 @@ class ProjectBootstrapRequest(BaseModel):
 class LibrarianChatRequest(BaseModel):
     message: str = Field(min_length=1)
     thread: list[dict[str, str]] = Field(default_factory=list)
+    current_note_path: str | None = None
+    current_note_slug: str | None = None
 
 
 class PublicationRequestPayload(BaseModel):
@@ -184,6 +241,17 @@ class AuthLoginPayload(BaseModel):
 
 class ProfileUpdatePayload(BaseModel):
     nickname: str = Field(min_length=2)
+
+
+class PasswordChangePayload(BaseModel):
+    current_password: str = Field(min_length=1)
+    new_password: str = Field(min_length=8)
+    new_password_confirm: str = Field(min_length=8)
+
+
+class SetupPasswordPayload(BaseModel):
+    new_password: str = Field(min_length=8)
+    new_password_confirm: str = Field(min_length=8)
 
 
 class UserRoleUpdatePayload(BaseModel):
@@ -251,15 +319,21 @@ def _can_manage_publication(auth: AuthState) -> bool:
     return _is_admin(auth) or "publication:manage" in auth.capabilities
 
 
-def _session_payload(token: str | None) -> dict[str, Any]:
+def _session_payload(token: str | None, *, include_agents: bool = True) -> dict[str, Any]:
     auth = auth_state_dict(token)
-    return {
+    user = find_user_by_token(token) if token else None
+    payload: dict[str, Any] = {
         **auth,
         "public_base_url": settings.public_base_url,
-        "librarian_identity": librarian_identity_dict(),
-        "librarian": librarian_status() if auth["authenticated"] else None,
-        "subordinate": subordinate_status() if auth["authenticated"] and auth["role"] == "admin" else None,
+        "provisioned": bool(user.get("provisioned")) if user else False,
     }
+    is_admin = auth.get("role") == "admin" or "librarian:admin" in (auth.get("capabilities") or [])
+    if include_agents:
+        payload["librarian_identity"] = librarian_identity_dict()
+        # Full agent configs only for admins — regular users don't need tool/memory details
+        payload["librarian"] = librarian_status() if is_admin else None
+        payload["subordinate"] = subordinate_status() if is_admin else None
+    return payload
 
 
 def _note_visibility(frontmatter: dict[str, Any]) -> str:
@@ -305,8 +379,26 @@ def _filter_readable_notes(notes: list[dict[str, Any]], auth: AuthState) -> list
     return [note for note in notes if _can_read_frontmatter(note, auth)]
 
 
+_PROTECTED_METADATA_FIELDS = frozenset({
+    "core_api_id",
+    "created_at",
+    "updated_at",
+    "synced_at",
+    "sagwan_review",
+    "sagwan_score",
+    "sagwan_reviewed_at",
+    "busagwan_crawled_at",
+    "publication_id",
+})
+
+
 def _normalize_write_metadata(payload: NoteWriteRequest, auth: AuthState) -> dict[str, Any]:
-    metadata = dict(payload.metadata or {})
+    raw_metadata = dict(payload.metadata or {})
+    # Strip protected system fields non-admins cannot set
+    if not _is_admin(auth):
+        for field in _PROTECTED_METADATA_FIELDS:
+            raw_metadata.pop(field, None)
+    metadata = raw_metadata
     existing_frontmatter: dict[str, Any] = {}
     is_existing = False
     try:
@@ -329,13 +421,26 @@ def _normalize_write_metadata(payload: NoteWriteRequest, auth: AuthState) -> dic
         if not _can_modify_frontmatter(existing_frontmatter, auth):
             raise HTTPException(status_code=403, detail="Notes can only be modified by their owner or an admin")
         owner = _note_owner(existing_frontmatter)
-        if requested_visibility == "public":
+        if requested_visibility == "public" and _is_admin(auth):
             metadata.setdefault("original_owner", existing_frontmatter.get("original_owner") or owner)
-            owner = "sagwan"
+            owner = SAGWAN_SYSTEM_OWNER
+        elif requested_visibility == "public":
+            # non-admin: force private + publication request
+            requested_visibility = "private"
+            metadata["visibility"] = "private"
+            metadata["publication_target_visibility"] = "public"
         metadata["owner"] = owner
     else:
         metadata["created_by"] = metadata.get("created_by") or auth.nickname
-        metadata["owner"] = "sagwan" if requested_visibility == "public" else auth.nickname
+        if requested_visibility == "public" and _is_admin(auth):
+            metadata["owner"] = SAGWAN_SYSTEM_OWNER
+        else:
+            metadata["owner"] = auth.nickname
+            if requested_visibility == "public":
+                # non-admin: force private + publication request
+                requested_visibility = "private"
+                metadata["visibility"] = "private"
+                metadata["publication_target_visibility"] = "public"
 
     publication_status = str(
         metadata.get("publication_status") or existing_frontmatter.get("publication_status") or "none"
@@ -344,7 +449,7 @@ def _normalize_write_metadata(payload: NoteWriteRequest, auth: AuthState) -> dic
         publication_status = "requested"
     if not _is_admin(auth) and publication_status not in {"none", "requested"}:
         raise HTTPException(status_code=403, detail="Users can only set publication status to none or requested")
-    metadata["publication_status"] = publication_status
+    metadata["publication_status"] = publication_status or "none"
     return metadata
 
 
@@ -392,23 +497,30 @@ def prefixed_graph_page(request: Request) -> str:
 
 
 @api.get("/admin", response_class=HTMLResponse)
-def admin_page(request: Request) -> str:
-    return closed_debug_html(route_prefix=_route_prefix(request))
+def admin_page(request: Request):
+    auth = _auth_from_request(request)
+    prefix = _route_prefix(request)
+    if not _is_admin(auth):
+        return RedirectResponse(f"{prefix}/graph", status_code=303)
+    return HTMLResponse(closed_debug_html(route_prefix=prefix))
 
 
 @api.get("/closed/admin", response_class=HTMLResponse)
-def prefixed_admin_page() -> str:
-    return closed_debug_html(route_prefix="/closed")
+def prefixed_admin_page(request: Request):
+    auth = _auth_from_request(request)
+    if not _is_admin(auth):
+        return RedirectResponse("/closed/graph", status_code=303)
+    return HTMLResponse(closed_debug_html(route_prefix="/closed"))
 
 
 @api.get("/debug", response_class=HTMLResponse)
-def debug_page(request: Request) -> str:
+def debug_page(request: Request):
     return admin_page(request)
 
 
 @api.get("/closed/debug", response_class=HTMLResponse)
-def prefixed_debug_page() -> str:
-    return prefixed_admin_page()
+def prefixed_debug_page(request: Request):
+    return prefixed_admin_page(request)
 
 
 @api.get("/graph-data")
@@ -514,12 +626,22 @@ def prefixed_note_page(request: Request, slug: str) -> str:
 
 
 @api.get("/api/session")
-def api_session(request: Request) -> dict[str, Any]:
-    return _session_payload(_request_token(request))
+def api_session(request: Request, include: str | None = Query(default=None)) -> dict[str, Any]:
+    include_agents = include is None or "agents" in {part.strip() for part in include.split(",")}
+    return _session_payload(_request_token(request), include_agents=include_agents)
 
 
 @api.post("/api/auth/signup")
-def api_auth_signup(payload: AuthSignupPayload) -> dict[str, Any]:
+def api_auth_signup(request: Request, payload: AuthSignupPayload) -> dict[str, Any]:
+    _check_rate_limit(
+        _SIGNUP_ATTEMPTS,
+        _client_ip(request),
+        _SIGNUP_WINDOW_SEC,
+        _SIGNUP_LIMIT,
+        "Too many signup attempts — try again in 1 hour",
+    )
+    if not get_settings().open_signup:
+        raise HTTPException(status_code=403, detail="Self-registration is disabled — contact an admin")
     if payload.password != payload.password_confirm:
         raise HTTPException(status_code=400, detail="Password confirmation does not match")
     try:
@@ -535,11 +657,79 @@ def api_auth_signup(payload: AuthSignupPayload) -> dict[str, Any]:
         "token": token,
         "user": public_user_record(user),
         "session": _session_payload(token),
+        "mcp_endpoint": f"{settings.public_base_url}/mcp/",
+        "usage_hint": "Set Authorization header to 'Bearer <token>' when connecting to the MCP endpoint.",
+    }
+
+
+@api.post("/api/auth/provision")
+def api_auth_provision(request: Request) -> dict[str, Any]:
+    """Auto-provision an agent account — no username or password required.
+
+    Generates a random `agent-XXXXXXXX` account and returns a ready-to-use token.
+    Intended for automated agent onboarding: one HTTP call, no human interaction.
+
+    Rate-limited to 5 provisions/hour/IP (shared with signup bucket).
+    Returns the same token shape as /api/auth/signup.
+    """
+    import secrets as _secrets
+
+    _check_rate_limit(
+        _SIGNUP_ATTEMPTS,
+        _client_ip(request),
+        _SIGNUP_WINDOW_SEC,
+        _SIGNUP_LIMIT,
+        "Too many signup attempts — try again in 1 hour",
+    )
+    if not get_settings().open_signup:
+        raise HTTPException(status_code=403, detail="Self-registration is disabled — contact an admin")
+    # auto-generate credentials
+    suffix = _secrets.token_hex(4)  # 8 hex chars
+    username = f"agent-{suffix}"
+    nickname = f"Agent {suffix.upper()}"
+    password = _secrets.token_urlsafe(24)
+    try:
+        user = create_user(username=username, nickname=nickname, password=password, provisioned=True)
+    except ValueError as exc:
+        raise _vault_http_error(exc) from exc
+    token = str(user.get("api_token") or "")
+    mcp_url = f"{settings.public_base_url}/mcp/"
+    mcp_block = {
+        "mcpServers": {
+            "openakashic": {
+                "type": "http",
+                "url": mcp_url,
+                "headers": {"Authorization": f"Bearer {token}"},
+            }
+        }
+    }
+    return {
+        "token": token,
+        "username": username,
+        "provisioned": True,
+        "mcp_endpoint": mcp_url,
+        "mcp_config": mcp_block,
+        "env": f"CLOSED_AKASHIC_TOKEN={token}",
+        "next": (
+            f"Account '{username}' created. "
+            "Merge `mcp_config` into your MCP client settings "
+            "(Claude Code: ~/.claude/settings.json | Cursor: .cursor/mcp.json | "
+            "Codex: ~/.codex/config.toml [mcp_servers.openakashic] | "
+            "Antigravity / others: see client docs). "
+            f"MCP endpoint: {mcp_url}"
+        ),
     }
 
 
 @api.post("/api/auth/login")
-def api_auth_login(payload: AuthLoginPayload) -> dict[str, Any]:
+def api_auth_login(request: Request, payload: AuthLoginPayload) -> dict[str, Any]:
+    _check_rate_limit(
+        _LOGIN_ATTEMPTS,
+        _client_ip(request),
+        _LOGIN_WINDOW_SEC,
+        _LOGIN_LIMIT,
+        "Too many login attempts — try again in 5 minutes",
+    )
     user = authenticate_user(payload.username, payload.password)
     if not user:
         raise HTTPException(status_code=401, detail="Invalid login credentials")
@@ -581,6 +771,54 @@ def api_update_profile(
     return {"profile": public_user_record(user), "migration": migration}
 
 
+@api.post("/api/profile/password")
+def api_change_password(
+    payload: PasswordChangePayload,
+    auth: AuthState = Depends(require_agent_token),
+) -> dict[str, Any]:
+    if payload.new_password != payload.new_password_confirm:
+        raise HTTPException(status_code=400, detail="New password confirmation does not match")
+    try:
+        user = change_user_password(
+            username=auth.username,
+            current_password=payload.current_password,
+            new_password=payload.new_password,
+        )
+    except ValueError as exc:
+        raise _vault_http_error(exc) from exc
+    token = str(user.get("api_token") or "")
+    return {
+        "profile": public_user_record(user),
+        "token": token,
+        "session": _session_payload(token),
+    }
+
+
+@api.post("/api/profile/setup-password")
+def api_setup_password(
+    payload: SetupPasswordPayload,
+    auth: AuthState = Depends(require_agent_token),
+) -> dict[str, Any]:
+    """Set a password for a provisioned account (no current password required).
+
+    Only succeeds for accounts created via /api/auth/provision (provisioned=True).
+    After success the account's provisioned flag is cleared and subsequent password
+    changes go through /api/profile/password (which requires the current password).
+    """
+    if payload.new_password != payload.new_password_confirm:
+        raise HTTPException(status_code=400, detail="Password confirmation does not match")
+    try:
+        user = set_first_time_password(username=auth.username, new_password=payload.new_password)
+    except ValueError as exc:
+        raise _vault_http_error(exc) from exc
+    token = str(user.get("api_token") or "")
+    return {
+        "success": True,
+        "profile": public_user_record(user),
+        "session": _session_payload(token),
+    }
+
+
 @api.post("/api/profile/token")
 def api_rotate_profile_token(auth: AuthState = Depends(require_agent_token)) -> dict[str, Any]:
     try:
@@ -599,6 +837,25 @@ def api_rotate_profile_token(auth: AuthState = Depends(require_agent_token)) -> 
 def api_admin_users(auth: AuthState = Depends(require_admin_token)) -> dict[str, Any]:
     users = list_users()
     return {"users": users, "count": len(users), "viewer": auth.nickname}
+
+
+@api.post("/api/admin/users/create")
+def api_admin_create_user(
+    payload: AuthSignupPayload,
+    auth: AuthState = Depends(require_admin_token),
+) -> dict[str, Any]:
+    """Admin-only user creation — works regardless of open_signup setting."""
+    if payload.password != payload.password_confirm:
+        raise HTTPException(status_code=400, detail="Password confirmation does not match")
+    try:
+        user = create_user(
+            username=payload.username,
+            nickname=payload.nickname,
+            password=payload.password,
+        )
+    except ValueError as exc:
+        raise _vault_http_error(exc) from exc
+    return {"user": public_user_record(user), "api_token": user.get("api_token"), "created_by": auth.nickname}
 
 
 @api.post("/api/admin/users/role")
@@ -694,21 +951,157 @@ def api_admin_run_subordinate(auth: AuthState = Depends(require_admin_token)) ->
     return run_subordinate_cycle(reason=f"manual:{auth.nickname}")
 
 
+@api.get("/api/admin/sagwan/settings")
+def api_admin_get_sagwan_settings(auth: AuthState = Depends(require_admin_token)) -> dict[str, Any]:
+    return load_sagwan_settings()
+
+
+@api.put("/api/admin/sagwan/settings")
+def api_admin_put_sagwan_settings(
+    payload: dict[str, Any],
+    auth: AuthState = Depends(require_admin_token),
+) -> dict[str, Any]:
+    return save_sagwan_settings(payload)
+
+
+@api.post("/api/admin/sagwan/run")
+def api_admin_run_sagwan(auth: AuthState = Depends(require_admin_token)) -> dict[str, Any]:
+    return run_sagwan_approval_cycle(reason=f"manual:{auth.nickname}")
+
+
+@api.post("/api/admin/sagwan/curate")
+def api_admin_run_sagwan_curate(auth: AuthState = Depends(require_admin_token)) -> dict[str, Any]:
+    return run_sagwan_curation_cycle(reason=f"manual:{auth.nickname}")
+
+
+@api.post("/api/admin/core/resync")
+def api_admin_core_resync(
+    path: str | None = Query(default=None, description="specific note path; if omitted, rescans all published capsules/references"),
+    force: bool = Query(default=True),
+    auth: AuthState = Depends(require_admin_token),
+) -> dict[str, Any]:
+    """Re-sync published notes to Core API. Admin only. Use after changing the sync logic
+    (e.g. key_points parser) to regenerate Core API records for existing capsules.
+    force=True (default) drops stored core_api_id and creates fresh records.
+    """
+    logger_ = _logging.getLogger(__name__)
+    targets: list[str]
+    if path:
+        targets = [path]
+    else:
+        targets = []
+        for rel in list_note_paths():
+            try:
+                fm = load_document(rel).frontmatter
+            except Exception:
+                continue
+            if str(fm.get("publication_status") or "").lower() != "published":
+                continue
+            if str(fm.get("kind") or "").lower() not in {"capsule", "reference", "claim", "evidence"}:
+                continue
+            targets.append(rel)
+
+    synced: list[dict[str, Any]] = []
+    errors: list[dict[str, Any]] = []
+    for rel in targets:
+        try:
+            doc = load_document(rel)
+            new_id = sync_published_note(doc.frontmatter, doc.body, rel, force=force)
+            if not new_id:
+                errors.append({"path": rel, "error": "sync returned None"})
+                continue
+            next_fm = dict(doc.frontmatter)
+            next_fm["core_api_id"] = new_id
+            try:
+                write_document(path=rel, body=doc.body, metadata=next_fm, allow_owner_change=True)
+            except Exception as exc:
+                logger_.error("admin resync: failed to persist core_api_id for %s: %s", rel, exc)
+                errors.append({"path": rel, "error": f"persist: {exc}"})
+                continue
+            synced.append({"path": rel, "core_api_id": new_id})
+        except Exception as exc:
+            errors.append({"path": rel, "error": str(exc)})
+    return {"synced": synced, "errors": errors, "count": len(synced), "requested_by": auth.nickname}
+
+
+@api.get("/api/core/search")
+def api_core_search(
+    q: str = Query(..., min_length=1),
+    top_k: int = Query(default=8, ge=1, le=50),
+    include: str | None = Query(default=None, description="comma-separated: claims,capsules,evidences"),
+    compact: bool = Query(default=False),
+    auth: AuthState = Depends(require_agent_token),
+) -> dict[str, Any]:
+    """Agent-facing wrapper around the Core API /query endpoint.
+
+    Use this for validated public knowledge (claims/capsules/evidences). For
+    personal_vault / doc searches, use /api/notes?q=… instead.
+    """
+    settings_obj = get_settings()
+    url = settings_obj.core_api_url.rstrip("/") + "/query"
+    payload: dict[str, Any] = {"query": q, "top_k": top_k}
+    if include:
+        kinds = [part.strip() for part in include.split(",") if part.strip()]
+        if kinds:
+            payload["include"] = kinds
+    try:
+        req = _urlrequest.Request(
+            url,
+            data=_json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with _urlrequest.urlopen(req, timeout=10) as resp:
+            body = _json.loads(resp.read().decode("utf-8"))
+    except _urlerror.URLError as exc:
+        raise HTTPException(status_code=502, detail=f"Core API unreachable: {exc}") from exc
+    if compact:
+        results = body.get("results") or {}
+        body["results"] = {
+            kind: [
+                {k: item[k] for k in ("id", "title", "summary", "confidence") if k in item}
+                for item in items
+            ]
+            for kind, items in results.items()
+        }
+    return body
+
+
+_COMPACT_LIST_FIELDS = ("path", "slug", "title", "kind", "owner", "visibility", "publication_status", "summary", "score")
+
+
+def _compact_list(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    return [{k: item[k] for k in _COMPACT_LIST_FIELDS if k in item} for item in items]
+
+
 @api.get("/api/notes")
 def api_list_notes(
     q: str | None = Query(default=None),
+    kind: str | None = Query(default=None),
+    tags: list[str] | None = Query(default=None),
     limit: int = Query(default=20, ge=1, le=100),
+    compact: bool = Query(default=False, description="strip to path/title/kind/summary/score"),
     auth: AuthState = Depends(require_agent_token),
 ) -> dict[str, Any]:
     if q:
-        results = search_closed_notes(q, limit=limit)
+        results = search_closed_notes(q, limit=limit, kind=kind, tags=tags)
         readable = _filter_readable_notes(results.get("results", []), auth)
+        if compact:
+            readable = _compact_list(readable)
         return {**results, "results": readable, "count": len(readable)}
     graph = get_closed_graph(viewer_owner=auth.nickname, is_admin=_is_admin(auth))
     nodes = _filter_readable_notes(graph["nodes"], auth)
+    if kind:
+        nodes = [n for n in nodes if n.get("kind") == kind]
+    if tags:
+        tag_set = {t.strip().lower() for t in tags}
+        nodes = [n for n in nodes if tag_set.issubset({t.lower() for t in (n.get("tags") or [])})]
+    notes = nodes[:limit]
+    if compact:
+        notes = _compact_list(notes)
     return {
-        "notes": nodes[:limit],
-        "count": len(nodes),
+        "notes": notes,
+        "count": min(len(nodes), limit),
     }
 
 
@@ -727,12 +1120,16 @@ def api_note_by_slug(
 @api.get("/api/note")
 def api_note_by_path(
     path: str = Query(min_length=1),
+    compact: bool = Query(default=False, description="drop body_html, related_notes, backlinks"),
     auth: AuthState = Depends(require_agent_token),
 ) -> dict[str, Any]:
     result = get_closed_note(path)
     if not result:
         raise HTTPException(status_code=404, detail="Note not found")
     _assert_can_read_note_payload(result, auth)
+    if compact:
+        for k in ("body_html", "related_notes", "backlinks"):
+            result.pop(k, None)
     return result
 
 
@@ -767,7 +1164,7 @@ def api_folders() -> dict[str, Any]:
     }
 
 
-@api.get("/api/debug/status", dependencies=[Depends(require_agent_token)])
+@api.get("/api/debug/status", dependencies=[Depends(require_admin_token)])
 def api_debug_status() -> dict[str, Any]:
     return {
         "status": "ok",
@@ -780,7 +1177,7 @@ def api_debug_status() -> dict[str, Any]:
     }
 
 
-@api.get("/api/debug/recent-requests", dependencies=[Depends(require_agent_token)])
+@api.get("/api/debug/recent-requests", dependencies=[Depends(require_admin_token)])
 def api_debug_recent_requests(
     limit: int = Query(default=50, ge=1, le=500),
     path_prefix: str | None = Query(default=None),
@@ -810,7 +1207,7 @@ def api_debug_recent_requests(
     }
 
 
-@api.get("/api/debug/log-tail", dependencies=[Depends(require_agent_token)])
+@api.get("/api/debug/log-tail", dependencies=[Depends(require_admin_token)])
 def api_debug_log_tail(limit: int = Query(default=100, ge=1, le=500)) -> dict[str, Any]:
     lines = log_tail(limit=limit)
     return {
@@ -831,11 +1228,29 @@ def api_path_suggestion(
     return {"path": suggest_note_path(kind, title, folder, scope, project)}
 
 
+def _check_note_write_rate(auth: AuthState) -> None:
+    """Note write rate limit — admin 면제, 일반 유저 분당 30회 / 시간당 300회."""
+    if auth.role == "admin":
+        return
+    key = auth.nickname or auth.username or "unknown"
+    _check_rate_limit(
+        _NOTE_WRITE_ATTEMPTS, key,
+        _NOTE_WRITE_WINDOW_SEC, _NOTE_WRITE_LIMIT,
+        "Too many note writes — slow down (limit: 30/min)",
+    )
+    _check_rate_limit(
+        _NOTE_WRITE_HOURLY, key,
+        _NOTE_WRITE_HOURLY_WINDOW_SEC, _NOTE_WRITE_HOURLY_LIMIT,
+        "Too many note writes — try again later (limit: 300/hour)",
+    )
+
+
 @api.put("/api/note")
 def api_upsert_note(
     payload: NoteWriteRequest,
     auth: AuthState = Depends(require_agent_token),
 ) -> dict[str, Any]:
+    _check_note_write_rate(auth)
     try:
         metadata = _normalize_write_metadata(payload, auth)
         document = write_document(
@@ -867,7 +1282,17 @@ def api_upsert_note(
     except (FileNotFoundError, ValueError) as exc:
         raise _vault_http_error(exc) from exc
     result = get_closed_note(document.path)
-    return {"path": document.path, "note": result, "publication_request": publication_request_data}
+    warnings: list[str] = []
+    requested_kind = (payload.kind or "").strip().lower()
+    effective_kind = str(document.frontmatter.get("kind") or "").strip().lower()
+    if requested_kind and effective_kind and requested_kind != effective_kind:
+        warnings.append(f"kind '{requested_kind}' normalized to '{effective_kind}'")
+    return {
+        "path": document.path,
+        "note": result,
+        "publication_request": publication_request_data,
+        "warnings": warnings,
+    }
 
 
 @api.post("/api/note/append")
@@ -956,20 +1381,34 @@ def api_request_publication(
         )
     except (FileNotFoundError, ValueError) as exc:
         raise _vault_http_error(exc) from exc
-    return {"request": request.__dict__}
+    warnings: list[str] = []
+    if not (payload.rationale or "").strip():
+        warnings.append("rationale is empty — reviewers rely on it to judge publication")
+    elif len((payload.rationale or "").strip()) < 20:
+        warnings.append("rationale is very short (<20 chars) — consider expanding")
+    if not payload.evidence_paths:
+        warnings.append("evidence_paths is empty — link supporting notes to strengthen the request")
+    return {"request": request.__dict__, "warnings": warnings}
 
 
 @api.get("/api/publication/requests")
 def api_publication_requests(
     status: str | None = Query(default=None),
+    limit: int = Query(default=50, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
     auth: AuthState = Depends(require_agent_token),
 ) -> dict[str, Any]:
     if not _can_manage_publication(auth):
         raise HTTPException(status_code=403, detail="Only admins or managers can list publication requests")
-    requests = list_publication_requests(status=status)
+    all_requests = list_publication_requests(status=status)
+    total = len(all_requests)
+    paged = all_requests[offset : offset + limit]
     return {
-        "requests": [item.__dict__ for item in requests],
-        "count": len(requests),
+        "requests": [item.__dict__ for item in paged],
+        "total": total,
+        "count": len(paged),
+        "offset": offset,
+        "limit": limit,
     }
 
 
@@ -987,7 +1426,28 @@ def api_publication_status(
         )
     except (FileNotFoundError, ValueError) as exc:
         raise _vault_http_error(exc) from exc
-    return {"path": document.path, "frontmatter": document.frontmatter}
+    core_api_id = None
+    if payload.status == "published":
+        core_api_id = sync_published_note(
+            frontmatter=document.frontmatter,
+            body=document.body,
+            note_path=document.path,
+        )
+        if core_api_id:
+            try:
+                from app.vault import write_document
+                fm = dict(document.frontmatter)
+                fm["core_api_id"] = core_api_id
+                document = write_document(
+                    path=document.path,
+                    body=document.body,
+                    metadata=fm,
+                    allow_owner_change=True,
+                )
+            except Exception as exc:
+                import logging
+                logging.getLogger(__name__).error("publication/status: failed to persist core_api_id on %s: %s", document.path, exc)
+    return {"path": document.path, "frontmatter": document.frontmatter, "core_api_id": core_api_id}
 
 
 @api.post("/api/assets/images", dependencies=[Depends(require_agent_token)])
@@ -1049,29 +1509,105 @@ def api_librarian_status() -> dict[str, Any]:
 @api.post("/api/librarian/chat", dependencies=[Depends(require_admin_token)])
 def api_librarian_chat(payload: LibrarianChatRequest) -> dict[str, Any]:
     ensure_librarian_workspace()
-    return librarian_chat(payload.message, payload.thread)
+    note_path = payload.current_note_path
+    if not note_path and payload.current_note_slug:
+        resolved = get_closed_note_by_slug(payload.current_note_slug)
+        if resolved:
+            note_path = resolved.get("path")
+    return librarian_chat(
+        payload.message,
+        payload.thread,
+        current_note_path=note_path,
+    )
 
 
 @api.post("/api/subordinate/chat", dependencies=[Depends(require_admin_token)])
-def api_subordinate_chat(payload: LibrarianChatRequest) -> dict[str, Any]:
-    return subordinate_chat(payload.message, payload.thread)
+async def api_subordinate_chat(payload: LibrarianChatRequest) -> StreamingResponse:
+    """
+    SSE 스트리밍으로 응답한다.
+    gemma4:e4b 같은 대형 로컬 모델은 응답에 60초+ 걸릴 수 있어
+    Cloudflare tunnel이 끊기므로, 5초마다 keep-alive(:)를 보내 연결을 유지한다.
+    최종 데이터는 'event: result\ndata: <JSON>\n\n' 형식으로 전송된다.
+    """
+    import json as _json
+
+    async def _stream():
+        result_holder: list[dict[str, Any]] = []
+        error_holder: list[str] = []
+
+        async def _run():
+            try:
+                result_holder.append(
+                    await asyncio.to_thread(subordinate_chat, payload.message, payload.thread)
+                )
+            except Exception as exc:
+                error_holder.append(str(exc))
+
+        task = asyncio.create_task(_run())
+        while not task.done():
+            yield ": keep-alive\n\n"
+            try:
+                await asyncio.wait_for(asyncio.shield(task), timeout=5)
+            except asyncio.TimeoutError:
+                pass
+
+        if error_holder:
+            yield f"event: error\ndata: {_json.dumps({'error': error_holder[0]}, ensure_ascii=False)}\n\n"
+        else:
+            yield f"event: result\ndata: {_json.dumps(result_holder[0], ensure_ascii=False)}\n\n"
+
+    return StreamingResponse(
+        _stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+        },
+    )
+
+
+_SAFE_INLINE_MIME = frozenset({"image/png", "image/jpeg", "image/gif", "image/webp", "image/svg+xml", "image/bmp", "image/tiff"})
+
+
+def _serve_asset(path: str) -> FileResponse:
+    target, mime_type = read_asset_bytes(path)
+    disposition = "inline" if mime_type in _SAFE_INLINE_MIME else "attachment"
+    resp = FileResponse(target, media_type=mime_type, content_disposition_type=disposition)
+    resp.headers["X-Content-Type-Options"] = "nosniff"
+    resp.headers["Cache-Control"] = "private, max-age=3600"
+    return resp
 
 
 @api.get("/files/{path:path}")
 def api_file(path: str) -> FileResponse:
-    target, mime_type = read_asset_bytes(path)
-    return FileResponse(target, media_type=mime_type, content_disposition_type="inline")
+    return _serve_asset(path)
 
 
 @api.get("/closed/files/{path:path}")
 def api_prefixed_file(path: str) -> FileResponse:
-    target, mime_type = read_asset_bytes(path)
-    return FileResponse(target, media_type=mime_type, content_disposition_type="inline")
+    return _serve_asset(path)
 
 
 @api.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@api.get("/api/status")
+def api_public_status() -> dict[str, Any]:
+    """Public (unauthenticated) service status — shows signup availability and MCP endpoint."""
+    base = settings.public_base_url
+    return {
+        "status": "ok",
+        "signup_enabled": bool(get_settings().open_signup),
+        "mcp_endpoint": f"{base}/mcp/",
+        "provision_endpoint": f"{base}/api/auth/provision" if get_settings().open_signup else None,
+        "api_base": f"{base}/api",
+        "quickstart": (
+            f"POST {base}/api/auth/provision  (no body) → get token → "
+            f"add to MCP config at {base}/mcp/"
+        ),
+    }
 
 
 mcp_mount = BearerTokenASGI(
@@ -1086,35 +1622,71 @@ async def lifespan(_: Starlette):
             try:
                 settings_doc = load_subordinate_settings()
                 if settings_doc.get("enabled"):
-                    run_subordinate_cycle(reason="interval")
+                    await asyncio.to_thread(run_subordinate_cycle, reason="interval")
                 await asyncio.sleep(max(60, int(settings_doc.get("interval_sec") or 900)))
             except asyncio.CancelledError:
                 raise
             except Exception:
                 await asyncio.sleep(120)
 
+    async def sagwan_loop() -> None:
+        # 사관(sagwan) 승인 루틴: interval 도달 OR 대기 요청 수가 batch_trigger 이상이면 실행.
+        # 짧게 sleep 하면서 배치 조건을 체크한다.
+        while True:
+            try:
+                s = load_sagwan_settings()
+                if s.get("enabled"):
+                    pending = await asyncio.to_thread(pending_publication_request_count)
+                    if pending >= int(s.get("batch_trigger") or 3):
+                        await asyncio.to_thread(run_sagwan_approval_cycle, reason="batch_trigger")
+                    else:
+                        await asyncio.to_thread(run_sagwan_approval_cycle, reason="interval")
+                await asyncio.sleep(max(60, int(s.get("interval_sec") or 600)))
+            except asyncio.CancelledError:
+                raise
+            except Exception:
+                await asyncio.sleep(180)
+
+    async def sagwan_curation_loop() -> None:
+        # 사관 정제(큐레이션) 루틴: 기본 1시간마다 raw 노트 파생/재동기화 유도.
+        while True:
+            try:
+                s = load_sagwan_settings()
+                if s.get("enabled"):
+                    await asyncio.to_thread(run_sagwan_curation_cycle, reason="interval")
+                await asyncio.sleep(max(300, int(s.get("curation_interval_sec") or 3600)))
+            except asyncio.CancelledError:
+                raise
+            except Exception:
+                await asyncio.sleep(600)
+
     worker_task = asyncio.create_task(subordinate_loop())
+    sagwan_task = asyncio.create_task(sagwan_loop())
+    curation_task = asyncio.create_task(sagwan_curation_loop())
     async with mcp.session_manager.run():
         try:
             yield
         finally:
             worker_task.cancel()
-            try:
-                await worker_task
-            except asyncio.CancelledError:
-                pass
+            sagwan_task.cancel()
+            curation_task.cancel()
+            for task in (worker_task, sagwan_task, curation_task):
+                try:
+                    await task
+                except asyncio.CancelledError:
+                    pass
 
 
 _app = Starlette(
     routes=[
         Route(
             "/mcp",
-            endpoint=lambda request: RedirectResponse(url="/mcp/", status_code=307),
+            endpoint=lambda request: RedirectResponse(url="/mcp/", status_code=308),
             methods=["GET", "POST", "DELETE"],
         ),
         Route(
             "/closed/mcp",
-            endpoint=lambda request: RedirectResponse(url="/closed/mcp/", status_code=307),
+            endpoint=lambda request: RedirectResponse(url="/closed/mcp/", status_code=308),
             methods=["GET", "POST", "DELETE"],
         ),
         Mount("/mcp", app=mcp_mount),

@@ -1,22 +1,31 @@
 from __future__ import annotations
 
+from contextlib import contextmanager
 from datetime import UTC, datetime
+import fcntl
 import hashlib
 import hmac
 import json
 import os
 import secrets
+import threading
 from pathlib import Path
 import re
 from typing import Any
 
 from app.config import get_settings
 
+_STORE_LOCK = threading.Lock()  # in-process mutex; fcntl adds inter-process safety
+
 
 USER_ROLES = {"user", "manager", "admin"}
 USERNAME_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{2,31}$")
 SYSTEM_USERNAMES = {"aaron", "sagwan"}
 SYSTEM_NICKNAMES = {"aaron", "sagwan", "anonymous"}
+
+# 시스템 규약상 "승격된 공개 노트와 ops 산출물의 소유자"는 항상 sagwan이다.
+# 다양한 모듈이 이 값을 참조하므로 리터럴 대신 상수 경유로 일관성 유지.
+SAGWAN_SYSTEM_OWNER = "sagwan"
 
 
 def user_store_path() -> Path:
@@ -171,31 +180,80 @@ def _migrate_user(record: dict[str, Any]) -> dict[str, Any]:
         "password_hash": password_hash,
         "api_token": api_token,
         "system": bool(record.get("system")),
+        "provisioned": bool(record.get("provisioned")),
         "created_at": created_at,
         "updated_at": updated_at,
     }
 
 
-def _load_store() -> dict[str, Any]:
+def _lock_path() -> Path:
+    return user_store_path().with_suffix(user_store_path().suffix + ".lock")
+
+
+@contextmanager
+def _file_lock(exclusive: bool):
+    """Inter-process lock on a sidecar .lock file. In-process mutex held too."""
+    with _STORE_LOCK:
+        lock_path = _lock_path()
+        fd = os.open(lock_path, os.O_RDWR | os.O_CREAT, 0o644)
+        try:
+            fcntl.flock(fd, fcntl.LOCK_EX if exclusive else fcntl.LOCK_SH)
+            yield
+        finally:
+            fcntl.flock(fd, fcntl.LOCK_UN)
+            os.close(fd)
+
+
+def _read_raw() -> dict[str, Any]:
     path = user_store_path()
     if not path.exists():
-        store = {"users": []}
-        path.write_text(json.dumps(store, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        return {"users": []}
     raw = path.read_text(encoding="utf-8").strip() or '{"users":[]}'
     try:
-        parsed = json.loads(raw)
+        return json.loads(raw)
     except json.JSONDecodeError as exc:
         raise ValueError(f"Invalid user store JSON: {path}") from exc
-    users = [_migrate_user(item) for item in parsed.get("users", []) if isinstance(item, dict)]
-    users = _seed_system_users(users)
-    store = {"users": users}
-    _save_store(store)
-    return store
+
+
+def _write_atomic(store: dict[str, Any]) -> None:
+    path = user_store_path()
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    payload = json.dumps(store, ensure_ascii=False, indent=2) + "\n"
+    tmp.write_text(payload, encoding="utf-8")
+    os.replace(tmp, path)
+
+
+_SEEDED = False
+
+
+def _load_store() -> dict[str, Any]:
+    """Read-only. Seeds system users once at first call, never writes on subsequent reads."""
+    global _SEEDED
+    with _file_lock(exclusive=not _SEEDED):
+        parsed = _read_raw()
+        users = [_migrate_user(item) for item in parsed.get("users", []) if isinstance(item, dict)]
+        if not _SEEDED:
+            users = _seed_system_users(users)
+            _write_atomic({"users": users})
+            _SEEDED = True
+        return {"users": users}
+
+
+def _mutate_store(mutator) -> dict[str, Any]:
+    """Read-modify-write under an exclusive lock. `mutator(users)` returns new users list."""
+    with _file_lock(exclusive=True):
+        parsed = _read_raw()
+        users = [_migrate_user(item) for item in parsed.get("users", []) if isinstance(item, dict)]
+        users = _seed_system_users(users)
+        users = mutator(users)
+        _write_atomic({"users": users})
+        return {"users": users}
 
 
 def _save_store(store: dict[str, Any]) -> None:
-    path = user_store_path()
-    path.write_text(json.dumps(store, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    """Legacy callers expect a full-replace save. Keep it safe: atomic write under lock."""
+    with _file_lock(exclusive=True):
+        _write_atomic(store)
 
 
 def public_user_record(user: dict[str, Any]) -> dict[str, Any]:
@@ -204,6 +262,7 @@ def public_user_record(user: dict[str, Any]) -> dict[str, Any]:
         "nickname": str(user.get("nickname") or ""),
         "role": str(user.get("role") or "user"),
         "system": bool(user.get("system")),
+        "provisioned": bool(user.get("provisioned")),
         "created_at": str(user.get("created_at") or ""),
         "updated_at": str(user.get("updated_at") or ""),
     }
@@ -240,15 +299,10 @@ def authenticate_user(username: str, password: str) -> dict[str, Any] | None:
     return None
 
 
-def create_user(*, username: str, nickname: str, password: str, role: str = "user") -> dict[str, Any]:
-    store = _load_store()
+def create_user(*, username: str, nickname: str, password: str, role: str = "user", provisioned: bool = False) -> dict[str, Any]:
     normalized_username = _normalize_username(username)
     normalized_nickname = _normalize_nickname(nickname)
     normalized_role = _normalize_role(role)
-    if _username_exists(store["users"], normalized_username):
-        raise ValueError("Username already exists")
-    if _nickname_exists(store["users"], normalized_nickname):
-        raise ValueError("Nickname already exists")
     if normalized_username.casefold() in {item.casefold() for item in SYSTEM_USERNAMES}:
         raise ValueError("That username is reserved")
     if normalized_nickname.casefold() in {item.casefold() for item in SYSTEM_NICKNAMES}:
@@ -263,73 +317,139 @@ def create_user(*, username: str, nickname: str, password: str, role: str = "use
         "password_hash": digest,
         "api_token": _generate_token(),
         "system": False,
+        "provisioned": provisioned,
         "created_at": now,
         "updated_at": now,
     }
-    store["users"].append(record)
-    _save_store(store)
+
+    def _add(users: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        if _username_exists(users, normalized_username):
+            raise ValueError("Username already exists")
+        if _nickname_exists(users, normalized_nickname):
+            raise ValueError("Nickname already exists")
+        users.append(record)
+        return users
+
+    _mutate_store(_add)
     return dict(record)
 
 
 def update_user_profile(*, username: str, nickname: str | None = None) -> dict[str, Any]:
-    store = _load_store()
     normalized_username = username.strip().casefold()
     next_nickname = _normalize_nickname(nickname) if nickname is not None else None
-    updated: dict[str, Any] | None = None
-    for user in store["users"]:
-        if str(user.get("username") or "").casefold() != normalized_username:
-            continue
-        current_nickname = str(user.get("nickname") or user.get("username") or "")
-        if next_nickname and next_nickname.casefold() != current_nickname.casefold():
-            if _nickname_exists(store["users"], next_nickname, excluding=current_nickname):
-                raise ValueError("Nickname already exists")
-            if next_nickname.casefold() in {item.casefold() for item in SYSTEM_NICKNAMES} and not bool(user.get("system")):
-                raise ValueError("That nickname is reserved")
-            user["nickname"] = next_nickname
-        user["updated_at"] = _now_iso()
-        updated = dict(user)
-        break
-    if not updated:
+    captured: dict[str, Any] = {}
+
+    def _mut(users: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        for user in users:
+            if str(user.get("username") or "").casefold() != normalized_username:
+                continue
+            current_nickname = str(user.get("nickname") or user.get("username") or "")
+            if next_nickname and next_nickname.casefold() != current_nickname.casefold():
+                if _nickname_exists(users, next_nickname, excluding=current_nickname):
+                    raise ValueError("Nickname already exists")
+                if next_nickname.casefold() in {item.casefold() for item in SYSTEM_NICKNAMES} and not bool(user.get("system")):
+                    raise ValueError("That nickname is reserved")
+                user["nickname"] = next_nickname
+            user["updated_at"] = _now_iso()
+            captured.update(user)
+            return users
         raise ValueError("User not found")
-    _save_store(store)
-    return updated
+
+    _mutate_store(_mut)
+    return dict(captured)
 
 
 def rotate_user_token(*, username: str) -> dict[str, Any]:
-    store = _load_store()
     normalized_username = username.strip().casefold()
-    updated: dict[str, Any] | None = None
-    for user in store["users"]:
-        if str(user.get("username") or "").casefold() != normalized_username:
-            continue
-        if bool(user.get("system")) and str(user.get("username") or "").casefold() == "aaron":
-            raise ValueError("Master admin token is managed outside local rotation")
-        user["api_token"] = _generate_token()
-        user["updated_at"] = _now_iso()
-        updated = dict(user)
-        break
-    if not updated:
+    captured: dict[str, Any] = {}
+
+    def _mut(users: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        for user in users:
+            if str(user.get("username") or "").casefold() != normalized_username:
+                continue
+            if bool(user.get("system")) and str(user.get("username") or "").casefold() == "aaron":
+                raise ValueError("Master admin token is managed outside local rotation")
+            user["api_token"] = _generate_token()
+            user["updated_at"] = _now_iso()
+            captured.update(user)
+            return users
         raise ValueError("User not found")
-    _save_store(store)
-    return updated
+
+    _mutate_store(_mut)
+    return dict(captured)
+
+
+def change_user_password(*, username: str, current_password: str, new_password: str) -> dict[str, Any]:
+    normalized_username = username.strip().casefold()
+    captured: dict[str, Any] = {}
+
+    def _mut(users: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        for user in users:
+            if str(user.get("username") or "").casefold() != normalized_username:
+                continue
+            if not _verify_password(
+                current_password,
+                salt=str(user.get("password_salt") or ""),
+                digest=str(user.get("password_hash") or ""),
+            ):
+                raise ValueError("Current password is incorrect")
+            salt, digest = _make_password_fields(new_password)
+            user["password_salt"] = salt
+            user["password_hash"] = digest
+            user["updated_at"] = _now_iso()
+            captured.update(user)
+            return users
+        raise ValueError("User not found")
+
+    _mutate_store(_mut)
+    return dict(captured)
+
+
+def set_first_time_password(*, username: str, new_password: str) -> dict[str, Any]:
+    """Set password for a provisioned account without needing the current password.
+
+    Only succeeds if the account has provisioned=True. Clears the provisioned flag
+    so subsequent password changes go through change_user_password (requires current).
+    """
+    normalized_username = username.strip().casefold()
+    captured: dict[str, Any] = {}
+
+    def _mut(users: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        for user in users:
+            if str(user.get("username") or "").casefold() != normalized_username:
+                continue
+            if not bool(user.get("provisioned")):
+                raise ValueError("Account is not provisioned — use change_user_password instead")
+            salt, digest = _make_password_fields(new_password)
+            user["password_salt"] = salt
+            user["password_hash"] = digest
+            user["provisioned"] = False
+            user["updated_at"] = _now_iso()
+            captured.update(user)
+            return users
+        raise ValueError("User not found")
+
+    _mutate_store(_mut)
+    return dict(captured)
 
 
 def update_user_role(*, username: str, role: str) -> dict[str, Any]:
-    store = _load_store()
     normalized_username = username.strip().casefold()
     normalized_role = _normalize_role(role)
-    updated: dict[str, Any] | None = None
-    for user in store["users"]:
-        if str(user.get("username") or "").casefold() != normalized_username:
-            continue
-        if bool(user.get("system")) and str(user.get("username") or "") == "aaron":
-            user["role"] = "admin"
-        else:
-            user["role"] = normalized_role
-        user["updated_at"] = _now_iso()
-        updated = dict(user)
-        break
-    if not updated:
+    captured: dict[str, Any] = {}
+
+    def _mut(users: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        for user in users:
+            if str(user.get("username") or "").casefold() != normalized_username:
+                continue
+            if bool(user.get("system")) and str(user.get("username") or "") == "aaron":
+                user["role"] = "admin"
+            else:
+                user["role"] = normalized_role
+            user["updated_at"] = _now_iso()
+            captured.update(user)
+            return users
         raise ValueError("User not found")
-    _save_store(store)
-    return updated
+
+    _mutate_store(_mut)
+    return dict(captured)

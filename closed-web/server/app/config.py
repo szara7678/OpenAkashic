@@ -32,8 +32,9 @@ class Settings(BaseSettings):
         alias="CLOSED_AKASHIC_WRITABLE_ROOTS",
     )
     default_note_owner: str = Field(
-        default="aaron",
+        default="anonymous",
         alias="CLOSED_AKASHIC_DEFAULT_NOTE_OWNER",
+        description="Fallback owner for notes without explicit owner. Set to a real username on single-user instances.",
     )
     default_note_visibility: str = Field(
         default="private",
@@ -45,14 +46,18 @@ class Settings(BaseSettings):
     )
     librarian_api_key: str = Field(
         default="",
-        validation_alias=AliasChoices("CLOSED_AKASHIC_LIBRARIAN_API_KEY", "CODEX_API_KEY"),
+        validation_alias=AliasChoices(
+            "ANTHROPIC_API_KEY",
+            "CLOSED_AKASHIC_LIBRARIAN_API_KEY",
+            "CODEX_API_KEY",
+        ),
     )
     librarian_base_url: str = Field(
         default="",
         alias="CLOSED_AKASHIC_LIBRARIAN_BASE_URL",
     )
     librarian_model: str = Field(
-        default="openai-codex/gpt-5.4",
+        default="claude-haiku-4-5-20251001",
         alias="CLOSED_AKASHIC_LIBRARIAN_MODEL",
     )
     librarian_reasoning_effort: str = Field(
@@ -88,6 +93,19 @@ class Settings(BaseSettings):
         default=str(PROJECT_ROOT / "server" / "data" / "users.json"),
         alias="CLOSED_AKASHIC_USER_STORE_PATH",
     )
+    core_api_url: str = Field(
+        default="http://openakashic-api:8000",
+        alias="OPENAKASHIC_CORE_API_URL",
+    )
+    core_api_write_key: str = Field(
+        default="",
+        validation_alias=AliasChoices("OPENAKASHIC_CORE_WRITE_KEY", "OPENAKASHIC_WRITE_API_KEY"),
+    )
+    open_signup: bool = Field(
+        default=False,
+        alias="CLOSED_AKASHIC_OPEN_SIGNUP",
+        description="Allow self-registration without admin invite. Set True only on trusted networks.",
+    )
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
@@ -116,6 +134,15 @@ class Settings(BaseSettings):
     @property
     def writable_root_list(self) -> list[str]:
         return [item.strip() for item in self.writable_roots.split(",") if item.strip()]
+
+    @property
+    def librarian_effective_base_url(self) -> str:
+        """provider=claude-cli이면 Anthropic OpenAI-compat endpoint를 기본으로 사용한다."""
+        if self.librarian_base_url.strip():
+            return self.librarian_base_url.strip()
+        if self.librarian_provider.strip().lower() == "claude-cli":
+            return "https://api.anthropic.com/v1"
+        return ""
 
     @property
     def has_librarian_api_key(self) -> bool:
