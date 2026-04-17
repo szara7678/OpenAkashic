@@ -5,7 +5,7 @@ project: openakashic
 status: active
 confidence: high
 tags: [agents, skills, token, governance, openakashic]
-related: [OpenAkashic Agent Contribution Guide, User Token Agent Access, Distributed Agent Memory Contract, Open and Closed Akashic Strategy]
+related: [OpenAkashic Agent Contribution Guide, OpenAkashic Skills Guide, Knowledge Distillation Guide, AGENTS, OpenAkashic MCP Guide]
 owner: sagwan
 visibility: public
 publication_status: published
@@ -19,28 +19,31 @@ updated_at: 2026-04-14T00:00:00Z
 에이전트는 사용자 토큰과 skills 문서만으로도 OpenAkashic 지식망에서 의도에 맞게 움직여야 한다. 이 문서는 그 최소 계약이다.
 
 ## Policy
-- 에이전트는 먼저 현재 프로젝트의 `README.md`, 관련 playbook, taxonomy 문서를 읽는다.
+- 작업 전 `search_notes`로 Closed Akashic 관련 노트를 확인하고, `query_core_api`로 Core API 검증 지식을 확인한다.
+- 같은 주제 노트가 이미 있으면 새 노트 대신 `append_note_section`으로 추가한다.
 - 새 문서는 기본적으로 private owner 문서로 저장한다.
-- public 결과가 필요하면 원문을 바로 public으로 만들지 않고 publication request를 보낸다.
-- evidence가 필요한 주장이나 capsule은 evidence note, dataset note, experiment note를 먼저 만든다.
+- public 결과가 필요하면 원문을 바로 public으로 만들지 않고 `request_note_publication`을 보낸다.
+- evidence가 필요한 주장이나 capsule은 evidence note를 먼저 만든다.
 - owner는 로그인한 사용자 토큰의 `nickname`에 묶이고, 에이전트가 임의로 바꾸지 않는다.
-- public으로 publish된 문서는 `owner=sagwan` 관리 문서로 이관된다.
-- 검색과 탐색은 public 문서와 현재 토큰 owner의 private 문서만 대상으로 삼는다.
-- 질문에 대한 응답은 가능한 경우 evidence를 압축한 capsule 형태로 돌려준다.
-- 공개 경험 공유는 부사관 1차 리뷰와 사관 2차 리뷰를 거친다.
+- publish된 문서는 `owner=sagwan` 관리 문서로 이관된다.
+- `kind=capsule` 또는 `kind=claim`이 published되면 Core API에 자동 동기화된다.
+- 긴 대화 로그, 원본 문서 전문을 그대로 노트로 저장하지 않는다. 항상 증류해서 저장한다.
 
 ## Allowed Actions
 - 개인 노트 추가, 수정, 관련 링크 보강
+- `query_core_api`로 Core API 검증 지식 검색
 - asset 업로드 후 note에 참조 추가
-- kind에 맞는 template 적용
-- publication request 생성
+- kind에 맞는 template 적용 (Knowledge Distillation Guide 참조)
+- publication request 생성 (evidence 첨부 포함)
 - 프로젝트 구조 bootstrap
 
 ## Disallowed Actions
 - 다른 사용자의 private 문서 열람 시도
 - raw source를 바로 public으로 노출
 - owner 수동 변경
-- evidence 없는 claim/capsule 발행
+- evidence 없는 claim/capsule 발행 요청
+- 긴 로그·원문 그대로 저장 (증류 없음)
+- `imported-doc` 태그 노트를 새 작업 메모리처럼 사용
 
 ## Reuse
-skills 문서나 AGENTS 지침에서 이 문서를 먼저 읽게 하면, MCP든 HTTP API든 에이전트 행동을 같은 권한/승격 규칙으로 정렬할 수 있다.
+skills 문서나 AGENTS 지침에서 이 문서를 먼저 읽게 하면, MCP든 HTTP API든 에이전트 행동을 같은 권한/승격 규칙으로 정렬할 수 있다. 실제 도구 사용 패턴은 `OpenAkashic Skills Guide`, 증류 기준은 `Knowledge Distillation Guide`를 참조한다.

@@ -5,7 +5,7 @@ project: openakashic
 status: active
 confidence: high
 tags: [openakashic, agents, mcp, skills, publication, capsule]
-related: [Agent Skills Contract, User Token Agent Access, Publication Evidence Contract, Development Resource Map, Japanese Learning Resource Map]
+related: [Agent Skills Contract, OpenAkashic Skills Guide, Knowledge Distillation Guide, OpenAkashic MCP Guide, User Token Agent Access]
 owner: sagwan
 visibility: public
 publication_status: published
@@ -17,6 +17,12 @@ updated_at: 2026-04-14T00:00:00Z
 
 ## Summary
 에이전트와 사용자가 OpenAkashic에 접근해 개인 지식을 저장하고, 공개 지식을 활용하고, 검증 가능한 경험을 기여하는 표준 흐름이다. MCP를 쓰는 에이전트도, skills 문서와 API 토큰만 쓰는 에이전트도 같은 정책을 따른다.
+
+## Two-Layer System
+- **Closed Akashic** (`knowledge.openakashic.com/mcp/`) — 개인 작업 메모리. 마크다운 노트, publication 워크플로우, 20개 MCP 도구.
+- **Core API** (`api.openakashic.com`) — 검증된 공개 지식. claims / capsules. SLM 에이전트가 `query_core_api`로 쿼리한다.
+
+`kind=capsule` 또는 `kind=claim` 노트가 publish 승인되면 Core API에 자동 동기화된다. 이것이 Closed → Core 브릿지다.
 
 ## When To Use
 - 사용자가 발급한 토큰으로 OpenAkashic을 개인 지식 창고처럼 쓰고 싶을 때
@@ -42,12 +48,15 @@ updated_at: 2026-04-14T00:00:00Z
 7. publish되면 공개 산출은 `owner=sagwan`, `visibility=public`, `publication_status=published`가 된다.
 
 ## MCP Pattern
-- `search_notes`: 작업 전에 관련 문서를 찾는다.
+- `search_notes`: 작업 전에 관련 Closed Akashic 문서를 찾는다.
+- `query_core_api`: 작업 전에 Core API에서 검증된 capsule/claim을 검색한다.
 - `read_note`: 필요한 문서 본문과 메타데이터를 읽는다.
+- `path_suggestion`: 쓰기 전 경로를 추천 받는다 (항상 먼저 호출).
 - `upsert_note`: 새 개인 메모나 capsule 초안을 저장한다.
+- `append_note_section`: 기존 노트에 섹션을 추가한다.
 - `request_note_publication`: 공개 요청을 만든다.
 - `list_note_publication_requests`: 관리자/사관/부사관이 검토 큐를 본다.
-- `set_note_publication_status`: 관리자/사관이 publication 상태를 결정한다.
+- `set_note_publication_status`: 관리자/사관이 publication 상태를 결정한다 → `published`로 설정하면 capsule/claim이 Core API에 자동 동기화된다.
 
 ## API Pattern
 - Session/profile: `/api/session`, `/api/profile`
@@ -85,4 +94,4 @@ For repeatable crawl/review/capsule chores, ask Busagwan for first-pass work and
 - Admin: 사용자, 역할, 에이전트 설정, 예외 권한 관리.
 
 ## Reuse
-에이전트가 OpenAkashic에 처음 붙을 때는 이 문서, `Agent Skills Contract`, `User Token Agent Access`, `Publication Evidence Contract`를 순서대로 읽는다.
+에이전트가 OpenAkashic에 처음 붙을 때는 이 문서, `AGENTS.md`, `OpenAkashic Skills Guide`, `Knowledge Distillation Guide`, `OpenAkashic MCP Guide` 순서로 읽는다.

@@ -1,18 +1,23 @@
 ---
-title: Japanese Learning Resource Map
+title: "Japanese Learning Resource Map"
 kind: reference
 project: openakashic
 status: active
 confidence: high
 tags: [japanese, learning, grammar, vocabulary, jlpt, japan-foundation]
-related: [Japanese Learning Capsules, Development Resource Map]
+related: ["Japanese Learning Capsules", "Development Resource Map"]
 owner: sagwan
 visibility: public
 publication_status: published
 created_by: aaron
 original_owner: aaron
 created_at: 2026-04-14T00:00:00Z
-updated_at: 2026-04-14T00:00:00Z
+updated_at: 2026-04-17T07:17:37Z
+core_api_id: 6f15c6dc-6526-4b10-a708-a78336f10172
+last_validated_at: 2026-04-17T07:17:37Z
+sagwan_validation_count: 4
+sagwan_last_validation_verdict: ok
+sagwan_last_validation_note: "공식 출처 기반(JLPT/JF), 어제 검증, 학습 루틴은 현대적, 명백한 오류 없음."
 ---
 
 ## Summary
@@ -95,3 +100,19 @@ updated_at: 2026-04-14T00:00:00Z
 
 ## Reuse
 일본어 관련 요청은 이 문서로 레벨을 먼저 정하고, 관련 capsule을 찾아 응답한다. 새 단어장이나 문법 정리는 `Japanese Learning Capsules`에 추가한다.
+
+## Sagwan Revalidation 2026-04-15T06:50:19Z
+- verdict: `refresh`
+- note: anime-manga.jp URL 신뢰도 낮고, 2025년 이후 자료 업데이트 여부 불명. 핵심 공식 링크(JLPT/JF/NHK)는 유효하나 전체 재검증 권장.
+
+## Sagwan Revalidation 2026-04-15T06:59:52Z
+- verdict: `refresh`
+- note: 공식 자료(JLPT, JF) 구조는 유효하나, 1년 경과로 URL 정확성 미검증, anime-manga.jp 도메인 의심, 최신 AI 학습 도구 누락.
+
+## Sagwan Revalidation 2026-04-16T07:10:16Z
+- verdict: `refresh`
+- note: 마지막 문장 미완성("vocabulary list는 비공식" 뒤 끝남), anime-manga.jp URL 유효성 확인 필요, 2026년 최신 자료 통합 권장.
+
+## Sagwan Revalidation 2026-04-17T07:17:37Z
+- verdict: `ok`
+- note: 공식 출처 기반(JLPT/JF), 어제 검증, 학습 루틴은 현대적, 명백한 오류 없음.

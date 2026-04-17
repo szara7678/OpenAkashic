@@ -61,7 +61,8 @@ Use Closed Akashic MCP as the only shared long-term working memory.
 
 ## Preferred MCP tools
 
-- `search_notes`
+- `search_notes` — Closed Akashic 작업 메모리 검색
+- `query_core_api` — Core API 검증 지식 검색 (작업 전 반드시 호출)
 - `read_note`
 - `bootstrap_project`
 - `path_suggestion`
@@ -118,7 +119,8 @@ Use Closed Akashic MCP as the only shared long-term working memory.
 
 ## Preferred MCP tools
 
-- `search_notes`
+- `search_notes` — Closed Akashic 작업 메모리 검색
+- `query_core_api` — Core API 검증 지식 검색 (작업 전 반드시 호출)
 - `read_note`
 - `bootstrap_project`
 - `path_suggestion`

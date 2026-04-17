@@ -75,23 +75,25 @@ Use a promotion workflow from Closed to Open, not a raw sync.
    - facts and evidence go to Open
    - internal judgments, strategy, and preference stay in Closed
 
-## What Is Feasible Now
+## Current Implementation Status (2026-04-14)
 
-This split is already feasible with the current codebase.
+브릿지 레이어가 구현되었다.
 
-- Open Akashic already has structured endpoints for claims, evidences, entities, and capsules.
-- Closed Akashic already has authenticated note APIs and MCP tools for project memory.
-- The missing piece is a small bridge layer that converts a vetted Closed note or section into Open claim/evidence records.
+- **`core_api_bridge.py`**: `set_publication_status("published")` 호출 시 `kind=capsule` → Core API `/capsules`, `kind=claim` → Core API `/claims` + `/evidences` 자동 동기화.
+- **`core_api_id`**: 동기화 후 note frontmatter에 `core_api_id` 자동 기록.
+- **`query_core_api` MCP 도구**: 에이전트가 MCP를 통해 Core API 검증 지식을 직접 검색 가능.
+- **`sync_to_core_api` 태스크**: Busagwan이 주기적으로 미동기화 published notes를 배치 동기화.
 
-## Recommended Next Step
-
-Build a small promotion path instead of merging databases:
-
-1. select a Closed note or section
-2. extract candidate claims and evidence
-3. review for privacy and publishability
-4. write to Open Akashic
-5. append backlink metadata in Closed
+흐름:
+```
+Closed Akashic (kind=capsule/claim)
+  → request_note_publication
+  → Busagwan 1차 리뷰 → Sagwan 2차 승인
+  → set_publication_status("published")
+  → core_api_bridge 자동 실행
+  → Core API /capsules or /claims 등록
+  → query_core_api("키워드") 로 SLM 검색 가능
+```
 
 ## Reuse
-Keep Open and Closed Akashic separate as products and data models, but make them interoperable through explicit promotion, backlinking, and visibility-aware tooling.
+Keep Open and Closed Akashic separate as products and data models, but make them interoperable through explicit promotion, backlinking, and visibility-aware tooling. The bridge is now operational.
