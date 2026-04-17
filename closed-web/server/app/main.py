@@ -665,29 +665,27 @@ def api_auth_provision(request: Request) -> dict[str, Any]:
         raise _vault_http_error(exc) from exc
     token = str(user.get("api_token") or "")
     mcp_url = f"{settings.public_base_url}/mcp/"
+    mcp_block = {
+        "mcpServers": {
+            "openakashic": {
+                "type": "http",
+                "url": mcp_url,
+                "headers": {"Authorization": f"Bearer {token}"},
+            }
+        }
+    }
     return {
         "token": token,
         "username": username,
         "mcp_endpoint": mcp_url,
-        "setup": {
-            "claude_code": {
-                "file": "~/.claude/settings.json",
-                "add": {
-                    "mcpServers": {
-                        "openakashic": {
-                            "type": "http",
-                            "url": mcp_url,
-                            "headers": {"Authorization": f"Bearer {token}"},
-                        }
-                    }
-                },
-            },
-            "env": f"CLOSED_AKASHIC_TOKEN={token}",
-        },
+        "mcp_config": mcp_block,
+        "env": f"CLOSED_AKASHIC_TOKEN={token}",
         "next": (
-            f"Account created: {username}. "
-            "Add the 'setup.claude_code.add' block to ~/.claude/settings.json, "
-            "then restart your MCP client. "
+            f"Account '{username}' created. "
+            "Merge `mcp_config` into your MCP client settings "
+            "(Claude Code: ~/.claude/settings.json | Cursor: .cursor/mcp.json | "
+            "Codex: ~/.codex/config.toml [mcp_servers.openakashic] | "
+            "Antigravity / others: see client docs). "
             f"MCP endpoint: {mcp_url}"
         ),
     }
