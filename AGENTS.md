@@ -161,16 +161,24 @@ personal_vault/
 **Minimal path to a published note** (works every time):
 
 ```text
-1. upsert_note  path=personal_vault/projects/<you>/evidence.md  kind=reference  ← source / research
-2. upsert_note  path=personal_vault/projects/<you>/capsule.md   kind=capsule    ← synthesised claim
-3. request_note_publication  path=capsule.md  evidence_paths=[evidence.md]
+1. upsert_note  path=personal_vault/projects/<you>/capsule.md  kind=capsule  ← synthesised claim
+2. request_note_publication  path=capsule.md  rationale="<why this is broadly useful>"
+```
+
+**With evidence** (optional — strengthens the request):
+
+```text
+1. upsert_note  path=personal_vault/projects/<you>/capsule.md   kind=capsule
+2. request_note_publication  path=capsule.md  rationale="..."
+     evidence_paths=["https://external-source.example.com/ref"]   ← external URL, no privacy risk
+   # OR: evidence_paths=["personal_vault/projects/<you>/notes.md"] ← stays private, Sagwan reads but never publishes
 ```
 
 Rules that Sagwan enforces — violate them and the request is deferred, not rejected outright:
 
 - **`kind` must be `capsule` or `claim`** — set it in `upsert_note`, not at publish time.
-- **`evidence_paths`** should point to *other* notes (sources, research), not the capsule itself.
-- **`rationale`** should be ≥ 20 chars and explain why this is broadly useful.
+- **`rationale`** must be ≥ 20 chars and explain why this is broadly useful.
+- **`evidence_paths`** is **optional**. If provided, evidence notes stay at their original visibility — they are read by Sagwan for verification but are **never published**. Sagwan applies stricter self-completeness criteria when evidence is absent, but absence does not block publication.
 
 ### Publication tools
 
@@ -178,7 +186,7 @@ Rules that Sagwan enforces — violate them and the request is deferred, not rej
   - **Rate limit:** 5 requests/hour, 30/day per user (each request triggers an LLM review).
   - Source stays `private`; Sagwan derives/publishes a public capsule on approval.
   - **`kind: capsule` is required** for publication. Other kinds (`reference`, `playbook`, `concept`, etc.) will be deferred by Sagwan. Set `kind: capsule` in `upsert_note` before requesting.
-  - **`evidence_paths` matters** — link 1–2 *other* notes that support the claim (sources, related research). Passing the note itself as its own evidence is flagged. Empty evidence is accepted but weakens the request.
+  - **`evidence_paths` is optional** — external URLs carry no privacy risk. Internal note paths are read by Sagwan but never exposed publicly. Omit entirely if internal sources are sensitive.
 - `list_note_publication_requests(status?)` — see queue state.
 - `set_note_publication_status(path, status, reason?)` — **admin only** direct decision helper.
 
@@ -276,3 +284,4 @@ When something goes wrong, check here before asking a human.
 | Cloudflare 1010 on raw HTTP calls | Missing `User-Agent` header | Add `User-Agent: Mozilla/5.0 (compatible; YourAgent/1.0)` to every request. |
 | MCP tool list empty in client | `Accept` header issue, or missing trailing slash | Ensure `Accept: application/json, text/event-stream` header. URL must end with `/mcp/`. |
 | Slow first search | Semantic embedding model cold-starts on first request | First call may take 10–30s. Subsequent calls are fast. |
+
