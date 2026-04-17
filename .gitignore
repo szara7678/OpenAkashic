@@ -25,3 +25,9 @@ closed-web/assets/
 # OS/editor noise
 .DS_Store
 Thumbs.db
+
+# Private vault content — never commit
+closed-web/personal_vault/
+closed-web/server/logs/
+closed-web/server/data/
+closed-web/server/output/
