@@ -20,32 +20,11 @@ _STORE_LOCK = threading.Lock()  # in-process mutex; fcntl adds inter-process saf
 
 USER_ROLES = {"user", "manager", "admin"}
 USERNAME_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{2,31}$")
+SYSTEM_USERNAMES = {"aaron", "sagwan"}
+SYSTEM_NICKNAMES = {"aaron", "sagwan", "anonymous"}
 
-
-def _admin_username() -> str:
-    return str(get_settings().admin_username or "admin").strip() or "admin"
-
-
-def _admin_nickname() -> str:
-    return str(get_settings().admin_nickname or _admin_username()).strip() or _admin_username()
-
-
-# The system reserves two usernames: the configured admin and the fixed "sagwan"
-# agent account. These cannot be taken by regular signups.
-def system_usernames() -> set[str]:
-    return {_admin_username().casefold(), "sagwan"}
-
-
-def system_nicknames() -> set[str]:
-    return {_admin_username().casefold(), _admin_nickname().casefold(), "sagwan", "anonymous"}
-
-
-# Backwards-compatible constants — evaluated at import time with defaults; the
-# functions above should be preferred at runtime.
-SYSTEM_USERNAMES = {"admin", "sagwan"}
-SYSTEM_NICKNAMES = {"admin", "sagwan", "anonymous"}
-
-# The owner of promoted public notes and ops artifacts is always "sagwan".
+# 시스템 규약상 "승격된 공개 노트와 ops 산출물의 소유자"는 항상 sagwan이다.
+# 다양한 모듈이 이 값을 참조하므로 리터럴 대신 상수 경유로 일관성 유지.
 SAGWAN_SYSTEM_OWNER = "sagwan"
 
 
@@ -141,21 +120,18 @@ def _seed_system_users(users: list[dict[str, Any]]) -> list[dict[str, Any]]:
     by_username = {str(user.get("username") or "").casefold(): user for user in users}
     master_token = get_settings().bearer_token.strip()
     master_password_seed = _default_password_seed()
-    admin_name = _admin_username()
-    admin_nick = _admin_nickname()
-    admin_key = admin_name.casefold()
-    admin = by_username.get(admin_key)
-    if not admin:
-        users.append(_system_user_record(admin_name, nickname=admin_nick, role="admin", api_token=master_token or None))
+    aaron = by_username.get("aaron")
+    if not aaron:
+        users.append(_system_user_record("aaron", nickname="aaron", role="admin", api_token=master_token or None))
     else:
-        admin.setdefault("username", admin_name)
-        admin["nickname"] = str(admin.get("nickname") or admin_nick)
-        admin["role"] = "admin"
-        admin["system"] = True
-        admin["password_salt"] = f"system-{admin_key}-seed"
-        admin["password_hash"] = _password_digest(master_password_seed, admin["password_salt"])
+        aaron.setdefault("username", "aaron")
+        aaron["nickname"] = str(aaron.get("nickname") or "aaron")
+        aaron["role"] = "admin"
+        aaron["system"] = True
+        aaron["password_salt"] = "system-aaron-seed"
+        aaron["password_hash"] = _password_digest(master_password_seed, aaron["password_salt"])
         if master_token:
-            admin["api_token"] = master_token
+            aaron["api_token"] = master_token
     sagwan = by_username.get("sagwan")
     if not sagwan:
         users.append(_system_user_record("sagwan", nickname="sagwan", role="manager"))
@@ -204,6 +180,7 @@ def _migrate_user(record: dict[str, Any]) -> dict[str, Any]:
         "password_hash": password_hash,
         "api_token": api_token,
         "system": bool(record.get("system")),
+        "provisioned": bool(record.get("provisioned")),
         "created_at": created_at,
         "updated_at": updated_at,
     }
@@ -285,6 +262,7 @@ def public_user_record(user: dict[str, Any]) -> dict[str, Any]:
         "nickname": str(user.get("nickname") or ""),
         "role": str(user.get("role") or "user"),
         "system": bool(user.get("system")),
+        "provisioned": bool(user.get("provisioned")),
         "created_at": str(user.get("created_at") or ""),
         "updated_at": str(user.get("updated_at") or ""),
     }
@@ -321,7 +299,7 @@ def authenticate_user(username: str, password: str) -> dict[str, Any] | None:
     return None
 
 
-def create_user(*, username: str, nickname: str, password: str, role: str = "user") -> dict[str, Any]:
+def create_user(*, username: str, nickname: str, password: str, role: str = "user", provisioned: bool = False) -> dict[str, Any]:
     normalized_username = _normalize_username(username)
     normalized_nickname = _normalize_nickname(nickname)
     normalized_role = _normalize_role(role)
@@ -339,6 +317,7 @@ def create_user(*, username: str, nickname: str, password: str, role: str = "use
         "password_hash": digest,
         "api_token": _generate_token(),
         "system": False,
+        "provisioned": provisioned,
         "created_at": now,
         "updated_at": now,
     }
@@ -388,7 +367,7 @@ def rotate_user_token(*, username: str) -> dict[str, Any]:
         for user in users:
             if str(user.get("username") or "").casefold() != normalized_username:
                 continue
-            if bool(user.get("system")) and str(user.get("username") or "").casefold() == _admin_username().casefold():
+            if bool(user.get("system")) and str(user.get("username") or "").casefold() == "aaron":
                 raise ValueError("Master admin token is managed outside local rotation")
             user["api_token"] = _generate_token()
             user["updated_at"] = _now_iso()
@@ -426,6 +405,34 @@ def change_user_password(*, username: str, current_password: str, new_password: 
     return dict(captured)
 
 
+def set_first_time_password(*, username: str, new_password: str) -> dict[str, Any]:
+    """Set password for a provisioned account without needing the current password.
+
+    Only succeeds if the account has provisioned=True. Clears the provisioned flag
+    so subsequent password changes go through change_user_password (requires current).
+    """
+    normalized_username = username.strip().casefold()
+    captured: dict[str, Any] = {}
+
+    def _mut(users: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        for user in users:
+            if str(user.get("username") or "").casefold() != normalized_username:
+                continue
+            if not bool(user.get("provisioned")):
+                raise ValueError("Account is not provisioned — use change_user_password instead")
+            salt, digest = _make_password_fields(new_password)
+            user["password_salt"] = salt
+            user["password_hash"] = digest
+            user["provisioned"] = False
+            user["updated_at"] = _now_iso()
+            captured.update(user)
+            return users
+        raise ValueError("User not found")
+
+    _mutate_store(_mut)
+    return dict(captured)
+
+
 def update_user_role(*, username: str, role: str) -> dict[str, Any]:
     normalized_username = username.strip().casefold()
     normalized_role = _normalize_role(role)
@@ -435,7 +442,7 @@ def update_user_role(*, username: str, role: str) -> dict[str, Any]:
         for user in users:
             if str(user.get("username") or "").casefold() != normalized_username:
                 continue
-            if bool(user.get("system")) and str(user.get("username") or "").casefold() == _admin_username().casefold():
+            if bool(user.get("system")) and str(user.get("username") or "") == "aaron":
                 user["role"] = "admin"
             else:
                 user["role"] = normalized_role

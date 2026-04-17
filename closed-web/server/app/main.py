@@ -131,9 +131,11 @@ from app.users import (
     authenticate_user,
     change_user_password,
     create_user,
+    find_user_by_token,
     list_users,
     public_user_record,
     rotate_user_token,
+    set_first_time_password,
     update_user_profile,
     update_user_role,
 )
@@ -247,6 +249,11 @@ class PasswordChangePayload(BaseModel):
     new_password_confirm: str = Field(min_length=8)
 
 
+class SetupPasswordPayload(BaseModel):
+    new_password: str = Field(min_length=8)
+    new_password_confirm: str = Field(min_length=8)
+
+
 class UserRoleUpdatePayload(BaseModel):
     username: str = Field(min_length=1)
     role: str = Field(min_length=1)
@@ -314,14 +321,18 @@ def _can_manage_publication(auth: AuthState) -> bool:
 
 def _session_payload(token: str | None, *, include_agents: bool = True) -> dict[str, Any]:
     auth = auth_state_dict(token)
+    user = find_user_by_token(token) if token else None
     payload: dict[str, Any] = {
         **auth,
         "public_base_url": settings.public_base_url,
+        "provisioned": bool(user.get("provisioned")) if user else False,
     }
+    is_admin = auth.get("role") == "admin" or "librarian:admin" in (auth.get("capabilities") or [])
     if include_agents:
         payload["librarian_identity"] = librarian_identity_dict()
-        payload["librarian"] = librarian_status() if auth["authenticated"] else None
-        payload["subordinate"] = subordinate_status() if auth["authenticated"] and auth["role"] == "admin" else None
+        # Full agent configs only for admins — regular users don't need tool/memory details
+        payload["librarian"] = librarian_status() if is_admin else None
+        payload["subordinate"] = subordinate_status() if is_admin else None
     return payload
 
 
@@ -368,8 +379,26 @@ def _filter_readable_notes(notes: list[dict[str, Any]], auth: AuthState) -> list
     return [note for note in notes if _can_read_frontmatter(note, auth)]
 
 
+_PROTECTED_METADATA_FIELDS = frozenset({
+    "core_api_id",
+    "created_at",
+    "updated_at",
+    "synced_at",
+    "sagwan_review",
+    "sagwan_score",
+    "sagwan_reviewed_at",
+    "busagwan_crawled_at",
+    "publication_id",
+})
+
+
 def _normalize_write_metadata(payload: NoteWriteRequest, auth: AuthState) -> dict[str, Any]:
-    metadata = dict(payload.metadata or {})
+    raw_metadata = dict(payload.metadata or {})
+    # Strip protected system fields non-admins cannot set
+    if not _is_admin(auth):
+        for field in _PROTECTED_METADATA_FIELDS:
+            raw_metadata.pop(field, None)
+    metadata = raw_metadata
     existing_frontmatter: dict[str, Any] = {}
     is_existing = False
     try:
@@ -660,7 +689,7 @@ def api_auth_provision(request: Request) -> dict[str, Any]:
     nickname = f"Agent {suffix.upper()}"
     password = _secrets.token_urlsafe(24)
     try:
-        user = create_user(username=username, nickname=nickname, password=password)
+        user = create_user(username=username, nickname=nickname, password=password, provisioned=True)
     except ValueError as exc:
         raise _vault_http_error(exc) from exc
     token = str(user.get("api_token") or "")
@@ -677,6 +706,7 @@ def api_auth_provision(request: Request) -> dict[str, Any]:
     return {
         "token": token,
         "username": username,
+        "provisioned": True,
         "mcp_endpoint": mcp_url,
         "mcp_config": mcp_block,
         "env": f"CLOSED_AKASHIC_TOKEN={token}",
@@ -760,6 +790,31 @@ def api_change_password(
     return {
         "profile": public_user_record(user),
         "token": token,
+        "session": _session_payload(token),
+    }
+
+
+@api.post("/api/profile/setup-password")
+def api_setup_password(
+    payload: SetupPasswordPayload,
+    auth: AuthState = Depends(require_agent_token),
+) -> dict[str, Any]:
+    """Set a password for a provisioned account (no current password required).
+
+    Only succeeds for accounts created via /api/auth/provision (provisioned=True).
+    After success the account's provisioned flag is cleared and subsequent password
+    changes go through /api/profile/password (which requires the current password).
+    """
+    if payload.new_password != payload.new_password_confirm:
+        raise HTTPException(status_code=400, detail="Password confirmation does not match")
+    try:
+        user = set_first_time_password(username=auth.username, new_password=payload.new_password)
+    except ValueError as exc:
+        raise _vault_http_error(exc) from exc
+    token = str(user.get("api_token") or "")
+    return {
+        "success": True,
+        "profile": public_user_record(user),
         "session": _session_payload(token),
     }
 
@@ -1109,7 +1164,7 @@ def api_folders() -> dict[str, Any]:
     }
 
 
-@api.get("/api/debug/status", dependencies=[Depends(require_agent_token)])
+@api.get("/api/debug/status", dependencies=[Depends(require_admin_token)])
 def api_debug_status() -> dict[str, Any]:
     return {
         "status": "ok",
@@ -1122,7 +1177,7 @@ def api_debug_status() -> dict[str, Any]:
     }
 
 
-@api.get("/api/debug/recent-requests", dependencies=[Depends(require_agent_token)])
+@api.get("/api/debug/recent-requests", dependencies=[Depends(require_admin_token)])
 def api_debug_recent_requests(
     limit: int = Query(default=50, ge=1, le=500),
     path_prefix: str | None = Query(default=None),
@@ -1152,7 +1207,7 @@ def api_debug_recent_requests(
     }
 
 
-@api.get("/api/debug/log-tail", dependencies=[Depends(require_agent_token)])
+@api.get("/api/debug/log-tail", dependencies=[Depends(require_admin_token)])
 def api_debug_log_tail(limit: int = Query(default=100, ge=1, le=500)) -> dict[str, Any]:
     lines = log_tail(limit=limit)
     return {
@@ -1339,14 +1394,21 @@ def api_request_publication(
 @api.get("/api/publication/requests")
 def api_publication_requests(
     status: str | None = Query(default=None),
+    limit: int = Query(default=50, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
     auth: AuthState = Depends(require_agent_token),
 ) -> dict[str, Any]:
     if not _can_manage_publication(auth):
         raise HTTPException(status_code=403, detail="Only admins or managers can list publication requests")
-    requests = list_publication_requests(status=status)
+    all_requests = list_publication_requests(status=status)
+    total = len(all_requests)
+    paged = all_requests[offset : offset + limit]
     return {
-        "requests": [item.__dict__ for item in requests],
-        "count": len(requests),
+        "requests": [item.__dict__ for item in paged],
+        "total": total,
+        "count": len(paged),
+        "offset": offset,
+        "limit": limit,
     }
 
 
@@ -1504,16 +1566,26 @@ async def api_subordinate_chat(payload: LibrarianChatRequest) -> StreamingRespon
     )
 
 
+_SAFE_INLINE_MIME = frozenset({"image/png", "image/jpeg", "image/gif", "image/webp", "image/svg+xml", "image/bmp", "image/tiff"})
+
+
+def _serve_asset(path: str) -> FileResponse:
+    target, mime_type = read_asset_bytes(path)
+    disposition = "inline" if mime_type in _SAFE_INLINE_MIME else "attachment"
+    resp = FileResponse(target, media_type=mime_type, content_disposition_type=disposition)
+    resp.headers["X-Content-Type-Options"] = "nosniff"
+    resp.headers["Cache-Control"] = "private, max-age=3600"
+    return resp
+
+
 @api.get("/files/{path:path}")
 def api_file(path: str) -> FileResponse:
-    target, mime_type = read_asset_bytes(path)
-    return FileResponse(target, media_type=mime_type, content_disposition_type="inline")
+    return _serve_asset(path)
 
 
 @api.get("/closed/files/{path:path}")
 def api_prefixed_file(path: str) -> FileResponse:
-    target, mime_type = read_asset_bytes(path)
-    return FileResponse(target, media_type=mime_type, content_disposition_type="inline")
+    return _serve_asset(path)
 
 
 @api.get("/health")

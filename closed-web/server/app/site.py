@@ -2,12 +2,49 @@ from __future__ import annotations
 
 import html
 import json
+import math
 import re
+import threading
+import time
 from dataclasses import dataclass
+from datetime import date, datetime
 from pathlib import Path
 from typing import Any
 
 import markdown
+
+try:
+    import nh3 as _nh3
+
+    _ALLOWED_TAGS = {
+        "p", "br", "hr", "h1", "h2", "h3", "h4", "h5", "h6",
+        "ul", "ol", "li", "dl", "dt", "dd",
+        "table", "thead", "tbody", "tr", "th", "td",
+        "blockquote", "pre", "code", "em", "strong", "del", "s",
+        "a", "img", "sup", "sub", "span", "div",
+        "details", "summary",
+    }
+    _ALLOWED_ATTRS: dict[str, set[str]] = {
+        "a": {"href", "title", "class", "data-note-slug"},
+        "img": {"src", "alt", "title", "width", "height", "class"},
+        "code": {"class"},
+        "pre": {"class"},
+        "h2": {"id"},
+        "h3": {"id"},
+        "span": {"class"},
+        "div": {"class"},
+        "td": {"align"},
+        "th": {"align"},
+    }
+
+    def _sanitize_html(raw_html: str) -> str:
+        return _nh3.clean(raw_html, tags=_ALLOWED_TAGS, attributes=_ALLOWED_ATTRS)
+except ImportError:
+    import logging as _logging
+    _logging.getLogger(__name__).warning("nh3 not installed — markdown output will NOT be sanitized (XSS risk)")
+
+    def _sanitize_html(raw_html: str) -> str:  # type: ignore[misc]
+        return raw_html
 
 from app.config import get_settings
 from app.semantic_search import SemanticDocument, semantic_rank
@@ -17,6 +54,16 @@ from app.vault import file_href, kind_catalog, kind_template_sections, list_note
 WIKI_LINK_PATTERN = re.compile(r"\[\[([^\]|#]+)(?:#([^\]|]+))?(?:\|([^\]]+))?\]\]")
 EMBED_LINK_PATTERN = re.compile(r"!\[\[([^\]|#]+)(?:\|([^\]]+))?\]\]")
 MARKDOWN_IMAGE_PATTERN = re.compile(r"!\[([^\]]*)\]\(([^)]+)\)")
+
+_NOTES_CACHE: list["ClosedNote"] | None = None
+_NOTES_CACHE_AT = 0.0
+_NOTES_CACHE_TTL = 30.0
+_NOTES_CACHE_LOCK = threading.Lock()
+_DECAY_TIER_DAYS = {
+    "legal": 30,
+    "product": 60,
+    "general": 90,
+}
 
 
 @dataclass
@@ -35,8 +82,12 @@ class ClosedNote:
     summary: str
     body: str
     links: list[str]
+    confirm_count: int = 0
     original_owner: str = ""
     created_by: str = ""
+    freshness_date: str = ""
+    decay_tier: str = "general"
+    snoozed_until: str = ""
 
 
 def _viewer_can_open_note(note: ClosedNote, viewer_owner: str | None, is_admin: bool) -> bool:
@@ -44,6 +95,8 @@ def _viewer_can_open_note(note: ClosedNote, viewer_owner: str | None, is_admin: 
         return True
     if is_admin:
         return True
+    if note.visibility == "shared":
+        return bool(viewer_owner)  # 인증된 사용자라면 누구든 읽기 가능
     owner = (viewer_owner or "").strip()
     return bool(owner and note.owner == owner)
 
@@ -159,10 +212,12 @@ def get_closed_graph(
     return {
         "nodes": sorted(nodes, key=lambda item: (-item["degree"], item["title"])),
         "links": edges,
+        "edges": edges,  # alias for graph-convention clients
         "meta": {
             "vault": "openakashic",
             "note_count": len(nodes),
             "link_count": len(edges),
+            "edge_count": len(edges),  # alias for graph-convention clients
             "source": get_settings().closed_akashic_path,
         },
     }
@@ -191,6 +246,42 @@ def get_closed_note_by_slug(slug: str, route_prefix: str = "") -> dict[str, Any]
     if not note:
         return None
     return _note_payload(note, notes, route_prefix)
+
+
+def list_stale_closed_notes(days_overdue: int = 0) -> list[dict[str, Any]]:
+    min_overdue = max(0, int(days_overdue or 0))
+    today = date.today()
+    stale: list[dict[str, Any]] = []
+    for note in _load_notes():
+        freshness = _parse_iso_date(note.freshness_date)
+        if not freshness:
+            continue
+        snoozed_until = _parse_iso_date(note.snoozed_until)
+        if snoozed_until and snoozed_until > today:
+            continue
+        tier = note.decay_tier if note.decay_tier in _DECAY_TIER_DAYS else "general"
+        due_date = freshness.toordinal() + _DECAY_TIER_DAYS[tier]
+        overdue = today.toordinal() - due_date
+        if overdue < min_overdue:
+            continue
+        stale.append(
+            {
+                "path": note.path,
+                "slug": note.slug,
+                "title": note.title,
+                "kind": note.kind,
+                "project": note.project,
+                "owner": note.owner,
+                "visibility": note.visibility,
+                "publication_status": note.publication_status,
+                "freshness_date": note.freshness_date,
+                "decay_tier": tier,
+                "days_overdue": overdue,
+                "snoozed_until": note.snoozed_until,
+                "suggested_action": _stale_note_action(overdue),
+            }
+        )
+    return sorted(stale, key=lambda item: (-int(item["days_overdue"]), str(item["title"])))
 
 
 def get_closed_home_note(
@@ -287,6 +378,7 @@ def search_closed_notes(
             "href": _note_href(note.slug, route_prefix),
             "lexical_score": float(lexical_score),
             "semantic_score": round(semantic_score, 4),
+            "confirm_count": note.confirm_count,
         }
     # Reciprocal Rank Fusion (Cormack et al. 2009) — 이질적 점수(정수 lexical vs [0,1] semantic)를
     # 선형 결합하는 대신 rank 기반으로 합쳐 scale 의존성을 제거한다. k=60은 업계 표준.
@@ -302,7 +394,9 @@ def search_closed_notes(
     for rank, (slug, _) in enumerate(semantic_ranked, start=1):
         rrf_scores[slug] = rrf_scores.get(slug, 0.0) + 1.0 / (RRF_K + rank)
     for slug, entry in matches_by_slug.items():
-        entry["score"] = round(rrf_scores.get(slug, 0.0), 6)
+        confirm_count = int(entry.get("confirm_count") or 0)
+        final_score = rrf_scores.get(slug, 0.0) * (1.0 + 0.05 * math.log(1 + confirm_count))
+        entry["score"] = round(final_score, 6)
     results = sorted(matches_by_slug.values(), key=lambda item: (-item["score"], item["title"]))[:limit]
     # 결과가 얇을 때 semantic 점수가 조금이라도 있는 이웃 노트를 hint로 제공.
     # 작은 모델이 쿼리 문구를 잘못 고를 때 재검색 실마리를 잡을 수 있도록 한다.
@@ -367,9 +461,10 @@ def closed_note_html(
     workspace_styles = _workspace_styles()
     workspace_overlay = _workspace_overlay_html()
     workspace_script = _workspace_script()
+    explorer_empty = "Your vault is empty. Create your first note to get started." if not notes else "No notes available."
 
-    related_html = _link_list_html(payload["related_notes"], "Related Notes", route_prefix)
-    backlinks_html = _link_list_html(payload["backlinks"], "Backlinks", route_prefix)
+    related_html = _link_list_html(payload["related_notes"], "Related Notes", route_prefix, "No related notes found.")
+    backlinks_html = _link_list_html(payload["backlinks"], "Backlinks", route_prefix, "No backlinks found.")
     tag_html = "".join(f'<span class="tag">#{html.escape(tag)}</span>' for tag in payload["tags"])
     note_json = _json_script_text(payload)
 
@@ -474,12 +569,12 @@ def closed_note_html(
       border-right-color: transparent;
     }}
     .sidebar-resizer {{
-      position: absolute;
-      top: 0;
-      right: 0;
+      position: fixed;
+      top: var(--closed-header-height, 58px);
+      bottom: 0;
+      left: calc(var(--closed-sidebar-width) - 6px);
       z-index: 30;
       width: 12px;
-      height: 100%;
       cursor: col-resize;
       touch-action: none;
     }}
@@ -634,6 +729,16 @@ def closed_note_html(
       color: var(--accent);
       box-shadow: 0 6px 16px rgba(37,99,235,.12);
     }}
+    html[data-theme="dark"] .mini-graph-fab {{
+      background: rgba(19, 26, 42, .95);
+      border-color: var(--line);
+      color: var(--muted);
+    }}
+    html[data-theme="dark"] .mini-graph-fab:hover,
+    html[data-theme="dark"] .mini-graph-fab.active {{
+      color: var(--ink);
+      border-color: var(--line-strong);
+    }}
     .appbar {{
       position: sticky;
       top: 0;
@@ -717,6 +822,15 @@ def closed_note_html(
       color: var(--ink); font-size: 0.82rem; font-weight: 600;
     }}
     .search-wrap {{ position: relative; margin-bottom: 18px; }}
+    .search-row {{ display: flex; gap: 6px; align-items: stretch; }}
+    .search-row .search {{ flex: 1; }}
+    .search-btn {{
+      flex: 0 0 auto; width: 42px; border-radius: 8px; border: 1px solid var(--line);
+      background: rgba(255,255,255,.96); color: var(--ink); cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .18s ease, border-color .18s ease;
+    }}
+    .search-btn:hover {{ background: rgba(37, 99, 235, .08); border-color: rgba(37, 99, 235, .42); }}
     .search {{
       width: 100%; height: 42px; border-radius: 8px; border: 1px solid var(--line);
       background: rgba(255,255,255,.96); color: var(--ink); padding: 0 14px; font: inherit;
@@ -746,17 +860,17 @@ def closed_note_html(
       background: rgba(255,255,255,.46);
       overflow: visible;
     }}
-    .folder-group + .folder-group {{ margin-top: 8px; }}
+    .folder-group + .folder-group {{ margin-top: 6px; }}
     .folder-summary {{
       list-style: none;
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 10px 12px;
+      gap: 8px;
+      padding: max(6px, calc(10px - var(--depth, 0) * 1px)) 12px;
       min-width: 0;
       cursor: pointer;
       color: var(--ink);
-      font-size: 0.84rem;
+      font-size: max(0.78rem, calc(0.84rem - var(--depth, 0) * 0.02rem));
       font-weight: 700;
       letter-spacing: 0;
       background: rgba(255,255,255,.68);
@@ -765,8 +879,8 @@ def closed_note_html(
     .folder-summary::-webkit-details-marker {{ display: none; }}
     .folder-caret {{
       display: inline-flex;
-      flex: 0 0 12px;
-      width: 12px;
+      flex: 0 0 11px;
+      width: 11px;
       justify-content: center;
       color: var(--muted);
       transition: transform .16s ease;
@@ -775,13 +889,15 @@ def closed_note_html(
     .folder-children {{
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      margin-left: 14px;
-      padding: 6px 6px 8px 10px;
-      border-left: 1px solid rgba(197, 211, 229, .66);
+      gap: 4px;
+      margin-left: 8px;
+      padding: 4px 4px 6px 8px;
+      border-left: 1px solid rgba(197, 211, 229, .55);
     }}
     .nav-link {{
-      display: block; padding: 10px 12px; border-radius: 8px; color: var(--ink);
+      display: block;
+      padding: max(6px, calc(10px - var(--depth, 0) * 1px)) max(8px, calc(12px - var(--depth, 0) * 1px));
+      border-radius: 8px; color: var(--ink);
       border: 1px solid transparent; transition: background .18s ease, border-color .18s ease, transform .18s ease;
       min-width: 0;
     }}
@@ -801,7 +917,9 @@ def closed_note_html(
       color: var(--accent-2);
     }}
     .nav-link span {{ display: block; min-width: 0; overflow-wrap: anywhere; line-height: 1.34; }}
-    .nav-link small {{ display:block; color: var(--muted); font-size: 0.72rem; margin-top: 4px; overflow-wrap: anywhere; line-height: 1.35; }}
+    .nav-link small {{ display:none; color: var(--muted); font-size: 0.72rem; margin-top: 4px; overflow-wrap: anywhere; line-height: 1.35; }}
+    .nav-link.active small,
+    body.explorer-searching .nav-link small {{ display:block; }}
     .note-shell {{ max-width: 820px; margin: 0 auto; padding-top: 32px; }}
     [hidden] {{ display: none !important; }}
     .note-top {{
@@ -1028,12 +1146,44 @@ def closed_note_html(
     }}
     @media (max-width: 820px) {{
       .layout {{ grid-template-columns: 1fr; }}
-      .sidebar {{ position: static; height: auto; border: 0; border-bottom: 1px solid var(--line); }}
-      .sidebar {{ padding-right: 24px; }}
       .sidebar-resizer {{ display: none; }}
-      body.left-collapsed .sidebar {{ display: none; }}
-      .sidebar-edge-toggle {{ top: calc(var(--closed-header-height) + 10px); left: 10px; }}
-      .content {{ padding-top: 0; }}
+      .sidebar {{
+        position: fixed;
+        top: var(--closed-header-height);
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 70;
+        width: 100%;
+        height: calc(100svh - var(--closed-header-height));
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+        border: 0;
+        background: rgba(248, 250, 252, .97);
+        padding: 20px 20px 32px;
+        transform: translateX(0);
+        transition: transform .24s ease;
+      }}
+      body.left-collapsed .sidebar {{
+        display: block;
+        transform: translateX(-100vw);
+        opacity: 1;
+        pointer-events: auto;
+        overflow-y: auto;
+        padding: 20px 20px 32px;
+        border-right-color: var(--line);
+      }}
+      .sidebar-edge-toggle {{
+        top: calc(var(--closed-header-height) + 10px);
+        right: 10px;
+        left: auto;
+        z-index: 80;
+      }}
+      body.left-collapsed .sidebar-edge-toggle {{
+        right: auto;
+        left: 10px;
+      }}
       .appbar {{
         margin-left: -14px;
         margin-right: -14px;
@@ -1042,6 +1192,7 @@ def closed_note_html(
         align-items: flex-start;
       }}
       .appbar-title {{ max-width: 100%; order: 3; flex-basis: 100%; }}
+      .top-button, .top-tab, .meta-tab, .side-tab, .note-action-btn {{ min-height: 38px; }}
       .article-wrap {{ padding: 22px 18px; }}
     }}
     {shared_styles}
@@ -1049,6 +1200,7 @@ def closed_note_html(
   </style>
 </head>
 <body class="closed-with-header">
+  <a class="skip-link" href="#main-content">Skip to content</a>
   {shared_header}
   <button class="sidebar-edge-toggle" id="toggle-left-sidebar" type="button" aria-label="Toggle Sidebar" title="Toggle Sidebar">❮</button>
   <div class="layout">
@@ -1061,22 +1213,27 @@ def closed_note_html(
       </div>
       <p class="sub">A personal knowledge store — follow linked notes to build and retrieve memory.</p>
       <div class="sidebar-tabs" role="tablist" aria-label="Workspace sidebar">
-        <button class="side-tab active" type="button" data-sidebar-tab="explore">Explore</button>
-        <button class="side-tab" type="button" data-sidebar-tab="info">Info</button>
-        <button class="side-tab" type="button" data-sidebar-tab="relations">Relations</button>
-        <button class="side-tab" type="button" data-sidebar-tab="edit" data-note-write-control hidden>Edit</button>
+        <button class="side-tab active" type="button" role="tab" aria-selected="true" aria-controls="sidebar-panel-explore" data-sidebar-tab="explore">Explore</button>
+        <button class="side-tab" type="button" role="tab" aria-selected="false" aria-controls="sidebar-panel-info" data-sidebar-tab="info">Info</button>
+        <button class="side-tab" type="button" role="tab" aria-selected="false" aria-controls="sidebar-panel-relations" data-sidebar-tab="relations">Relations</button>
+        <button class="side-tab" type="button" role="tab" aria-selected="false" aria-controls="sidebar-panel-edit" data-sidebar-tab="edit" data-note-write-control hidden>Edit</button>
       </div>
-      <section class="sidebar-panel" data-sidebar-panel="explore">
+      <section class="sidebar-panel" id="sidebar-panel-explore" role="tabpanel" aria-labelledby="sidebar-tab-explore" data-sidebar-panel="explore">
         <div class="search-wrap">
-          <input class="search" id="note-filter" placeholder="Search by title or tag" type="search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+          <div class="search-row">
+            <input class="search" id="note-filter" placeholder="Search by title or tag" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-form-type="other" />
+            <button class="search-btn" id="note-filter-submit" type="button" aria-label="Search">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="5.5" cy="5.5" r="4"/><line x1="8.5" y1="8.5" x2="13" y2="13"/></svg>
+            </button>
+          </div>
           <div class="search-results" id="search-results"></div>
         </div>
         <div class="section-label">Explorer</div>
         <nav class="nav" id="note-nav">
-          {note_links or '<p class="meta-copy">No notes available.</p>'}
+          {note_links or f'<p class="meta-copy">{html.escape(explorer_empty)}</p>'}
         </nav>
       </section>
-      <section class="sidebar-panel" data-sidebar-panel="info">
+      <section class="sidebar-panel" id="sidebar-panel-info" role="tabpanel" aria-labelledby="sidebar-tab-info" data-sidebar-panel="info">
         <section class="meta-section">
           <h3 class="meta-title">Note</h3>
           <div class="meta-grid">
@@ -1092,23 +1249,15 @@ def closed_note_html(
           <h3 class="meta-title">Tags</h3>
           <div class="tag-row">{tag_html or '<span class="tag">#untagged</span>'}</div>
         </section>
-        <section class="meta-section">
-          <h3 class="meta-title">Reuse</h3>
-          <p class="meta-copy">Add to the right container, or split into a small note and strengthen links.</p>
-        </section>
       </section>
-      <section class="sidebar-panel" data-sidebar-panel="relations">
-        <section class="meta-section">
-          <h3 class="meta-title">Relations</h3>
-          <p class="meta-copy">Link related pages by adding their titles in the Related field under the Edit tab.</p>
-          <div class="toolbar-row" style="margin-top:12px;">
-            <button class="action-button" id="edit-relations" type="button" data-note-write-control hidden>Edit Related</button>
-          </div>
-        </section>
+      <section class="sidebar-panel" id="sidebar-panel-relations" role="tabpanel" aria-labelledby="sidebar-tab-relations" data-sidebar-panel="relations">
+        <div class="toolbar-row" style="margin-bottom:12px;">
+          <button class="action-button" id="edit-relations" type="button" data-note-write-control hidden>Edit Related</button>
+        </div>
         {related_html}
         {backlinks_html}
       </section>
-      <section class="sidebar-panel" data-sidebar-panel="edit" data-note-write-control hidden>
+      <section class="sidebar-panel" id="sidebar-panel-edit" role="tabpanel" aria-labelledby="sidebar-tab-edit" data-sidebar-panel="edit" data-note-write-control hidden>
         <section class="meta-section">
           <h3 class="meta-title">Page Settings</h3>
           <div class="workspace-grid">
@@ -1197,8 +1346,8 @@ def closed_note_html(
           <p class="meta-copy">Setting Visibility to `public` on your own document keeps the source private and auto-queues a publication request.</p>
         </section>
       </section>
-      <div class="sidebar-resizer" id="sidebar-resizer" role="separator" aria-orientation="vertical" aria-label="Resize sidebar" title="Drag to resize"></div>
     </aside>
+    <div class="sidebar-resizer" id="sidebar-resizer" role="separator" aria-orientation="vertical" aria-label="Resize sidebar" title="Drag to resize. Use Arrow keys when focused." tabindex="0"></div>
     <main class="content">
       <button class="mini-graph-fab" id="mini-graph-toggle" type="button" title="Local Graph" aria-label="Local Graph">⬡</button>
       <div class="mini-graph-widget" id="mini-graph-widget" role="dialog" aria-label="Local Graph">
@@ -1232,7 +1381,7 @@ def closed_note_html(
           <textarea class="editor-title-input" id="editor-title" rows="1" placeholder="Untitled"></textarea>
         </header>
         <section class="article-wrap">
-          <article class="markdown read-view" id="read-content" data-edit-target="body">{payload["body_html"]}</article>
+          <article class="markdown read-view" id="main-content" data-edit-target="body">{payload["body_html"]}</article>
           <section class="inline-editor edit-view">
             <textarea class="editor-body-input" id="editor-body" placeholder="## Summary&#10;&#10;## Body"></textarea>
           </section>
@@ -1245,6 +1394,9 @@ def closed_note_html(
   <script type="application/json" id="closed-note-data">{note_json}</script>
   <script>
     const noteMeta = JSON.parse(document.getElementById('closed-note-data')?.textContent || '{{}}');
+    if (noteMeta?.slug && noteMeta?.status !== 'empty') {{
+      window.closedAkashicUI?.recordRecentNote?.(noteMeta.slug);
+    }}
     const input = document.getElementById('note-filter');
     if (input) input.value = '';
     const __collapsibleKey = (key) => `closed-akashic-collapsible-${{key}}`;
@@ -1322,8 +1474,37 @@ def closed_note_html(
         link.addEventListener('blur', hideCard);
       }});
     }})();
-    const items = [...document.querySelectorAll('.nav-link')];
-    const folders = [...document.querySelectorAll('.folder-group')];
+    (function initHeadingAnchors() {{
+      document.querySelectorAll('.heading-anchor').forEach((anchor) => {{
+        anchor.addEventListener('click', async (event) => {{
+          event.preventDefault();
+          const href = anchor.getAttribute('href') || '';
+          const absoluteUrl = new URL(href, window.location.href).href;
+          let copied = false;
+          try {{
+            if (navigator.clipboard?.writeText) {{
+              await navigator.clipboard.writeText(absoluteUrl);
+              copied = true;
+            }}
+          }} catch (error) {{ /* fallback below */ }}
+          if (!copied) {{
+            const ta = document.createElement('textarea');
+            ta.value = absoluteUrl;
+            ta.setAttribute('readonly', '');
+            ta.style.position = 'fixed';
+            ta.style.top = '-1000px';
+            document.body.appendChild(ta);
+            ta.select();
+            try {{ copied = document.execCommand('copy'); }} catch (e) {{ /* silent */ }}
+            finally {{ document.body.removeChild(ta); }}
+          }}
+          if (copied) window.closedAkashicUI?.notify?.('Link copied', 'success');
+          window.location.hash = href.replace(/^#/, '');
+        }});
+      }});
+    }})();
+    const items = [...document.querySelectorAll('#note-nav .nav-link')];
+    const folders = [...document.querySelectorAll('#note-nav .folder-group')];
     const searchBox = document.getElementById('search-results');
     const sidebarResizer = document.getElementById('sidebar-resizer');
     const pathSegments = [...document.querySelectorAll('.path-segment')];
@@ -1336,6 +1517,23 @@ def closed_note_html(
     const leftCollapsedKey = 'closed-akashic-left-collapsed';
     const sidebarTabKey = 'closed-akashic-sidebar-tab';
     let searchTimer = null;
+
+    function setExplorerSearching(active) {{
+      document.body.classList.toggle('explorer-searching', active);
+    }}
+
+    function syncExplorerSearchState() {{
+      setExplorerSearching(Boolean(document.activeElement === input || input?.value?.trim()));
+    }}
+
+    function highlightExplorerLink(item, query) {{
+      const titleEl = item.querySelector('span');
+      const pathEl = item.querySelector('small');
+      const title = item.dataset.noteTitle || titleEl?.textContent || '';
+      const path = item.dataset.notePath || pathEl?.textContent || '';
+      window.closedAkashicUI?.highlightText?.(titleEl, title, query);
+      window.closedAkashicUI?.highlightText?.(pathEl, path, query);
+    }}
 
     function canWriteCurrentNote(session) {{
       if (!session?.authenticated) return false;
@@ -1355,17 +1553,35 @@ def closed_note_html(
       document.body.classList.toggle('left-collapsed', collapsed);
       leftToggle?.setAttribute('aria-pressed', String(collapsed));
       window.localStorage.setItem(leftCollapsedKey, collapsed ? '1' : '0');
+      if (window.matchMedia('(max-width: 820px)').matches) {{
+        sidebar?.setAttribute('aria-hidden', collapsed ? 'true' : 'false');
+      }}
     }}
+
+    sidebar?.addEventListener('click', (e) => {{
+      const link = e.target.closest('a[href]');
+      if (link && window.matchMedia('(max-width: 820px)').matches) setLeftCollapsed(true);
+    }});
 
     function setSidebarTab(tab, options = {{}}) {{
       const next = ['explore', 'info', 'relations', 'edit'].includes(tab) ? tab : 'explore';
       sidebar?.setAttribute('data-active-panel', next);
-      sideTabs.forEach((button) => button.classList.toggle('active', button.dataset.sidebarTab === next));
+      sideTabs.forEach((button) => {{
+        const isActive = button.dataset.sidebarTab === next;
+        button.classList.toggle('active', isActive);
+        button.setAttribute('aria-selected', String(isActive));
+      }});
       window.localStorage.setItem(sidebarTabKey, next);
       if (options.openSidebar !== false) setLeftCollapsed(false);
     }}
 
-    if (window.localStorage.getItem(leftCollapsedKey) === '1') setLeftCollapsed(true);
+    {{
+      const _sc = window.localStorage.getItem(leftCollapsedKey);
+      const _isMobile = window.matchMedia('(max-width: 820px)').matches;
+      if (_sc === '1' || (_sc === null && _isMobile)) {{
+        setLeftCollapsed(true);
+      }}
+    }}
     setSidebarTab(window.localStorage.getItem(sidebarTabKey) || 'explore', {{ openSidebar: false }});
 
     function clampSidebarWidth(value) {{
@@ -1410,6 +1626,20 @@ def closed_note_html(
 
     sidebarResizer?.addEventListener('pointerup', stopSidebarResize);
     sidebarResizer?.addEventListener('pointercancel', stopSidebarResize);
+    sidebarResizer?.addEventListener('keydown', (event) => {{
+      const step = event.shiftKey ? 40 : 10;
+      if (event.key === 'ArrowRight') {{
+        event.preventDefault();
+        const current = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--closed-sidebar-width')) || 280;
+        const width = applySidebarWidth(current + step);
+        window.localStorage.setItem(sidebarWidthKey, String(width));
+      }} else if (event.key === 'ArrowLeft') {{
+        event.preventDefault();
+        const current = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--closed-sidebar-width')) || 280;
+        const width = applySidebarWidth(current - step);
+        window.localStorage.setItem(sidebarWidthKey, String(width));
+      }}
+    }});
     window.addEventListener('resize', () => {{
       const current = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--closed-sidebar-width'));
       if (Number.isFinite(current)) {{
@@ -1423,11 +1653,11 @@ def closed_note_html(
     }});
 
     editRelations?.addEventListener('click', () => {{
-      setSidebarTab('edit');
+      setSidebarTab('edit', {{ openSidebar: !window.matchMedia('(max-width: 820px)').matches }});
       window.setTimeout(() => document.getElementById('editor-related')?.focus(), 120);
     }});
     sideTabs.forEach((button) => {{
-      button.addEventListener('click', () => setSidebarTab(button.dataset.sidebarTab || 'explore'));
+      button.addEventListener('click', () => setSidebarTab(button.dataset.sidebarTab || 'explore', {{ openSidebar: !window.matchMedia('(max-width: 820px)').matches }}));
     }});
 
     function escapeSelectorValue(value) {{
@@ -1466,46 +1696,80 @@ def closed_note_html(
       }});
     }});
 
-    input?.addEventListener('input', () => {{
-      const q = input.value.trim().toLowerCase();
+    function fetchNoteSearchResults(q) {{
+      window.clearTimeout(searchTimer);
+      searchTimer = window.setTimeout(async () => {{
+        try {{
+          const res = await fetch(`${{searchEndpoint}}?q=${{encodeURIComponent(q)}}&limit=6`);
+          if (!res.ok) throw new Error(res.status);
+          const data = await res.json();
+          searchBox.innerHTML = '';
+          const results = data.results || [];
+          if (results.length === 0) {{
+            const empty = document.createElement('div');
+            empty.className = 'search-result';
+            empty.textContent = `Nothing matches "${{q}}" — try a different keyword.`;
+            searchBox.appendChild(empty);
+          }} else {{
+            for (const item of results) {{
+              const a = document.createElement('a');
+              a.className = 'search-result';
+              const href = String(item.href || '');
+              if (href.startsWith('/') || href.startsWith('https://')) a.href = href;
+              const strong = document.createElement('strong');
+              strong.textContent = item.title || '';
+              const small = document.createElement('small');
+              small.textContent = item.summary || item.path || '';
+              a.appendChild(strong);
+              a.appendChild(small);
+              searchBox.appendChild(a);
+            }}
+          }}
+          searchBox.classList.add('visible');
+        }} catch (error) {{
+          searchBox.innerHTML = '';
+          const errEl = document.createElement('div');
+          errEl.className = 'search-result';
+          errEl.textContent = window._t?.('graph.search_error') ?? 'Search unavailable';
+          searchBox.appendChild(errEl);
+          searchBox.classList.add('visible');
+        }}
+      }}, 120);
+    }}
+
+    function runNoteSearch() {{
+      const q = input?.value?.trim() || '';
+      const ql = q.toLowerCase();
       for (const item of items) {{
-        const hit = !q || item.dataset.title.includes(q);
+        const hit = !ql || item.dataset.title.includes(ql);
         item.style.display = hit ? '' : 'none';
+        highlightExplorerLink(item, q);
       }}
       for (const folder of folders) {{
         const descendants = [...folder.querySelectorAll('.nav-link')];
         const visible = descendants.some((item) => item.style.display !== 'none');
         folder.style.display = visible ? '' : 'none';
-        if (q && visible) folder.open = true;
+        if (ql && visible) folder.open = true;
       }}
-
-      window.clearTimeout(searchTimer);
       if (!q) {{
+        window.clearTimeout(searchTimer);
         searchBox?.classList.remove('visible');
-        searchBox.innerHTML = '';
+        if (searchBox) searchBox.innerHTML = '';
         return;
       }}
+      fetchNoteSearchResults(q);
+    }}
 
-      searchTimer = window.setTimeout(async () => {{
-        try {{
-          const res = await fetch(`${{searchEndpoint}}?q=${{encodeURIComponent(q)}}&limit=6`);
-          const data = await res.json();
-          const results = (data.results || []).map((item) => `
-            <a class="search-result" href="${{item.href}}">
-              <strong>${{item.title}}</strong>
-              <small>${{item.summary || item.path || ''}}</small>
-            </a>
-          `).join('');
-          searchBox.innerHTML = results || `<div class="search-result"><strong>${{window._t?.('graph.no_results') ?? 'No results'}}</strong></div>`;
-          searchBox.classList.add('visible');
-        }} catch (error) {{
-          searchBox.classList.remove('visible');
-        }}
-      }}, 160);
-    }});
+    input?.addEventListener('focus', syncExplorerSearchState);
+    input?.addEventListener('blur', () => window.setTimeout(syncExplorerSearchState, 0));
+    input?.addEventListener('input', syncExplorerSearchState);
+    input?.addEventListener('keydown', (event) => {{ if (event.key === 'Enter') runNoteSearch(); }});
+    document.getElementById('note-filter-submit')?.addEventListener('click', runNoteSearch);
+    syncExplorerSearchState();
 
     document.addEventListener('click', (event) => {{
-      if (!searchBox?.contains(event.target) && event.target !== input) {{
+      const submitBtn = document.getElementById('note-filter-submit');
+      if (!searchBox?.contains(event.target) && event.target !== input && event.target !== submitBtn) {{
         searchBox?.classList.remove('visible');
       }}
     }});
@@ -1538,6 +1802,7 @@ def closed_note_html(
 
       const ctx = canvas.getContext('2d');
       let nodes = [], links = [], raf = null, hoveredNode = null;
+      function isDark() {{ return document.documentElement.getAttribute('data-theme') === 'dark'; }}
       const SIM_STEPS = 80;
 
       function kindColor(kind) {{
@@ -1627,7 +1892,7 @@ def closed_note_html(
           ctx.scale(dpr, dpr);
         }}
         ctx.clearRect(0, 0, w, h);
-        ctx.strokeStyle = 'rgba(148,163,184,.38)';
+        ctx.strokeStyle = isDark() ? 'rgba(148,163,184,.22)' : 'rgba(148,163,184,.38)';
         ctx.lineWidth = 1;
         links.forEach((l) => {{
           const src = l.source?.slug || l.source?.id || l.source;
@@ -1637,6 +1902,7 @@ def closed_note_html(
           if (!s || !t) return;
           ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.lineTo(t.x, t.y); ctx.stroke();
         }});
+        const dark = isDark();
         nodes.forEach((n) => {{
           const isCenter = n.path === currentPath || n.href === window.location.pathname;
           const isHovered = n === hoveredNode;
@@ -1647,7 +1913,7 @@ def closed_note_html(
           ctx.fillStyle = isCenter ? color : (isHovered ? color : color + '99');
           ctx.fill();
           if (restricted) {{
-            ctx.strokeStyle = '#64748b';
+            ctx.strokeStyle = dark ? '#94a3b8' : '#64748b';
             ctx.setLineDash([3, 2]);
             ctx.lineWidth = 1.2;
             ctx.beginPath(); ctx.arc(n.x, n.y, r + 2, 0, Math.PI * 2); ctx.stroke();
@@ -1661,7 +1927,9 @@ def closed_note_html(
           const rawTitle = (n.title || n.path || '').slice(0, 22);
           const title = restricted ? `🔒 ${{rawTitle}}` : rawTitle;
           ctx.font = `${{isCenter ? 700 : 500}} 10px Inter, sans-serif`;
-          ctx.fillStyle = isCenter ? '#0f172a' : (isHovered ? '#0f172a' : '#475569');
+          ctx.fillStyle = dark
+            ? (isCenter ? '#e6eaf3' : (isHovered ? '#e6eaf3' : '#94a3b8'))
+            : (isCenter ? '#0f172a' : (isHovered ? '#0f172a' : '#475569'));
           ctx.globalAlpha = isCenter || isHovered ? 1 : 0.85;
           ctx.fillText(title, n.x + r + 4, n.y + 4);
           ctx.globalAlpha = 1;
@@ -1741,12 +2009,14 @@ def closed_note_html(
       toggle.addEventListener('click', () => {{
         widget.classList.contains('visible') ? closeWidget() : openWidget();
       }});
-      closeBtn.addEventListener('click', closeWidget);
+      closeBtn.addEventListener('click', () => {{
+        closeWidget();
+        try {{ window.localStorage.setItem('closed-akashic-mini-graph', '0'); }} catch (e) {{ /* ignore */ }}
+      }});
 
       // 모바일에서는 첫 방문 시 위젯이 본문 위를 가리지 않도록 기본 접힘
       const stored = window.localStorage.getItem('closed-akashic-mini-graph');
-      const defaultOpen = window.matchMedia('(max-width: 720px)').matches ? false : true;
-      const shouldOpen = stored === null ? defaultOpen : stored !== '0';
+      const shouldOpen = stored === '1';
       if (shouldOpen) openWidget();
       toggle.addEventListener('click', () => {{
         window.localStorage.setItem('closed-akashic-mini-graph', widget.classList.contains('visible') ? '1' : '0');
@@ -2030,6 +2300,15 @@ def closed_graph_html(
     .brand {{ margin: 0; font-size: 1.85rem; line-height: 1.05; font-weight: 780; letter-spacing: 0; }}
     .sub {{ margin: 0; color: var(--muted); font-size: 0.94rem; line-height: 1.6; }}
     .search-wrap {{ position: relative; margin-bottom: 18px; }}
+    .search-row {{ display: flex; gap: 6px; align-items: stretch; }}
+    .search-row .search {{ flex: 1; }}
+    .search-btn {{
+      flex: 0 0 auto; width: 42px; border-radius: 8px; border: 1px solid var(--line);
+      background: rgba(255,255,255,.96); color: var(--ink); cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .18s ease, border-color .18s ease;
+    }}
+    .search-btn:hover {{ background: rgba(37, 99, 235, .08); border-color: rgba(37, 99, 235, .42); }}
     .search-results {{
       position: absolute; top: calc(100% + 8px); left: 0; right: 0; z-index: 20;
       display: none; padding: 8px; border-radius: 8px; background: #fff;
@@ -2053,23 +2332,30 @@ def closed_graph_html(
       background: rgba(255,255,255,.46);
       overflow: visible;
     }}
-    .folder-group + .folder-group {{ margin-top: 8px; }}
+    .folder-group + .folder-group {{ margin-top: 6px; }}
     .folder-summary {{
-      list-style: none; display: flex; align-items: center; gap: 10px; padding: 10px 12px; min-width: 0;
-      cursor: pointer; color: var(--ink); font-size: 0.84rem; font-weight: 700; background: rgba(255,255,255,.68);
+      list-style: none; display: flex; align-items: center; gap: 8px;
+      padding: max(6px, calc(10px - var(--depth, 0) * 1px)) 12px; min-width: 0;
+      cursor: pointer; color: var(--ink);
+      font-size: max(0.78rem, calc(0.84rem - var(--depth, 0) * 0.02rem));
+      font-weight: 700; background: rgba(255,255,255,.68);
     }}
     .folder-summary::-webkit-details-marker {{ display: none; }}
-    .folder-caret {{ display: inline-flex; flex: 0 0 12px; width: 12px; justify-content: center; color: var(--muted); transition: transform .16s ease; }}
+    .folder-caret {{ display: inline-flex; flex: 0 0 11px; width: 11px; justify-content: center; color: var(--muted); transition: transform .16s ease; }}
     .folder-group[open] > .folder-summary .folder-caret {{ transform: rotate(90deg); }}
-    .folder-children {{ display: flex; flex-direction: column; gap: 6px; margin-left: 14px; padding: 6px 6px 8px 10px; border-left: 1px solid rgba(197, 211, 229, .66); }}
+    .folder-children {{ display: flex; flex-direction: column; gap: 4px; margin-left: 8px; padding: 4px 4px 6px 8px; border-left: 1px solid rgba(197, 211, 229, .55); }}
     .nav-link {{
-      display: block; padding: 10px 12px; border-radius: 8px; color: var(--ink); border: 1px solid transparent;
+      display: block;
+      padding: max(6px, calc(10px - var(--depth, 0) * 1px)) max(8px, calc(12px - var(--depth, 0) * 1px));
+      border-radius: 8px; color: var(--ink); border: 1px solid transparent;
       transition: background .18s ease, border-color .18s ease, transform .18s ease; min-width: 0;
     }}
     .nav-link:hover {{ background: rgba(255,255,255,.75); text-decoration: none; transform: translateX(2px); }}
     .nav-link.active {{ background: rgba(37, 99, 235, .08); border-color: rgba(37, 99, 235, .2); box-shadow: inset 3px 0 0 rgba(37, 99, 235, .85); }}
     .nav-link span {{ display: block; min-width: 0; overflow-wrap: anywhere; line-height: 1.34; }}
-    .nav-link small {{ display:block; color: var(--muted); font-size: 0.72rem; margin-top: 4px; overflow-wrap: anywhere; line-height: 1.35; }}
+    .nav-link small {{ display:none; color: var(--muted); font-size: 0.72rem; margin-top: 4px; overflow-wrap: anywhere; line-height: 1.35; }}
+    .nav-link.active small,
+    body.explorer-searching .nav-link small {{ display:block; }}
     .panel-copy {{ color: var(--muted); font-size: .88rem; line-height: 1.6; }}
     .selection-access {{ margin-top: 10px; color: var(--muted); font-size: .84rem; line-height: 1.55; }}
     .filter-grid {{
@@ -2118,6 +2404,7 @@ def closed_graph_html(
       .shell {{ width: 100vw; }}
       body.left-collapsed .shell {{ transform: translateX(-100vw); }}
       .graph-menu {{ width: 100%; }}
+      .graph-panel-tab {{ min-height: 38px; }}
       .sidebar-edge-toggle {{
         top: calc(var(--closed-header-height) + 10px);
         right: 10px;
@@ -2139,6 +2426,7 @@ def closed_graph_html(
   </style>
 </head>
 <body class="closed-with-header">
+  <a class="skip-link" href="#main-content">Skip to content</a>
   {shared_header}
   <canvas id="graph" role="application" aria-label="Knowledge graph canvas. Use WASD to pan, Q and E to cycle neighbors, Escape to deselect, Enter to open selected note." tabindex="0"></canvas>
   <p class="sr-only" id="graph-keyboard-hint">WASD: pan. Q/E: previous/next neighbor. Esc: deselect. Enter: open note. Click a node to inspect it.</p>
@@ -2153,7 +2441,7 @@ def closed_graph_html(
     <p class="skeleton-label" id="graph-skeleton-label">Loading graph…</p>
   </div>
   <button class="sidebar-edge-toggle" id="toggle-left-sidebar" type="button" aria-label="Toggle Sidebar" title="Toggle Sidebar">❮</button>
-  <div class="shell">
+  <div class="shell" id="main-content">
     <section class="graph-menu floating" id="graph-menu" data-active-tab="explore">
       <div class="panel-bar">
         <div class="brand-wrap" style="margin:0; width:100%;">
@@ -2172,7 +2460,12 @@ def closed_graph_html(
         <section class="graph-tab-panel" data-graph-panel="explore">
           <p class="sub">All graph connections are preserved, but only notes you can open are listed here.</p>
           <div class="search-wrap">
-            <input class="search" id="graph-note-filter" placeholder="Search accessible notes" type="search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+            <div class="search-row">
+              <input class="search" id="graph-note-filter" placeholder="Search accessible notes" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-form-type="other" />
+              <button class="search-btn" id="graph-note-filter-submit" type="button" aria-label="Search">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="5.5" cy="5.5" r="4"/><line x1="8.5" y1="8.5" x2="13" y2="13"/></svg>
+              </button>
+            </div>
             <div class="search-results" id="graph-search-results"></div>
           </div>
           <div class="section-label">Explorer</div>
@@ -2320,6 +2613,14 @@ def closed_graph_html(
     const filterMeta = document.getElementById('graph-filter-meta');
     const filterReset = document.getElementById('graph-filter-reset');
     let searchTimer = null;
+
+    function setExplorerSearching(active) {{
+      document.body.classList.toggle('explorer-searching', active);
+    }}
+
+    function syncExplorerSearchState() {{
+      setExplorerSearching(Boolean(document.activeElement === noteFilterInput || noteFilterInput?.value?.trim()));
+    }}
 
     function resize() {{
       const dpr = window.devicePixelRatio || 1;
@@ -2719,7 +3020,7 @@ def closed_graph_html(
 
     function show(node) {{
       state.selected = node;
-      setGraphTab('selection');
+      setGraphTab('selection', {{ openSidebar: !window.matchMedia('(max-width: 720px)').matches }});
       const restricted = !!node.restricted;
       const mask = restricted ? '🔒' : '-';
       document.getElementById('title').textContent = node.title || '-';
@@ -2781,12 +3082,12 @@ def closed_graph_html(
       window.localStorage.setItem(leftCollapsedKey, collapsed ? '1' : '0');
     }}
 
-    function setGraphTab(tab) {{
+    function setGraphTab(tab, options = {{}}) {{
       const next = ['explore', 'selection', 'display'].includes(tab) ? tab : 'explore';
       graphMenu?.setAttribute('data-active-tab', next);
       graphTabs.forEach((button) => button.classList.toggle('active', button.dataset.graphTab === next));
       window.localStorage.setItem(graphTabKey, next);
-      setLeftCollapsed(false);
+      if (options.openSidebar !== false) setLeftCollapsed(false);
     }}
 
     function focusSelected() {{
@@ -2830,7 +3131,7 @@ def closed_graph_html(
       state.offsetY = window.innerHeight * 0.08;
       init();
       rebuildVisibleGraph();
-      if (visibleNodes()[0]) show(visibleNodes()[0]);
+      if (!window.matchMedia('(max-width: 720px)').matches && visibleNodes()[0]) show(visibleNodes()[0]);
       hideGraphSkeleton();
       tick();
     }}
@@ -2844,6 +3145,9 @@ def closed_graph_html(
 
     window.addEventListener('resize', resize);
     document.getElementById('focus-link').addEventListener('click', focusSelected);
+    openLink?.addEventListener('click', () => {{
+      window.localStorage.setItem(leftCollapsedKey, '1');
+    }});
     graphTabs.forEach((button) => {{
       button.addEventListener('click', () => setGraphTab(button.dataset.graphTab || 'explore'));
     }});
@@ -2855,8 +3159,13 @@ def closed_graph_html(
       setGraphTab('selection');
       focusSelected();
     }});
-    if (window.localStorage.getItem(leftCollapsedKey) === '1') setLeftCollapsed(true);
-    setGraphTab(window.localStorage.getItem(graphTabKey) || 'explore');
+    {{
+      const _gc = window.localStorage.getItem(leftCollapsedKey);
+      if (_gc === '1' || (_gc === null && window.matchMedia('(max-width: 720px)').matches)) {{
+        setLeftCollapsed(true);
+      }}
+    }}
+    setGraphTab(window.localStorage.getItem(graphTabKey) || 'explore', {{ openSidebar: false }});
     leftToggle?.addEventListener('click', () => setLeftCollapsed(!document.body.classList.contains('left-collapsed')));
     const filterInputs = [filterKind, filterOwner, filterQuery, filterPath, filterMinDegree, filterMaxDegree, filterMinSize, filterMaxSize];
     filterInputs.forEach((field) => field?.addEventListener('input', () => {{
@@ -2882,45 +3191,79 @@ def closed_graph_html(
       state.filters = {{ kind: '', owner: '', query: '', path: '', minDegree: 0, maxDegree: '', minSize: 0, maxSize: '' }};
       rebuildVisibleGraph();
     }});
-    noteFilterInput?.addEventListener('input', () => {{
-      const q = noteFilterInput.value.trim().toLowerCase();
+    async function runGraphSearch() {{
+      const q = noteFilterInput.value.trim();
+      const ql = q.toLowerCase();
+      window.clearTimeout(searchTimer);
       for (const item of noteItems) {{
-        const hit = !q || item.dataset.title.includes(q);
+        const hit = !ql || item.dataset.title.includes(ql);
         item.style.display = hit ? '' : 'none';
+        const titleEl = item.querySelector('span');
+        const title = item.dataset.title || titleEl?.textContent || '';
+        window.closedAkashicUI?.highlightText?.(titleEl, title, q);
       }}
       for (const folder of noteFolders) {{
         const descendants = [...folder.querySelectorAll('.nav-link')];
         const visible = descendants.some((item) => item.style.display !== 'none');
         folder.style.display = visible ? '' : 'none';
-        if (q && visible) folder.open = true;
+        if (ql && visible) folder.open = true;
       }}
-      window.clearTimeout(searchTimer);
       if (!q) {{
         searchBox?.classList.remove('visible');
         if (searchBox) searchBox.innerHTML = '';
         return;
       }}
-      searchTimer = window.setTimeout(async () => {{
-        try {{
-          const res = await fetch(`${{graphSearchEndpoint}}?q=${{encodeURIComponent(q)}}&limit=6`);
-          const data = await res.json();
-          const results = (data.results || []).map((item) => `
-            <a class="search-result" href="${{item.href}}">
-              <strong>${{item.title}}</strong>
-              <small>${{item.summary || item.path || ''}}</small>
-            </a>
-          `).join('');
-          if (searchBox) {{
-            searchBox.innerHTML = results || `<div class="search-result"><strong>${{window._t?.('graph.no_results') ?? 'No results'}}</strong></div>`;
-            searchBox.classList.add('visible');
+      try {{
+        const res = await fetch(`${{graphSearchEndpoint}}?q=${{encodeURIComponent(q)}}&limit=6`);
+        if (!res.ok) throw new Error(res.status);
+        const data = await res.json();
+        if (searchBox) {{
+          searchBox.innerHTML = '';
+          const items = data.results || [];
+          if (items.length === 0) {{
+            const empty = document.createElement('div');
+            empty.className = 'search-result';
+            empty.textContent = `Nothing matches "${{q}}" — try a different keyword.`;
+            searchBox.appendChild(empty);
+          }} else {{
+            for (const item of items) {{
+              const a = document.createElement('a');
+              a.className = 'search-result';
+              const href = String(item.href || '');
+              if (href.startsWith('/') || href.startsWith('https://')) a.href = href;
+              const strong = document.createElement('strong');
+              strong.textContent = item.title || '';
+              const small = document.createElement('small');
+              small.textContent = item.summary || item.path || '';
+              a.appendChild(strong);
+              a.appendChild(small);
+              searchBox.appendChild(a);
+            }}
           }}
-        }} catch (error) {{
-          searchBox?.classList.remove('visible');
+          searchBox.classList.add('visible');
         }}
-      }}, 160);
-    }});
+      }} catch (error) {{
+        if (searchBox) {{
+          searchBox.innerHTML = '';
+          const errEl = document.createElement('div');
+          errEl.className = 'search-result';
+          errEl.textContent = window._t?.('graph.search_error') ?? 'Search unavailable';
+          searchBox.appendChild(errEl);
+          searchBox.classList.add('visible');
+        }}
+      }}
+    }}
+
+    noteFilterInput?.addEventListener('focus', syncExplorerSearchState);
+    noteFilterInput?.addEventListener('blur', () => window.setTimeout(syncExplorerSearchState, 0));
+    noteFilterInput?.addEventListener('input', syncExplorerSearchState);
+    noteFilterInput?.addEventListener('keydown', (event) => {{ if (event.key === 'Enter') runGraphSearch(); }});
+    document.getElementById('graph-note-filter-submit')?.addEventListener('click', runGraphSearch);
+    syncExplorerSearchState();
+
     document.addEventListener('click', (event) => {{
-      if (!searchBox?.contains(event.target) && event.target !== noteFilterInput) {{
+      const submitBtn = document.getElementById('graph-note-filter-submit');
+      if (!searchBox?.contains(event.target) && event.target !== noteFilterInput && event.target !== submitBtn) {{
         searchBox?.classList.remove('visible');
       }}
     }});
@@ -2965,6 +3308,7 @@ def closed_graph_html(
       state.pointerDidMove = false;
       state.pointerDownOnEmpty = !node;
       if (node) {{
+        state._wasAlreadySelected = node === state.selected;
         state.draggingNode = node;
         show(node);
       }} else {{
@@ -3036,6 +3380,9 @@ def closed_graph_html(
       if (state.activePointer === event.pointerId) {{
         if (state.pointerDownOnEmpty && !state.pointerDidMove && state.selected) {{
           deselectNode();
+        }}
+        if (!state.pointerDownOnEmpty && !state.pointerDidMove && state._wasAlreadySelected) {{
+          if (window.matchMedia('(max-width: 720px)').matches) setLeftCollapsed(false);
         }}
         state.draggingNode = null;
         state.panning = false;
@@ -4878,10 +5225,19 @@ def _note_link_payload(note: ClosedNote, route_prefix: str) -> dict[str, str]:
     }
 
 
-def _link_list_html(items: list[dict[str, str]], title: str, route_prefix: str) -> str:
+def _link_list_html(
+    items: list[dict[str, str]], title: str, route_prefix: str, empty_text: str | None = None
+) -> str:
     route_prefix = _normalize_prefix(route_prefix)
     if not items:
-        return ""
+        if not empty_text:
+            return ""
+        return (
+            f'<section class="meta-section" data-meta-panel="links">'
+            f'<h3 class="meta-title">{html.escape(title)}</h3>'
+            f'<p class="meta-copy">{html.escape(empty_text)}</p>'
+            f'</section>'
+        )
     cards = "".join(
         f'<a class="note-card" href="{html.escape(item["href"])}"><strong>{html.escape(item["title"])}</strong><small>{html.escape(item["summary"] or "")}</small></a>'
         for item in items
@@ -4942,23 +5298,41 @@ def _render_markdown(body: str, lookup: dict[str, ClosedNote], route_prefix: str
     text = EMBED_LINK_PATTERN.sub(replace_embed, body)
     text = WIKI_LINK_PATTERN.sub(replace, text)
     text = MARKDOWN_IMAGE_PATTERN.sub(lambda match: _rewrite_markdown_image(match, route_prefix), text)
-    return markdown.markdown(
+    raw_html = markdown.markdown(
         text,
         extensions=["extra", "fenced_code", "tables", "sane_lists"],
         output_format="html5",
     )
+    return _inject_heading_anchors(_sanitize_html(raw_html))
+
+
+def invalidate_notes_cache() -> None:
+    global _NOTES_CACHE, _NOTES_CACHE_AT
+    with _NOTES_CACHE_LOCK:
+        _NOTES_CACHE = None
+        _NOTES_CACHE_AT = 0.0
 
 
 def _load_notes() -> list[ClosedNote]:
-    root = Path(get_settings().closed_akashic_path).resolve()
-    if not root.exists():
-        return []
-    notes = []
-    for relative_path in list_note_paths():
-        path = root / relative_path
-        if path.is_file():
-            notes.append(_parse_note(root, path))
-    return _ensure_unique_slugs(notes)
+    global _NOTES_CACHE, _NOTES_CACHE_AT
+    now = time.monotonic()
+    with _NOTES_CACHE_LOCK:
+        if _NOTES_CACHE is not None and now - _NOTES_CACHE_AT < _NOTES_CACHE_TTL:
+            return _NOTES_CACHE
+        root = Path(get_settings().closed_akashic_path).resolve()
+        if not root.exists():
+            _NOTES_CACHE = []
+            _NOTES_CACHE_AT = time.monotonic()
+            return _NOTES_CACHE
+        notes = []
+        for relative_path in list_note_paths():
+            path = root / relative_path
+            if path.is_file():
+                notes.append(_parse_note(root, path))
+        notes = _ensure_unique_slugs(notes)
+        _NOTES_CACHE = notes
+        _NOTES_CACHE_AT = time.monotonic()
+        return _NOTES_CACHE
 
 
 def _parse_note(root: Path, path: Path) -> ClosedNote:
@@ -4966,6 +5340,7 @@ def _parse_note(root: Path, path: Path) -> ClosedNote:
     frontmatter, body = _split_frontmatter(raw)
     rel_path = path.relative_to(root).as_posix()
     title = str(frontmatter.get("title") or path.stem)
+    owner = str(frontmatter.get("owner") or get_settings().default_note_owner)
     return ClosedNote(
         path=rel_path,
         slug=_slugify(path.stem),
@@ -4973,7 +5348,7 @@ def _parse_note(root: Path, path: Path) -> ClosedNote:
         kind=normalize_kind(str(frontmatter.get("kind") or "reference")),
         project=str(frontmatter.get("project") or "openakashic"),
         status=str(frontmatter.get("status") or "draft"),
-        owner=str(frontmatter.get("owner") or get_settings().default_note_owner),
+        owner=owner,
         visibility=str(frontmatter.get("visibility") or get_settings().default_note_visibility),
         publication_status=str(frontmatter.get("publication_status") or "none"),
         tags=_as_list(frontmatter.get("tags")),
@@ -4981,8 +5356,12 @@ def _parse_note(root: Path, path: Path) -> ClosedNote:
         summary=_extract_summary(body),
         body=body.strip(),
         links=sorted(set(match.group(1).strip() for match in WIKI_LINK_PATTERN.finditer(body))),
+        confirm_count=_effective_confirm_count(frontmatter, owner),
         original_owner=str(frontmatter.get("original_owner") or frontmatter.get("owner") or get_settings().default_note_owner),
         created_by=str(frontmatter.get("created_by") or frontmatter.get("owner") or ""),
+        freshness_date=str(frontmatter.get("freshness_date") or ""),
+        decay_tier=str(frontmatter.get("decay_tier") or "general").strip().lower() or "general",
+        snoozed_until=str(frontmatter.get("snoozed_until") or ""),
     )
 
 
@@ -5017,6 +5396,56 @@ def _as_list(value: Any) -> list[str]:
     return [str(value)]
 
 
+def _as_int(value: Any) -> int:
+    try:
+        return max(0, int(value or 0))
+    except (TypeError, ValueError):
+        return 0
+
+
+def _parse_iso_date(value: Any) -> date | None:
+    raw = str(value or "").strip()
+    if not raw:
+        return None
+    try:
+        return date.fromisoformat(raw[:10])
+    except ValueError:
+        return None
+
+
+def _confirmation_callers(value: Any) -> list[str]:
+    callers: list[str] = []
+    for item in _as_list(value):
+        caller = ""
+        if isinstance(item, dict):
+            caller = str(item.get("by") or item.get("caller") or "").strip()
+        else:
+            raw = str(item).strip()
+            if "|" in raw:
+                caller = raw.split("|", 1)[0].strip()
+            if not caller:
+                match = re.search(r"['\"](?:by|caller)['\"]\s*:\s*['\"]([^'\"]+)['\"]", raw)
+                caller = match.group(1).strip() if match else raw
+        if caller and caller not in callers:
+            callers.append(caller)
+    return callers
+
+
+def _effective_confirm_count(frontmatter: dict[str, Any], owner: str) -> int:
+    if "confirmed_by" not in frontmatter:
+        return _as_int(frontmatter.get("confirm_count"))
+    owner_value = str(owner or "").strip()
+    return sum(1 for caller in _confirmation_callers(frontmatter.get("confirmed_by")) if caller != owner_value)
+
+
+def _stale_note_action(days_overdue: int) -> str:
+    if days_overdue >= 30:
+        return "Review the note and rewrite stale sections if the claim or source changed."
+    if days_overdue > 0:
+        return "Append a dated refresh section with current evidence, or snooze with snoozed_until if still valid."
+    return "Review now; append a dated refresh section or confirm it after independent verification."
+
+
 def _extract_summary(body: str) -> str:
     marker = "## Summary"
     if marker not in body:
@@ -5044,12 +5473,40 @@ def _summary_text(value: str) -> str:
     return cleaned
 
 
+def _plain_text_from_html(value: str) -> str:
+    return html.unescape(re.sub(r"<[^>]+>", " ", value or "")).strip()
+
+
+def _inject_heading_anchors(rendered_html: str) -> str:
+    seen_generated: dict[str, int] = {}
+
+    def replace_heading(match: re.Match[str]) -> str:
+        tag = match.group(1)
+        attrs = match.group(2) or ""
+        inner = match.group(3) or ""
+        existing = re.search(r'\bid=(["\'])([^"\']+)\1', attrs)
+        heading_id = (existing.group(2).strip() if existing else "") or _slugify(_plain_text_from_html(inner))
+        if not existing:
+            count = seen_generated.get(heading_id, 0)
+            seen_generated[heading_id] = count + 1
+            if count:
+                heading_id = f"{heading_id}-{count + 1}"
+            attrs = f'{attrs} id="{html.escape(heading_id, quote=True)}"'
+        else:
+            seen_generated[heading_id] = seen_generated.get(heading_id, 0) + 1
+        anchor = f'<a class="heading-anchor" href="#{html.escape(heading_id, quote=True)}">#</a>'
+        return f"<{tag}{attrs}>{inner}{anchor}</{tag}>"
+
+    return re.sub(r"<(h[23])([^>]*)>(.*?)</\1>", replace_heading, rendered_html, flags=re.IGNORECASE | re.DOTALL)
+
+
 def _slugify(value: str) -> str:
     slug = re.sub(r"[^0-9A-Za-z가-힣ぁ-んァ-ン一-龥]+", "-", value.strip()).strip("-").lower()
     return slug or "note"
 
 
 def _empty_note() -> ClosedNote:
+    empty_copy = "Your vault is empty. Create your first note to get started."
     return ClosedNote(
         path="README.md",
         slug="readme",
@@ -5062,8 +5519,8 @@ def _empty_note() -> ClosedNote:
         publication_status="none",
         tags=[],
         related=[],
-        summary="No notes yet.",
-        body="## Summary\nOpenAkashic vault is empty.",
+        summary=empty_copy,
+        body=f"## Summary\n{empty_copy}",
         links=[],
     )
 
@@ -5146,10 +5603,12 @@ def _render_explorer_nodes(
         blocks.append(
             f'<a class="nav-link{" active" if note.slug == current_slug else ""}" '
             f'data-title="{html.escape((note.title + " " + note.path).lower())}" '
+            f'data-note-title="{html.escape(note.title)}" '
+            f'data-note-path="{html.escape(note.path)}" '
             f'data-path="{html.escape(note.path)}" '
             f'href="{html.escape(_note_href(note.slug, route_prefix))}">'
             f'<span>{html.escape(note.title)}</span>'
-            f'<small style="display:block;color:var(--muted);font-size:11px;margin-top:3px;">{html.escape(note.path)}</small>'
+            f"<small>{html.escape(note.path)}</small>"
             f"</a>"
         )
 
@@ -5276,6 +5735,8 @@ def _shared_ui_styles() -> str:
     }
     html[data-theme="dark"] .global-modal-card h2 { color: var(--ink); }
     html[data-theme="dark"] .global-modal-card p { color: var(--muted); }
+    html[data-theme="dark"] .auth-modal-close { color: var(--muted); border-color: var(--line); }
+    html[data-theme="dark"] .auth-modal-close:hover { background: rgba(255, 255, 255, .08); color: var(--ink); }
     html[data-theme="dark"] .global-token-input {
       background: rgba(24, 31, 48, .92);
       border-color: var(--line);
@@ -5357,7 +5818,7 @@ def _shared_ui_styles() -> str:
 
     /* Note page sidebar */
     html[data-theme="dark"] .sidebar {
-      background: rgba(19, 26, 42, 0.92);
+      background: rgba(19, 26, 42, 0.97);
       border-right-color: var(--line);
     }
     /* Sidebar edge toggle */
@@ -5390,12 +5851,21 @@ def _shared_ui_styles() -> str:
       color: #fff;
       border-color: transparent;
     }
-    /* Search input (both pages) */
+    /* Search input + button (both pages) */
     html[data-theme="dark"] .search,
     html[data-theme="dark"] .filter-input {
       background: rgba(24, 31, 48, 0.9);
       color: var(--ink);
       border-color: var(--line);
+    }
+    html[data-theme="dark"] .search-btn {
+      background: rgba(24, 31, 48, 0.9);
+      color: var(--ink);
+      border-color: var(--line);
+    }
+    html[data-theme="dark"] .search-btn:hover {
+      background: rgba(37, 99, 235, 0.18);
+      border-color: rgba(96, 165, 250, 0.4);
     }
     html[data-theme="dark"] .chip,
     html[data-theme="dark"] .chip-link {
@@ -5527,6 +5997,11 @@ def _shared_ui_styles() -> str:
     html[data-theme="dark"] .breadcrumb,
     html[data-theme="dark"] .path-segment { color: var(--muted); }
     /* Workspace sidebar (note page) tabs */
+    html[data-theme="dark"] .sidebar-tabs {
+      background: rgba(19, 26, 42, .95);
+      border-top-color: var(--line);
+      border-bottom-color: var(--line);
+    }
     html[data-theme="dark"] [data-sidebar-tab],
     html[data-theme="dark"] .meta-tab { color: var(--muted); }
     html[data-theme="dark"] [data-sidebar-tab].active,
@@ -5552,10 +6027,50 @@ def _shared_ui_styles() -> str:
       outline-offset: 2px;
       border-radius: 6px;
     }
+    .skip-link {
+      position: absolute;
+      left: -9999px;
+      top: 8px;
+    }
+    .skip-link:focus-visible {
+      left: 8px;
+      padding: 8px 12px;
+      background: var(--accent);
+      color: white;
+      border-radius: 8px;
+      z-index: 999;
+      text-decoration: none;
+    }
     .sr-only {
       position: absolute !important;
       width: 1px; height: 1px; padding: 0; margin: -1px;
       overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+    }
+    .hl {
+      background: rgba(37, 99, 235, .14);
+      color: inherit;
+      padding: 0 2px;
+      border-radius: 3px;
+    }
+    html[data-theme="dark"] .hl {
+      background: rgba(96, 165, 250, .22);
+    }
+    .markdown .heading-anchor {
+      opacity: 0;
+      font-size: .85em;
+      color: var(--muted);
+      margin-left: .4em;
+      text-decoration: none;
+      transition: opacity .16s ease;
+    }
+    .markdown h2:hover .heading-anchor,
+    .markdown h3:hover .heading-anchor,
+    .markdown h2:focus-within .heading-anchor,
+    .markdown h3:focus-within .heading-anchor {
+      opacity: 1;
+    }
+    @media (hover: none) {
+      .markdown .heading-anchor { opacity: .3; }
     }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after {
@@ -5635,6 +6150,14 @@ def _shared_ui_styles() -> str:
       overflow-y: auto;
       display: flex;
       flex-direction: column;
+    }
+    #command-palette .cmd-section {
+      padding: 10px 18px 6px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .02em;
+      text-transform: uppercase;
     }
     #command-palette .cmd-item {
       display: flex;
@@ -5876,6 +6399,26 @@ def _shared_ui_styles() -> str:
       border: 1px solid rgba(215, 226, 239, .9);
       background: rgba(248, 250, 252, .98);
       box-shadow: 0 28px 72px rgba(15, 23, 42, .24);
+    }
+    .auth-modal-close {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+    .auth-modal-close:hover {
+      background: rgba(15, 23, 42, .06);
+      color: var(--ink);
     }
     .global-modal-card h2 {
       margin: 0 0 8px;
@@ -6190,19 +6733,20 @@ def _shared_ui_styles() -> str:
       }
     }
     @media (max-width: 560px) {
-      .global-brand { gap: 6px; }
+      .global-header { padding: 6px 12px; }
+      .global-brand { gap: 6px; flex: 0 0 auto; }
       .global-brand-mark { width: 28px; height: 28px; font-size: .76rem; }
       .global-brand-subtitle { display: none; }
       .global-brand-title { font-size: .86rem; }
-      .global-nav { flex-wrap: nowrap; gap: 2px; }
+      .global-nav { flex: 1; gap: 2px; }
+      .global-actions { flex: 0 0 auto; }
       .global-pill {
         min-height: 30px;
         padding: 0 7px;
         font-size: .74rem;
         border-radius: 8px;
       }
-      .global-auth-button .auth-meta small { display: none; }
-      .global-auth-button .auth-meta { line-height: 1; }
+      .global-auth-button .auth-meta { display: none; }
     }
     """
 
@@ -6256,11 +6800,13 @@ def _shared_ui_shell(route_prefix: str) -> str:
     <div class="global-modal" id="global-auth-modal" hidden>
       <div class="global-modal-backdrop" data-close-auth-modal></div>
       <section class="global-modal-card" role="dialog" aria-modal="true" aria-labelledby="global-auth-title">
+        <button class="auth-modal-close" type="button" data-close-auth-modal aria-label="Close">&times;</button>
         <h2 id="global-auth-title">Account &amp; Profile</h2>
         <p id="global-auth-desc">Sign in with username and password. After login, manage your nickname and agent token here.</p>
         <div class="auth-tabs" id="global-auth-tabs" role="tablist" aria-label="Auth panels">
           <button class="auth-tab active" type="button" data-auth-panel="login">Login</button>
           <button class="auth-tab" type="button" data-auth-panel="signup">Sign Up</button>
+          <button class="auth-tab" type="button" data-auth-panel="token" id="global-auth-tab-token">Token</button>
           <button class="auth-tab" type="button" data-auth-panel="profile">Profile</button>
           <button class="auth-tab" type="button" data-auth-panel="settings">Settings</button>
         </div>
@@ -6268,7 +6814,7 @@ def _shared_ui_shell(route_prefix: str) -> str:
           <div class="global-modal-grid">
             <label class="auth-field">
               <span>Username</span>
-              <input class="global-token-input" id="global-login-username" type="text" placeholder="your-id" autocomplete="username" />
+              <input class="global-token-input" id="global-login-username" type="text" placeholder="username" autocomplete="username" />
             </label>
             <label class="auth-field">
               <span>Password</span>
@@ -6279,11 +6825,23 @@ def _shared_ui_shell(route_prefix: str) -> str:
             <button class="global-pill is-primary" id="global-login-submit" type="button">Login</button>
           </div>
         </section>
+        <section class="auth-panel" data-auth-panel-view="token" hidden>
+          <div class="global-modal-grid">
+            <label class="auth-field">
+              <span id="global-token-login-label">API Token</span>
+              <input class="global-token-input" id="global-token-login-value" type="text" placeholder="paste your token here" autocomplete="off" spellcheck="false" />
+            </label>
+          </div>
+          <p style="font-size:0.82em;margin:6px 0 0;opacity:0.65;" id="global-token-login-hint">Find your token: run <code>whoami</code> via MCP, or check your MCP client config (e.g. ~/.claude/settings.json).</p>
+          <div class="global-modal-actions">
+            <button class="global-pill is-primary" id="global-token-login-submit" type="button">Sign in with Token</button>
+          </div>
+        </section>
         <section class="auth-panel" data-auth-panel-view="signup" hidden>
           <div class="global-modal-grid">
             <label class="auth-field">
               <span>Username</span>
-              <input class="global-token-input" id="global-signup-username" type="text" placeholder="unique-id" autocomplete="username" />
+              <input class="global-token-input" id="global-signup-username" type="text" placeholder="username" autocomplete="username" />
             </label>
             <label class="auth-field">
               <span>Nickname</span>
@@ -6329,22 +6887,40 @@ def _shared_ui_shell(route_prefix: str) -> str:
             <button class="global-pill" id="global-profile-rotate-token" type="button">Rotate Token</button>
             <button class="global-pill" id="global-profile-logout" type="button">Logout</button>
           </div>
-          <div class="global-modal-grid" style="margin-top:14px;">
-            <label class="auth-field">
-              <span id="global-profile-password-current-label">Current Password</span>
-              <input class="global-token-input" id="global-profile-password-current" type="password" autocomplete="current-password" />
-            </label>
-            <label class="auth-field">
-              <span id="global-profile-password-new-label">New Password</span>
-              <input class="global-token-input" id="global-profile-password-new" type="password" autocomplete="new-password" />
-            </label>
-            <label class="auth-field">
-              <span id="global-profile-password-confirm-label">Confirm New Password</span>
-              <input class="global-token-input" id="global-profile-password-confirm" type="password" autocomplete="new-password" />
-            </label>
+          <div id="global-profile-setup-section" hidden>
+            <p id="global-profile-setup-hint" style="font-size:0.82em;margin:14px 0 8px;opacity:0.7;">This account was provisioned automatically. Set a password to enable username/password login.</p>
+            <div class="global-modal-grid">
+              <label class="auth-field">
+                <span id="global-profile-setup-password-new-label">New Password</span>
+                <input class="global-token-input" id="global-profile-setup-password-new" type="password" autocomplete="new-password" />
+              </label>
+              <label class="auth-field">
+                <span id="global-profile-setup-password-confirm-label">Confirm Password</span>
+                <input class="global-token-input" id="global-profile-setup-password-confirm" type="password" autocomplete="new-password" />
+              </label>
+            </div>
+            <div class="global-modal-actions">
+              <button class="global-pill" id="global-profile-setup-password-submit" type="button">Set Password</button>
+            </div>
           </div>
-          <div class="global-modal-actions">
-            <button class="global-pill" id="global-profile-password-submit" type="button">Change Password</button>
+          <div id="global-profile-change-password-section">
+            <div class="global-modal-grid" style="margin-top:14px;">
+              <label class="auth-field">
+                <span id="global-profile-password-current-label">Current Password</span>
+                <input class="global-token-input" id="global-profile-password-current" type="password" autocomplete="current-password" />
+              </label>
+              <label class="auth-field">
+                <span id="global-profile-password-new-label">New Password</span>
+                <input class="global-token-input" id="global-profile-password-new" type="password" autocomplete="new-password" />
+              </label>
+              <label class="auth-field">
+                <span id="global-profile-password-confirm-label">Confirm New Password</span>
+                <input class="global-token-input" id="global-profile-password-confirm" type="password" autocomplete="new-password" />
+              </label>
+            </div>
+            <div class="global-modal-actions">
+              <button class="global-pill" id="global-profile-password-submit" type="button">Change Password</button>
+            </div>
           </div>
         </section>
         <section class="auth-panel" data-auth-panel-view="settings" hidden>
@@ -6455,6 +7031,14 @@ def _shared_ui_shell(route_prefix: str) -> str:
             'auth.password_mismatch': 'New password confirmation does not match.',
             'auth.password_changed': 'Password changed successfully.',
             'auth.login_failed': 'Login failed.', 'auth.signup_failed': 'Sign-up failed.',
+            'auth.tab_token': 'Token',
+            'auth.token_input': 'API Token',
+            'auth.token_missing': 'Paste your API token first.',
+            'auth.token_login_ok': 'Token accepted. Logged in.',
+            'auth.setup_password_hint': 'This account was provisioned automatically. Set a password to enable username/password login.',
+            'auth.setup_password_ok': 'Password set. You can now log in with your username and password.',
+            'auth.setup_password_new_required': 'Enter new password and confirmation.',
+            'auth.setup_password': 'Set Password',
             'settings.language': 'Language',
           }},
           ko: {{
@@ -6511,6 +7095,14 @@ def _shared_ui_shell(route_prefix: str) -> str:
             'auth.password_mismatch': '\uc0c8 \ube44\ubc00\ubc88\ud638 \ud655\uc778\uc774 \uc77c\uce58\ud558\uc9c0 \uc54a\ub294\ub2e4.',
             'auth.password_changed': '\ube44\ubc00\ubc88\ud638\ub97c \ubcc0\uacbd\ud588\ub2e4.',
             'auth.login_failed': '\ub85c\uadf8\uc778 \uc2e4\ud328', 'auth.signup_failed': '\ud68c\uc6d0\uac00\uc785 \uc2e4\ud328',
+            'auth.tab_token': '\ud1a0\ud070',
+            'auth.token_input': 'API \ud1a0\ud070',
+            'auth.token_missing': '\uba3c\uc800 API \ud1a0\ud070\uc744 \ube99\uc5ec\ub123\uc5b4\uc918.',
+            'auth.token_login_ok': '\ud1a0\ud070 \ud655\uc778. \ub85c\uadf8\uc778\ub428.',
+            'auth.setup_password_hint': '\uc774 \uacc4\uc815\uc740 \uc5d0\uc774\uc804\ud2b8\uac00 \uc790\ub3d9\uc73c\ub85c \ub9cc\ub4e4\uc5c8\ub2e4. \ube44\ubc00\ubc88\ud638\ub97c \uc124\uc815\ud558\uba74 \uc544\uc774\ub514/\ube44\ubc00\ubc88\ud638\ub85c\ub3c4 \ub85c\uadf8\uc778\ud560 \uc218 \uc788\ub2e4.',
+            'auth.setup_password_ok': '\ube44\ubc00\ubc88\ud638\ub97c \uc124\uc815\ud588\ub2e4. \uc774\uc81c \uc544\uc774\ub514\uc640 \ube44\ubc00\ubc88\ud638\ub85c \ub85c\uadf8\uc778\ud560 \uc218 \uc788\ub2e4.',
+            'auth.setup_password_new_required': '\uc0c8 \ube44\ubc00\ubc88\ud638\uc640 \ud655\uc778\uc744 \ubaa8\ub450 \uc785\ub825\ud574\uc918.',
+            'auth.setup_password': '\ube44\ubc00\ubc88\ud638 \uc124\uc815',
             'settings.language': '\uc5b8\uc5b4',
           }},
         }};
@@ -6541,6 +7133,12 @@ def _shared_ui_shell(route_prefix: str) -> str:
           setText('global-profile-password-new-label', 'auth.password_new');
           setText('global-profile-password-confirm-label', 'auth.password_confirm');
           const pwBtn = el('global-profile-password-submit'); if (pwBtn) pwBtn.textContent = _t('auth.password_change');
+          setText('global-token-login-label', 'auth.token_input');
+          const tabToken = el('global-auth-tab-token'); if (tabToken) tabToken.textContent = _t('auth.tab_token');
+          setText('global-profile-setup-hint', 'auth.setup_password_hint');
+          setText('global-profile-setup-password-new-label', 'auth.password_new');
+          setText('global-profile-setup-password-confirm-label', 'auth.password_confirm');
+          const setupBtn = el('global-profile-setup-password-submit'); if (setupBtn) setupBtn.textContent = _t('auth.setup_password');
           document.documentElement.lang = lang === 'ko' ? 'ko' : 'en';
         }}
         window._t = _t; window._tf = _tf;
@@ -6605,6 +7203,13 @@ def _shared_ui_shell(route_prefix: str) -> str:
           profilePasswordNew: document.getElementById('global-profile-password-new'),
           profilePasswordConfirm: document.getElementById('global-profile-password-confirm'),
           profilePasswordSubmit: document.getElementById('global-profile-password-submit'),
+          tokenLoginValue: document.getElementById('global-token-login-value'),
+          tokenLoginSubmit: document.getElementById('global-token-login-submit'),
+          profileSetupSection: document.getElementById('global-profile-setup-section'),
+          profileChangePasswordSection: document.getElementById('global-profile-change-password-section'),
+          profileSetupPasswordNew: document.getElementById('global-profile-setup-password-new'),
+          profileSetupPasswordConfirm: document.getElementById('global-profile-setup-password-confirm'),
+          profileSetupPasswordSubmit: document.getElementById('global-profile-setup-password-submit'),
           adminOnly: [...document.querySelectorAll('[data-admin-only]')],
           noteWriteControls: [...document.querySelectorAll('[data-note-write-control]')],
           editButton: document.getElementById('global-edit-note'),
@@ -6643,14 +7248,14 @@ def _shared_ui_shell(route_prefix: str) -> str:
 
         function setAuthPanel(panel) {{
           const isAuthed = Boolean(state.session?.authenticated);
-          const allowed = ['login', 'signup', 'settings'];
-          const next = panel === 'settings' ? 'settings' : (isAuthed ? 'profile' : (allowed.includes(panel) ? panel : 'login'));
+          const allowed = ['login', 'token', 'signup', 'profile', 'settings'];
+          const next = allowed.includes(panel) ? panel : (isAuthed ? 'profile' : 'login');
           dom.authTabs.forEach((button) => button.classList.toggle('active', button.dataset.authPanel === next));
           dom.authPanels.forEach((section) => {{
             section.hidden = section.dataset.authPanelView !== next;
           }});
           if (dom.authTabStrip) {{
-            dom.authTabStrip.hidden = false; // always show tabs so Settings is reachable
+            dom.authTabStrip.hidden = false;
           }}
         }}
 
@@ -6702,6 +7307,9 @@ def _shared_ui_shell(route_prefix: str) -> str:
           if (dom.profileNickname) dom.profileNickname.value = session.nickname || '';
           if (dom.profileRole) dom.profileRole.value = session.role || 'anonymous';
           if (dom.profileToken) dom.profileToken.value = token();
+          const provisioned = Boolean(session.provisioned);
+          if (dom.profileSetupSection) dom.profileSetupSection.hidden = !provisioned;
+          if (dom.profileChangePasswordSection) dom.profileChangePasswordSection.hidden = provisioned;
         }}
 
         async function apiFetch(path, options = {{}}) {{
@@ -6823,6 +7431,24 @@ def _shared_ui_shell(route_prefix: str) -> str:
           }}
         }}
 
+        async function loginWithToken() {{
+          const value = (dom.tokenLoginValue?.value || '').trim();
+          if (!value) {{
+            setAuthStatus(_t('auth.token_missing'));
+            return;
+          }}
+          await applyIssuedToken(value);
+          if (state.session?.authenticated) {{
+            setAuthStatus(_t('auth.token_login_ok'));
+            if (state.session?.provisioned) {{
+              sessionStorage.setItem('oa_open_profile', '1');
+            }}
+            reloadForAuthChange();
+          }} else {{
+            setAuthStatus(_t('auth.login_failed'));
+          }}
+        }}
+
         async function signup() {{
           const username = dom.signupUsername?.value.trim() || '';
           const nickname = dom.signupNickname?.value.trim() || '';
@@ -6915,6 +7541,37 @@ def _shared_ui_shell(route_prefix: str) -> str:
           }}
         }}
 
+        async function setupPassword() {{
+          if (!state.session?.authenticated) {{
+            setAuthStatus(_t('auth.profile_login_first'));
+            return;
+          }}
+          const next = dom.profileSetupPasswordNew?.value || '';
+          const confirm = dom.profileSetupPasswordConfirm?.value || '';
+          if (!next || !confirm) {{
+            setAuthStatus(_t('auth.setup_password_new_required'));
+            return;
+          }}
+          if (next !== confirm) {{
+            setAuthStatus(_t('auth.password_mismatch'));
+            return;
+          }}
+          try {{
+            await requestJson('/api/profile/setup-password', {{
+              method: 'POST',
+              json: {{ new_password: next, new_password_confirm: confirm }},
+            }});
+            if (dom.profileSetupPasswordNew) dom.profileSetupPasswordNew.value = '';
+            if (dom.profileSetupPasswordConfirm) dom.profileSetupPasswordConfirm.value = '';
+            if (state.session) state.session.provisioned = false;
+            if (dom.profileSetupSection) dom.profileSetupSection.hidden = true;
+            if (dom.profileChangePasswordSection) dom.profileChangePasswordSection.hidden = false;
+            setAuthStatus(_t('auth.setup_password_ok'));
+          }} catch (error) {{
+            setAuthStatus(error.message || 'Failed to set password');
+          }}
+        }}
+
         async function copyProfileToken() {{
           const value = dom.profileToken?.value || token();
           if (!value) return;
@@ -6936,6 +7593,56 @@ def _shared_ui_shell(route_prefix: str) -> str:
 
         function escapeHtml(value) {{
           return String(value || '').replace(/[&<>]/g, (ch) => ({{'&':'&amp;','<':'&lt;','>':'&gt;'}}[ch]));
+        }}
+
+        function highlightText(target, text, query) {{
+          if (!target) return;
+          const source = String(text || '');
+          const needle = String(query || '').trim();
+          target.textContent = '';
+          if (!needle) {{
+            target.textContent = source;
+            return;
+          }}
+          const haystack = source.toLowerCase();
+          const lowerNeedle = needle.toLowerCase();
+          const frag = document.createDocumentFragment();
+          let cursor = 0;
+          while (cursor < source.length) {{
+            const next = haystack.indexOf(lowerNeedle, cursor);
+            if (next === -1) {{
+              frag.appendChild(document.createTextNode(source.slice(cursor)));
+              break;
+            }}
+            if (next > cursor) {{
+              frag.appendChild(document.createTextNode(source.slice(cursor, next)));
+            }}
+            const mark = document.createElement('mark');
+            mark.className = 'hl';
+            mark.textContent = source.slice(next, next + needle.length);
+            frag.appendChild(mark);
+            cursor = next + needle.length;
+          }}
+          target.appendChild(frag);
+        }}
+
+        const recentNotesKey = 'closed-akashic-recent-notes';
+        function loadRecentNotes() {{
+          try {{
+            const raw = JSON.parse(window.localStorage.getItem(recentNotesKey) || '[]');
+            return Array.isArray(raw) ? raw.filter((item) => typeof item === 'string' && item.trim()).slice(0, 6) : [];
+          }} catch (error) {{
+            return [];
+          }}
+        }}
+
+        function recordRecentNote(slug) {{
+          const value = String(slug || '').trim();
+          if (!value) return;
+          try {{
+            const next = [value, ...loadRecentNotes().filter((item) => item !== value)].slice(0, 6);
+            window.localStorage.setItem(recentNotesKey, JSON.stringify(next));
+          }} catch (error) {{ /* quota/private mode: ignore */ }}
         }}
 
         function loadThread() {{
@@ -7080,10 +7787,13 @@ def _shared_ui_shell(route_prefix: str) -> str:
         dom.authTabs.forEach((button) => button.addEventListener('click', () => setAuthPanel(button.dataset.authPanel || 'login')));
         dom.authClose?.addEventListener('click', closeAuthModal);
         dom.loginSubmit?.addEventListener('click', login);
+        dom.tokenLoginSubmit?.addEventListener('click', loginWithToken);
+        dom.tokenLoginValue?.addEventListener('keydown', (event) => {{ if (event.key === 'Enter') loginWithToken(); }});
         dom.signupSubmit?.addEventListener('click', signup);
         dom.profileSave?.addEventListener('click', saveProfile);
         dom.profileRotateToken?.addEventListener('click', rotateProfileToken);
         dom.profilePasswordSubmit?.addEventListener('click', changeProfilePassword);
+        dom.profileSetupPasswordSubmit?.addEventListener('click', setupPassword);
         dom.profileTokenCopy?.addEventListener('click', copyProfileToken);
         dom.profileLogout?.addEventListener('click', () => {{
           clearToken();
@@ -7124,7 +7834,15 @@ def _shared_ui_shell(route_prefix: str) -> str:
         setActiveAgent(activeAgent());
         if (token()) {{
           setStoredToken(token());
-          refreshSession({{ silent: true }});
+          refreshSession({{ silent: true }}).then((session) => {{
+            if (sessionStorage.getItem('oa_open_profile') === '1') {{
+              sessionStorage.removeItem('oa_open_profile');
+              if (session?.authenticated) {{
+                openAuthModal();
+                setAuthPanel('profile');
+              }}
+            }}
+          }});
         }} else {{
           setAdminVisible(false);
           setAuthButton(state.session);
@@ -7179,6 +7897,9 @@ def _shared_ui_shell(route_prefix: str) -> str:
           closeAuthModal,
           setNoteWriteVisible,
           notify,
+          highlightText,
+          loadRecentNotes,
+          recordRecentNote,
           setTheme,
           toggleTheme,
         }};
@@ -7236,35 +7957,82 @@ def _shared_ui_shell(route_prefix: str) -> str:
           if (p.includes(q)) return 1;
           return 0;
         }}
+        function paletteButtons() {{
+          return [...list.querySelectorAll('.cmd-item')];
+        }}
+        function createCommandItem(item, index, query) {{
+          const button = document.createElement('button');
+          button.className = `cmd-item${{index === 0 ? ' active' : ''}}`;
+          button.dataset.cmdIndex = String(index);
+          button.setAttribute('role', 'option');
+          const strong = document.createElement('strong');
+          const small = document.createElement('small');
+          window.closedAkashicUI?.highlightText?.(strong, item.title || '', query);
+          window.closedAkashicUI?.highlightText?.(small, item.path || '', query);
+          button.appendChild(strong);
+          button.appendChild(small);
+          button.addEventListener('click', () => navigate(index));
+          button.addEventListener('mouseenter', () => highlight(index));
+          return button;
+        }}
+        function appendSection(label, items, query) {{
+          if (!items.length) return;
+          const header = document.createElement('div');
+          header.className = 'cmd-section';
+          header.textContent = label;
+          list.appendChild(header);
+          items.forEach((item) => {{
+            list.appendChild(createCommandItem(item, currentResults.length, query));
+            currentResults.push(item);
+          }});
+        }}
         function render(query) {{
-          const q = (query || '').trim().toLowerCase();
+          const q = String(query || '').trim();
+          const ql = q.toLowerCase();
           const pool = registry || [];
-          let results = !q ? pool.slice(0, 30) : pool.map((i) => [score(i, q), i]).filter(([s]) => s > 0).sort((a, b) => b[0] - a[0]).map(([, i]) => i).slice(0, 30);
-          currentResults = results;
+          const recent = window.closedAkashicUI?.loadRecentNotes?.() || [];
+          const bySlug = new Map(pool.map((item) => [item.slug, item]));
+          list.replaceChildren();
+          currentResults = [];
           selectedIndex = 0;
-          if (!results.length) {{
-            list.innerHTML = '<div class="cmd-empty">No notes match.</div>';
+          if (!ql) {{
+            const recentItems = recent.map((slug) => bySlug.get(slug)).filter(Boolean);
+            const remaining = pool.filter((item) => !recent.includes(item.slug)).slice(0, 30);
+            appendSection('Recent', recentItems, q);
+            appendSection('All notes', remaining, q);
+            if (currentResults.length) return;
+            const empty = document.createElement('div');
+            empty.className = 'cmd-empty';
+            empty.textContent = 'Your vault is empty. Create your first note to get started.';
+            list.appendChild(empty);
             return;
           }}
-          list.innerHTML = results.map((item, i) => `
-            <button class="cmd-item${{i === 0 ? ' active' : ''}}" data-cmd-index="${{i}}" role="option">
-              <strong></strong><small></small>
-            </button>
-          `).join('');
-          [...list.querySelectorAll('.cmd-item')].forEach((btn, i) => {{
-            btn.querySelector('strong').textContent = results[i].title;
-            btn.querySelector('small').textContent = results[i].path || '';
-            btn.addEventListener('click', () => navigate(i));
-            btn.addEventListener('mouseenter', () => highlight(i));
+          const results = pool
+            .map((item) => [score(item, ql), item])
+            .filter(([value]) => value > 0)
+            .sort((a, b) => b[0] - a[0])
+            .map(([, item]) => item)
+            .slice(0, 30);
+          if (!results.length) {{
+            const empty = document.createElement('div');
+            empty.className = 'cmd-empty';
+            empty.textContent = `Nothing matches "${{q}}" — try a different keyword.`;
+            list.appendChild(empty);
+            return;
+          }}
+          results.forEach((item) => {{
+            list.appendChild(createCommandItem(item, currentResults.length, q));
+            currentResults.push(item);
           }});
         }}
         function highlight(i) {{
           selectedIndex = i;
-          [...list.querySelectorAll('.cmd-item')].forEach((btn, j) => btn.classList.toggle('active', j === i));
+          paletteButtons().forEach((btn, j) => btn.classList.toggle('active', j === i));
         }}
         function navigate(i) {{
           const item = currentResults[i];
           if (!item) return;
+          window.closedAkashicUI?.recordRecentNote?.(item.slug);
           closePalette();
           window.location.href = `{html.escape(_notes_base(route_prefix))}/${{encodeURIComponent(item.slug)}}`;
         }}
@@ -7670,8 +8438,10 @@ def _workspace_script() -> str:
         dom.sidebar?.setAttribute('data-active-panel', next);
         dom.sideTabs.forEach((button) => button.classList.toggle('active', button.dataset.sidebarTab === next));
         window.localStorage.setItem('closed-akashic-sidebar-tab', next);
-        document.body.classList.remove('left-collapsed');
-        window.localStorage.setItem('closed-akashic-left-collapsed', '0');
+        if (!window.matchMedia('(max-width: 820px)').matches) {
+          document.body.classList.remove('left-collapsed');
+          window.localStorage.setItem('closed-akashic-left-collapsed', '0');
+        }
       }
 
       function escapeAttr(value) {
@@ -7793,7 +8563,7 @@ def _workspace_script() -> str:
         dom.formKind.value = 'reference';
         dom.formProject.value = inheritedProject;
         dom.formStatus.value = 'active';
-        dom.formOwner.value = session.nickname || noteData.owner || 'admin';
+        dom.formOwner.value = session.nickname || noteData.owner || 'aaron';
         dom.formVisibility.value = 'private';
         dom.formPublicationStatus.value = 'none';
         dom.formScope.value = inheritedProject ? 'shared' : 'shared';
@@ -7816,7 +8586,7 @@ def _workspace_script() -> str:
           dom.formKind.value = fm.kind || noteData.kind || '';
           dom.formProject.value = fm.project || noteData.project || '';
           dom.formStatus.value = fm.status || noteData.status || 'active';
-          dom.formOwner.value = fm.owner || noteData.owner || 'admin';
+          dom.formOwner.value = fm.owner || noteData.owner || 'aaron';
           dom.formVisibility.value = fm.visibility || noteData.visibility || 'private';
           dom.formPublicationStatus.value = fm.publication_status || noteData.publication_status || 'none';
           dom.formScope.value = (raw.path || noteData.path || '').startsWith('personal_vault/personal/') ? 'personal' : 'shared';

@@ -36,11 +36,12 @@ from mcp.server.fastmcp import Context, FastMCP
 from app.auth import AuthState, auth_state_for_token, format_json_text
 from app.config import get_settings
 from app.observability import log_tail, observability_status, recent_requests
-from app.users import SAGWAN_SYSTEM_OWNER
+from app.users import SAGWAN_SYSTEM_OWNER, find_user_by_username
 from app.site import (
     get_closed_graph,
     get_closed_note,
     get_closed_note_by_slug,
+    list_stale_closed_notes,
     search_closed_notes,
 )
 from app.vault import (
@@ -65,6 +66,50 @@ from app.vault import (
 
 
 settings = get_settings()
+
+# ── Live tool manifest: agents use this to avoid hallucinating tools/args ──
+_TOOL_MANIFEST = {
+    "tools": {
+        "search_notes": {"required": ["query"], "optional": ["limit", "kind", "tags", "include_related"]},
+        "search_and_read_top": {"required": ["query"], "optional": ["kind", "tags", "include_body", "include_related"]},
+        "read_note": {"one_of_required": ["path", "slug"], "do_not_use": ["note_id", "id"]},
+        "read_raw_note": {"required": ["path"]},
+        "query_core_api": {"required": ["query"], "optional": ["limit"]},
+        "upsert_note": {"required": ["path", "body"], "optional": ["title", "kind", "project", "status", "tags", "related", "metadata"]},
+        "append_note_section": {"required": ["path", "heading", "content"]},
+        "list_notes": {"optional": ["folder"], "do_not_use": ["path", "project_path"]},
+        "list_folders": {"optional": ["root"]},
+        "path_suggestion": {"required": ["title", "kind"]},
+        "bootstrap_project": {"required": ["project"], "optional": ["scope", "title", "summary", "folders", "tags"], "do_not_use": ["project_path", "path"]},
+        "request_note_publication": {"required": ["path", "rationale", "evidence_paths"]},
+        "confirm_note": {"required": ["path"], "optional": ["comment"]},
+        "list_stale_notes": {"optional": ["days_overdue"]},
+        "snooze_note": {"required": ["path", "days"]},
+        "resolve_conflict": {"required": ["path", "verdict"], "optional": ["comment"]},
+        "delete_note": {"required": ["path"]},
+        "move_note": {"required": ["path", "new_path"]},
+    },
+    "workflow_policy": (
+        "Always search before creating project memory. "
+        "If search returns a README path, read it first. "
+        "Call bootstrap_project only when no project index exists. "
+        "path returned by search_notes must be passed as read_note(path=...)."
+    ),
+}
+
+_RELATED_TRIGGERS = {
+    "why",
+    "how",
+    "architecture",
+    "design",
+    "decision",
+    "설계",
+    "결정",
+    "왜",
+    "어떻게",
+    "because",
+    "rationale",
+}
 
 mcp = FastMCP(
     name="openakashic",
@@ -98,14 +143,12 @@ mcp = FastMCP(
         "- Scope (folder path) is a context hint only, not an access control mechanism.\n\n"
 
         "## Publication Governance (important)\n"
-        "sagwan's approval loop enforces 3 hard gates; failing any keeps the request at `reviewing`:\n"
+        "sagwan's approval loop enforces 4 hard gates; failing any keeps the request at `reviewing`:\n"
         "  1. busagwan must have finished a first review AND recommended `approved`.\n"
-        "  2. rationale must be concrete (≥20 chars, no placeholders).\n"
-        "  3. source cannot be a raw `personal_vault/**` note unless its kind is capsule/claim/reference/evidence\n"
+        "  2. `evidence_paths` must contain at least one supporting note/URL.\n"
+        "  3. rationale must be concrete (≥20 chars, no placeholders).\n"
+        "  4. source cannot be a raw `personal_vault/**` note unless its kind is capsule/claim/reference/evidence\n"
         "     (create a Derived Capsule first — do NOT request publication on the raw source).\n"
-        "evidence_paths is optional (soft signal, not a hard gate). External URLs are safest.\n"
-        "Internal note paths are read by sagwan for verification but are NEVER published — they stay private.\n"
-        "If evidence is absent, sagwan applies stricter self-completeness criteria to the capsule body.\n"
         "If any gate fails, sagwan appends a `Sagwan Auto-Review` section listing the failures.\n\n"
 
         "## Agent Memory Protocol\n"
@@ -113,6 +156,16 @@ mcp = FastMCP(
         "- Write back after meaningful work: upsert_note or append_note_section with concise, reusable takeaways.\n"
         "- Prefer linking related notes via the 'related' field rather than duplicating content.\n"
         "- For bootstrap: use bootstrap_project to initialize a new project workspace with standard folders.\n\n"
+
+        "## Note Freshness (private notes)\n"
+        "capsule/claim/evidence/reference notes are auto-tagged with `freshness_date` (today's date) and `decay_tier: general` at creation.\n"
+        "Sagwan automatically revalidates published notes hourly. Private notes are NOT auto-cleaned — that's intentional.\n"
+        "You should periodically review and refresh your own private notes based on decay_tier:\n"
+        "  - legal / compliance: 30 days\n"
+        "  - product / config: 60 days\n"
+        "  - general knowledge: 90 days (default)\n"
+        "To refresh a stale note: use append_note_section to add a '## Update YYYY-MM-DD' section, or upsert_note to rewrite it.\n"
+        "Tip: use confirm_note to endorse notes you've independently verified — high confirm_count improves discoverability.\n\n"
 
         "## Small-Model / Low-Context Profile\n"
         "If your context window is tight or you run a small model (≤8B), prefer this minimal toolset:\n"
@@ -215,6 +268,7 @@ def search_notes(
     limit: Annotated[int, Field(description="Max number of results to return (default 8)")] = 8,
     kind: Annotated[str | None, Field(description="Filter by note kind: 'capsule', 'claim', 'evidence', 'reference', 'playbook', etc.")] = None,
     tags: Annotated[list[str] | None, Field(description="Filter by tags — only notes containing ALL specified tags are returned. Example: ['python', 'benchmark']")] = None,
+    include_related: Annotated[bool, Field(description="When true, depth-1 neighbors of top results are returned as context_neighbors.")] = False,
     ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Search OpenAkashic by note title, tags, summary, and body.
@@ -222,14 +276,33 @@ def search_notes(
     Optional filters:
     - kind: restrict to a specific note kind (e.g. "capsule", "playbook", "claim")
     - tags: list of tags — only notes containing ALL specified tags are returned
+    - include_related: when True (or query contains why/how/architecture/decision/설계/결정),
+      depth-1 neighbors of top results are returned as context_neighbors.
     """
     auth = _auth_from_ctx(ctx)
     results = search_closed_notes(query, limit=limit, kind=kind, tags=tags)
     filtered = [item for item in results.get("results", []) if _can_read_note_payload(item, auth)]
     hit_count = len(filtered)
+    gap_info = None
     if _is_gap_query(query, filtered):
         _record_gap_query(query)
-    return {**results, "results": filtered, "count": hit_count}
+        gap_info = _find_gap_note(query)
+    response = {**results, "results": filtered, "count": hit_count}
+    # next-call affordance: 모델이 다음 뭘 호출할지 직접 보여줌
+    if filtered:
+        top_path = filtered[0]["path"]
+        response["_next"] = {"read_note": {"path": top_path}}
+    if gap_info:
+        response["gap"] = gap_info
+    response["retrieval_value"] = _build_retrieval_value(query, filtered, gap_info)
+    if _should_include_related(query, include_related) and filtered:
+        try:
+            context_neighbors = _gather_context_neighbors(filtered[:3], auth)
+            if context_neighbors:
+                response["context_neighbors"] = context_neighbors
+        except Exception:
+            pass
+    return response
 
 
 @mcp.tool(title="Search And Read Top OpenAkashic Note")
@@ -238,6 +311,7 @@ def search_and_read_top(
     kind: Annotated[str | None, Field(description="Filter by note kind: 'capsule', 'claim', 'evidence', etc.")] = None,
     tags: Annotated[list[str] | None, Field(description="Filter by tags — all specified tags must be present")] = None,
     include_body: Annotated[bool, Field(description="Include the full markdown body of the top result (default true)")] = True,
+    include_related: Annotated[bool, Field(description="When true, depth-1 neighbors of top results are returned as context_neighbors.")] = False,
     ctx: Context | None = None,
 ) -> dict[str, Any]:
     """One-shot search + read for small/low-context agents.
@@ -255,7 +329,11 @@ def search_and_read_top(
         note_payload = get_closed_note_by_slug(top["slug"])
         if note_payload and not _can_read_note_payload(note_payload, auth):
             note_payload = None
-    return {
+    gap_info = None
+    if _is_gap_query(query, filtered):
+        _record_gap_query(query)
+        gap_info = _find_gap_note(query)
+    response: dict[str, Any] = {
         "query": query,
         "top": top,
         "note": note_payload,
@@ -263,6 +341,17 @@ def search_and_read_top(
         "hints": results.get("hints", []),
         "count": len(filtered),
     }
+    if gap_info:
+        response["gap"] = gap_info
+    response["retrieval_value"] = _build_retrieval_value(query, filtered, gap_info)
+    if _should_include_related(query, include_related) and filtered:
+        try:
+            context_neighbors = _gather_context_neighbors(filtered[:3], auth)
+            if context_neighbors:
+                response["context_neighbors"] = context_neighbors
+        except Exception:
+            pass
+    return response
 
 
 @mcp.tool(title="Read OpenAkashic Note")
@@ -427,7 +516,7 @@ def upsert_note(
     """
     auth = _auth_from_ctx(ctx)
     _check_mcp_write_rate(auth)
-    write_metadata = _normalize_write_metadata(path=path, metadata=metadata or {}, auth=auth)
+    write_metadata = _normalize_write_metadata(path=path, metadata=metadata or {}, auth=auth, kind=kind)
     doc = write_document(
         path=path,
         body=body,
@@ -439,6 +528,7 @@ def upsert_note(
         related=related,
         metadata=write_metadata,
     )
+    _enqueue_conflict_check(path, write_metadata, auth)
     publication_request = None
     wants_publication = not _is_admin(auth) and (
         str((metadata or {}).get("visibility") or "").strip().lower() == "public"
@@ -475,7 +565,7 @@ def request_note_publication(
     target_visibility: Annotated[str, Field(description="Target visibility after approval. Use 'public' (default).")] = "public",
     rationale: Annotated[str | None, Field(description="Why this note is worth making public (≥20 chars). Be specific — vague rationale causes rejection. Example: 'Benchmark results with reproducible code showing 1.14x speedup of list comprehensions vs for-loops on 1M elements.'")] = None,
     reason: Annotated[str | None, Field(description="Alias for rationale — use either field.")] = None,
-    evidence_paths: Annotated[list[str] | None, Field(description="Optional. External URLs or internal note paths that support this note's claims. External URLs (https://...) are recommended — they carry no privacy risk. Internal note paths (e.g. 'personal_vault/...') are read by sagwan for verification but are NEVER published and stay at their original visibility. Omitting evidence is allowed; sagwan applies stricter self-completeness criteria to evidence-free requests.")] = None,
+    evidence_paths: Annotated[list[str] | None, Field(description="Paths or URLs supporting this note's claims. Example: ['personal_vault/projects/my-project/evidence.md', 'https://docs.python.org/3/library/timeit.html']. Required for approval.")] = None,
     ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Request librarian review for public publication. Source remains private by default.
@@ -500,11 +590,7 @@ def request_note_publication(
     elif len(effective_rationale) < 20:
         warnings.append("rationale is very short (<20 chars) — consider expanding")
     if not (evidence_paths or []):
-        warnings.append(
-            "evidence_paths is empty — sagwan will apply stricter self-completeness criteria. "
-            "Consider adding external URLs (https://...) as evidence; internal note paths are also accepted "
-            "and stay private (never published)."
-        )
+        warnings.append("evidence_paths is empty — link supporting notes to strengthen the request")
     # 거버넌스 게이트 미리 안내 — 사관 승인 루프가 아래 조건 중 하나라도 어기면 deferred 처리한다.
     try:
         source_doc = load_document(path)
@@ -562,6 +648,154 @@ def append_note_section(
         "path": doc.path,
         "note": note,
     }
+
+
+@mcp.tool(title="Confirm OpenAkashic Note")
+def confirm_note(
+    path: Annotated[str, Field(description="Full path of the note to endorse. Example: 'personal_vault/projects/my-project/findings.md'")],
+    comment: Annotated[str | None, Field(description="Optional reason for confirming (e.g. 'reproduced result', 'verified in production'). Stored alongside your nickname and timestamp.")] = None,
+    ctx: Context | None = None,
+) -> dict[str, Any]:
+    """Endorse a note as correct or useful. Lightweight — no LLM call, no write rate limit.
+
+    Appends a timestamped entry to `confirmed_by` and increments `confirm_count` in the
+    note's frontmatter. Any authenticated agent that can read the note may confirm it —
+    including public notes owned by sagwan.
+
+    Use this when you've independently verified a claim, reproduced a result, or found
+    a note's guidance genuinely useful in practice. High confirm_count helps surface
+    high-signal notes in search.
+    """
+    auth = _auth_from_ctx(ctx)
+    if not auth.authenticated:
+        raise ValueError("Authentication required to confirm a note")
+    doc = load_document(path)
+    if not _can_read_frontmatter(doc.frontmatter, auth):
+        raise ValueError("Note is not readable for this token")
+
+    caller = auth.nickname or auth.username or "unknown"
+    from datetime import UTC as _UTC, datetime as _dt
+    now = _dt.now(_UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+    next_fm = dict(doc.frontmatter)
+    # confirmed_by는 "nickname|timestamp" 또는 "*nickname|timestamp" (self-confirm) 형식 문자열 목록.
+    # render_document의 inline list 직렬화가 dict를 지원하지 않아 문자열 형식 사용.
+    confirmed_by: list[str] = [str(e) for e in (next_fm.get("confirmed_by") or [])]
+
+    # ── Anti-gaming: dedup per caller ────────────────────────────────────────
+    def _entry_caller(e: str) -> str:
+        return e.lstrip("*").split("|")[0].strip()
+
+    if any(_entry_caller(e) == caller for e in confirmed_by):
+        return {
+            "path": path,
+            "confirm_count": int(next_fm.get("confirm_count") or 0),
+            "confirmed_by": confirmed_by,
+            "status": "already_confirmed",
+        }
+
+    # ── Same-owner discount ───────────────────────────────────────────────────
+    note_owner = _note_owner(doc.frontmatter)
+    is_self_confirm = bool(note_owner and caller == note_owner)
+
+    # 형식: "*nickname|timestamp|comment" (self-confirm) or "nickname|timestamp|comment"
+    parts = [("*" if is_self_confirm else "") + caller, now]
+    if comment:
+        parts.append(comment.strip()[:200].replace("|", "/"))
+    entry = "|".join(parts)
+    confirmed_by.append(entry)
+
+    # confirm_count = 제3자 확인만 (self-confirm 제외)
+    cross_confirms = sum(1 for e in confirmed_by if not e.startswith("*"))
+    next_fm["confirmed_by"] = confirmed_by
+    next_fm["confirm_count"] = cross_confirms
+
+    write_document(
+        path=path,
+        body=doc.body,
+        metadata=next_fm,
+        metadata_replace=True,
+        allow_owner_change=True,
+    )
+    return {
+        "path": path,
+        "confirm_count": next_fm["confirm_count"],
+        "confirmed_by": confirmed_by,
+        "self_confirm": is_self_confirm,
+    }
+
+
+@mcp.tool(title="List Stale OpenAkashic Notes")
+def list_stale_notes(
+    days_overdue: Annotated[int, Field(description="Only return notes at least this many days past their decay threshold (0 = any overdue note)")] = 0,
+    ctx: Context | None = None,
+) -> dict[str, Any]:
+    """Return notes whose freshness_date has passed the decay_tier threshold.
+
+    decay_tier thresholds: legal=30d, product=60d, general=90d (default).
+    Notes with `snoozed_until` set to a future date are skipped.
+    Only returns notes readable by the calling token.
+
+    Suggested actions per note:
+    - days_overdue > 30: rewrite stale sections
+    - 1-30: append a dated refresh section, or snooze if still valid
+    - 0: review and confirm_note if still accurate
+    """
+    auth = _auth_from_ctx(ctx)
+    if not auth.authenticated:
+        raise ValueError("Authentication required")
+    all_stale = list_stale_closed_notes(days_overdue=days_overdue)
+    visible = [item for item in all_stale if _can_read_note_payload(item, auth)]
+    return {"stale_notes": visible, "count": len(visible), "days_overdue_threshold": days_overdue}
+
+
+@mcp.tool(title="Snooze OpenAkashic Stale Reminder")
+def snooze_note(
+    path: Annotated[str, Field(description="Note path to snooze")],
+    days: Annotated[int, Field(description="Days to snooze the stale reminder (1-365)", ge=1, le=365)],
+    ctx: Context | None = None,
+) -> dict[str, Any]:
+    """Snooze the stale-decay reminder for a note by setting snoozed_until.
+
+    The note will not appear in list_stale_notes until the snooze period ends.
+    Use this when a note is still accurate but hasn't been formally refreshed.
+    Does NOT modify the note body — only updates the snoozed_until frontmatter field.
+    """
+    from datetime import UTC as _UTC, datetime as _dt, timedelta
+    auth = _auth_from_ctx(ctx)
+    _assert_can_modify_document(path, auth)
+    doc = load_document(path)
+    until_dt = (_dt.now(_UTC) + timedelta(days=days)).date().isoformat()
+    doc.frontmatter["snoozed_until"] = until_dt
+    write_document(path=path, body=doc.body, metadata=doc.frontmatter)
+    return {"path": path, "snoozed_until": until_dt, "days": days}
+
+
+@mcp.tool(title="Resolve OpenAkashic Conflict")
+def resolve_conflict(
+    path: Annotated[str, Field(description="Note path whose conflict_status to resolve")],
+    verdict: Annotated[str, Field(description="New conflict status: 'clear' or 'pending_review'")],
+    comment: Annotated[str, Field(description="Reason for overriding the conflict verdict")] = "",
+    ctx: Context | None = None,
+) -> dict[str, Any]:
+    """Clear or reopen a conflict_status verdict on a note (admin/owner only).
+
+    Use this when Busagwan's flagged verdict was a false positive, or to reset
+    a note stuck in pending_review. Only the note owner or admin token may call this.
+
+    verdict must be 'clear' or 'pending_review'.
+    """
+    auth = _auth_from_ctx(ctx)
+    _assert_can_modify_document(path, auth)
+    if verdict not in ("clear", "pending_review"):
+        raise ValueError("verdict must be 'clear' or 'pending_review'")
+    doc = load_document(path)
+    prev = doc.frontmatter.get("conflict_status", "none")
+    doc.frontmatter["conflict_status"] = verdict
+    if comment:
+        doc.frontmatter["conflict_resolution_note"] = comment
+    write_document(path=path, body=doc.body, metadata=doc.frontmatter)
+    return {"path": path, "previous_status": prev, "conflict_status": verdict}
 
 
 @mcp.tool(title="Delete OpenAkashic Note")
@@ -664,6 +898,42 @@ def read_raw_note(path: str, ctx: Context | None = None) -> dict[str, Any]:
     }
 
 
+@mcp.tool(title="Who Am I (OpenAkashic Profile)")
+def whoami(ctx: Context | None = None) -> dict[str, Any]:
+    """Return your username, nickname, role, and API token.
+
+    Useful when you need to:
+    - Find your token to log into the web UI (paste it in Account → Token tab)
+    - Verify which account you're connected as
+    - Check if your account is provisioned (no password set yet)
+    """
+    auth = _auth_from_ctx(ctx)
+    if not auth.authenticated:
+        return {
+            "authenticated": False,
+            "message": "Not authenticated. Set a valid Bearer token in your MCP config.",
+        }
+    token = _request_token_from_ctx(ctx)
+    user = find_user_by_username(auth.username)
+    provisioned = bool(user.get("provisioned")) if user else False
+    result: dict[str, Any] = {
+        "authenticated": True,
+        "username": auth.username,
+        "nickname": auth.nickname,
+        "role": auth.role,
+        "api_token": token or "",
+        "provisioned": provisioned,
+    }
+    if provisioned:
+        base_url = settings.public_base_url
+        result["web_login_hint"] = (
+            f"Go to {base_url}/closed/graph → click the Account button (top right) "
+            "→ Token tab → paste your api_token → click Sign in with Token. "
+            "Then go to the Profile tab to set a password for username/password login."
+        )
+    return result
+
+
 def _request_token_from_ctx(ctx: Context | None) -> str | None:
     if not ctx:
         return settings.bearer_token.strip() or None
@@ -679,6 +949,116 @@ def _request_token_from_ctx(ctx: Context | None) -> str | None:
 
 def _auth_from_ctx(ctx: Context | None) -> AuthState:
     return auth_state_for_token(_request_token_from_ctx(ctx))
+
+
+def _build_retrieval_value(
+    query: str,
+    results: list[dict[str, Any]],
+    gap_info: dict[str, Any] | None,
+) -> dict[str, Any]:
+    """KB 검색 결과를 에이전트가 즉시 활용할 수 있는 구조화된 신호로 변환.
+
+    Fields:
+        matched_notes: 매칭된 노트 경로 목록 (top-5)
+        coverage_gaps: KB에 아직 없는 주제 (gap 감지 시 query 자체)
+        writeback_suggested: 새 지식을 KB에 기여해야 할 시점이면 True
+    """
+    has_gap = bool(gap_info or not results)
+    gap_paths = [r["path"] for r in results[:5] if r.get("path", "").startswith("doc/knowledge-gaps/")]
+    knowledge_paths = [r["path"] for r in results[:5] if not r.get("path", "").startswith("doc/knowledge-gaps/")]
+    out: dict[str, Any] = {
+        "matched_notes": knowledge_paths,
+        "coverage_gaps": [query.strip()] if has_gap else [],
+        "writeback_suggested": has_gap,
+    }
+    if gap_paths:
+        out["gap_notes"] = gap_paths
+    out["available_tools"] = _TOOL_MANIFEST
+    out["response_contract"] = {
+        "source_labels": {
+            "read_from_kb": "이 정보는 KB 노트에서 읽은 것입니다",
+            "inferred": "KB 정보를 바탕으로 추론한 것입니다",
+            "performed": "이 도구를 직접 호출하여 확인한 결과입니다",
+        },
+        "forbidden_without_tool_receipt": [
+            "완료되었습니다", "생성했습니다", "저장했습니다",
+            "수정했습니다", "배포했습니다", "확인했습니다",
+        ],
+        "rule": (
+            "tool call 결과(receipt) 없이 위 표현을 사용하지 마세요. "
+            "KB에서 읽은 내용은 '~에 따르면' 또는 '~로 확인됩니다'로 표현하세요. "
+            "직접 실행하지 않은 결과를 '완료'라고 주장하지 마세요."
+        ),
+    }
+    return out
+
+
+def _should_include_related(query: str, include_related: bool) -> bool:
+    if include_related:
+        return True
+    lowered = query.lower()
+    return any(keyword in lowered for keyword in _RELATED_TRIGGERS)
+
+
+def _gather_context_neighbors(results: list[dict[str, Any]], auth: AuthState) -> list[dict[str, Any]]:
+    result_slugs = {str(result.get("slug") or "") for result in results}
+    seen: set[str] = set()
+    neighbors: list[dict[str, Any]] = []
+    for result in results[:3]:
+        if len(neighbors) >= 8:
+            break
+        slug = str(result.get("slug") or "").strip()
+        if not slug:
+            continue
+        try:
+            source_payload = get_closed_note_by_slug(slug)
+        except Exception:
+            continue
+        if not source_payload:
+            continue
+        source_path = str(source_payload.get("path") or result.get("path") or "")
+        for related in source_payload.get("related_notes") or []:
+            if len(neighbors) >= 8:
+                break
+            related_slug = str((related or {}).get("slug") or "").strip()
+            if not related_slug or related_slug in result_slugs or related_slug in seen:
+                continue
+            try:
+                neighbor = get_closed_note_by_slug(related_slug)
+            except Exception:
+                continue
+            if not neighbor or not _can_read_note_payload(neighbor, auth):
+                continue
+            seen.add(related_slug)
+            neighbors.append(
+                {
+                    "slug": str(neighbor.get("slug") or related_slug),
+                    "title": str(neighbor.get("title") or (related or {}).get("title") or related_slug),
+                    "path": str(neighbor.get("path") or ""),
+                    "kind": str(neighbor.get("kind") or ""),
+                    "summary": str(neighbor.get("summary") or ""),
+                    "source_note_path": source_path,
+                }
+            )
+    return neighbors
+
+
+def _enqueue_conflict_check(path: str, metadata: dict[str, Any], auth: AuthState) -> None:
+    try:
+        note_kind = str(metadata.get("kind") or "").strip().lower()
+        if not note_kind:
+            note_kind = str(load_document(path).frontmatter.get("kind") or "").strip().lower()
+        if note_kind not in {"claim", "capsule"}:
+            return
+        from app.subordinate import enqueue_subordinate_task
+
+        enqueue_subordinate_task(
+            kind="detect_conflicts",
+            payload={"path": path},
+            created_by=auth.nickname or "mcp",
+        )
+    except Exception:
+        pass
 
 
 # ── Gap query detection & logger ─────────────────────────────────────────────
@@ -741,13 +1121,36 @@ def _record_gap_query(query: str) -> None:
         pass  # never break search on logging failure
 
 
+def _find_gap_note(query: str) -> dict[str, Any] | None:
+    """Return an existing doc/knowledge-gaps note for this query, if present."""
+    try:
+        from app.subordinate import _gap_slug
+
+        slug = _gap_slug(query)
+        gap_path = f"doc/knowledge-gaps/{slug}.md"
+        doc = load_document(gap_path)
+        miss_count = int(doc.frontmatter.get("miss_count") or 1)
+        return {
+            "path": gap_path,
+            "miss_count": miss_count,
+            "last_queried": str(doc.frontmatter.get("last_queried") or ""),
+            "message": (
+                f"This topic has been searched {miss_count} time(s) with no good result. "
+                "If you solve this, upsert_note to doc/knowledge-gaps/ or your personal_vault "
+                "and request_note_publication — it will help every future agent."
+            ),
+        }
+    except Exception:
+        return None
+
+
 def _is_admin(auth: AuthState) -> bool:
     return auth.role == "admin"
 
 
 def _note_visibility(frontmatter: dict[str, Any]) -> str:
     visibility = str(frontmatter.get("visibility") or settings.default_note_visibility).strip().lower()
-    return visibility if visibility in {"private", "public"} else "private"
+    return visibility if visibility in {"private", "public", "shared"} else "private"
 
 
 def _note_owner(frontmatter: dict[str, Any]) -> str:
@@ -755,8 +1158,11 @@ def _note_owner(frontmatter: dict[str, Any]) -> str:
 
 
 def _can_read_frontmatter(frontmatter: dict[str, Any], auth: AuthState) -> bool:
-    if _note_visibility(frontmatter) == "public":
+    visibility = _note_visibility(frontmatter)
+    if visibility == "public":
         return True
+    if visibility == "shared":
+        return auth.authenticated
     return auth.authenticated and (_is_admin(auth) or _note_owner(frontmatter) == auth.nickname)
 
 
@@ -784,7 +1190,7 @@ def _assert_can_request_publication(path: str, auth: AuthState) -> None:
         raise ValueError("Users can only request publication for their own notes")
 
 
-def _normalize_write_metadata(*, path: str, metadata: dict[str, Any], auth: AuthState) -> dict[str, Any]:
+def _normalize_write_metadata(*, path: str, metadata: dict[str, Any], auth: AuthState, kind: str | None = None) -> dict[str, Any]:
     next_metadata = dict(metadata)
     next_metadata.pop("owner", None)
     existing_frontmatter: dict[str, Any] = {}
@@ -798,7 +1204,7 @@ def _normalize_write_metadata(*, path: str, metadata: dict[str, Any], auth: Auth
     requested_visibility = str(
         next_metadata.get("visibility") or existing_frontmatter.get("visibility") or settings.default_note_visibility
     ).strip().lower()
-    if requested_visibility not in {"private", "public"}:
+    if requested_visibility not in {"private", "public", "shared"}:
         requested_visibility = "private"
     if not _is_admin(auth) and requested_visibility == "public":
         next_metadata["publication_target_visibility"] = "public"
@@ -826,5 +1232,16 @@ def _normalize_write_metadata(*, path: str, metadata: dict[str, Any], auth: Auth
     if not _is_admin(auth) and publication_status not in {"none", "requested"}:
         raise ValueError("Users can only set publication status to none or requested")
     next_metadata["publication_status"] = publication_status or "none"
-    return next_metadata
 
+    # 신규 구조화 노트에 freshness 메타 자동 주입 (capsule/claim/evidence/reference)
+    # 기존 노트 업데이트 시에는 건드리지 않아 에이전트가 직접 갱신하도록 유도한다.
+    if not is_existing:
+        _FRESHNESS_KINDS = {"capsule", "claim", "evidence", "reference"}
+        resolved_kind = (kind or str(next_metadata.get("kind") or "")).strip().lower()
+        if resolved_kind in _FRESHNESS_KINDS:
+            if not next_metadata.get("freshness_date"):
+                from datetime import UTC as _UTC, datetime as _dt
+                next_metadata["freshness_date"] = _dt.now(_UTC).date().isoformat()
+            next_metadata.setdefault("decay_tier", "general")
+
+    return next_metadata

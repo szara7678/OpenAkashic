@@ -366,7 +366,7 @@ def _cli_tool_definitions(enabled_tools: list[str] | None = None) -> str:
         "request_publication": "request_publication(path: str, requester?: str, rationale?: str, evidence_paths?: list) — 공개 신청",
         "list_publication_requests": "list_publication_requests(status?: str) — 공개 신청 목록",
         "set_publication_status": "set_publication_status(path: str, status: str, reason?: str) — 공개 상태 변경 (status: requested|reviewing|approved|rejected|published)",
-        "enqueue_task": 'enqueue_task(kind: str, payload: dict) — 부사관 태스크 큐에 추가. kind: crawl_url|draft_capsule|sync_to_core_api. crawl_url payload: {"url": "...", "folder": "..."}, draft_capsule payload: {"source_path": "..."}, sync_to_core_api payload: {"limit": 10}',
+        "enqueue_task": 'enqueue_task(kind: str, payload: dict) — 부사관 태스크 큐에 추가. kind: crawl_url|draft_capsule|draft_claim|sync_to_core_api|analyze_search_gaps. crawl_url payload: {"url": "...", "folder": "..."}, draft_capsule payload: {"source_path": "..."}, draft_claim payload: {"source_path": "..."}, sync_to_core_api payload: {"limit": 10}, analyze_search_gaps payload: {"max_new": 10}',
     }
     lines = [
         "## 사용 가능한 도구",
@@ -760,17 +760,19 @@ def _tool_registry(enabled_tools: list[str] | None = None) -> list[dict[str, Any
             "name": "enqueue_task",
             "description": (
                 "Queue a background task for the subordinate agent (busagwan). "
-                "Use for repetitive or long-running work: crawling URLs, drafting capsules, syncing to Core API. "
+                "Use for repetitive or long-running work: crawling URLs, drafting capsules, syncing to Core API, or processing knowledge gaps. "
                 "kind=crawl_url: payload requires 'url'; optional 'folder', 'project'. "
                 "kind=draft_capsule: payload requires 'source_path'. "
-                "kind=sync_to_core_api: payload optionally has 'limit' (default 10)."
+                "kind=draft_claim: payload requires 'source_path' — extracts atomic factual claims (measurements, experiments, observations) and creates kind=claim notes. "
+                "kind=sync_to_core_api: payload optionally has 'limit' (default 10). "
+                "kind=analyze_search_gaps: payload optionally has 'max_new' (default 10) — processes gap-queries.jsonl and creates candidate gap notes."
             ),
             "parameters": {
                 "type": "object",
                 "properties": {
                     "kind": {
                         "type": "string",
-                        "enum": ["crawl_url", "draft_capsule", "sync_to_core_api"],
+                        "enum": ["crawl_url", "draft_capsule", "draft_claim", "sync_to_core_api", "analyze_search_gaps"],
                     },
                     "payload": {"type": "object"},
                     "run_after": {"type": "string", "description": "ISO8601 datetime to delay execution"},

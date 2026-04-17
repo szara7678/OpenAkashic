@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import UTC, datetime
+import json
 import mimetypes
 from pathlib import Path
 import re
@@ -340,6 +341,13 @@ def write_document(
 
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(render_document(frontmatter, body), encoding="utf-8")
+        # 노트 캐시 무효화 — site.py의 TTL 캐시를 즉시 비워 다음 검색이 최신 데이터를 반환하도록.
+        # lazy import로 순환 임포트 방지 (site → vault, 역방향 금지).
+        try:
+            from app.site import invalidate_notes_cache as _inv
+            _inv()
+        except Exception:
+            pass
         return load_document(path)
 
 
@@ -801,12 +809,22 @@ def parse_yamlish(value: str) -> dict[str, Any]:
             continue
         key, raw = line.split(":", 1)
         raw = raw.strip()
-        if raw.startswith("[") and raw.endswith("]"):
-            output[key.strip()] = [
-                item.strip().strip("\"'")
-                for item in raw[1:-1].split(",")
-                if item.strip()
-            ]
+        if raw.startswith("[") or raw.startswith("{"):
+            # JSON 형식 (render_document가 complex value에 json.dumps 사용)
+            try:
+                output[key.strip()] = json.loads(raw)
+                continue
+            except (json.JSONDecodeError, ValueError):
+                pass
+            # fallback: 단순 inline 리스트 파싱 (문자열 아이템만)
+            if raw.startswith("[") and raw.endswith("]"):
+                output[key.strip()] = [
+                    item.strip().strip("\"'")
+                    for item in raw[1:-1].split(",")
+                    if item.strip()
+                ]
+            else:
+                output[key.strip()] = raw.strip("\"'")
         else:
             output[key.strip()] = raw.strip("\"'")
     return output
@@ -818,8 +836,19 @@ def render_document(frontmatter: dict[str, Any], body: str) -> str:
         if value is None or value == "":
             continue
         if isinstance(value, list):
-            rendered = ", ".join(_quote_yaml(str(item)) for item in value if str(item).strip())
-            lines.append(f"{key}: [{rendered}]")
+            # dict를 포함하거나 콤마가 포함된 문자열이 있으면 JSON으로 직렬화.
+            # parse_yamlish가 JSON을 우선 파싱해 안전하게 역직렬화.
+            needs_json = any(
+                isinstance(item, (dict, list)) or (isinstance(item, str) and "," in item)
+                for item in value
+            )
+            if needs_json:
+                lines.append(f"{key}: {json.dumps(value, ensure_ascii=False)}")
+            else:
+                rendered = ", ".join(_quote_yaml(str(item)) for item in value if str(item).strip())
+                lines.append(f"{key}: [{rendered}]")
+        elif isinstance(value, dict):
+            lines.append(f"{key}: {json.dumps(value, ensure_ascii=False)}")
         else:
             lines.append(f"{key}: {_quote_yaml(str(value))}")
     lines.append("---")

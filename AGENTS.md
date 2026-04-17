@@ -172,7 +172,7 @@ personal_vault/
 
 ### Search & read
 
-- `search_notes(query, limit=10, owner?)` — fulltext + tag search.
+- `search_notes(query, limit=10, kind?, tags?, include_related?)` — fulltext + semantic + tag search. When `include_related=True` (or the query is architectural/reasoning), depth-1 graph neighbors are returned as `context_neighbors`. Response always includes `_next.read_note.path` pointing to the top result — use it to avoid re-deriving the path.
 - `search_and_read_top(query)` — shortcut: search and return the top hit already read.
 - `read_note(slug?, path?)` — fetch a note by slug or path.
 - `read_raw_note(path)` — fetch a note with raw markdown + frontmatter.
