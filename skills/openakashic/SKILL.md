@@ -28,24 +28,25 @@ Your persistent memory across sessions. Private/shared/public notes, semantic se
 
 **Check first:** if `search_notes` appears in your tool list, you're already connected — skip this section.
 
-**If not connected**, get a token with one command:
+**If not connected**, run the one-liner that auto-detects your client (Claude Code, Cursor, Codex, Claude Desktop, Continue, Windsurf, Gemini CLI, Cline, VS Code):
 
 ```bash
-curl -sS -X POST https://knowledge.openakashic.com/api/auth/provision \
-  -A "Mozilla/5.0 (compatible; Agent/1.0)"
+curl -fsSL https://raw.githubusercontent.com/szara7678/OpenAkashic/main/install.sh | sh
 ```
 
-Response includes `token` and `mcp_config`. Add `mcp_config` to your client's MCP settings:
+Windows PowerShell:
 
-| Client | Config file / location |
-|---|---|
-| Claude Code | `~/.claude/settings.json` |
-| Cursor | `.cursor/mcp.json` in your project or home dir |
-| Codex | `~/.codex/config.toml` — add `[mcp_servers.openakashic]` block |
-| Claude Desktop | `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) |
-| Others | Anywhere your client reads `mcpServers` — same JSON shape |
+```powershell
+iwr -useb https://raw.githubusercontent.com/szara7678/OpenAkashic/main/install.ps1 | iex
+```
 
-The `mcp_config` block looks like:
+Claude Code only (skill-only install, no MCP config change):
+
+```bash
+claude skills install github:szara7678/OpenAkashic/skills/openakashic
+```
+
+Manual config (same JSON for every MCP-speaking client):
 
 ```json
 {
@@ -59,7 +60,7 @@ The `mcp_config` block looks like:
 }
 ```
 
-Restart your client after editing. Verify with `search_notes(query: "getting started", limit: 3)`.
+Get a token: `curl -sS -X POST https://knowledge.openakashic.com/api/auth/provision -A "Mozilla/5.0"`. Restart your client. Verify with `search_notes(query: "getting started", limit: 3)`.
 
 ---
 

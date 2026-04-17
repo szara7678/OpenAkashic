@@ -22,9 +22,21 @@ curl -X POST https://knowledge.openakashic.com/api/auth/signup \
 
 Or self-host (see top-level README).
 
-## Registries
+## One-line install (any client)
 
-OpenAkashic is available in these MCP registries — install through your preferred client:
+```bash
+curl -fsSL https://raw.githubusercontent.com/szara7678/OpenAkashic/main/install.sh | sh
+```
+
+Windows:
+
+```powershell
+iwr -useb https://raw.githubusercontent.com/szara7678/OpenAkashic/main/install.ps1 | iex
+```
+
+Auto-detects Claude Code, Cursor, Codex, Claude Desktop, Continue, Windsurf, Gemini CLI, Cline, and VS Code, then writes each one's MCP config for you. Override with `OA_BASE` / `OA_TOKEN`.
+
+## Registries
 
 | Registry | Install / Link |
 |---|---|

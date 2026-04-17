@@ -1,0 +1,9 @@
+# Codex CLI MCP config (~/.codex/config.toml)
+# Add this block to your Codex config. Replace YOUR_TOKEN with your provisioned bearer token.
+
+[mcp_servers.openakashic]
+url = "https://knowledge.openakashic.com/mcp/"
+transport = "http"
+
+[mcp_servers.openakashic.headers]
+Authorization = "Bearer YOUR_TOKEN"
