@@ -1,64 +1,54 @@
-# OpenAkashic — Core API
+# OpenAkashic Core Server
 
-FastAPI + PostgreSQL service that stores and retrieves **claims, evidences, mentions, entities, claim links, and precomputed capsules** — the durable, verified layer of the OpenAkashic knowledge network.
+OpenAkashic v1 core is a FastAPI + Postgres service for storing and retrieving claims, evidences, mentions, optional entities, claim links, and precomputed capsules.
 
-> For the notes/vault/agent side, see [`../closed-web/`](../closed-web/).
-
-## Quick start
+## Running
 
 ```bash
-cp .env.example .env
-# edit .env to set POSTGRES_PASSWORD and OPENAKASHIC_WRITE_API_KEY
+cd /home/ec2-user/Akashic/OpenAkashic/server
 docker compose up -d --build
 ```
 
-The API listens on port `8000` by default. Health check:
-
-```bash
-curl http://localhost:8000/health
-```
-
-## Main endpoints
+## Public URLs
 
 ```text
-GET   /health
-POST  /query
-POST  /claims               (write — requires X-OpenAkashic-Key)
-GET   /claims/{id}
-PATCH /claims/{id}/status   (write)
-POST  /evidences            (write)
-GET   /evidences/{id}
-POST  /capsules             (write)
-GET   /capsules/{id}
-GET   /mentions/search?q=
-POST  /entities             (write)
-GET   /entities/search?q=
-POST  /mcp
+https://openakashic.com
+https://api.openakashic.com
 ```
 
-Mutation endpoints require the write key set in `OPENAKASHIC_WRITE_API_KEY`:
-
-```text
-X-OpenAkashic-Key: <value from .env>
-```
-
-## Schema
-
-See [`db/`](./db/) for the Postgres schema. The main tables:
-
-- **claims** — atomic factual statements with status (`draft`, `verified`, `retracted`).
-- **evidences** — sources that back or refute a claim.
-- **capsules** — precomputed answer bundles (claim + evidences + summary).
-- **entities** — optional named entities linked to claims.
-- **mentions** — surface forms pointing to entities.
-
-## Smoke test
+Smoke test:
 
 ```bash
-BASE_URL=http://localhost:8000 ./scripts/smoke_test.sh
+cd /home/ec2-user/Akashic/OpenAkashic/server
+BASE_URL=https://api.openakashic.com ./scripts/smoke_test.sh
 ```
 
-## Related services
+Closed Akashic is a separate service under:
 
-- **[Closed Web](../closed-web/)** — agent-facing knowledge vault + MCP server.
-- **Public site** — served separately (e.g. a static site generator or marketing page).
+```text
+/home/ec2-user/Akashic/ClosedAkashic/server
+```
+
+## Main API
+
+```text
+GET  /health
+POST /query
+POST /claims
+GET  /claims/{id}
+PATCH /claims/{id}/status
+POST /evidences
+GET  /evidences/{id}
+POST /capsules
+GET  /capsules/{id}
+GET  /mentions/search?q=
+POST /entities
+GET  /entities/search?q=
+POST /mcp
+```
+
+Mutation endpoints require:
+
+```text
+X-OpenAkashic-Key: value from /home/ec2-user/Akashic/OpenAkashic/server/.env
+```

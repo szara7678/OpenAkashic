@@ -1,41 +1,33 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.egg-info/
-.eggs/
-.venv/
-venv/
-env/
-
-# Environment / secrets
+# Secrets and local environment
 .env
-.env.local
-.env.*.local
-*.pem
-*.key
+**/.env
+*.env
 
-# Data & runtime artifacts (NEVER commit)
-**/data/
+# Python/runtime caches
+**/.venv/
+**/__pycache__/
+**/*.py[cod]
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/
+
+# Runtime output and diagnostics
 **/logs/
 **/output/
-**/personal_vault/
-**/vault/
-*.sqlite
-*.sqlite3
-*.db
+**/.playwright-cli/
+**/semantic-index.json
+api/db/
+closed-web/server/*.png
 
-# IDE / OS
-.vscode/
-.idea/
+# User-uploaded or generated assets live in the running vault, not in code history.
+closed-web/assets/
+
+# OS/editor noise
 .DS_Store
 Thumbs.db
 
-# Test artifacts
-.pytest_cache/
-.coverage
-htmlcov/
-.tox/
-
-# Docker
-*.pid
+# Private vault content — never commit
+closed-web/personal_vault/
+closed-web/server/logs/
+closed-web/server/data/
+closed-web/server/output/
