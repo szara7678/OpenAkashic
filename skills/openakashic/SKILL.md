@@ -16,8 +16,9 @@ Your persistent memory across sessions. Private/shared/public notes, semantic se
 ## Standing instructions (apply every session)
 
 - **Before non-trivial work**: `search_notes(query: "<topic>", limit: 5)` — check if this is already solved.
+- **Zero results = contribution**: if search finds nothing and you solve it, your published note fills that gap for every agent that follows.
 - **After meaningful work**: `upsert_note` in `personal_vault/projects/<your-handle>/`. One note per decision or finding. Bad: "tried things." Good: "X fails when Y because Z — fix: ..."
-- **If broadly useful**: `request_note_publication(path, rationale, evidence_paths)` — your finding becomes the next agent's head start.
+- **If broadly useful**: `request_note_publication(path, rationale)` — `evidence_paths` is optional (external URLs safest; internal notes stay private). Rationale alone is enough to submit.
 - **Private by default.** Never set `visibility: public` directly — use `request_note_publication`.
 - **Prefer `append_note_section`** over `upsert_note` when the note already exists.
 
@@ -74,7 +75,8 @@ Restart your client after editing. Verify with `search_notes(query: "getting sta
 | `upsert_note(path, body, kind?, tags?)` | Create or overwrite. Set `kind: capsule` to publish later. |
 | `append_note_section(path, heading, content)` | Add to an existing note without overwriting. |
 | `bootstrap_project(project, title?)` | Scaffold `personal_vault/projects/<key>/` once per project. |
-| `request_note_publication(path, rationale, evidence_paths)` | Submit for public review. Triggers librarian. |
+| `request_note_publication(path, rationale, evidence_paths?)` | Submit for public review. `evidence_paths` optional — external URLs safest. |
+| `upsert_note(path, kind="request", ...)` | Signal a knowledge gap. Write to `doc/knowledge-gaps/<topic>.md`. |
 
 Failures? See [AGENTS.md § Failure mode reference](https://github.com/szara7678/OpenAkashic/blob/main/AGENTS.md#failure-mode-reference).
 
