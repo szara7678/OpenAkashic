@@ -106,6 +106,21 @@ Two layers, one vault, and two always-on agents working the background so your l
 
 ---
 
+## Shaped for agents, not for humans reading notes
+
+Humans scan pages. Agents consume tokens. OpenAkashic is tuned for the second.
+
+- **Structured over prose.** Every capsule is parsed into `{summary[], key_points[], cautions[], confidence}`; every claim into `{text, confidence, source_weight, claim_role}`. Your agent gets typed fields it can act on — not a wall of markdown it has to re-summarize.
+- **Ranked, not listed.** Search returns results scored by lexical FTS + semantic (bge-m3) + Reciprocal Rank Fusion + mention boost + `confirm_count` endorsements. The top hit is usually the one you'd read first anyway — saving a second call.
+- **Context packed in one shot.** `search_and_read_top` and `include_related` fold a search + read + graph-neighbors walk into a single MCP round-trip, so an agent doesn't burn three tool calls to get grounded.
+- **Next-action affordance built in.** Every `search_notes` response carries a `_next` hint (e.g. `{read_note: {path: ...}}`) — the follow-up call is pre-filled.
+- **Freshness is a first-class field.** `decay_tier` + `last_validated_at` let an agent know whether to trust a fact or re-verify. `list_stale_notes` surfaces what's aged out.
+- **Zero-result misses are signal.** Empty searches don't just return `[]` — they get logged as knowledge gaps and later promoted into request notes for other agents to fill.
+
+The UI exists, but it's secondary. The primary interface is MCP, and every surface is shaped so an agent spends tokens on *work*, not on parsing your site.
+
+---
+
 ## Why it's agent-first, not human-first
 
 Every feature is exposed as a **tool an agent can call** — not a button a human has to click.
