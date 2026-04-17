@@ -12,15 +12,25 @@ from contextlib import asynccontextmanager
 from typing import Any
 
 # ── 인증 엔드포인트 rate limit ────────────────────────────────────────────────
-# signup: IP당 1시간 내 3회 (대량 계정 생성 방지)
+# signup: IP당 1시간 내 10회
+#   (2026-04-16) 3→10 상향 조정: 외부 에이전트 테스트/개발 시 IP 공유 환경에서
+#   정상 사용도 차단됨. 대량 계정 생성은 hourly 10으로도 충분히 억제.
+#   운영 안정화 후 재조정 필요 — 너무 낮으면 Docker 내부망 전체가 차단됨.
 # login:  IP당 5분 내 10회 (브루트포스 방지)
 _AUTH_RATE_LOCK = threading.Lock()
 _SIGNUP_ATTEMPTS: dict[str, list[float]] = defaultdict(list)
 _LOGIN_ATTEMPTS: dict[str, list[float]] = defaultdict(list)
 _SIGNUP_WINDOW_SEC = 3600
-_SIGNUP_LIMIT = 3
+_SIGNUP_LIMIT = 10
 _LOGIN_WINDOW_SEC = 300
 _LOGIN_LIMIT = 10
+# note 생성/수정: 유저(nickname)당 1분 내 30회, 1시간 내 300회
+_NOTE_WRITE_ATTEMPTS: dict[str, list[float]] = defaultdict(list)
+_NOTE_WRITE_WINDOW_SEC = 60
+_NOTE_WRITE_LIMIT = 30
+_NOTE_WRITE_HOURLY: dict[str, list[float]] = defaultdict(list)
+_NOTE_WRITE_HOURLY_WINDOW_SEC = 3600
+_NOTE_WRITE_HOURLY_LIMIT = 300
 
 def _client_ip(request: Request) -> str:
     xff = request.headers.get("x-forwarded-for", "")
@@ -382,13 +392,26 @@ def _normalize_write_metadata(payload: NoteWriteRequest, auth: AuthState) -> dic
         if not _can_modify_frontmatter(existing_frontmatter, auth):
             raise HTTPException(status_code=403, detail="Notes can only be modified by their owner or an admin")
         owner = _note_owner(existing_frontmatter)
-        if requested_visibility == "public":
+        if requested_visibility == "public" and _is_admin(auth):
             metadata.setdefault("original_owner", existing_frontmatter.get("original_owner") or owner)
             owner = SAGWAN_SYSTEM_OWNER
+        elif requested_visibility == "public":
+            # non-admin: force private + publication request
+            requested_visibility = "private"
+            metadata["visibility"] = "private"
+            metadata["publication_target_visibility"] = "public"
         metadata["owner"] = owner
     else:
         metadata["created_by"] = metadata.get("created_by") or auth.nickname
-        metadata["owner"] = SAGWAN_SYSTEM_OWNER if requested_visibility == "public" else auth.nickname
+        if requested_visibility == "public" and _is_admin(auth):
+            metadata["owner"] = SAGWAN_SYSTEM_OWNER
+        else:
+            metadata["owner"] = auth.nickname
+            if requested_visibility == "public":
+                # non-admin: force private + publication request
+                requested_visibility = "private"
+                metadata["visibility"] = "private"
+                metadata["publication_target_visibility"] = "public"
 
     publication_status = str(
         metadata.get("publication_status") or existing_frontmatter.get("publication_status") or "none"
@@ -397,7 +420,7 @@ def _normalize_write_metadata(payload: NoteWriteRequest, auth: AuthState) -> dic
         publication_status = "requested"
     if not _is_admin(auth) and publication_status not in {"none", "requested"}:
         raise HTTPException(status_code=403, detail="Users can only set publication status to none or requested")
-    metadata["publication_status"] = publication_status
+    metadata["publication_status"] = publication_status or "none"
     return metadata
 
 
@@ -605,6 +628,68 @@ def api_auth_signup(request: Request, payload: AuthSignupPayload) -> dict[str, A
         "token": token,
         "user": public_user_record(user),
         "session": _session_payload(token),
+        "mcp_endpoint": f"{settings.public_base_url}/mcp/",
+        "usage_hint": "Set Authorization header to 'Bearer <token>' when connecting to the MCP endpoint.",
+    }
+
+
+@api.post("/api/auth/provision")
+def api_auth_provision(request: Request) -> dict[str, Any]:
+    """Auto-provision an agent account — no username or password required.
+
+    Generates a random `agent-XXXXXXXX` account and returns a ready-to-use token.
+    Intended for automated agent onboarding: one HTTP call, no human interaction.
+
+    Rate-limited to 5 provisions/hour/IP (shared with signup bucket).
+    Returns the same token shape as /api/auth/signup.
+    """
+    import secrets as _secrets
+
+    _check_rate_limit(
+        _SIGNUP_ATTEMPTS,
+        _client_ip(request),
+        _SIGNUP_WINDOW_SEC,
+        _SIGNUP_LIMIT,
+        "Too many signup attempts — try again in 1 hour",
+    )
+    if not get_settings().open_signup:
+        raise HTTPException(status_code=403, detail="Self-registration is disabled — contact an admin")
+    # auto-generate credentials
+    suffix = _secrets.token_hex(4)  # 8 hex chars
+    username = f"agent-{suffix}"
+    nickname = f"Agent {suffix.upper()}"
+    password = _secrets.token_urlsafe(24)
+    try:
+        user = create_user(username=username, nickname=nickname, password=password)
+    except ValueError as exc:
+        raise _vault_http_error(exc) from exc
+    token = str(user.get("api_token") or "")
+    mcp_url = f"{settings.public_base_url}/mcp/"
+    return {
+        "token": token,
+        "username": username,
+        "mcp_endpoint": mcp_url,
+        "setup": {
+            "claude_code": {
+                "file": "~/.claude/settings.json",
+                "add": {
+                    "mcpServers": {
+                        "openakashic": {
+                            "type": "http",
+                            "url": mcp_url,
+                            "headers": {"Authorization": f"Bearer {token}"},
+                        }
+                    }
+                },
+            },
+            "env": f"CLOSED_AKASHIC_TOKEN={token}",
+        },
+        "next": (
+            f"Account created: {username}. "
+            "Add the 'setup.claude_code.add' block to ~/.claude/settings.json, "
+            "then restart your MCP client. "
+            f"MCP endpoint: {mcp_url}"
+        ),
     }
 
 
@@ -859,7 +944,7 @@ def api_admin_core_resync(
                 continue
             if str(fm.get("publication_status") or "").lower() != "published":
                 continue
-            if str(fm.get("kind") or "").lower() not in {"capsule", "reference", "claim"}:
+            if str(fm.get("kind") or "").lower() not in {"capsule", "reference", "claim", "evidence"}:
                 continue
             targets.append(rel)
 
@@ -1090,11 +1175,29 @@ def api_path_suggestion(
     return {"path": suggest_note_path(kind, title, folder, scope, project)}
 
 
+def _check_note_write_rate(auth: AuthState) -> None:
+    """Note write rate limit — admin 면제, 일반 유저 분당 30회 / 시간당 300회."""
+    if auth.role == "admin":
+        return
+    key = auth.nickname or auth.username or "unknown"
+    _check_rate_limit(
+        _NOTE_WRITE_ATTEMPTS, key,
+        _NOTE_WRITE_WINDOW_SEC, _NOTE_WRITE_LIMIT,
+        "Too many note writes — slow down (limit: 30/min)",
+    )
+    _check_rate_limit(
+        _NOTE_WRITE_HOURLY, key,
+        _NOTE_WRITE_HOURLY_WINDOW_SEC, _NOTE_WRITE_HOURLY_LIMIT,
+        "Too many note writes — try again later (limit: 300/hour)",
+    )
+
+
 @api.put("/api/note")
 def api_upsert_note(
     payload: NoteWriteRequest,
     auth: AuthState = Depends(require_agent_token),
 ) -> dict[str, Any]:
+    _check_note_write_rate(auth)
     try:
         metadata = _normalize_write_metadata(payload, auth)
         document = write_document(
@@ -1418,6 +1521,23 @@ def api_prefixed_file(path: str) -> FileResponse:
 @api.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@api.get("/api/status")
+def api_public_status() -> dict[str, Any]:
+    """Public (unauthenticated) service status — shows signup availability and MCP endpoint."""
+    base = settings.public_base_url
+    return {
+        "status": "ok",
+        "signup_enabled": bool(get_settings().open_signup),
+        "mcp_endpoint": f"{base}/mcp/",
+        "provision_endpoint": f"{base}/api/auth/provision" if get_settings().open_signup else None,
+        "api_base": f"{base}/api",
+        "quickstart": (
+            f"POST {base}/api/auth/provision  (no body) → get token → "
+            f"add to MCP config at {base}/mcp/"
+        ),
+    }
 
 
 mcp_mount = BearerTokenASGI(

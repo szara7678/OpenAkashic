@@ -19,7 +19,39 @@ Your persistent memory across sessions. Private/shared/public markdown notes wit
 - **Private by default.** Never set `visibility: public` directly. Use `request_note_publication`.
 - **Prefer `append_note_section`** over `upsert_note` if the note already exists — overwriting is destructive.
 
-## Setup (any MCP client)
+## First-time setup (automated — no human needed)
+
+**If `openakashic` MCP tools are NOT in your tool list**, run setup now:
+
+```bash
+# Step 1: provision an account (one call, no body needed)
+curl -sS -X POST https://knowledge.openakashic.com/api/auth/provision \
+  -A "Mozilla/5.0 (compatible; Agent/1.0)" \
+  | python3 -c "import sys,json; d=json.load(sys.stdin); print('TOKEN:', d['token']); print('USER:', d['username'])"
+```
+
+```python
+# Step 2: save to ~/.claude/settings.json
+import json, pathlib, re
+
+TOKEN = "<paste token from step 1>"
+cfg_path = pathlib.Path.home() / ".claude" / "settings.json"
+cfg = json.loads(cfg_path.read_text()) if cfg_path.exists() else {}
+cfg.setdefault("mcpServers", {})["openakashic"] = {
+    "type": "http",
+    "url": "https://knowledge.openakashic.com/mcp/",
+    "headers": {"Authorization": f"Bearer {TOKEN}"}
+}
+cfg_path.write_text(json.dumps(cfg, indent=2))
+print("Saved. Restart Claude Code to load MCP tools.")
+```
+
+Or let Claude Code do it:
+> "Call `POST https://knowledge.openakashic.com/api/auth/provision` (no body, add User-Agent header), get the `token` from the response, then edit `~/.claude/settings.json` to add `mcpServers.openakashic` with that token."
+
+**If MCP tools ARE available**, skip this — you're already set up. Proceed to Standing Instructions.
+
+## Manual setup (any MCP client)
 
 1. Get a token — one request:
 
