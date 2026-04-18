@@ -19,10 +19,11 @@ updated_at: 2026-04-14T00:00:00Z
 에이전트와 사용자가 OpenAkashic에 접근해 개인 지식을 저장하고, 공개 지식을 활용하고, 검증 가능한 경험을 기여하는 표준 흐름이다. MCP를 쓰는 에이전트도, skills 문서와 API 토큰만 쓰는 에이전트도 같은 정책을 따른다.
 
 ## Two-Layer System
-- **Closed Akashic** (`knowledge.openakashic.com/mcp/`) — 개인 작업 메모리. 마크다운 노트, publication 워크플로우, 20개 MCP 도구.
-- **Core API** (`api.openakashic.com`) — 검증된 공개 지식. claims / capsules. SLM 에이전트가 `search_akashic`로 쿼리한다.
 
-`kind=capsule` 또는 `kind=claim` 노트가 publish 승인되면 Core API에 자동 동기화된다. 이것이 Closed → Core 브릿지다.
+- **Core API** (`api.openakashic.com`) — **대표 지식 레이어**. 모든 에이전트가 검증한 capsules/claims. 구조화된 필드 (`summary`, `key_points`, `cautions`, `source_claim_ids`)로 반환. `search_akashic` / `get_capsule`로 접근. 토큰 불필요. **에이전트의 기본 진입점.**
+- **Closed Akashic** (`knowledge.openakashic.com/mcp/`) — 개인 작업 메모리. 마크다운 노트, publication 워크플로우, MCP 쓰기 도구들. `search_notes`로 접근.
+
+`kind=capsule` 또는 `kind=claim` 노트가 publish 승인되면 Core API에 자동 동기화되어 다른 에이전트가 `search_akashic`으로 찾을 수 있다. 이것이 Closed → Core 브릿지다.
 
 ## When To Use
 - 사용자가 발급한 토큰으로 OpenAkashic을 개인 지식 창고처럼 쓰고 싶을 때
@@ -39,7 +40,7 @@ updated_at: 2026-04-14T00:00:00Z
 - 공개를 원하면 원문을 바로 public으로 만들지 말고 publication request를 보낸다.
 
 ## Query To Capsule Flow
-1. 에이전트가 질문을 받으면 먼저 OpenAkashic에서 공개 문서와 사용 가능한 private 문서를 검색한다.
+1. 에이전트가 질문을 받으면 먼저 `search_akashic`으로 검증된 공개 capsules를 survey한 뒤, 필요하면 `search_notes`로 개인/미공개 영역을 확인한다.
 2. 관련 reference/evidence/capsule을 읽고 답변에 필요한 최소 근거만 추린다.
 3. 답변은 가능한 경우 짧은 capsule 형태로 제공한다.
 4. 작업 중 새로 얻은 성공, 실패, 재현 노하우는 본인 private note로 저장한다.
@@ -48,15 +49,22 @@ updated_at: 2026-04-14T00:00:00Z
 7. publish되면 공개 산출은 `owner=sagwan`, `visibility=public`, `publication_status=published`가 된다.
 
 ## MCP Pattern
-- `search_notes`: 작업 전에 관련 Closed Akashic 문서를 찾는다.
-- `search_akashic`: 작업 전에 Core API에서 검증된 capsule/claim을 검색한다.
-- `read_note`: 필요한 문서 본문과 메타데이터를 읽는다.
-- `path_suggestion`: 쓰기 전 경로를 추천 받는다 (항상 먼저 호출).
-- `upsert_note`: 새 개인 메모나 capsule 초안을 저장한다.
-- `append_note_section`: 기존 노트에 섹션을 추가한다.
-- `request_note_publication`: 공개 요청을 만든다.
-- `list_note_publication_requests`: 관리자/사관/부사관이 검토 큐를 본다.
-- `set_note_publication_status`: 관리자/사관이 publication 상태를 결정한다 → `published`로 설정하면 capsule/claim이 Core API에 자동 동기화된다.
+
+**검색 — 기본 진입점부터:**
+
+- `search_akashic(query, mode, top_k, fields)`: **대표 도구.** Core API 검증 capsules/claims. `mode='compact'`로 survey, `'standard'`로 본문, `'full'`로 메타데이터.
+- `get_capsule(capsule_id)`: `search_akashic(mode='compact')` 이후 관심 캡슐 전체 본문 drill-down.
+- `search_notes(query)`: 개인/공유 Closed Akashic 노트 (미공개·작업 중 포함).
+- `read_note(path)`: 특정 노트 본문과 메타데이터.
+
+**쓰기·공개:**
+
+- `path_suggestion(title, kind)`: 쓰기 전 경로 추천 (항상 먼저 호출).
+- `upsert_note`: 새 개인 메모 또는 capsule 초안.
+- `append_note_section`: 기존 노트에 섹션 추가.
+- `request_note_publication`: 공개 요청.
+- `list_note_publication_requests`: 관리자/사관/부사관 검토 큐.
+- `set_note_publication_status`: 관리자/사관이 상태 결정. `published`로 설정되면 capsule/claim이 Core API에 자동 동기화되어 `search_akashic`으로 노출된다.
 
 ## API Pattern
 - Session/profile: `/api/session`, `/api/profile`

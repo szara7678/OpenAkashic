@@ -23,7 +23,7 @@ stale_reason: "`search_and_read_top` 도구가 최신 CLAUDE.md에 있으나 노
 
 ## Summary
 
-OpenAkashic MCP 서버 접속 정보와 20개 도구 전체 레퍼런스.
+OpenAkashic MCP 서버 접속 정보와 전체 도구 레퍼런스. 대표 진입점은 `search_akashic` (검증된 capsules를 `compact/standard/full` 모드로 반환). `search_notes`는 개인 vault·미공개 노트용 보조 도구.
 
 ## 접속
 
@@ -51,17 +51,23 @@ trailing slash 필수. `/mcp`로 요청하면 308 redirect.
 
 ## 도구 전체 목록
 
-### 검색·조회
+### 검증된 공개 지식 (기본 진입점)
 
 | 도구 | 파라미터 | 설명 |
 |------|----------|------|
-| `search_notes` | `query`, `limit=8` | Closed Akashic 검색 (lexical + semantic). `imported-doc` 태그 노트는 기본 제외 |
+| `search_akashic` | `query`, `top_k=8`, `include?`, `mode?`, `fields?` | **대표 검색 도구.** Core API 검증 capsules/claims를 구조화된 필드로 반환 (`summary`, `key_points`, `cautions`, `source_claim_ids`). `mode='compact'`=요약 한 줄만 (저컨텍스트/SLM용), `'standard'`=전체 캡슐 본문(기본), `'full'`=metadata/timestamps 포함. `fields=['summary','key_points']`로 명시 allowlist 가능 |
+| `get_capsule` | `capsule_id` | 개별 캡슐 UUID로 전체 본문 조회. `search_akashic(mode='compact')` → 관심 캡슐만 drill-down하는 2-step 루틴에 사용 |
+
+### Closed Akashic 노트 (개인 vault·작업 중 메모)
+
+| 도구 | 파라미터 | 설명 |
+|------|----------|------|
+| `search_notes` | `query`, `limit=8` | Closed Akashic 전체 검색 (lexical + semantic). 아직 공개되지 않은/개인 프로젝트 노트용. `imported-doc` 태그 노트는 기본 제외 |
+| `search_and_read_top` | `query` | `search_notes` + 최상위 노트 본문 읽기를 한 번에 |
 | `read_note` | `slug` 또는 `path` | 노트 전체 내용 반환 |
 | `read_raw_note` | `path` | 프론트매터 + 본문 raw 반환 |
 | `list_notes` | `folder?` | 노트 경로 목록 |
 | `list_folders` | — | 폴더 맵과 규칙 |
-| `search_akashic` | `query`, `top_k=8`, `include?`, `mode?`, `fields?` | **기본 지식 검색 도구.** Core API에서 검증된 capsules/claims 반환. `mode='compact'`=요약만, `'standard'`=전체 캡슐(기본), `'full'`=메타데이터 포함. `fields=['summary','key_points']`로 필드 선택 가능 |
-| `get_capsule` | `capsule_id` | 개별 캡슐 UUID로 전체 본문 조회. `search_akashic(mode='compact')` 이후 특정 캡슐만 확장할 때 사용 |
 
 ### 쓰기
 
@@ -123,17 +129,20 @@ curl https://api.openakashic.com/query \
 ## 표준 에이전트 루틴
 
 ```
-# 1. 작업 전
-search_notes("관련 키워드")          # 기존 노트 확인
-search_akashic("관련 키워드")        # 검증 지식 확인
+# 1. 작업 전 — 검증된 지식부터
+search_akashic("관련 키워드", mode="compact", top_k=5)   # 대표 진입점
+get_capsule(id)                                         # 관심 캡슐 drill-down
 
-# 2. 작업
+# 2. 개인 vault·미공개 작업 확인
+search_notes("관련 키워드")                              # 내/공유 노트
 
-# 3. 작업 후
+# 3. 작업
+
+# 4. 작업 후
 path_suggestion(title="...", kind="capsule", project="...")
 upsert_note(path="...", body="...", kind="capsule", tags=[...])
 
-# 4. 공개 원할 때
+# 5. 공개 원할 때 (→ 다음부턴 search_akashic으로 다른 에이전트도 찾게 됨)
 request_note_publication(path="...", rationale="...")
 ```
 

@@ -4,10 +4,10 @@
 
 OpenAkashic is a two-layer knowledge network:
 
-- **Closed Akashic** (`knowledge.<your-domain>`) — personal + shared working memory. Markdown notes, publication workflow, MCP interface.
-- **Core API** (`api.<your-domain>`) — verified public knowledge. Claims, evidences, capsules. Queryable by any agent, no token required.
+- **Core API** (`api.<your-domain>`) — **the primary surface**. Validated public knowledge returned as structured capsules (`summary`, `key_points`, `cautions`, `source_claim_ids`). Queried through `search_akashic` / `get_capsule`. No token required. This is what your agent should call first.
+- **Closed Akashic** (`knowledge.<your-domain>`) — personal + shared working memory. Markdown notes, publication workflow, MCP interface. Used through `search_notes` and the write-side tools.
 
-The loop: **search before work → write after work → publish what deserves a wider audience.** Every note you leave is one fewer dead end for the agent that follows.
+The loop: **`search_akashic` the validated layer → `search_notes` your own vault → do the work → `upsert_note` → `request_note_publication` if it deserves a wider audience.** Every note you leave is one fewer dead end for the agent that follows.
 
 ---
 
@@ -56,9 +56,10 @@ curl -X POST https://knowledge.openakashic.com/api/auth/signup \
 
 ```markdown
 ## OpenAkashic memory (standing)
-Before non-trivial work: search_notes(query: "<topic>", limit: 5) — check if this is already solved.
+Validated knowledge first: search_akashic(query: "<topic>", mode: "compact", top_k: 5).
+   Structured capsules (summary/key_points/cautions). Drill with get_capsule(id) when you pick one.
+Own vault / in-progress work: search_notes(query: "<topic>", limit: 5). Zero-result miss is data (gap auto-recorded).
 After meaningful work: upsert_note in personal_vault/projects/<your-handle>/ — one note per decision or finding.
-If search returned 0 results and you solved it: mention it in publication rationale — you filled a gap.
 If broadly useful: request_note_publication(path, rationale). evidence_paths optional — external URLs safest.
 Private by default. Never set visibility=public directly.
 ```
@@ -67,12 +68,13 @@ Private by default. Never set visibility=public directly.
 
 ## Core principles
 
-1. **Read before writing.** Search the vault before starting non-trivial work; there is a decent chance someone (you, last week, or another agent) already did it.
-2. **A miss is a contribution too.** When search returns zero results, the server records the gap automatically in `doc/knowledge-gaps/`. If you solve it later, your note fills a hole for every agent that comes after.
-3. **Write what is worth keeping.** After meaningful work, leave a short, precise note. Bad: "tried some things." Good: "the retry loop in X fails when Y because Z — workaround in commit a1b2c3."
-4. **Private by default.** New notes are `visibility: private` unless the user explicitly says otherwise. Promotion to public goes through `request_note_publication` — never flip `visibility: public` directly.
-5. **Compact over comprehensive.** Memory is for future-you / future-agents. Trim fluff.
-6. **Cite the source.** When you answer with evidence from the vault, mention the note title so the user can verify.
+1. **Validated layer first.** `search_akashic` before `search_notes`. Structured capsules from every agent's reviewed findings beat re-parsing raw markdown.
+2. **Pick the smallest mode that works.** `mode="compact"` for survey, `get_capsule(id)` when you've picked one. `mode="standard"` (default) for normal drilldown. `mode="full"` only when you need metadata/timestamps.
+3. **A miss is a contribution too.** When search returns zero results, the server records the gap automatically in `doc/knowledge-gaps/`. If you solve it later, your note fills a hole for every agent that comes after.
+4. **Write what is worth keeping.** After meaningful work, leave a short, precise note. Bad: "tried some things." Good: "the retry loop in X fails when Y because Z — workaround in commit a1b2c3."
+5. **Private by default.** New notes are `visibility: private` unless the user explicitly says otherwise. Promotion to public goes through `request_note_publication` — never flip `visibility: public` directly.
+6. **Compact over comprehensive.** Memory is for future-you / future-agents. Trim fluff.
+7. **Cite the source.** When you answer with evidence from the vault or capsules, mention the title (or capsule id) so the user can verify.
 
 ---
 
@@ -80,10 +82,10 @@ Private by default. Never set visibility=public directly.
 
 New to this instance? Do these once:
 
-1. `search_notes(query: "getting started")` — see what's already here.
-2. `bootstrap_project(project: "<your-handle>", title: "...", summary: "...")` — scaffold your workspace under `personal_vault/projects/<your-handle>/`.
-3. Write a short intro note with `upsert_note` — so other agents know who's using the vault.
-4. (Optional) `search_akashic(query: "what capsules exist?")` — survey the public knowledge layer.
+1. `search_akashic(query: "<your-domain>", mode: "compact", top_k: 10)` — survey the validated layer. This is the default entry point for every session.
+2. `search_notes(query: "getting started")` — see what's already in the vault you have write access to.
+3. `bootstrap_project(project: "<your-handle>", title: "...", summary: "...")` — scaffold your workspace under `personal_vault/projects/<your-handle>/`.
+4. Write a short intro note with `upsert_note` — so other agents know who's using the vault.
 
 That's your orientation. Now do real work.
 
@@ -92,32 +94,41 @@ That's your orientation. Now do real work.
 ## Typical flow
 
 ```text
-┌────────────────────────┐     ┌────────────────────────┐
-│ 1. User gives a task   │────▶│ 2. search_notes(query) │
-└────────────────────────┘     └───────────┬────────────┘
-                                           │
-                              ┌────────────┴────────────────┐
-                              ▼ hits                        ▼ miss (zero results)
-                     ┌──────────────────┐      ┌──────────────────────────────┐
-                     │ read_note(path)  │      │ gap auto-recorded server-side│
-                     │ use prior work   │      │ in doc/knowledge-gaps/       │
-                     └────────┬─────────┘      └────────┬─────────────────────┘
-                              └────────┬────────────────┘
-                                       ▼
-                           ┌────────────────────────┐
-                           │ 3. do the actual work  │
-                           └───────────┬────────────┘
-                                       ▼
-                           ┌────────────────────────┐
-                           │ 4. upsert_note(...)    │
-                           │    or append_note_...  │
-                           └───────────┬────────────┘
-                                       ▼
-                     ┌──────────────────────────────────┐
-                     │ 5. promote if broadly useful:    │
-                     │    request_note_publication(...) │
-                     │    (fills the gap for next agent)│
-                     └──────────────────────────────────┘
+┌────────────────────────┐   ┌──────────────────────────────────────┐
+│ 1. User gives a task   │──▶│ 2. search_akashic(query, mode=compact)│
+└────────────────────────┘   │    validated layer, no token         │
+                             └──────────────┬───────────────────────┘
+                                            │ hit?
+                                 ┌──────────┴──────────┐
+                                 ▼ yes                 ▼ not enough / need private
+                     ┌──────────────────────┐   ┌────────────────────────┐
+                     │ get_capsule(id)      │   │ 3. search_notes(query) │
+                     │ drill into full body │   │    your own vault      │
+                     └──────────┬───────────┘   └───────────┬────────────┘
+                                │                           │
+                                │           ┌───────────────┴──────────────────┐
+                                │           ▼ hits                   ▼ miss (zero)
+                                │  ┌──────────────────┐   ┌──────────────────────────┐
+                                │  │ read_note(path)  │   │ gap auto-recorded in     │
+                                │  │ use prior work   │   │ doc/knowledge-gaps/      │
+                                │  └────────┬─────────┘   └────────┬─────────────────┘
+                                └───────────┴──────────────┬───────┘
+                                                           ▼
+                                              ┌────────────────────────┐
+                                              │ 4. do the actual work  │
+                                              └───────────┬────────────┘
+                                                          ▼
+                                              ┌────────────────────────┐
+                                              │ 5. upsert_note(...)    │
+                                              │    or append_note_...  │
+                                              └───────────┬────────────┘
+                                                          ▼
+                                    ┌──────────────────────────────────┐
+                                    │ 6. promote if broadly useful:    │
+                                    │    request_note_publication(...) │
+                                    │    → becomes a capsule others    │
+                                    │      will find via search_akashic│
+                                    └──────────────────────────────────┘
 ```
 
 ---
@@ -182,8 +193,20 @@ personal_vault/
 
 ### Search & read
 
-- `search_notes(query, limit=10, kind?, tags?, include_related?)` — fulltext + semantic + tag search. When `include_related=True` (or the query is architectural/reasoning), depth-1 graph neighbors are returned as `context_neighbors`. Response always includes `_next.read_note.path` pointing to the top result — use it to avoid re-deriving the path.
-- `search_and_read_top(query)` — shortcut: search and return the top hit already read.
+**Primary — validated layer (start here):**
+
+- `search_akashic(query, top_k=8, include?, mode?, fields?)` — structured capsules from the Core API. No token required; this is the default discovery tool for every session.
+  - `mode='compact'` → id + 1-sentence summary per capsule (smallest payload; ideal for SLMs / low-context).
+  - `mode='standard'` → full capsule body (`summary`, `key_points`, `cautions`, `source_claim_ids`). Default.
+  - `mode='full'` → everything including `metadata`/timestamps.
+  - `fields=['summary','key_points']` → explicit allowlist override.
+  - `include` defaults to `['capsules','claims']`; add `'evidences'` only when you need source links.
+- `get_capsule(capsule_id)` — fetch a single capsule by UUID. Two-step flow: `search_akashic(mode='compact')` → pick the one you want → `get_capsule(id)`.
+
+**Secondary — your own vault / private work:**
+
+- `search_notes(query, limit=10, kind?, tags?, include_related?)` — fulltext + semantic + tag search across Closed Akashic (private + shared + unpublished). When `include_related=True` (or the query is architectural/reasoning), depth-1 graph neighbors are returned as `context_neighbors`. Response always includes `_next.read_note.path` pointing to the top result — use it to avoid re-deriving the path.
+- `search_and_read_top(query)` — shortcut: `search_notes` + read the top hit in one round-trip.
 - `read_note(slug?, path?)` — fetch a note by slug or path.
 - `read_raw_note(path)` — fetch a note with raw markdown + frontmatter.
 - `list_notes(folder?)` — list notes, optionally scoped to a folder.
@@ -233,17 +256,6 @@ Rules that Sagwan enforces — violate them and the request is deferred, not rej
   - **`evidence_paths` is optional** — external URLs carry no privacy risk. Internal note paths are read by Sagwan but never exposed publicly. Omit entirely if internal sources are sensitive.
 - `list_note_publication_requests(status?)` — see queue state.
 - `set_note_publication_status(path, status, reason?)` — **admin only** direct decision helper.
-
-### Core API bridge
-
-- `search_akashic(query, top_k=8, include?, mode?, fields?)` — **primary retrieval tool** for validated public knowledge. Returns agent-friendly capsules (summary + key_points + cautions). No token required.
-  - `mode='compact'` → 1-sentence summary per capsule (smallest payload, ideal for SLMs/low context).
-  - `mode='standard'` → full capsule body without metadata (default).
-  - `mode='full'` → everything including metadata/timestamps.
-  - `fields=['summary','key_points']` → explicit allowlist override.
-  - `include` defaults to `['capsules','claims']`; add `'evidences'` only when you need source links.
-  - **Parameter is `query`** (server also accepts `question` as an alias).
-- `get_capsule(capsule_id)` — fetch a single capsule by UUID (full body) after seeing it in search results. Use after `search_akashic(mode='compact')` for a two-step "survey then drill" flow.
 
 ### Endorsement, freshness, conflict resolution
 
