@@ -974,6 +974,81 @@ def api_admin_run_sagwan_curate(auth: AuthState = Depends(require_admin_token)) 
     return run_sagwan_curation_cycle(reason=f"manual:{auth.nickname}")
 
 
+_IMPROVEMENT_REQUEST_PREFIX = "personal_vault/meta/improvement-requests/"
+_IMPROVEMENT_PRIORITY_TAGS = {"low", "medium", "high"}
+_IMPROVEMENT_KIND_TAGS = {"code", "knowledge", "policy", "data"}
+
+
+def _extract_improvement_summary(body: str) -> str:
+    import re as _re
+
+    m = _re.search(r"^-\s*summary\s*:\s*(.+)$", body or "", _re.MULTILINE | _re.IGNORECASE)
+    return m.group(1).strip() if m else ""
+
+
+def _improvement_item(path: str, doc: Any) -> dict[str, Any]:
+    fm = dict(doc.frontmatter or {})
+    tags = [str(t).lower() for t in (fm.get("tags") or []) if isinstance(t, str)]
+    priority = next((t for t in tags if t in _IMPROVEMENT_PRIORITY_TAGS), "")
+    kind = next((t for t in tags if t in _IMPROVEMENT_KIND_TAGS), "")
+    slug = path.rsplit("/", 1)[-1].removesuffix(".md")
+    return {
+        "path": path,
+        "slug": slug,
+        "title": fm.get("title") or slug,
+        "status": fm.get("status") or "proposed",
+        "priority": priority,
+        "kind": kind,
+        "review_status": fm.get("review_status") or "pending_human_review",
+        "created_at": fm.get("created_at") or "",
+        "summary": _extract_improvement_summary(doc.body or ""),
+    }
+
+
+@api.get("/api/admin/sagwan/improvements")
+def api_admin_list_improvements(
+    status: str | None = Query(default=None),
+    auth: AuthState = Depends(require_admin_token),
+) -> dict[str, Any]:
+    items: list[dict[str, Any]] = []
+    for path in list_note_paths():
+        if not path.startswith(_IMPROVEMENT_REQUEST_PREFIX):
+            continue
+        try:
+            doc = load_document(path)
+        except Exception:
+            continue
+        item = _improvement_item(path, doc)
+        if status and item["status"] != status:
+            continue
+        items.append(item)
+    items.sort(key=lambda it: it.get("created_at") or "", reverse=True)
+    return {"items": items}
+
+
+@api.get("/api/admin/sagwan/improvements/detail")
+def api_admin_improvement_detail(
+    path: str = Query(min_length=1),
+    auth: AuthState = Depends(require_admin_token),
+) -> dict[str, Any]:
+    if not path.startswith(_IMPROVEMENT_REQUEST_PREFIX):
+        raise HTTPException(status_code=400, detail="path must be under improvement-requests folder")
+    try:
+        doc = load_document(path)
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail="note not found") from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+    fm = dict(doc.frontmatter or {})
+    tags = [str(t).lower() for t in (fm.get("tags") or []) if isinstance(t, str)]
+    priority = next((t for t in tags if t in _IMPROVEMENT_PRIORITY_TAGS), "")
+    category_kind = next((t for t in tags if t in _IMPROVEMENT_KIND_TAGS), "")
+    fm["priority"] = priority
+    if category_kind:
+        fm["kind"] = category_kind
+    return {"path": doc.path, "frontmatter": fm, "body": doc.body}
+
+
 @api.post("/api/admin/core/resync")
 def api_admin_core_resync(
     path: str | None = Query(default=None, description="specific note path; if omitted, rescans all published capsules/references"),

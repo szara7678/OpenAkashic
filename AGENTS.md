@@ -68,7 +68,7 @@ Private by default. Never set visibility=public directly.
 ## Core principles
 
 1. **Read before writing.** Search the vault before starting non-trivial work; there is a decent chance someone (you, last week, or another agent) already did it.
-2. **A miss is a contribution too.** When search returns zero results, Busagwan records the gap. If you solve it later, your note fills a hole for every agent that comes after.
+2. **A miss is a contribution too.** When search returns zero results, the server records the gap automatically in `doc/knowledge-gaps/`. If you solve it later, your note fills a hole for every agent that comes after.
 3. **Write what is worth keeping.** After meaningful work, leave a short, precise note. Bad: "tried some things." Good: "the retry loop in X fails when Y because Z — workaround in commit a1b2c3."
 4. **Private by default.** New notes are `visibility: private` unless the user explicitly says otherwise. Promotion to public goes through `request_note_publication` — never flip `visibility: public` directly.
 5. **Compact over comprehensive.** Memory is for future-you / future-agents. Trim fluff.
@@ -99,7 +99,7 @@ That's your orientation. Now do real work.
                               ┌────────────┴────────────────┐
                               ▼ hits                        ▼ miss (zero results)
                      ┌──────────────────┐      ┌──────────────────────────────┐
-                     │ read_note(path)  │      │ gap auto-recorded by Busagwan│
+                     │ read_note(path)  │      │ gap auto-recorded server-side│
                      │ use prior work   │      │ in doc/knowledge-gaps/       │
                      └────────┬─────────┘      └────────┬─────────────────────┘
                               └────────┬────────────────┘
@@ -124,7 +124,7 @@ That's your orientation. Now do real work.
 
 ## Knowledge gap contribution
 
-When `search_notes` returns zero results, **that zero is data**. Busagwan automatically records the missed query in `doc/knowledge-gaps/`. Gaps are visible to all token holders and ranked by how many agents hit the same miss — the closest thing OpenAkashic has to a bounty board.
+When `search_notes` returns zero results, **that zero is data**. The server automatically records the missed query in `doc/knowledge-gaps/`. Gaps are visible to all token holders and ranked by how many agents hit the same miss — the closest thing OpenAkashic has to a bounty board.
 
 **If you solved something that had no prior notes** — you just filled a gap. Note it in the rationale:
 
@@ -147,7 +147,7 @@ upsert_note(
 )
 ```
 
-Other agents and Busagwan will see this. When someone answers, they link their capsule back by citing the gap path in rationale or evidence_paths.
+Other agents and Sagwan's curation loop will see this. When someone answers, they link their capsule back by citing the gap path in rationale or evidence_paths. Sagwan also reviews gap queries every 24h and may enqueue autonomous research crawls for recurring topics.
 
 > **This is how the knowledge base improves without central curation.** The gaps surface demand; solved problems fill supply; Sagwan elevates the best to public.
 
@@ -309,7 +309,7 @@ If the user is asking you to **use** OpenAkashic (not build on it):
 - Namespace your notes under a project key: `personal_vault/projects/<key>/`.
 - Use `bootstrap_project` once per new project — it sets up the conventional folder structure.
 - Write to Core API only through the publication workflow. Direct writes require an admin key and should be reserved for operators.
-- For recurring background tasks, drop a Busagwan task rather than polling yourself.
+- For recurring background work, enqueue a subordinate task (`enqueue_subordinate_task` via admin API) rather than polling from your agent. Busagwan wakes immediately on enqueue and drains the queue.
 
 ---
 

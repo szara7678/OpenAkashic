@@ -311,6 +311,9 @@ def search_closed_notes(
     # raw import 노트는 기본적으로 검색에서 제외 (include_imported=True 시 포함)
     if not include_imported:
         notes = [n for n in notes if "imported-doc" not in n.tags]
+    # publication_request 스텁은 지식이 아닌 메타데이터 — 실제 source 노트의 rationale/evidence가
+    # 본문에 포함돼 있어 source보다 상위 랭크되는 부작용을 일으킨다. 검색에서 제외한다.
+    notes = [n for n in notes if not n.path.startswith("personal_vault/projects/ops/librarian/publication_requests/")]
     # kind 필터
     if kind:
         notes = [n for n in notes if n.kind == kind]
@@ -4092,7 +4095,7 @@ def closed_debug_html(route_prefix: str = "") -> str:
         <button class="admin-nav-button" type="button" data-admin-nav="users">Users</button>
         <button class="admin-nav-button" type="button" data-admin-nav="roles">Roles</button>
         <button class="admin-nav-button" type="button" data-admin-nav="sagwan">Sagwan</button>
-        <button class="admin-nav-button" type="button" data-admin-nav="busagwan">Busagwan</button>
+        <button class="admin-nav-button" type="button" data-admin-nav="improvements">Improvements</button>
       </nav>
       <p class="footer-note">Without an admin token, only the overview is visible and management features remain locked.</p>
     </aside>
@@ -4313,15 +4316,15 @@ def closed_debug_html(route_prefix: str = "") -> str:
             <div class="overview-grid">
               <aside class="side">
                 <section class="card">
-                  <h2 class="card-title">Sagwan Settings</h2>
+                  <h2 class="card-title">Sagwan LLM</h2>
                   <div class="inline-form">
                     <label class="field">
                       <span>Provider</span>
-                      <input class="input" id="librarian-provider" placeholder="codex-style or openai-compatible" />
+                      <input class="input" id="librarian-provider" placeholder="claude-cli | codex-style | openai-compatible" />
                     </label>
                     <label class="field">
                       <span>Model</span>
-                      <input class="input" id="librarian-model" placeholder="openai-codex/gpt-5.4" />
+                      <input class="input" id="librarian-model" placeholder="claude-sonnet-4-6" />
                     </label>
                     <label class="field">
                       <span>Base URL</span>
@@ -4333,9 +4336,38 @@ def closed_debug_html(route_prefix: str = "") -> str:
                     </label>
                   </div>
                   <div class="actions">
-                    <button class="button primary" id="librarian-save" type="button">Save Settings</button>
+                    <button class="button primary" id="librarian-save" type="button">Save LLM</button>
                   </div>
-                  <p class="status-line" id="librarian-save-status">Saved settings apply from the next call onward.</p>
+                  <p class="status-line" id="librarian-save-status">Applies from the next call onward.</p>
+                </section>
+                <section class="card">
+                  <h2 class="card-title">Schedule & Batching</h2>
+                  <div class="inline-form">
+                    <label class="checkbox"><input id="sagwan-enabled" type="checkbox" /> <span>loops enabled</span></label>
+                    <label class="checkbox"><input id="sagwan-use-llm" type="checkbox" /> <span>LLM approval (off = rule-only)</span></label>
+                    <label class="field">
+                      <span>Approval interval (sec)</span>
+                      <input class="input" id="sagwan-interval" type="number" min="60" step="60" />
+                    </label>
+                    <label class="field">
+                      <span>Curation interval (sec)</span>
+                      <input class="input" id="sagwan-curation-interval" type="number" min="300" step="60" />
+                    </label>
+                    <label class="field">
+                      <span>Batch trigger (pending ≥ N → run now)</span>
+                      <input class="input" id="sagwan-batch-trigger" type="number" min="1" step="1" />
+                    </label>
+                    <label class="field">
+                      <span>Approval max per cycle</span>
+                      <input class="input" id="sagwan-approval-max" type="number" min="1" step="1" />
+                    </label>
+                  </div>
+                  <div class="actions">
+                    <button class="button primary" id="sagwan-save" type="button">Save Schedule</button>
+                    <button class="button" id="sagwan-run-approval" type="button">Run Approval Now</button>
+                    <button class="button" id="sagwan-run-curate" type="button">Run Curation Now</button>
+                  </div>
+                  <p class="status-line" id="sagwan-save-status">Heartbeat still protects the loops; saved values apply from the next tick.</p>
                 </section>
               </aside>
               <section class="panel">
@@ -4349,6 +4381,7 @@ def closed_debug_html(route_prefix: str = "") -> str:
                   <section class="card">
                     <h2 class="card-title">Runtime Status</h2>
                     <div class="locked-copy" id="librarian-runtime-status">Loading agent status…</div>
+                    <div class="locked-copy" id="sagwan-runtime-status">Loading schedule…</div>
                   </section>
                 </div>
               </section>
@@ -4401,55 +4434,40 @@ def closed_debug_html(route_prefix: str = "") -> str:
             </div>
           </section>
 
-          <section class="admin-panel" id="admin-panel-busagwan" hidden>
-            <div class="overview-grid">
-              <aside class="side">
-                <section class="card">
-                  <h2 class="card-title">Busagwan Settings</h2>
-                  <div class="inline-form">
-                    <label class="field">
-                      <span>Provider</span>
-                      <input class="input" id="subordinate-provider" placeholder="ollama" />
-                    </label>
-                    <label class="field">
-                      <span>Base URL</span>
-                      <input class="input" id="subordinate-base-url" placeholder="http://127.0.0.1:11434" />
-                    </label>
-                    <label class="field">
-                      <span>Model</span>
-                      <input class="input" id="subordinate-model" placeholder="gemma4:e4b" />
-                    </label>
-                    <label class="field">
-                      <span>Interval Sec</span>
-                      <input class="input" id="subordinate-interval" type="number" min="60" step="60" />
-                    </label>
-                    <label class="field">
-                      <span>Max Tasks Per Run</span>
-                      <input class="input" id="subordinate-max-tasks" type="number" min="1" max="8" step="1" />
-                    </label>
+          <section class="admin-panel" id="admin-panel-improvements" hidden>
+            <div class="page-head" style="margin-bottom:18px;">
+              <div>
+                <h1 style="font-size:2rem;">Improvement Requests</h1>
+                <p class="lead">Sagwan-generated self-improvement proposals (meta-curation output). Review before applying — Sagwan does not edit code directly.</p>
+              </div>
+              <div class="actions">
+                <select class="input" id="imp-status-filter" style="width:160px;">
+                  <option value="">All statuses</option>
+                  <option value="proposed" selected>Proposed</option>
+                  <option value="accepted">Accepted</option>
+                  <option value="rejected">Rejected</option>
+                  <option value="applied">Applied</option>
+                </select>
+                <button class="button" id="imp-refresh" type="button">Refresh</button>
+              </div>
+            </div>
+            <div id="imp-list" class="list" style="display:grid;gap:10px;">
+              <p class="locked-copy">Loading after login…</p>
+            </div>
+            <div class="modal-shell" id="imp-modal" hidden>
+              <div class="modal-backdrop" id="imp-modal-close"></div>
+              <section class="modal" role="dialog" aria-modal="true">
+                <header class="modal-head">
+                  <div>
+                    <p class="brand-kicker">Improvement Request</p>
+                    <h2 class="modal-title" id="imp-modal-title">-</h2>
+                    <p class="status-line" id="imp-modal-path">-</p>
                   </div>
-                  <div class="toolbar-row">
-                    <label class="checkbox"><input id="subordinate-enabled" type="checkbox" /> <span>enabled</span></label>
-                    <label class="checkbox"><input id="subordinate-auto-review" type="checkbox" /> <span>auto review publication</span></label>
-                    <label class="checkbox"><input id="subordinate-auto-capsule-request" type="checkbox" /> <span>auto request capsule</span></label>
-                  </div>
-                  <div class="actions">
-                    <button class="button primary" id="subordinate-save" type="button">Save Settings</button>
-                    <button class="button" id="subordinate-run" type="button">Run Once</button>
-                  </div>
-                  <p class="status-line" id="subordinate-save-status">Save recurring task settings and trigger manual runs here.</p>
-                </section>
-              </aside>
-              <section class="panel">
-                <div class="list">
-                  <section class="card">
-                    <h2 class="card-title">Runtime Status</h2>
-                    <div class="locked-copy" id="subordinate-runtime-status">Loading runtime status…</div>
-                  </section>
-                  <section class="card">
-                    <h2 class="card-title">Queue</h2>
-                    <div class="locked-copy" id="subordinate-queue-status">Loading queue…</div>
-                  </section>
+                  <button class="icon-button" id="imp-modal-x" type="button" aria-label="Close">×</button>
+                </header>
+                <div class="modal-body">
+                  <div id="imp-modal-meta" style="margin-bottom:14px;font-size:.88rem;color:var(--muted);"></div>
+                  <pre id="imp-modal-body" style="white-space:pre-wrap;font-size:.86rem;line-height:1.55;background:rgba(0,0,0,.03);padding:12px;border-radius:8px;max-height:50vh;overflow:auto;"></pre>
                 </div>
               </section>
             </div>
@@ -4496,7 +4514,7 @@ def closed_debug_html(route_prefix: str = "") -> str:
           users: document.getElementById('admin-panel-users'),
           roles: document.getElementById('admin-panel-roles'),
           sagwan: document.getElementById('admin-panel-sagwan'),
-          busagwan: document.getElementById('admin-panel-busagwan'),
+          improvements: document.getElementById('admin-panel-improvements'),
         },
         refreshAll: document.getElementById('admin-refresh-all'),
         sessionStatus: document.getElementById('admin-session-status'),
@@ -4544,19 +4562,27 @@ def closed_debug_html(route_prefix: str = "") -> str:
         librarianSave: document.getElementById('librarian-save'),
         librarianSaveStatus: document.getElementById('librarian-save-status'),
         librarianRuntimeStatus: document.getElementById('librarian-runtime-status'),
-        subordinateProvider: document.getElementById('subordinate-provider'),
-        subordinateBaseUrl: document.getElementById('subordinate-base-url'),
-        subordinateModel: document.getElementById('subordinate-model'),
-        subordinateInterval: document.getElementById('subordinate-interval'),
-        subordinateMaxTasks: document.getElementById('subordinate-max-tasks'),
-        subordinateEnabled: document.getElementById('subordinate-enabled'),
-        subordinateAutoReview: document.getElementById('subordinate-auto-review'),
-        subordinateAutoCapsuleRequest: document.getElementById('subordinate-auto-capsule-request'),
-        subordinateSave: document.getElementById('subordinate-save'),
-        subordinateRun: document.getElementById('subordinate-run'),
-        subordinateSaveStatus: document.getElementById('subordinate-save-status'),
-        subordinateRuntimeStatus: document.getElementById('subordinate-runtime-status'),
-        subordinateQueueStatus: document.getElementById('subordinate-queue-status'),
+        sagwanEnabled: document.getElementById('sagwan-enabled'),
+        sagwanUseLlm: document.getElementById('sagwan-use-llm'),
+        sagwanInterval: document.getElementById('sagwan-interval'),
+        sagwanCurationInterval: document.getElementById('sagwan-curation-interval'),
+        sagwanBatchTrigger: document.getElementById('sagwan-batch-trigger'),
+        sagwanApprovalMax: document.getElementById('sagwan-approval-max'),
+        sagwanSave: document.getElementById('sagwan-save'),
+        sagwanRunApproval: document.getElementById('sagwan-run-approval'),
+        sagwanRunCurate: document.getElementById('sagwan-run-curate'),
+        sagwanSaveStatus: document.getElementById('sagwan-save-status'),
+        sagwanRuntimeStatus: document.getElementById('sagwan-runtime-status'),
+        impStatusFilter: document.getElementById('imp-status-filter'),
+        impRefresh: document.getElementById('imp-refresh'),
+        impList: document.getElementById('imp-list'),
+        impModal: document.getElementById('imp-modal'),
+        impModalTitle: document.getElementById('imp-modal-title'),
+        impModalPath: document.getElementById('imp-modal-path'),
+        impModalMeta: document.getElementById('imp-modal-meta'),
+        impModalBody: document.getElementById('imp-modal-body'),
+        impModalClose: document.getElementById('imp-modal-close'),
+        impModalX: document.getElementById('imp-modal-x'),
         pubStatusFilter: document.getElementById('pub-status-filter'),
         pubRefresh: document.getElementById('pub-refresh'),
         pubList: document.getElementById('pub-list'),
@@ -4646,7 +4672,7 @@ def closed_debug_html(route_prefix: str = "") -> str:
       }
 
       function setPanel(next) {
-        state.panel = ['overview', 'publication', 'debug', 'users', 'roles', 'sagwan', 'busagwan'].includes(next) ? next : 'overview';
+        state.panel = ['overview', 'publication', 'debug', 'users', 'roles', 'sagwan', 'improvements'].includes(next) ? next : 'overview';
         dom.navButtons.forEach((button) => {
           button.classList.toggle('active', button.dataset.adminNav === state.panel);
         });
@@ -4655,6 +4681,8 @@ def closed_debug_html(route_prefix: str = "") -> str:
           panel.hidden = key !== state.panel;
         });
         if (state.panel === 'publication') loadPublicationRequests();
+        if (state.panel === 'sagwan') refreshSagwanSchedule();
+        if (state.panel === 'improvements') loadImprovementRequests();
       }
 
       async function fetchJson(path, options = {}) {
@@ -4963,76 +4991,138 @@ def closed_debug_html(route_prefix: str = "") -> str:
         }
       }
 
-      function renderSubordinate(settings, status) {
-        state.subordinate = { settings, status };
-        if (dom.subordinateProvider) dom.subordinateProvider.value = settings.provider || '';
-        if (dom.subordinateBaseUrl) dom.subordinateBaseUrl.value = settings.base_url || '';
-        if (dom.subordinateModel) dom.subordinateModel.value = settings.model || '';
-        if (dom.subordinateInterval) dom.subordinateInterval.value = settings.interval_sec || 900;
-        if (dom.subordinateMaxTasks) dom.subordinateMaxTasks.value = settings.max_tasks_per_run || 2;
-        if (dom.subordinateEnabled) dom.subordinateEnabled.checked = Boolean(settings.enabled);
-        if (dom.subordinateAutoReview) dom.subordinateAutoReview.checked = Boolean(settings.auto_review_publication_requests);
-        if (dom.subordinateAutoCapsuleRequest) dom.subordinateAutoCapsuleRequest.checked = Boolean(settings.auto_request_publication_for_capsules);
-        const queue = status?.queue || {};
-        if (dom.subordinateRuntimeStatus) {
-          dom.subordinateRuntimeStatus.textContent = `provider=${settings.provider || '-'} · model=${settings.model || '-'} · interval=${settings.interval_sec || '-'}s`;
-        }
-        if (dom.subordinateQueueStatus) {
-          dom.subordinateQueueStatus.textContent = `pending=${queue.pending ?? 0} · running=${queue.running ?? 0} · done=${queue.done ?? 0} · failed=${queue.failed ?? 0}`;
+      function renderSagwanSchedule(settings) {
+        state.sagwan = { settings };
+        if (dom.sagwanEnabled) dom.sagwanEnabled.checked = Boolean(settings.enabled);
+        if (dom.sagwanUseLlm) dom.sagwanUseLlm.checked = Boolean(settings.use_llm);
+        if (dom.sagwanInterval) dom.sagwanInterval.value = settings.interval_sec || 600;
+        if (dom.sagwanCurationInterval) dom.sagwanCurationInterval.value = settings.curation_interval_sec || 1800;
+        if (dom.sagwanBatchTrigger) dom.sagwanBatchTrigger.value = settings.batch_trigger || 3;
+        if (dom.sagwanApprovalMax) dom.sagwanApprovalMax.value = settings.approval_max_per_cycle || 10;
+        if (dom.sagwanRuntimeStatus) {
+          dom.sagwanRuntimeStatus.textContent = `approval=${settings.interval_sec ?? '-'}s · curation=${settings.curation_interval_sec ?? '-'}s · batch_trigger=${settings.batch_trigger ?? '-'} · approval_max_per_cycle=${settings.approval_max_per_cycle ?? '-'} · enabled=${Boolean(settings.enabled)} · use_llm=${Boolean(settings.use_llm)}`;
         }
       }
 
-      async function refreshSubordinate() {
+      async function refreshSagwanSchedule() {
         if (!isAdminSession()) {
-          if (dom.subordinateRuntimeStatus) dom.subordinateRuntimeStatus.textContent = window._t?.('admin.subordinate_runtime_locked') ?? 'Log in as admin to view Busagwan settings.';
-          if (dom.subordinateQueueStatus) dom.subordinateQueueStatus.textContent = window._t?.('admin.librarian_locked') ?? 'Activate admin session to view queue.';
+          if (dom.sagwanRuntimeStatus) dom.sagwanRuntimeStatus.textContent = 'Log in as admin to view Sagwan schedule.';
           return;
         }
         try {
-          const data = await fetchJson('/api/admin/subordinate');
-          renderSubordinate(data.settings || {}, data.status || {});
+          const data = await fetchJson('/api/admin/sagwan/settings');
+          renderSagwanSchedule(data || {});
         } catch (error) {
-          if (dom.subordinateRuntimeStatus) dom.subordinateRuntimeStatus.textContent = error.message;
+          if (dom.sagwanRuntimeStatus) dom.sagwanRuntimeStatus.textContent = error.message;
         }
       }
 
-      async function saveSubordinate() {
+      async function saveSagwanSchedule() {
         if (!isAdminSession()) {
-          dom.subordinateSaveStatus.textContent = window._t?.('admin.subordinate_saving_locked') ?? 'Log in as admin to save Busagwan settings.';
+          if (dom.sagwanSaveStatus) dom.sagwanSaveStatus.textContent = 'Log in as admin to save Sagwan schedule.';
           return;
         }
         try {
-          const data = await fetchJson('/api/admin/subordinate', {
-            method: 'POST',
+          const data = await fetchJson('/api/admin/sagwan/settings', {
+            method: 'PUT',
             json: {
-              provider: dom.subordinateProvider?.value.trim() || '',
-              base_url: dom.subordinateBaseUrl?.value.trim() || '',
-              model: dom.subordinateModel?.value.trim() || '',
-              enabled: Boolean(dom.subordinateEnabled?.checked),
-              interval_sec: Number(dom.subordinateInterval?.value || 900),
-              max_tasks_per_run: Number(dom.subordinateMaxTasks?.value || 2),
-              auto_review_publication_requests: Boolean(dom.subordinateAutoReview?.checked),
-              auto_request_publication_for_capsules: Boolean(dom.subordinateAutoCapsuleRequest?.checked),
+              enabled: Boolean(dom.sagwanEnabled?.checked),
+              use_llm: Boolean(dom.sagwanUseLlm?.checked),
+              interval_sec: Number(dom.sagwanInterval?.value || 600),
+              curation_interval_sec: Number(dom.sagwanCurationInterval?.value || 1800),
+              batch_trigger: Number(dom.sagwanBatchTrigger?.value || 3),
+              approval_max_per_cycle: Number(dom.sagwanApprovalMax?.value || 10),
             },
           });
-          dom.subordinateSaveStatus.textContent = window._t?.('admin.subordinate_saved') ?? 'Busagwan settings saved.';
-          renderSubordinate(data.settings || {}, data.status || {});
+          if (dom.sagwanSaveStatus) dom.sagwanSaveStatus.textContent = 'Schedule saved. Applies from next tick.';
+          renderSagwanSchedule(data || {});
         } catch (error) {
-          dom.subordinateSaveStatus.textContent = error.message;
+          if (dom.sagwanSaveStatus) dom.sagwanSaveStatus.textContent = error.message;
         }
       }
 
-      async function runSubordinate() {
+      async function runSagwanApproval() {
+        if (!isAdminSession()) return;
+        if (dom.sagwanSaveStatus) dom.sagwanSaveStatus.textContent = 'Running approval…';
+        try {
+          const data = await fetchJson('/api/admin/sagwan/run', { method: 'POST' });
+          const processed = (data.processed || []).length;
+          const deferred = data.deferred_for_next_cycle ?? 0;
+          if (dom.sagwanSaveStatus) dom.sagwanSaveStatus.textContent = `Approval done: processed=${processed}, deferred=${deferred}.`;
+        } catch (error) {
+          if (dom.sagwanSaveStatus) dom.sagwanSaveStatus.textContent = error.message;
+        }
+      }
+
+      async function runSagwanCurate() {
+        if (!isAdminSession()) return;
+        if (dom.sagwanSaveStatus) dom.sagwanSaveStatus.textContent = 'Running curation (may take a minute)…';
+        try {
+          const data = await fetchJson('/api/admin/sagwan/curate', { method: 'POST' });
+          const topic = data.topic_proposals?.status || '-';
+          const meta = data.meta_curation?.status || '-';
+          if (dom.sagwanSaveStatus) dom.sagwanSaveStatus.textContent = `Curation done: topic_proposals=${topic}, meta_curation=${meta}.`;
+        } catch (error) {
+          if (dom.sagwanSaveStatus) dom.sagwanSaveStatus.textContent = error.message;
+        }
+      }
+
+      // ── improvement requests ────────────────────
+      async function loadImprovementRequests() {
+        if (!dom.impList) return;
         if (!isAdminSession()) {
-          dom.subordinateSaveStatus.textContent = window._t?.('admin.subordinate_run_locked') ?? 'Log in as admin to run Busagwan.';
+          dom.impList.innerHTML = `<p class="locked-copy">Log in as admin to view improvement requests.</p>`;
           return;
         }
+        const status = dom.impStatusFilter?.value || '';
         try {
-          const data = await fetchJson('/api/admin/subordinate/run', { method: 'POST' });
-          dom.subordinateSaveStatus.textContent = `Manual run complete: ${(data.processed || []).length} processed.`;
-          await refreshSubordinate();
+          const data = await fetchJson(`/api/admin/sagwan/improvements${status ? `?status=${encodeURIComponent(status)}` : ''}`);
+          renderImprovementList(data.items || []);
         } catch (error) {
-          dom.subordinateSaveStatus.textContent = error.message;
+          dom.impList.innerHTML = `<p class="locked-copy">${escapeHtml(error.message)}</p>`;
+        }
+      }
+
+      function renderImprovementList(items) {
+        if (!dom.impList) return;
+        if (!items.length) { dom.impList.innerHTML = `<p class="locked-copy">No improvement requests.</p>`; return; }
+        const prioColor = { high: '#b91c1c', medium: '#c2410c', low: '#15803d' };
+        dom.impList.innerHTML = items.map((it) => `
+          <div class="card imp-row" data-imp-path="${escapeHtml(it.path)}" style="padding:14px 16px;cursor:pointer;display:grid;gap:4px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+              <span style="font-weight:700;font-size:.92rem;">${escapeHtml(it.title || it.slug || it.path)}</span>
+              <span style="font-size:.74rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:${prioColor[it.priority] || 'var(--muted)'};flex-shrink:0;">${escapeHtml(it.priority || '-')} · ${escapeHtml(it.kind || '-')}</span>
+            </div>
+            <div style="font-size:.78rem;color:var(--muted);">${escapeHtml(it.status || 'proposed')} · ${escapeHtml((it.created_at || '').slice(0, 16).replace('T', ' '))} UTC · review=${escapeHtml(it.review_status || 'pending_human_review')}</div>
+            ${it.summary ? `<div style="font-size:.82rem;color:var(--muted);">${escapeHtml(it.summary)}</div>` : ''}
+          </div>`).join('');
+        dom.impList.querySelectorAll('.imp-row').forEach((row) => {
+          row.addEventListener('click', () => openImpModal(row.dataset.impPath));
+        });
+      }
+
+      async function openImpModal(path) {
+        if (!dom.impModal) return;
+        if (dom.impModalTitle) dom.impModalTitle.textContent = path.split('/').pop() || path;
+        if (dom.impModalPath) dom.impModalPath.textContent = path;
+        if (dom.impModalMeta) dom.impModalMeta.textContent = 'Loading…';
+        if (dom.impModalBody) dom.impModalBody.textContent = '';
+        dom.impModal.hidden = false;
+        try {
+          const data = await fetchJson(`/api/admin/sagwan/improvements/detail?path=${encodeURIComponent(path)}`);
+          const fm = data.frontmatter || {};
+          const metaLines = [
+            `kind: ${fm.kind || '-'}`,
+            `status: ${fm.status || '-'}`,
+            `priority: ${fm.priority || '-'}`,
+            `review_status: ${fm.review_status || 'pending_human_review'}`,
+            `created_at: ${fm.created_at || '-'}`,
+            `owner: ${fm.owner || '-'}`,
+          ];
+          if (dom.impModalMeta) dom.impModalMeta.textContent = metaLines.join(' · ');
+          if (dom.impModalBody) dom.impModalBody.textContent = data.body || '(empty)';
+        } catch (error) {
+          if (dom.impModalMeta) dom.impModalMeta.textContent = error.message;
         }
       }
 
@@ -5041,7 +5131,7 @@ def closed_debug_html(route_prefix: str = "") -> str:
         dom.sessionStatus.textContent = session?.authenticated
           ? `${session.nickname || session.username} (${session.role}) session active.`
           : (window._t?.('admin.session_anon') ?? 'Anonymous. Log in as admin to unlock management features.');
-        await Promise.all([refresh(), refreshUsers(), refreshLibrarian(), refreshSubordinate()]);
+        await Promise.all([refresh(), refreshUsers(), refreshLibrarian(), refreshSagwanSchedule()]);
       }
 
       dom.refresh.addEventListener('click', refresh);
@@ -5076,8 +5166,13 @@ def closed_debug_html(route_prefix: str = "") -> str:
       dom.usersRefresh?.addEventListener('click', refreshUsers);
       dom.roleSave?.addEventListener('click', saveRole);
       dom.librarianSave?.addEventListener('click', saveLibrarian);
-      dom.subordinateSave?.addEventListener('click', saveSubordinate);
-      dom.subordinateRun?.addEventListener('click', runSubordinate);
+      dom.sagwanSave?.addEventListener('click', saveSagwanSchedule);
+      dom.sagwanRunApproval?.addEventListener('click', runSagwanApproval);
+      dom.sagwanRunCurate?.addEventListener('click', runSagwanCurate);
+      dom.impRefresh?.addEventListener('click', loadImprovementRequests);
+      dom.impStatusFilter?.addEventListener('change', loadImprovementRequests);
+      dom.impModalClose?.addEventListener('click', () => { if (dom.impModal) dom.impModal.hidden = true; });
+      dom.impModalX?.addEventListener('click', () => { if (dom.impModal) dom.impModal.hidden = true; });
 
       // ── publication dashboard ────────────────────
       async function loadPublicationRequests() {
@@ -5095,11 +5190,16 @@ def closed_debug_html(route_prefix: str = "") -> str:
         }
       }
 
+      const pubRequestsIndex = {};
+
       function renderPublicationList(requests) {
         if (!dom.pubList) return;
+        for (const key of Object.keys(pubRequestsIndex)) delete pubRequestsIndex[key];
         if (!requests.length) { dom.pubList.innerHTML = `<p class="locked-copy">${window._t?.('admin.pub_empty') ?? 'No requests.'}</p>`; return; }
-        const statusColor = { pending: '#c2410c', approved: '#15803d', rejected: '#b91c1c' };
-        dom.pubList.innerHTML = requests.map((r) => `
+        const statusColor = { pending: '#c2410c', approved: '#15803d', rejected: '#b91c1c', published: '#15803d', reviewing: '#c2410c' };
+        dom.pubList.innerHTML = requests.map((r) => {
+          pubRequestsIndex[r.path] = r;
+          return `
           <div class="card pub-row" data-pub-path="${escapeHtml(r.path)}" data-pub-title="${escapeHtml(r.path)}" style="padding:14px 16px;cursor:pointer;display:grid;gap:4px;">
             <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
               <span style="font-weight:700;font-size:.92rem;overflow-wrap:anywhere;">${escapeHtml(r.path)}</span>
@@ -5107,7 +5207,8 @@ def closed_debug_html(route_prefix: str = "") -> str:
             </div>
             <div style="font-size:.78rem;color:var(--muted);">Requester: ${escapeHtml(r.requester || '-')} · ${escapeHtml((r.requested_at || '').slice(0, 16).replace('T', ' '))} UTC</div>
             ${r.rationale ? `<div style="font-size:.82rem;color:var(--muted);">${escapeHtml(r.rationale)}</div>` : ''}
-          </div>`).join('');
+          </div>`;
+        }).join('');
         dom.pubList.querySelectorAll('.pub-row').forEach((row) => {
           row.addEventListener('click', () => openPubModal(row.dataset.pubPath));
         });
@@ -5115,10 +5216,24 @@ def closed_debug_html(route_prefix: str = "") -> str:
 
       function openPubModal(path) {
         pubCurrentPath = path;
+        const item = pubRequestsIndex[path] || {};
         if (dom.pubModalTitle) dom.pubModalTitle.textContent = path.split('/').pop() || path;
         if (dom.pubModalPath) dom.pubModalPath.textContent = path;
         if (dom.pubModalReason) dom.pubModalReason.value = '';
         if (dom.pubModalStatus) dom.pubModalStatus.textContent = '';
+        if (dom.pubModalMeta) {
+          const evidence = Array.isArray(item.evidence_paths) ? item.evidence_paths : [];
+          const parts = [];
+          parts.push(`<div><strong>Status:</strong> ${escapeHtml(item.status || '-')}</div>`);
+          parts.push(`<div><strong>Requester:</strong> ${escapeHtml(item.requester || '-')} · <strong>Requested:</strong> ${escapeHtml(item.requested_at || '-')}</div>`);
+          if (item.decider) parts.push(`<div><strong>Decider:</strong> ${escapeHtml(item.decider)} · <strong>Decided:</strong> ${escapeHtml(item.decided_at || '-')}</div>`);
+          if (item.rationale) parts.push(`<div style="margin-top:6px;"><strong>Rationale:</strong><br>${escapeHtml(item.rationale)}</div>`);
+          if (item.decision_reason) parts.push(`<div style="margin-top:6px;"><strong>Decision reason:</strong><br>${escapeHtml(item.decision_reason)}</div>`);
+          if (evidence.length) {
+            parts.push(`<div style="margin-top:6px;"><strong>Evidence:</strong><ul style="margin:4px 0 0 18px;padding:0;">${evidence.map((e) => `<li>${escapeHtml(String(e))}</li>`).join('')}</ul></div>`);
+          }
+          dom.pubModalMeta.innerHTML = parts.join('');
+        }
         if (dom.pubModal) dom.pubModal.hidden = false;
       }
 
@@ -6951,10 +7066,6 @@ def _shared_ui_shell(route_prefix: str) -> str:
             </div>
             <button class="librarian-close" id="librarian-close" type="button" aria-label="Close librarian">×</button>
           </div>
-          <div class="agent-chat-tabs" role="tablist" aria-label="Agent chat tabs">
-            <button class="agent-chat-tab active" type="button" data-agent-tab="sagwan">Sagwan</button>
-            <button class="agent-chat-tab" type="button" data-agent-tab="busagwan">Busagwan</button>
-          </div>
         </div>
         <div class="librarian-messages" id="librarian-messages"></div>
         <div class="librarian-compose">
@@ -6984,10 +7095,7 @@ def _shared_ui_shell(route_prefix: str) -> str:
             'sagwan.label': 'Sagwan', 'sagwan.subtitle': 'Issue directives or receive reports in admin mode.',
             'sagwan.empty': 'Activate admin token to send commands to Sagwan.',
             'sagwan.waiting': 'Sagwan is preparing a response\u2026', 'sagwan.ready': 'Sagwan responded.', 'sagwan.failed': 'Sagwan request failed',
-            'busagwan.label': 'Busagwan', 'busagwan.subtitle': 'Handles recurring tasks and publication reviews.',
-            'busagwan.empty': 'Busagwan assists with recurring tasks, first-pass reviews, and capsule drafts.',
-            'busagwan.waiting': 'Busagwan is preparing a response\u2026', 'busagwan.ready': 'Busagwan responded.', 'busagwan.failed': 'Busagwan request failed',
-            'agent.status_locked': 'Activate admin token to chat with agents.',
+            'agent.status_locked': 'Activate admin token to chat with Sagwan.',
             'graph.select_node': 'Select a node',
             'graph.intro': 'Click a node to see neighbors and metadata. WASD to pan, scroll or pinch to zoom, Q/E to step through neighbors.',
             'graph.no_access': 'Your session cannot open this note. Only graph relations are visible.',
@@ -7048,10 +7156,7 @@ def _shared_ui_shell(route_prefix: str) -> str:
             'sagwan.label': '\uc0ac\uad00', 'sagwan.subtitle': '\uad00\ub9ac\uc790 \uc0c1\ud0dc\uc5d0\uc11c \uc0ac\uad00\uc5d0\uac8c \uc6b4\uc601 \uba85\ub839\uc744 \ub0b4\ub9ac\uac70\ub098 \ubcf4\uace0\ub97c \ubc1b\uc744 \uc218 \uc788\ub2e4.',
             'sagwan.empty': '\uad00\ub9ac\uc790 \ud1a0\ud070\uc774 \ud65c\uc131\ud654\ub418\uba74 \uc0ac\uad00\uc5d0\uac8c \uc6b4\uc601 \uba85\ub839\uc774\ub098 \uc815\ub9ac \uc694\uccad\uc744 \ubcf4\ub0bc \uc218 \uc788\ub2e4.',
             'sagwan.waiting': '\uc0ac\uad00\uc774 \ub2f5\ubcc0\uc744 \uc900\ube44\ud558\ub294 \uc911\uc774\ub2e4.', 'sagwan.ready': '\uc0ac\uad00\uc774 \uc751\ub2f5\ud588\ub2e4.', 'sagwan.failed': '\uc0ac\uad00 \uc694\uccad \uc2e4\ud328',
-            'busagwan.label': '\ubd80\uc0ac\uad00', 'busagwan.subtitle': '\ubd80\uc0ac\uad00\uc740 \ubc18\ubcf5 \uc815\ub9ac\uc640 publication 1\ucc28 \uac80\ud1a0\ub97c \ub9e1\ub294 \ubcf4\uc870 \uc5d0\uc774\uc804\ud2b8\ub2e4.',
-            'busagwan.empty': '\ubd80\uc0ac\uad00\uc740 \ubc18\ubcf5 \uc791\uc5c5, 1\ucc28 \ub9ac\ubdf0, \ud06c\ub864\ub9c1 \uc694\uc57d, capsule \ucd08\uc548\uc744 \ub3d5\ub294\ub2e4.',
-            'busagwan.waiting': '\ubd80\uc0ac\uad00\uc774 \ub2f5\ubcc0\uc744 \uc900\ube44\ud558\ub294 \uc911\uc774\ub2e4.', 'busagwan.ready': '\ubd80\uc0ac\uad00\uc774 \uc751\ub2f5\ud588\ub2e4.', 'busagwan.failed': '\ubd80\uc0ac\uad00 \uc694\uccad \uc2e4\ud328',
-            'agent.status_locked': '\uad00\ub9ac\uc790 \ud1a0\ud070\uc774 \ud65c\uc131\ud654\ub418\uba74 \uc0ac\uad00/\ubd80\uc0ac\uad00\uacfc \ub300\ud654\ud560 \uc218 \uc788\ub2e4.',
+            'agent.status_locked': '\uad00\ub9ac\uc790 \ud1a0\ud070\uc774 \ud65c\uc131\ud654\ub418\uba74 \uc0ac\uad00\uacfc \ub300\ud654\ud560 \uc218 \uc788\ub2e4.',
             'graph.select_node': '\ub178\ub4dc\ub97c \uc120\ud0dd\ud558\uc138\uc694',
             'graph.intro': '\uadf8\ub798\ud504\uc5d0\uc11c \ub178\ub4dc\ub97c \uace0\ub974\uba74 \uc5f0\uacb0\ub41c \uc774\uc6c3\uacfc \uba54\ud0c0 \uc815\ubcf4\ub97c \uac19\uc774 \ubcf4\uc5ec\uc900\ub2e4. WASD\ub85c \uc774\ub3d9, \ud720\uc774\ub098 \ud540\uce58\ub85c \ud655\ub300, Q/E\ub85c \uc774\uc6c3\uc744 \uc21c\ud68c\ud55c\ub2e4.',
             'graph.no_access': '\ud604\uc7ac \uc138\uc158\uc740 \uc774 \ub178\ud2b8\ub97c \uc5f4 \uc218 \uc5c6\ub2e4. \uadf8\ub798\ud504 \uad00\uacc4\ub9cc \ud655\uc778 \uac00\ub2a5\ud558\ub2e4.',
@@ -7123,8 +7228,8 @@ def _shared_ui_shell(route_prefix: str) -> str:
           setText('global-auth-title', 'auth.title');
           const desc = el('global-auth-desc'); if (desc) desc.textContent = _t('auth.desc');
           const statusEl = el('global-auth-status'); if (statusEl && !statusEl.dataset.custom) statusEl.textContent = _t('auth.status_default');
-          setText('agent-chat-title', (state?.activeAgent === 'busagwan' ? 'busagwan' : 'sagwan') + '.label');
-          setText('agent-chat-subtitle', (state?.activeAgent === 'busagwan' ? 'busagwan' : 'sagwan') + '.subtitle');
+          setText('agent-chat-title', 'sagwan.label');
+          setText('agent-chat-subtitle', 'sagwan.subtitle');
           const ls = el('librarian-status'); if (ls && !ls.dataset.busy) ls.textContent = _t('agent.status_locked');
           const li = el('librarian-input'); if (li) li.placeholder = _t('agent.chat_placeholder') || li.placeholder;
           const langSel = el('settings-lang-select'); if (langSel) langSel.value = lang;
@@ -7154,16 +7259,6 @@ def _shared_ui_shell(route_prefix: str) -> str:
             get ready() {{ return _t('sagwan.ready'); }},
             get failed() {{ return _t('sagwan.failed'); }},
             get subtitle() {{ return _t('sagwan.subtitle'); }},
-          }},
-          busagwan: {{
-            label: 'Busagwan',
-            meta: 'Busagwan',
-            endpoint: '/api/subordinate/chat',
-            get empty() {{ return _t('busagwan.empty'); }},
-            get waiting() {{ return _t('busagwan.waiting'); }},
-            get ready() {{ return _t('busagwan.ready'); }},
-            get failed() {{ return _t('busagwan.failed'); }},
-            get subtitle() {{ return _t('busagwan.subtitle'); }},
           }},
         }};
         const state = {{
@@ -7699,45 +7794,6 @@ def _shared_ui_shell(route_prefix: str) -> str:
           }}
         }}
 
-        // 부사관 SSE 스트리밍 — keep-alive(:) 줄은 무시하고 'result'/'error' 이벤트만 처리한다
-        async function sendViaSse(endpoint, chatPayload, agent) {{
-          const resp = await fetch(apiBase + endpoint, {{
-            method: 'POST',
-            headers: {{
-              'Content-Type': 'application/json',
-              ...(token() ? {{ 'Authorization': `Bearer ${{token()}}` }} : {{}}),
-            }},
-            body: JSON.stringify(chatPayload),
-          }});
-          if (!resp.ok) throw new Error(`HTTP ${{resp.status}}`);
-          const reader = resp.body.getReader();
-          const decoder = new TextDecoder();
-          let buf = '';
-          let elapsed = 0;
-          while (true) {{
-            const {{ done, value }} = await reader.read();
-            if (done) break;
-            buf += decoder.decode(value, {{ stream: true }});
-            const lines = buf.split('\\n');
-            buf = lines.pop();
-            let eventType = 'message';
-            for (const line of lines) {{
-              if (line.startsWith('event:')) {{
-                eventType = line.slice(6).trim();
-              }} else if (line.startsWith('data:')) {{
-                const payload = line.slice(5).trim();
-                if (eventType === 'result') return JSON.parse(payload);
-                if (eventType === 'error') throw new Error(JSON.parse(payload).error || 'Busagwan error');
-              }} else if (line.startsWith(':')) {{
-                // keep-alive — 경과 시간 표시
-                elapsed += 5;
-                if (dom.librarianStatus) dom.librarianStatus.textContent = `${{agent.waiting}} (${{elapsed}}s…)`;
-              }}
-            }}
-          }}
-          throw new Error('SSE stream ended unexpectedly.');
-        }}
-
         async function sendToLibrarian() {{
           if (!(state.session?.authenticated && state.session?.role === 'admin')) {{
             openAuthModal();
@@ -7757,17 +7813,11 @@ def _shared_ui_shell(route_prefix: str) -> str:
             message,
             thread: state.thread.slice(-12),
           }};
-          if (currentNoteSlug && activeAgent() === 'sagwan') {{
+          if (currentNoteSlug) {{
             chatPayload.current_note_slug = currentNoteSlug;
           }}
           try {{
-            let data;
-            if (activeAgent() === 'busagwan') {{
-              // 부사관은 SSE 스트리밍 (gemma4:e4b 느린 모델 → Cloudflare keep-alive 필요)
-              data = await sendViaSse(agent.endpoint, chatPayload, agent);
-            }} else {{
-              data = await requestJson(agent.endpoint, {{ method: 'POST', json: chatPayload }});
-            }}
+            const data = await requestJson(agent.endpoint, {{ method: 'POST', json: chatPayload }});
             state.thread.push({{ role: 'assistant', content: data.message || 'Empty response.' }});
             saveThread();
             renderThread();
