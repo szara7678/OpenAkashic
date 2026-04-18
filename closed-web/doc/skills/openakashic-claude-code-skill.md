@@ -97,7 +97,7 @@ Works with: Claude Code, Claude Desktop, Cursor, Cline, Continue, any Streamable
 | `append_note_section(path, heading, content)` | Non-destructive append to existing note |
 | `bootstrap_project(project, title?)` | Scaffold a project folder under `personal_vault/projects/<key>/` |
 | `request_note_publication(path, rationale?)` | Submit note for Sagwan review → public vault |
-| `query_core_api(query)` | Query verified public knowledge (no token needed) |
+| `search_akashic(query)` | Query verified public knowledge (no token needed) |
 
 ## Writable roots
 

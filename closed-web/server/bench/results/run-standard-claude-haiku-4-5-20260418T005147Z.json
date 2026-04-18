@@ -1,0 +1,400 @@
+{
+  "model": "claude-haiku-4-5",
+  "condition": "standard",
+  "timestamp": "20260418T005147Z",
+  "records": [
+    {
+      "task_id": "domain_jlpt_gen",
+      "condition": "standard",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-18T00:50:31+00:00",
+      "finished_at": "2026-04-18T00:50:42+00:00",
+      "plan": "notes에서 IchiMozzi의 문제 형식 템플릿을 확인하고, JLPT N4 어휘 예시를 참고하여 fill-in 문제를 생성합니다.",
+      "tool_calls": [
+        {
+          "tool": "notes_read",
+          "arguments": {
+            "key": "ichimozzi_question_format"
+          },
+          "result": {
+            "error": "no note at key 'ichimozzi_question_format'",
+            "available_keys": []
+          },
+          "error": null,
+          "duration_ms": 0.1
+        },
+        {
+          "tool": "notes_read",
+          "arguments": {
+            "key": "jlpt_n4_vocab_examples"
+          },
+          "result": {
+            "error": "no note at key 'jlpt_n4_vocab_examples'",
+            "available_keys": []
+          },
+          "error": null,
+          "duration_ms": 0.0
+        }
+      ],
+      "answer": "요청하신 노트들을 찾을 수 없습니다:\n\n• ichimozzi_question_format - 없음\n• jlpt_n4_vocab_examples - 없음\n\n저장된 노트가 없습니다. JLPT N4 문제 형식이나 어휘 예시를 저장하거나 필요한 정보를 알려주세요.",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"notes에서 IchiMozzi의 문제 형식 템플릿을 확인하고, JLPT N4 어휘 예시를 참고하여 fill-in 문제를 생성합니다.\",\n  \"tool_calls\": [\n    {\"tool\": \"notes_read\", \"arguments\": {\"key\": \"ichimozzi_question_format\"}},\n    {\"tool\": \"notes_read\", \"arguments\": {\"key\": \"jlpt_n4_vocab_examples\"}}\n  ]\n}\n```",
+      "raw_model_output_turn2": "```json\n{\"answer\": \"요청하신 노트들을 찾을 수 없습니다:\\n\\n• ichimozzi_question_format - 없음\\n• jlpt_n4_vocab_examples - 없음\\n\\n저장된 노트가 없습니다. JLPT N4 문제 형식이나 어휘 예시를 저장하거나 필요한 정보를 알려주세요.\"}\n```",
+      "error": null,
+      "format_violation": false
+    },
+    {
+      "task_id": "onboarding_openakashic",
+      "condition": "standard",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-18T00:50:42+00:00",
+      "finished_at": "2026-04-18T00:50:52+00:00",
+      "plan": "notes에서 OpenAkashic 온보딩 정보를 확인하고, 없으면 web_search로 공식 저장소와 시작 가이드를 검색합니다.",
+      "tool_calls": [
+        {
+          "tool": "notes_list",
+          "arguments": {},
+          "result": {
+            "keys": []
+          },
+          "error": null,
+          "duration_ms": 0.1
+        },
+        {
+          "tool": "notes_read",
+          "arguments": {
+            "key": "openakashic_onboarding"
+          },
+          "result": {
+            "error": "no note at key 'openakashic_onboarding'",
+            "available_keys": []
+          },
+          "error": null,
+          "duration_ms": 0.0
+        },
+        {
+          "tool": "notes_read",
+          "arguments": {
+            "key": "openakashic_getting_started"
+          },
+          "result": {
+            "error": "no note at key 'openakashic_getting_started'",
+            "available_keys": []
+          },
+          "error": null,
+          "duration_ms": 0.0
+        }
+      ],
+      "answer": "저장된 노트가 없습니다. openakashic_onboarding과 openakashic_getting_started 노트를 찾을 수 없습니다. OpenAkashic 온보딩 정보를 저장하거나 필요한 정보를 알려주세요.",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"notes에서 OpenAkashic 온보딩 정보를 확인하고, 없으면 web_search로 공식 저장소와 시작 가이드를 검색합니다.\",\n  \"tool_calls\": [\n    {\"tool\": \"notes_list\", \"arguments\": {}},\n    {\"tool\": \"notes_read\", \"arguments\": {\"key\": \"openakashic_onboarding\"}},\n    {\"tool\": \"notes_read\", \"arguments\": {\"key\": \"openakashic_getting_started\"}}\n  ]\n}\n```",
+      "raw_model_output_turn2": "```json\n{\"answer\": \"저장된 노트가 없습니다. openakashic_onboarding과 openakashic_getting_started 노트를 찾을 수 없습니다. OpenAkashic 온보딩 정보를 저장하거나 필요한 정보를 알려주세요.\"}\n```",
+      "error": null,
+      "format_violation": false
+    },
+    {
+      "task_id": "triage_ichimozzi_500",
+      "condition": "standard",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-18T00:50:52+00:00",
+      "finished_at": "2026-04-18T00:51:12+00:00",
+      "plan": "notes에서 insu-server의 Docker 컨테이너 구성과 ichimozzi 500 에러 triage 순서를 확인합니다.",
+      "tool_calls": [
+        {
+          "tool": "notes_read",
+          "arguments": {
+            "key": "insu_server_docker_containers"
+          },
+          "result": {
+            "error": "no note at key 'insu_server_docker_containers'",
+            "available_keys": []
+          },
+          "error": null,
+          "duration_ms": 0.1
+        },
+        {
+          "tool": "notes_read",
+          "arguments": {
+            "key": "ichimozzi_troubleshooting_steps"
+          },
+          "result": {
+            "error": "no note at key 'ichimozzi_troubleshooting_steps'",
+            "available_keys": []
+          },
+          "error": null,
+          "duration_ms": 0.0
+        },
+        {
+          "tool": "web_search",
+          "arguments": {
+            "query": "Docker 500 error troubleshooting container logs check order",
+            "max_results": 3
+          },
+          "result": {
+            "results": [
+              {
+                "title": "榨干你的NAS！资深NAS玩家必装的实用Docker神器、附部署教程",
+                "url": "https://www.zhihu.com/tardis/bd/art/1897691223692665665",
+                "snippet": "Apr 21, 2025 · 比如docker我就一直在用，而且许多好用的docker容器也是我一直在用的，NAS机器变了，但其中的容器却没变， …"
+              },
+              {
+                "title": "docker的官方镜像仓库地址是多少？ - 知乎",
+                "url": "https://www.zhihu.com/question/1979528409567749591",
+                "snippet": "Dec 3, 2025 · Docker官方公共镜像仓库Docker Hub的网页端地址： hub.docker.com，可以通过网页下载对应 …"
+              },
+              {
+                "title": "大佬们我在 NAS 上 docker 环境里安装了 openclaw 这个怎么搞啊？",
+                "url": "https://www.zhihu.com/question/2014846524715185045",
+                "snippet": "而且1月底那会儿，我自己对 OpenClaw 的理解也没那么深入。 现在再回过头去看 OpenClaw 的 docker 版本，发现其实本质 …"
+              }
+            ],
+            "adapter": "ddg"
+          },
+          "error": null,
+          "duration_ms": 125.3
+        }
+      ],
+      "answer": "Docker 500 에러 트러블슈팅 정보를 찾기 어렵습니다.\n\n• 로컬 노트: insu_server_docker_containers, ichimozzi_troubleshooting_steps 모두 저장되어 있지 않습니다.\n• 웹 검색: \"Docker 500 error troubleshooting container logs check order\" 검색 결과는 Docker 500 에러 직접 해결법보다는 NAS Docker 도구 및 Docker Hub, OpenClaw 관련 중국어 자료(Zhihu)만 반환되었습니다.\n  - https://www.zhihu.com/tardis/bd/art/1897691223692665665 - NAS Docker 도구\n  - https://www.zhihu.com/question/1979528409567749591 - Docker Hub\n  - https://www.zhihu.com/question/2014846524715185045 - OpenClaw Docker\n\nDocker 500 에러 트러블슈팅에 대한 더 구체적인 정보가 필요하신 경우 다른 검색어로 시도해 보세요.",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"notes에서 insu-server의 Docker 컨테이너 구성과 ichimozzi 500 에러 triage 순서를 확인합니다.\",\n  \"tool_calls\": [\n    {\"tool\": \"notes_read\", \"arguments\": {\"key\": \"insu_server_docker_containers\"}},\n    {\"tool\": \"notes_read\", \"arguments\": {\"key\": \"ichimozzi_troubleshooting_steps\"}},\n    {\"tool\": \"web_search\", \"arguments\": {\"query\": \"Docker 500 error troubleshooting container logs check order\", \"max_results\": 3}}\n  ]\n}\n```",
+      "raw_model_output_turn2": "```json\n{\"answer\": \"Docker 500 에러 트러블슈팅 정보를 찾기 어렵습니다.\\n\\n• 로컬 노트: insu_server_docker_containers, ichimozzi_troubleshooting_steps 모두 저장되어 있지 않습니다.\\n• 웹 검색: \\\"Docker 500 error troubleshooting container logs check order\\\" 검색 결과는 Docker 500 에러 직접 해결법보다는 NAS Docker 도구 및 Docker Hub, OpenClaw 관련 중국어 자료(Zhihu)만 반환되었습니다.\\n  - https://www.zhihu.com/tardis/bd/art/1897691223692665665 - NAS Docker 도구\\n  - https://www.zhihu.com/question/1979528409567749591 - Docker Hub\\n  - https://www.zhihu.com/question/2014846524715185045 - OpenClaw Docker\\n\\nDocker 500 에러 트러블슈팅에 대한 더 구체적인 정보가 필요하신 경우 다른 검색어로 시도해 보세요.\"}\n```",
+      "error": null,
+      "format_violation": false
+    },
+    {
+      "task_id": "ichimozzi_deploy",
+      "condition": "standard",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-18T00:51:12+00:00",
+      "finished_at": "2026-04-18T00:51:22+00:00",
+      "plan": "notes에서 IchiMozzi 백엔드 배포 절차와 구체적 명령어를 확인하고, 필요하면 일반 배포 가이드를 보충합니다.",
+      "tool_calls": [
+        {
+          "tool": "notes_read",
+          "arguments": {
+            "key": "ichimozzi_backend_deploy_commands"
+          },
+          "result": {
+            "error": "no note at key 'ichimozzi_backend_deploy_commands'",
+            "available_keys": []
+          },
+          "error": null,
+          "duration_ms": 0.1
+        },
+        {
+          "tool": "notes_read",
+          "arguments": {
+            "key": "ichimozzi_deployment_checklist"
+          },
+          "result": {
+            "error": "no note at key 'ichimozzi_deployment_checklist'",
+            "available_keys": []
+          },
+          "error": null,
+          "duration_ms": 0.0
+        },
+        {
+          "tool": "web_search",
+          "arguments": {
+            "query": "docker compose deploy backend production commands",
+            "max_results": 3
+          },
+          "result": {
+            "results": [
+              {
+                "title": "榨干你的NAS！资深NAS玩家必装的实用Docker神器、附部署教程",
+                "url": "https://www.zhihu.com/tardis/bd/art/1897691223692665665",
+                "snippet": "Apr 21, 2025 · 比如docker我就一直在用，而且许多好用的docker容器也是我一直在用的，NAS机器变了，但其中的容器却没变，所以本篇就分享几个历经多年我 …"
+              },
+              {
+                "title": "docker的官方镜像仓库地址是多少？ - 知乎",
+                "url": "https://www.zhihu.com/question/1979528409567749591",
+                "snippet": "Dec 3, 2025 · Docker官方公共镜像仓库Docker Hub的网页端地址： hub.docker.com，可以通过网页下载对应的镜像，然后导入 Docker默认拉取镜像的 …"
+              },
+              {
+                "title": "大佬们我在 NAS 上 docker 环境里安装了 openclaw 这个怎么搞啊？",
+                "url": "https://www.zhihu.com/question/2014846524715185045",
+                "snippet": "而且1月底那会儿，我自己对 OpenClaw 的理解也没那么深入。 现在再回过头去看 OpenClaw 的 docker 版本，发现其实本质上就是多了一步对配置文件的修改， …"
+              }
+            ],
+            "adapter": "ddg"
+          },
+          "error": null,
+          "duration_ms": 96.3
+        }
+      ],
+      "answer": "Docker Compose 배포 관련 정보를 찾기 어렵습니다.\n\n• 로컬 노트: ichimozzi_backend_deploy_commands, ichimozzi_deployment_checklist 모두 저장되어 있지 않습니다.\n• 웹 검색: \"docker compose deploy backend production commands\" 검색 결과는 Docker Compose 배포 명령어보다는 NAS Docker 도구 및 Docker Hub, OpenClaw 관련 중국어 자료(Zhihu)만 반환되었습니다.\n  - https://www.zhihu.com/tardis/bd/art/1897691223692665665 - NAS Docker 도구\n  - https://www.zhihu.com/question/1979528409567749591 - Docker Hub 저장소\n  - https://www.zhihu.com/question/2014846524715185045 - OpenClaw Docker 설치\n\nDocker Compose 프로덕션 배포에 대한 구체적인 가이드가 필요하신 경우 다른 검색어로 시도해 보세요.",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"notes에서 IchiMozzi 백엔드 배포 절차와 구체적 명령어를 확인하고, 필요하면 일반 배포 가이드를 보충합니다.\",\n  \"tool_calls\": [\n    {\"tool\": \"notes_read\", \"arguments\": {\"key\": \"ichimozzi_backend_deploy_commands\"}},\n    {\"tool\": \"notes_read\", \"arguments\": {\"key\": \"ichimozzi_deployment_checklist\"}},\n    {\"tool\": \"web_search\", \"arguments\": {\"query\": \"docker compose deploy backend production commands\", \"max_results\": 3}}\n  ]\n}\n```",
+      "raw_model_output_turn2": "```json\n{\"answer\": \"Docker Compose 배포 관련 정보를 찾기 어렵습니다.\\n\\n• 로컬 노트: ichimozzi_backend_deploy_commands, ichimozzi_deployment_checklist 모두 저장되어 있지 않습니다.\\n• 웹 검색: \\\"docker compose deploy backend production commands\\\" 검색 결과는 Docker Compose 배포 명령어보다는 NAS Docker 도구 및 Docker Hub, OpenClaw 관련 중국어 자료(Zhihu)만 반환되었습니다.\\n  - https://www.zhihu.com/tardis/bd/art/1897691223692665665 - NAS Docker 도구\\n  - https://www.zhihu.com/question/1979528409567749591 - Docker Hub 저장소\\n  - https://www.zhihu.com/question/2014846524715185045 - OpenClaw Docker 설치\\n\\nDocker Compose 프로덕션 배포에 대한 구체적인 가이드가 필요하신 경우 다른 검색어로 시도해 보세요.\"}\n```",
+      "error": null,
+      "format_violation": false
+    },
+    {
+      "task_id": "general_web_fact",
+      "condition": "standard",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-18T00:51:22+00:00",
+      "finished_at": "2026-04-18T00:51:30+00:00",
+      "plan": "web_search로 Anthropic의 Model Context Protocol 공식 저장소 URL과 프로토콜의 목적을 찾습니다.",
+      "tool_calls": [
+        {
+          "tool": "web_search",
+          "arguments": {
+            "query": "Anthropic Model Context Protocol MCP official github repository",
+            "max_results": 5
+          },
+          "result": {
+            "results": [
+              {
+                "title": "Model Context Protocol · GitHub",
+                "url": "https://github.com/modelcontextprotocol",
+                "snippet": "This repository provides a multi-language reference implementation of the proposed interceptor extension for the Model Context Protocol (MCP), as described in SEP-1763.This repository is a collection of reference implementations for the Model Context …The Model Context Protocol (MCP) allows applications to provide context for LLMs …The official C# SDK for the Model Context Protocol, enabling .NET applications, …The Model Context Protocol allows applications to provide context for LLMs …The official Java SDK for Model Context Protocol servers and clients. Maintained …"
+              },
+              {
+                "title": "Official MCP Registry",
+                "url": "https://registry.modelcontextprotocol.io/",
+                "snippet": "1 day ago · The GitKraken MCP Server for managing repos, PRs, issues across GitHub, GitLab, Bitbucket and more."
+              },
+              {
+                "title": "Model Context Protocol servers - GitHub",
+                "url": "https://github.com/modelcontextprotocol/servers",
+                "snippet": "Jan 25, 2026 · This repository is a collection of reference implementations for the Model Context Protocol (MCP), as well as references to community-built servers and additional resources. If you …"
+              },
+              {
+                "title": "GitHub - ryanbaumann/anthropic-mcp-servers: Model Context …",
+                "url": "https://github.com/ryanbaumann/anthropic-mcp-servers",
+                "snippet": "Feb 1, 2026 · This repository is a collection of reference implementations for the Model Context Protocol (MCP), as well as references to community built servers and additional resources."
+              },
+              {
+                "title": "anthropics/github-mcp-server | DeepWiki",
+                "url": "https://deepwiki.com/anthropics/github-mcp-server",
+                "snippet": "Jun 2, 2025 · This document provides a comprehensive overview of the GitHub MCP Server, explaining its architecture, core components, and integration with the Model Context Protocol ecosystem."
+              }
+            ],
+            "adapter": "ddg"
+          },
+          "error": null,
+          "duration_ms": 581.3
+        }
+      ],
+      "answer": "Anthropic Model Context Protocol (MCP) 공식 리소스를 찾았습니다:\n\n• 공식 GitHub 조직: https://github.com/modelcontextprotocol - MCP 멀티언어 참조 구현 (SEP-1763 기반)\n• 공식 MCP 레지스트리: https://registry.modelcontextprotocol.io/ (최근 업데이트)\n• MCP 서버 구현: https://github.com/modelcontextprotocol/servers (2026년 1월 25일 업데이트)\n• 참조 구현: https://github.com/ryanbaumann/anthropic-mcp-servers (2026년 2월 1일)\n\nMCP는 응용 프로그램이 LLM에 컨텍스트를 제공하는 프로토콜이며, C#, Java 등 공식 SDK를 제공합니다.",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"web_search로 Anthropic의 Model Context Protocol 공식 저장소 URL과 프로토콜의 목적을 찾습니다.\",\n  \"tool_calls\": [\n    {\"tool\": \"web_search\", \"arguments\": {\"query\": \"Anthropic Model Context Protocol MCP official github repository\", \"max_results\": 5}}\n  ]\n}\n```",
+      "raw_model_output_turn2": "```json\n{\"answer\": \"Anthropic Model Context Protocol (MCP) 공식 리소스를 찾았습니다:\\n\\n• 공식 GitHub 조직: https://github.com/modelcontextprotocol - MCP 멀티언어 참조 구현 (SEP-1763 기반)\\n• 공식 MCP 레지스트리: https://registry.modelcontextprotocol.io/ (최근 업데이트)\\n• MCP 서버 구현: https://github.com/modelcontextprotocol/servers (2026년 1월 25일 업데이트)\\n• 참조 구현: https://github.com/ryanbaumann/anthropic-mcp-servers (2026년 2월 1일)\\n\\nMCP는 응용 프로그램이 LLM에 컨텍스트를 제공하는 프로토콜이며, C#, Java 등 공식 SDK를 제공합니다.\"}\n```",
+      "error": null,
+      "format_violation": false
+    },
+    {
+      "task_id": "memory_roundtrip",
+      "condition": "standard",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-18T00:51:30+00:00",
+      "finished_at": "2026-04-18T00:51:37+00:00",
+      "plan": "user_preferences 키에 3가지 선호사항을 저장한 후 즉시 읽어서 정확하게 저장되었는지 확인합니다.",
+      "tool_calls": [
+        {
+          "tool": "notes_write",
+          "arguments": {
+            "key": "user_preferences",
+            "body": "(1) 저녁에 커피 금지\n(2) 주말에는 이메일 확인 안 함\n(3) 운동은 아침 6시 30분에"
+          },
+          "result": {
+            "key": "user_preferences",
+            "updated": false,
+            "bytes": 104
+          },
+          "error": null,
+          "duration_ms": 0.3
+        },
+        {
+          "tool": "notes_read",
+          "arguments": {
+            "key": "user_preferences"
+          },
+          "result": {
+            "key": "user_preferences",
+            "body": "(1) 저녁에 커피 금지\n(2) 주말에는 이메일 확인 안 함\n(3) 운동은 아침 6시 30분에"
+          },
+          "error": null,
+          "duration_ms": 0.0
+        }
+      ],
+      "answer": "사용자 선호 사항이 저장되었습니다. 저장된 내용:\n\n(1) 저녁에 커피 금지\n(2) 주말에는 이메일 확인 안 함\n(3) 운동은 아침 6시 30분에\n\n저장된 데이터를 확인했습니다 (104 바이트).",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"user_preferences 키에 3가지 선호사항을 저장한 후 즉시 읽어서 정확하게 저장되었는지 확인합니다.\",\n  \"tool_calls\": [\n    {\"tool\": \"notes_write\", \"arguments\": {\"key\": \"user_preferences\", \"body\": \"(1) 저녁에 커피 금지\\n(2) 주말에는 이메일 확인 안 함\\n(3) 운동은 아침 6시 30분에\"}},\n    {\"tool\": \"notes_read\", \"arguments\": {\"key\": \"user_preferences\"}}\n  ]\n}\n```",
+      "raw_model_output_turn2": "```json\n{\"answer\": \"사용자 선호 사항이 저장되었습니다. 저장된 내용:\\n\\n(1) 저녁에 커피 금지\\n(2) 주말에는 이메일 확인 안 함\\n(3) 운동은 아침 6시 30분에\\n\\n저장된 데이터를 확인했습니다 (104 바이트).\"}\n```",
+      "error": null,
+      "format_violation": false
+    },
+    {
+      "task_id": "busagwan_sagwan_roles",
+      "condition": "standard",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-18T00:51:37+00:00",
+      "finished_at": "2026-04-18T00:51:47+00:00",
+      "plan": "notes에서 Busagwan과 Sagwan의 역할과 차이점을 확인하고, 없으면 OpenAkashic 공식 자료에서 두 컴포넌트의 정의를 검색합니다.",
+      "tool_calls": [
+        {
+          "tool": "notes_read",
+          "arguments": {
+            "key": "openakashic_busagwan_sagwan"
+          },
+          "result": {
+            "error": "no note at key 'openakashic_busagwan_sagwan'",
+            "available_keys": []
+          },
+          "error": null,
+          "duration_ms": 0.1
+        },
+        {
+          "tool": "notes_read",
+          "arguments": {
+            "key": "openakashic_components_architecture"
+          },
+          "result": {
+            "error": "no note at key 'openakashic_components_architecture'",
+            "available_keys": []
+          },
+          "error": null,
+          "duration_ms": 0.0
+        },
+        {
+          "tool": "web_search",
+          "arguments": {
+            "query": "OpenAkashic Busagwan Sagwan component roles difference",
+            "max_results": 3
+          },
+          "result": {
+            "results": [
+              {
+                "title": "What is 2 plus 5? | Arithmetic Exercise - Online calculator",
+                "url": "https://www.calc-online.xyz/solved-math-exercises/what-is-2-plus-5",
+                "snippet": "Learn how to calculate 2 + 5 and understand arithmetic properties with exercises, explanations, and practice quizzes. The result of 2 + 5 is 7. This is because addition combines two values into a single …"
+              },
+              {
+                "title": "Calculator",
+                "url": "https://www.calculatorsoup.com/calculators/math/basic.php",
+                "snippet": "Oct 29, 2025 · Use this basic calculator online for math with addition, subtraction, division and multiplication. The calculator includes functions for square root, percentage, pi, exponents, powers and …"
+              },
+              {
+                "title": "What is 2 plus 5? - Addition calculator",
+                "url": "https://fractioncalculator.pro/calc/What-is_2_plus_5",
+                "snippet": "Here you can find a addition calculator to add 2 to 5 or to add any other amount."
+              }
+            ],
+            "adapter": "ddg"
+          },
+          "error": null,
+          "duration_ms": 118.0
+        }
+      ],
+      "answer": "OpenAkashic Busagwan과 Sagwan 정보를 찾을 수 없습니다.\n\n• 로컬 노트: openakashic_busagwan_sagwan, openakashic_components_architecture 모두 저장되어 있지 않습니다.\n• 웹 검색: \"OpenAkashic Busagwan Sagwan component roles difference\" 검색 결과는 기본 산술 계산기 관련 내용만 반환되어 관련성이 없습니다.\n  - https://www.calc-online.xyz/solved-math-exercises/what-is-2-plus-5\n  - https://www.calculatorsoup.com/calculators/math/basic.php\n  - https://fractioncalculator.pro/calc/What-is_2_plus_5\n\nOpenAkashic의 Busagwan과 Sagwan 역할 및 아키텍처에 대한 정보는 공식 OpenAkashic 문서를 참고해 주세요.",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"notes에서 Busagwan과 Sagwan의 역할과 차이점을 확인하고, 없으면 OpenAkashic 공식 자료에서 두 컴포넌트의 정의를 검색합니다.\",\n  \"tool_calls\": [\n    {\"tool\": \"notes_read\", \"arguments\": {\"key\": \"openakashic_busagwan_sagwan\"}},\n    {\"tool\": \"notes_read\", \"arguments\": {\"key\": \"openakashic_components_architecture\"}},\n    {\"tool\": \"web_search\", \"arguments\": {\"query\": \"OpenAkashic Busagwan Sagwan component roles difference\", \"max_results\": 3}}\n  ]\n}\n```",
+      "raw_model_output_turn2": "```json\n{\"answer\": \"OpenAkashic Busagwan과 Sagwan 정보를 찾을 수 없습니다.\\n\\n• 로컬 노트: openakashic_busagwan_sagwan, openakashic_components_architecture 모두 저장되어 있지 않습니다.\\n• 웹 검색: \\\"OpenAkashic Busagwan Sagwan component roles difference\\\" 검색 결과는 기본 산술 계산기 관련 내용만 반환되어 관련성이 없습니다.\\n  - https://www.calc-online.xyz/solved-math-exercises/what-is-2-plus-5\\n  - https://www.calculatorsoup.com/calculators/math/basic.php\\n  - https://fractioncalculator.pro/calc/What-is_2_plus_5\\n\\nOpenAkashic의 Busagwan과 Sagwan 역할 및 아키텍처에 대한 정보는 공식 OpenAkashic 문서를 참고해 주세요.\"}\n```",
+      "error": null,
+      "format_violation": false
+    }
+  ]
+}

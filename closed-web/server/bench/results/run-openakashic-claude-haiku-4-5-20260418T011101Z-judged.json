@@ -1,0 +1,28 @@
+{
+  "run_file": "/home/insu/insu_server/apps/openakashic/closed-web/server/bench/results/run-openakashic-claude-haiku-4-5-20260418T011101Z.json",
+  "judge_model": "claude-sonnet-4-6",
+  "model": "claude-haiku-4-5",
+  "condition": "openakashic",
+  "judgments": [
+    {
+      "task_id": "general_web_fact",
+      "condition": "openakashic",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [
+        "MCP가 LLM 에이전트에게 외부 도구/데이터 소스를 연결하기 위한 표준 프로토콜이라는 설명",
+        "Anthropic이 설계/공개한 open standard라는 맥락 언급"
+      ],
+      "missed": [
+        "github.com/modelcontextprotocol 혹은 modelcontextprotocol.io 등 실제 도메인/URL 제시"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "MCP 설명 자체는 공개 지식 기반으로 정확하나, 제시한 GitHub URL(github.com/anthropics/model-context-protocol)이 실제 canonical 주소(github.com/modelcontextprotocol)와 다른 잘못된 경로다. hallucination trap의 anthropic.com 패턴과 완전히 일치하지는 않으나 존재하지 않는 URL일 가능성이 높다.",
+      "reason": "3개 expected_outcome 중 2개 충족(67%)으로 80% 기준 미달. MCP 설명과 Anthropic 맥락은 맞았으나, 실제 MCP 저장소 org인 modelcontextprotocol 대신 anthropics org 하위 경로를 환각하여 URL 체크포인트를 충족하지 못했다. 트랩은 발동되지 않았으나 hit rate 부족으로 fail.",
+      "score": {
+        "hit_rate": 0.6666666666666666,
+        "traps_hit_count": 0
+      }
+    }
+  ]
+}

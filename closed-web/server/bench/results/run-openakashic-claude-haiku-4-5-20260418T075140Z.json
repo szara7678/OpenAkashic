@@ -1,0 +1,454 @@
+{
+  "model": "claude-haiku-4-5",
+  "condition": "openakashic",
+  "timestamp": "20260418T075140Z",
+  "records": [
+    {
+      "task_id": "domain_jlpt_gen",
+      "condition": "openakashic",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-18T07:51:09+00:00",
+      "finished_at": "2026-04-18T07:51:40+00:00",
+      "plan": "IchiMozzi 프로젝트 폴더 구조를 확인한 후, JLPT 문제 형식 관련 노트를 직접 탐색하여 형식을 파악합니다.",
+      "tool_calls": [
+        {
+          "tool": "list_folders",
+          "arguments": {
+            "path": "personal_vault/projects/personal/ichimozzi"
+          },
+          "result": {
+            "rules": [
+              {
+                "root": "doc",
+                "label": "Docs",
+                "description": "Long-lived operating docs, schemas, and agent guidance.",
+                "subfolders": [
+                  {
+                    "path": "doc/general",
+                    "label": "general"
+                  },
+                  {
+                    "path": "doc/agents",
+                    "label": "agents"
+                  },
+                  {
+                    "path": "doc/reference",
+                    "label": "reference"
+                  }
+                ]
+              },
+              {
+                "root": "personal_vault",
+                "label": "Vault",
+                "description": "Reusable memory split into shared knowledge, personal notes, and personal or company project workspaces.",
+                "subfolders": [
+                  {
+                    "path": "personal_vault/shared/concepts",
+                    "label": "shared concepts"
+                  },
+                  {
+                    "path": "personal_vault/shared/playbooks",
+                    "label": "shared playbooks"
+                  },
+                  {
+                    "path": "personal_vault/shared/schemas",
+                    "label": "shared schemas"
+                  },
+                  {
+                    "path": "personal_vault/shared/reference",
+                    "label": "shared reference"
+                  },
+                  {
+                    "path": "personal_vault/personal/concepts",
+                    "label": "personal concepts"
+                  },
+                  {
+                    "path": "personal_vault/personal/playbooks",
+                    "label": "personal playbooks"
+                  },
+                  {
+                    "path": "personal_vault/personal/reference",
+                    "label": "personal reference"
+                  },
+                  {
+                    "path": "personal_vault/projects",
+                    "label": "agent-managed projects"
+                  }
+                ]
+              },
+              {
+                "root": "assets",
+                "label": "Assets",
+                "description": "Uploaded images and media referenced by notes.",
+                "subfolders": [
+                  {
+                    "path": "assets/images",
+                    "label": "images"
+                  },
+                  {
+                    "path": "assets/files",
+                    "label": "files"
+                  }
+                ]
+              }
+            ],
+            "existing": {
+              "doc": [
+                "doc/agents",
+                "doc/general",
+                "doc/knowledge-gaps",
+                "doc/reference",
+                "doc/skills"
+              ],
+              "personal_vault": [
+                "personal_vault/feeds",
+                "personal_vault/feeds/arxiv-cl",
+                "personal_vault/feeds/hn",
+                "personal_vault/feeds/hn/GitHub - smol-machines",
+                "personal_vault/knowledge",
+                "personal_vault/knowledge/coding",
+                "personal_vault/knowledge/dev",
+                "personal_vault/knowledge/dev/CI",
+                "personal_vault/knowledge/dev/GitHub Actions CI",
+                "personal_vault/knowledge/dev/capsules",
+                "personal_vault/knowledge/dev/evidence",
+                "personal_vault/knowledge/japanese",
+                "personal_vault/knowledge/japanese/capsules",
+                "personal_vault/knowledge/japanese/n1",
+                "personal_vault/knowledge/japanese/n1-n5",
+                "personal_vault/knowledge/japanese/n1-n5/n1",
+                "personal_vault/knowledge/japanese/n1-n5/n2",
+                "personal_vault/knowledge/japanese/n1-n5/n3",
+                "personal_vault/knowledge/japanese/n1-n5/n4",
+                "personal_vault/knowledge/japanese/n1-n5/n5",
+                "personal_vault/knowledge/japanese/n2",
+                "personal_vault/knowledge/japanese/n3",
+                "personal_vault/knowledge/japanese/n4",
+                "personal_vault/knowledge/japanese/n5",
+                "personal_vault/knowledge/qa",
+                "personal_vault/knowledge/test",
+                "personal_vault/personal",
+                "personal_vault/personal/playbooks",
+                "personal_vault/preferences",
+                "personal_vault/projects",
+                "personal_vault/projects/coding-bench",
+                "personal_vault/projects/coding_exercises",
+                "personal_vault/projects/company",
+                "personal_vault/projects/company/arc-fleet",
+                "personal_vault/projects/company/arc-fleet/architecture",
+                "personal_vault/projects/company/arc-fleet/architecture/interface",
+                "personal_vault/projects/company/arc-fleet/decisions",
+                "personal_vault/projects/company/arc-fleet/experiments",
+                "personal_vault/projects/company/arc-fleet/experiments/ARC Fleet 기획2",
+                "personal_vault/projects/company/arc-fleet/experiments/기획3",
+                "personal_vault/projects/company/arc-fleet/experiments/기획3/csscode-pages",
+                "personal_vault/projects/company/arc-fleet/experiments/기획3/csscode-pages/로봇관리",
+                "personal_vault/projects/company/arc-fleet/experiments/기획3/csscode-pages/로봇그룹관리",
+                "personal_vault/projects/company/arc-fleet/experiments/기획3/csscode-pages/맵보정",
+                "personal_vault/projects/company/arc-fleet/experiments/기획3/csscode-pages/맵핑콘솔",
+                "personal_vault/projects/company/arc-fleet/experiments/기획3/csscode-pages/모니터링",
+                "personal_vault/projects/company/arc-fleet/experiments/기획3/csscode-pages/모델관리",
+                "personal_vault/projects/company/arc-fleet/experiments/기획3/csscode-pages/수동제어",
+                "personal_vault/projects/company/arc-fleet/experiments/기획3/csscode-pages/지도편집기",
+                "personal_vault/projects/company/arc-fleet/experiments/기획3/csscode-pages/프로젝트관리",
+                "personal_vault/projects/company/arc-fleet/implementation-status",
+                "personal_vault/projects/company/arc-fleet/playbooks",
+                "personal_vault/projects/company/arc-fleet/playbooks/QA",
+                "personal_vault/projects/company/arc-fleet/playbooks/QA/siu",
+                "personal_vault/projects/company/arc-fleet/playbooks/guidelines",
+                "personal_vault/projects/company/arc-fleet/reference",
+                "personal_vault/projects/company/arc-fleet/reference/migration",
+                "personal_vault/projects/company/arc-fleet/reference/page-css",
+                "personal_vault/projects/company/arc-fleet/reference/updates",
+                "personal_vault/projects/experiments",
+                "personal_vault/projects/g1-arica-transfer",
+                "personal_vault/projects/gemma-agent",
+                "personal_vault/projects/gemma-agent/docker-multi-stage-builds",
+                "personal_vault/projects/gemma-agent/k8s-liveness-readiness-probes",
+                "personal_vault/projects/gemma-agent/python-protocol-vs-abc",
+                "personal_vault/projects/gemma-agent/react-context-vs-zustand",
+                "personal_vault/projects/ops",
+                "personal_vault/projects/ops/infra-ops",
+                "personal_vault/projects/ops/librarian",
+                "personal_vault/projects/ops/librarian/activity",
+                "personal_vault/projects/ops/librarian/capsules",
+                "personal_vault/projects/ops/librarian/capsules/CI",
+                "personal_vault/projects/ops/librarian/capsules/GitHub Actions CI",
+                "personal_vault/projects/ops/librarian/capsules/Python Async",
+                "personal_vault/projects/ops/librarian/knowledge-gaps",
+                "personal_vault/projects/ops/librarian/memory",
+                "personal_vault/projects/ops/librarian/playbooks",
+                "personal_vault/projects/ops/librarian/policy",
+                "personal_vault/projects/ops/librarian/profile",
+                "personal_vault/projects/ops/librarian/publication_requests",
+                "personal_vault/projects/ops/librarian/reference",
+                "personal_vault/projects/ops/librarian/results",
+                "personal_vault/projects/personal",
+                "personal_vault/projects/personal/agent-tasks",
+                "personal_vault/projects/personal/agentsim2",
+                "personal_vault/projects/personal/ai-media",
+                "personal_vault/projects/personal/ai-media/decisions",
+                "personal_vault/projects/personal/ai-media/playbooks",
+                "personal_vault/projects/personal/arc-fleet",
+                "personal_vault/projects/personal/arc-fleet/reference",
+                "personal_vault/projects/personal/arc-ui-console-frontend",
+                "personal_vault/projects/personal/ichimozzi",
+                "personal_vault/projects/personal/ichimozzi/architecture",
+                "personal_vault/projects/personal/ichimozzi/generated-problems",
+                "personal_vault/projects/personal/ichimozzi/generated_problems",
+                "personal_vault/projects/personal/ichimozzi/playbooks",
+                "personal_vault/projects/personal/ichimozzi/reference",
+                "personal_vault/projects/personal/ichimozzi/research",
+                "personal_vault/projects/personal/insu-server",
+                "personal_vault/projects/personal/openakashic",
+                "personal_vault/projects/personal/openakashic/architecture",
+                "personal_vault/projects/personal/openakashic/playbooks",
+                "personal_vault/projects/personal/openakashic/reference",
+                "personal_vault/projects/personal/portfolio",
+                "personal_vault/projects/personal/portfolio/public",
+                "personal_vault/projects/personal/portfolio/reference",
+                "personal_vault/projects/qa-test",
+                "personal_vault/projects/qa-test2",
+                "personal_vault/reference",
+                "personal_vault/references",
+                "personal_vault/shared",
+                "personal_vault/shared/concepts",
+                "personal_vault/shared/playbooks",
+                "personal_vault/shared/reference",
+                "personal_vault/shared/reference/https:",
+                "personal_vault/shared/schemas",
+                "personal_vault/user"
+              ],
+              "assets": [
+                "assets/files",
+                "assets/images"
+              ]
+            }
+          },
+          "error": null,
+          "duration_ms": 213.5
+        },
+        {
+          "tool": "search_notes",
+          "arguments": {
+            "query": "JLPT N4 문제"
+          },
+          "result": {
+            "retrieval_value": {
+              "directive": "경로 나열 금지. 노트 내용을 읽어 질문에 직접 답하세요. 부족하면 read_note 추가 호출.",
+              "intent": "fact_lookup",
+              "matched_notes": [
+                "personal_vault/knowledge/japanese/n4/problem-patterns.md",
+                "personal_vault/projects/ops/librarian/capsules/N4 청해 전략 Capsule.md",
+                "personal_vault/knowledge/japanese/n4/kanji.md"
+              ],
+              "writeback_suggested": false,
+              "read_note_hint": "본문이 필요하면 read_note(path=<path>) 추가 호출. 쓰기는 upsert_note(path, body, title)."
+            },
+            "_next": {
+              "read_note": {
+                "path": "personal_vault/knowledge/japanese/n4/problem-patterns.md"
+              }
+            },
+            "count": 8,
+            "results": [
+              {
+                "path": "personal_vault/knowledge/japanese/n4/problem-patterns.md",
+                "slug": "personal-vault-knowledge-japanese-n4-problem-patterns",
+                "title": "JLPT N4 Problem Patterns Reference",
+                "kind": "reference",
+                "project": "knowledge/japanese",
+                "owner": "sagwan",
+                "visibility": "private",
+                "publication_status": "rejected",
+                "tags": [
+                  "japanese",
+                  "jlpt",
+                  "n4",
+                  "problems",
+                  "exam"
+                ],
+                "summary": "JLPT N4 문제 유형 전체 참조 + IchiMozzi 문제 생성 가이드. 각 유형마다 출제 형식, 생성 규칙, 실전 예시 3개 이상, IchiMozzi 3부 구조 매핑 포함. N4 수준: 기본 문형 전반 + て형/ない형/조건/수수/경어 초급 중급.",
+                "href": "/notes/personal-vault-knowledge-japanese-n4-problem-patterns",
+                "lexical_score": 2.0,
+                "semantic_score": 0.6905,
+                "confirm_count": 0,
+                "score": 0.032787
+              },
+              {
+                "path": "personal_vault/projects/ops/librarian/capsules/N4 청해 전략 Capsule.md",
+                "slug": "n4-청해-전략-capsule",
+                "title": "N4 청해 전략 Capsule",
+                "kind": "capsule",
+                "project": "ops/librarian",
+                "owner": "busagwan",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "capsule",
+                  "sagwan-generated",
+                  "jlpt",
+                  "n4",
+                  "listening",
+                  "japanese"
+                ],
+                "summary": "JLPT N4 청해(聴解) 전략 가이드. 4가지 문제 유형(과제이해·포인트이해·발화표현·즉시응답) 공략법, 의뢰·허가·방향·시간의 필수 표현 패턴, 최종 결정·숫자·부정·이유·비교 등 5가지 시험 함정, 선독·메모·속도 대응 실전 훈련법을 수록한 실용 자료. ---",
+                "href": "/notes/n4-청해-전략-capsule",
+                "lexical_score": 0.0,
+                "semantic_score": 0.6637,
+                "confirm_count": 0,
+                "score": 0.016129
+              },
+              {
+                "path": "personal_vault/knowledge/japanese/n4/kanji.md",
+                "slug": "personal-vault-knowledge-japanese-n4-kanji",
+                "title": "JLPT N4 Kanji Reference",
+                "kind": "reference",
+                "project": "knowledge/japanese",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "rejected",
+                "tags": [
+                  "japanese",
+                  "jlpt",
+                  "n4",
+                  "kanji",
+                  "study"
+                ],
+                "summary": "JLPT N4 수준 핵심 한자 약 300자(N5 포함 누적) 중 N4 신규 분 약 170자 레퍼런스. 음독·훈독, 대표 단어, 시험 포인트. N4는 복합어 읽기(熟語)와 동사 파생형(動詞活用) 출제가 핵심.",
+                "href": "/notes/personal-vault-knowledge-japanese-n4-kanji",
+                "lexical_score": 0.0,
+                "semantic_score": 0.6393,
+                "confirm_count": 0,
+                "score": 0.015873
+              },
+              {
+                "path": "personal_vault/knowledge/japanese/n4/vocab.md",
+                "slug": "personal-vault-knowledge-japanese-n4-vocab",
+                "title": "JLPT N4 Vocabulary Reference",
+                "kind": "reference",
+                "project": "knowledge/japanese",
+                "owner": "sagwan",
+                "visibility": "private",
+                "publication_status": "rejected",
+                "tags": [
+                  "japanese",
+                  "jlpt",
+                  "n4",
+                  "vocabulary",
+                  "study"
+                ],
+                "summary": "JLPT N4 핵심 어휘 레퍼런스. N5 어휘에 추가되는 N4 신규 빈출·핵심어 약 500개를 카테고리별로 정리. N5 vocab.md의 어휘는 이미 알고 있다는 전제로 N4 신규어만 수록.",
+                "href": "/notes/personal-vault-knowledge-japanese-n4-vocab",
+                "lexical_score": 0.0,
+                "semantic_score": 0.6203,
+                "confirm_count": 0,
+                "score": 0.015625
+              },
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/jlpt-exam-format-reference.md",
+                "slug": "jlpt-exam-format-reference",
+                "title": "JLPT 실제 출제 패턴 레퍼런스",
+                "kind": "reference",
+                "project": "openakashic",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [],
+                "summary": "JLPT N1 N5 시험 구성 공식 참조. 섹션별 시간·문항수·배점, 합격 기준, IchiMozzi 구현 매핑 포함. --- title: JLPT 실제 출제 패턴 레퍼런스 kind: note tags: [jlpt, exam-format, reference, ichimozzi] owner: aaron visibility: private --- JLPT 실제 출제 패턴 레퍼런스",
+                "href": "/notes/jlpt-exam-format-reference",
+                "lexical_score": 0.0,
+                "semantic_score": 0.6168,
+                "confirm_count": 0,
+                "score": 0.015385
+              },
+              {
+                "path": "personal_vault/knowledge/japanese/n4/grammar.md",
+                "slug": "personal-vault-knowledge-japanese-n4-grammar",
+                "title": "JLPT N4 Grammar Reference",
+                "kind": "reference",
+                "project": "knowledge/japanese",
+                "owner": "sagwan",
+                "visibility": "private",
+                "publication_status": "requested",
+                "tags": [
+                  "japanese",
+                  "jlpt",
+                  "n4",
+                  "grammar",
+                  "study"
+                ],
+                "summary": "JLPT N4 수준 핵심 문법 약 80문형. N5 기반에서 보통체, 가능형, 수동/사역, 수수동사, 조건문(と・ば・たら・なら), 인용/전문, 명사 수식절 등이 본격 등장. 각 문형은 의미·접속·예문 3개 이상.",
+                "href": "/notes/personal-vault-knowledge-japanese-n4-grammar",
+                "lexical_score": 0.0,
+                "semantic_score": 0.6149,
+                "confirm_count": 0,
+                "score": 0.015152
+              },
+              {
+                "path": "personal_vault/projects/ops/librarian/knowledge-gaps/jlpt-n5-n4-n3-vocabulary-grammar-reading.md",
+                "slug": "jlpt-n5-n4-n3-vocabulary-grammar-reading",
+                "title": "[Gap] JLPT N5 N4 N3 vocabulary grammar reading 문제 형식 출제 기준",
+                "kind": "reference",
+                "project": "ops/librarian",
+                "owner": "sagwan",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "gap",
+                  "knowledge-gap",
+                  "subordinate"
+                ],
+                "summary": "에이전트가 JLPT N5 N4 N3 vocabulary grammar reading 문제 형식 출제 기준 쿼리로 검색했으나 관련 노트가 없었습니다.",
+                "href": "/notes/jlpt-n5-n4-n3-vocabulary-grammar-reading",
+                "lexical_score": 0.0,
+                "semantic_score": 0.6093,
+                "confirm_count": 0,
+                "score": 0.014925
+              },
+              {
+                "path": "personal_vault/knowledge/japanese/n3/problem-patterns.md",
+                "slug": "personal-vault-knowledge-japanese-n3-problem-patterns",
+                "title": "JLPT N3 Problem Patterns Reference",
+                "kind": "reference",
+                "project": "knowledge/japanese",
+                "owner": "sagwan",
+                "visibility": "private",
+                "publication_status": "rejected",
+                "tags": [
+                  "japanese",
+                  "jlpt",
+                  "n3",
+                  "problems",
+                  "exam"
+                ],
+                "summary": "JLPT N3 문제 유형 전체 참조 + IchiMozzi 문제 생성 가이드. N3 수준: N4 문법 총정리 + 복합조사·복합동사·文語的表現 입문. 각 유형마다 출제 형식, 생성 규칙, 실전 예시 3개 이상, IchiMozzi 3부 구조 매핑 포함.",
+                "href": "/notes/personal-vault-knowledge-japanese-n3-problem-patterns",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5966,
+                "confirm_count": 0,
+                "score": 0.014706
+              }
+            ],
+            "query": "JLPT N4 문제",
+            "hints": [],
+            "meta": {
+              "retrieval": "lexical+semantic+rrf",
+              "rrf_k": 60,
+              "semantic_model": "bge-m3",
+              "semantic_provider": "ollama"
+            }
+          },
+          "error": null,
+          "duration_ms": 1095.0
+        }
+      ],
+      "answer": "次の文の___の言葉の読み方として最もよいものを、1・2・3・4から一つ選んでください。\n\n先生の___を聞いてから、宿題を始めました。\n    ______\n\n1. せつめい\n2. せいめい\n3. しょうめい\n4. さつめい\n\n【正答】1. せつめい（説明=説明する、説き明かす）\n\n【解説】\n- 説明（せつめい）：N4 レベル、頻出単語\n- 誤答トラップ：\n  - 性命（せいめい）：生命・命\n  - 証明（しょうめい）：証拠を示す\n  - 4 番：音読み誤用",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"IchiMozzi 프로젝트 폴더 구조를 확인한 후, JLPT 문제 형식 관련 노트를 직접 탐색하여 형식을 파악합니다.\",\n  \"tool_calls\": [\n    {\n      \"tool\": \"list_folders\",\n      \"arguments\": {\n        \"path\": \"personal_vault/projects/personal/ichimozzi\"\n      }\n    },\n    {\n      \"tool\": \"search_notes\",\n      \"arguments\": {\n        \"query\": \"JLPT N4 문제\"\n      }\n    }\n  ]\n}\n```",
+      "raw_model_output_turn2": "```json\n{\n  \"answer\": \"次の文の___の言葉の読み方として最もよいものを、1・2・3・4から一つ選んでください。\\n\\n先生の___を聞いてから、宿題を始めました。\\n    ______\\n\\n1. せつめい\\n2. せいめい\\n3. しょうめい\\n4. さつめい\\n\\n【正答】1. せつめい（説明=説明する、説き明かす）\\n\\n【解説】\\n- 説明（せつめい）：N4 レベル、頻出単語\\n- 誤答トラップ：\\n  - 性命（せいめい）：生命・命\\n  - 証明（しょうめい）：証拠を示す\\n  - 4 番：音読み誤用\"\n}\n```",
+      "error": null,
+      "format_violation": false
+    }
+  ]
+}

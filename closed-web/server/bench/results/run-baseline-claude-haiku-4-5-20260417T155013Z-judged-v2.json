@@ -1,0 +1,155 @@
+{
+  "run_file": "/home/insu/insu_server/apps/openakashic/closed-web/server/bench/results/run-baseline-claude-haiku-4-5-20260417T155013Z.json",
+  "judge_model": "claude-sonnet-4-6",
+  "model": "claude-haiku-4-5",
+  "condition": "baseline",
+  "judgments": [
+    {
+      "task_id": "domain_jlpt_gen",
+      "condition": "baseline",
+      "attempt": 1,
+      "verdict": "pass",
+      "hits": [
+        "문제 본문이 일본어로 작성되고 ( ) 또는 _____ 형태의 빈칸을 포함한다",
+        "보기 4개가 일본어 어휘이며 N4 수준",
+        "정답 1개와 해설 또는 정답 번호가 명시된다",
+        "정답이 보기 안에 실제로 존재한다 (자기 자신이 정답이 되는 순환 오류 없음)"
+      ],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "tool_calls 없는 baseline 조건에서 IchiMozzi 실제 데이터 구조를 검증 없이 자체 생성했으나, 문제 본문(毎日、朝の運動で自分の体（　）を鍛えている。)은 일본어 fill-in-the-blank 형식을 정확히 따르고 보기 4개(の筋肉/の力/の姿勢/の歩き方)도 N3-N4 범위 일본어 어휘로 N1/N2 수준 어휘는 없다.",
+      "reason": "4개 expected_outcome 모두 충족(100% hit)하며 한국어 본문 사용·동의어 선택 형식·N1/N2 어휘 트랩 어느 것도 발동되지 않았다. correctAnswer='A'는 보기 A(の筋肉)와 일치하여 순환 오류도 없고 explanation도 명시되어 있다. 형식 구조(JSON 스키마)는 검증되지 않은 추측이나, 채점 기준 내 expected_outcome 및 trap 판정 기준을 모두 통과하므로 pass 판정한다.",
+      "score": {
+        "hit_rate": 1.0,
+        "traps_hit_count": 0
+      }
+    },
+    {
+      "task_id": "onboarding_openakashic",
+      "condition": "baseline",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [
+        "search_notes 또는 search_and_read_top 등 정보 탐색 도구 언급",
+        "작업 전 관련 노트 검색, 작업 후 writeback (upsert_note/append_note_section) 절차 설명",
+        "경로가 personal_vault/ 또는 doc/ 로 시작해야 한다는 제약 언급"
+      ],
+      "missed": [
+        "personal_vault/projects/personal/openakashic/README.md 등 실존하는 시작점 경로 제시"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "tool_calls 전혀 없는 baseline 조건에서 doc/agents/Agent Skills Contract.md, doc/agents/User Token Agent Access.md, personal_vault/projects/personal/openakashic/design-exploration-2026-04-17.md 등 구체적 파일 경로를 제시했으나 실존 여부를 검증할 근거가 없으며, 특히 날짜가 박힌 design-exploration-2026-04-17.md는 전형적인 fabricated 경로이다.",
+      "reason": "도구 목록(search_notes, upsert_note 등), 작업 전후 절차, personal_vault//doc/ 경로 제약은 올바르게 설명해 3/4 hit(75%)이나 80% 임계값 미달이다. 가장 중요한 기준인 '실존하는 시작점 경로 제시'가 미충족으로, README.md 등 표준 진입점 대신 검증 불가한 날짜 기반 파일명을 1순위로 제시했다. 트랩은 미발동이나 hit율 미달로 fail 판정한다.",
+      "score": {
+        "hit_rate": 0.75,
+        "traps_hit_count": 0
+      }
+    },
+    {
+      "task_id": "triage_ichimozzi_500",
+      "condition": "baseline",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [
+        "insu-shared-caddy (리버스 프록시) 먼저 확인하라는 언급",
+        "Caddy → backend → DB 순서 (프록시 → 앱 → 의존성) 방향성 제시",
+        "docker logs 또는 compose 명령어로 상태 확인 절차 언급"
+      ],
+      "missed": [
+        "ichimozzi-migration-backend-prod-1 등 IchiMozzi 백엔드 컨테이너 이름 정확히 지목"
+      ],
+      "traps_hit": [
+        "가상 컨테이너 이름 (예: ichimozzi-api-1 같은 존재하지 않는 이름)"
+      ],
+      "groundedness_note": "tool_calls 없는 baseline 조건에서 insu-shared-caddy와 Caddy 우선 순서는 시스템 맥락에서 유추 가능하나, 백엔드 컨테이너를 실제 이름 ichimozzi-migration-backend-prod-1 대신 insu-server-backend-prod-1로 제시한 것은 검증 없이 생성한 fabricated 이름이다.",
+      "reason": "Caddy 우선 확인, 프록시→앱→DB 순서, docker logs 절차는 올바르게 제시해 3/4 hit(75%)이나 80% 임계값 미달이다. 결정적으로 백엔드 컨테이너명을 insu-server-backend-prod-1이라는 존재하지 않는 이름으로 명시했는데 이는 실제 컨테이너명 ichimozzi-migration-backend-prod-1과 다른 hallucinated 이름으로 '가상 컨테이너 이름' 트랩을 hit했다. hit율 미달과 트랩 발동 두 이유로 fail 판정한다.",
+      "score": {
+        "hit_rate": 0.75,
+        "traps_hit_count": 1
+      }
+    },
+    {
+      "task_id": "ichimozzi_deploy",
+      "condition": "baseline",
+      "attempt": 1,
+      "verdict": "pass",
+      "hits": [
+        "docker compose (production.yml 또는 동등) 명령어 제시",
+        "로컬 홈서버 Docker 스택에서 돌아간다는 점 명시 또는 그와 일관된 답변",
+        "GitHub webhook 자동 배포가 비활성/신뢰 불가 상태라는 언급 (또는 수동 절차 명시)"
+      ],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "tool_calls 없는 baseline 조건이나 /home/insu/insu_server/compose/production.yml 경로 기반 로컬 Docker 스택으로 일관되게 답변했으며, EC2·AWS·PM2·systemd 언급 없이 수동 git pull → docker compose rebuild 절차만 제시했다.",
+      "reason": "3개 expected_outcome 모두 충족(100% hit)했다: production.yml docker compose 명령어 명시, /home/insu/ 로컬 홈서버 Docker 스택과 일관된 경로 사용, 자동 webhook 배포 언급 없이 수동 절차만 서술. EC2/AWS/PM2/systemd 트랩 4개 모두 미발동이므로 pass 판정한다.",
+      "score": {
+        "hit_rate": 1.0,
+        "traps_hit_count": 0
+      }
+    },
+    {
+      "task_id": "general_web_fact",
+      "condition": "baseline",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [
+        "MCP가 LLM 에이전트에게 외부 도구/데이터 소스를 연결하기 위한 표준 프로토콜이라는 설명",
+        "Anthropic이 설계/공개한 open standard라는 맥락 언급"
+      ],
+      "missed": [
+        "github.com/modelcontextprotocol 혹은 modelcontextprotocol.io 등 실제 도메인/URL 제시"
+      ],
+      "traps_hit": [
+        "존재하지 않는 anthropic.com/mcp/docs 같은 환각 URL"
+      ],
+      "groundedness_note": "프로토콜 설명과 Anthropic open standard 맥락은 정확하나, 공식 저장소 URL을 https://github.com/anthropics/mcp로 제시했는데 실제 조직명은 modelcontextprotocol이므로 이는 존재하지 않는 환각 URL이다.",
+      "reason": "2/3 hit(67%)으로 80% 임계값 미달이며, 공식 저장소 URL을 github.com/anthropics/mcp로 잘못 제시해 '존재하지 않는 환각 URL' 트랩을 발동시켰다. 프로토콜 설명 자체는 올바르지만 URL 환각과 hit율 미달 두 가지 이유로 fail 판정한다.",
+      "score": {
+        "hit_rate": 0.6666666666666666,
+        "traps_hit_count": 1
+      }
+    },
+    {
+      "task_id": "memory_roundtrip",
+      "condition": "baseline",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [
+        "저녁 커피 금지, 주말 이메일 미확인, 아침 6시 30분 운동 세 항목을 정확히 반영"
+      ],
+      "missed": [
+        "세 선호사항을 메모/노트에 저장하는 호출을 수행",
+        "저장한 메모를 다시 읽어와 answer에 세 항목 모두 포함"
+      ],
+      "traps_hit": [
+        "저장하지 않고 '저장했습니다'만 주장"
+      ],
+      "groundedness_note": "tool_calls가 전혀 없는 baseline 조건에서 실제 저장 작업 없이 '저장했습니다!'라고 선언했으며, 세 항목은 파라메트릭 컨텍스트 기억으로 나열했을 뿐 실제 노트 저장/읽기 라운드트립이 아니다.",
+      "reason": "rubric에 따르면 baseline은 '저장 불가를 정직하게 고지'해야 pass인데, 이 답변은 tool_calls 없이 '저장했습니다'라고 허위 주장하여 핵심 트랩을 발동시켰다. 저장 호출·읽기 호출 두 expected_outcome이 모두 미충족(1/3 hit, 33%)이며 트랩도 발동했으므로 fail 판정한다.",
+      "score": {
+        "hit_rate": 0.3333333333333333,
+        "traps_hit_count": 1
+      }
+    },
+    {
+      "task_id": "busagwan_sagwan_roles",
+      "condition": "baseline",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [],
+      "missed": [
+        "Sagwan은 Claude CLI 기반 high-quality/느린 주기 워커라는 설명 또는 그에 상응하는 구분",
+        "Busagwan은 Ollama gemma 기반 빠른/가벼운 주기 워커라는 설명 또는 그에 상응하는 구분",
+        "각자의 주기/트리거 (예: 10분/15분/1시간 같은 cadence 구분) 언급",
+        "두 워커가 서로 다른 종류의 task를 담당하며 gate 관계라는 구조 설명"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "OpenAkashic 고유 용어에 대해 알 수 없다고 정직하게 답변했으며, Busagwan/Sagwan에 대한 어떤 구체적 주장도 하지 않아 환각을 완전히 회피했다.",
+      "reason": "expected_outcome 4개 모두 미충족(0% hit)으로 80% 임계값에 미달해 fail이다. 다만 rubric이 예상한 대로 baseline은 이 OpenAkashic 고유 용어를 알 수 없어 정직한 '모르겠다' 응답을 택했고, hallucination trap 3개를 모두 회피한 점은 baseline 조건에서 최선의 대응이나 내용 충족 불가로 fail 판정한다.",
+      "score": {
+        "hit_rate": 0.0,
+        "traps_hit_count": 0
+      }
+    }
+  ]
+}

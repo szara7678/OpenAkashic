@@ -1,0 +1,1034 @@
+{
+  "model": "claude-haiku-4-5",
+  "condition": "openakashic",
+  "timestamp": "20260418T011558Z",
+  "records": [
+    {
+      "task_id": "domain_jlpt_gen",
+      "condition": "openakashic",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-18T01:14:25+00:00",
+      "finished_at": "2026-04-18T01:14:42+00:00",
+      "plan": "Akashic에서 IchiMozzi의 기존 어휘 문제 형식/스키마 확인 후, 그에 맞춰 JLPT N4 fill-in 문제 1개 생성",
+      "tool_calls": [
+        {
+          "tool": "search_and_read_top",
+          "arguments": {
+            "query": "IchiMozzi 어휘 문제 형식 vocabulary question fill-in 샘플"
+          },
+          "result": {
+            "directive": "노트 본문의 사실을 인용해 질문에 직접 답하세요. 경로 나열·도구명 반복 금지. 부족하면 read_note 추가 호출.",
+            "note_body_preview": "---\ntitle: IchiMozzi N4 어휘 문제 예시 (始まる)\nkind: reference\ntags: [ichimozzi, jlpt, n4, vocabulary, example]\nowner: aaron\nvisibility: private\n---\n\n## 문제 ID\n- `n4-vocab-001`\n- 레벨: N4\n- 유형: vocabulary_fill\n- 카테고리: 일상생활\n\n## Part 1: 문제 문장\n明日の会議は9時に____ます。\n\n## Part 2: 선택지 (4지선다)\n- A: 始まり (はじまり)\n- B: 始まる (はじまる) ← 정답\n- C: 始める (はじめる)\n- D: 始め (はじめ)\n\n## Part 3: 정답 및 설명\n**정답: B (始まる)**\n\n문맥에서 「会議が始まる」라는 의미로 자동사 「始まる」의 -ます형을 사용합니다.",
+            "retrieval_value": {
+              "directive": "경로 나열 금지. 노트 내용을 읽어 질문에 직접 답하세요. 부족하면 read_note 추가 호출.",
+              "intent": "fact_lookup",
+              "matched_notes": [
+                "personal_vault/projects/personal/ichimozzi/example-n4-vocab-001.md",
+                "personal_vault/projects/personal/ichimozzi/audit-2026-04-17.md",
+                "personal_vault/projects/personal/ichimozzi/audit-2026-04-16.md"
+              ],
+              "writeback_suggested": false,
+              "read_note_hint": "본문이 필요하면 read_note(path=<path>) 추가 호출. 쓰기는 upsert_note(path, body, title)."
+            },
+            "query": "IchiMozzi 어휘 문제 형식 vocabulary question fill-in 샘플",
+            "top": {
+              "path": "personal_vault/projects/personal/ichimozzi/example-n4-vocab-001.md",
+              "slug": "example-n4-vocab-001",
+              "title": "IchiMozzi N4 어휘 문제 예시",
+              "kind": "reference",
+              "project": "openakashic",
+              "owner": "admin",
+              "visibility": "private",
+              "publication_status": "none",
+              "tags": [],
+              "summary": "---",
+              "href": "/notes/example-n4-vocab-001",
+              "lexical_score": 0.0,
+              "semantic_score": 0.6455,
+              "confirm_count": 0,
+              "score": 0.016393
+            },
+            "other_results": [
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/audit-2026-04-17.md",
+                "slug": "audit-2026-04-17",
+                "title": "IchiMozzi 문제 파이프라인 종합 QA (2026-04-17)",
+                "kind": "reference",
+                "project": "openakashic",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [],
+                "summary": "---",
+                "href": "/notes/audit-2026-04-17",
+                "lexical_score": 0.0,
+                "semantic_score": 0.6107,
+                "confirm_count": 0,
+                "score": 0.016129
+              },
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/audit-2026-04-16.md",
+                "slug": "audit-2026-04-16",
+                "title": "audit-2026-04-16",
+                "kind": "reference",
+                "project": "openakashic",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [],
+                "summary": "---",
+                "href": "/notes/audit-2026-04-16",
+                "lexical_score": 0.0,
+                "semantic_score": 0.6044,
+                "confirm_count": 0,
+                "score": 0.015873
+              },
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/problem_taxonomy_and_generation_guide.md",
+                "slug": "problem-taxonomy-and-generation-guide",
+                "title": "IchiMozzi 문제 태그 체계 및 생성·검수 가이드 (2026-04-17)",
+                "kind": "reference",
+                "project": "personal/ichimozzi",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "ichimozzi",
+                  "jlpt",
+                  "taxonomy",
+                  "problem-generation",
+                  "review",
+                  "agent-reference"
+                ],
+                "summary": "IchiMozzi JLPT 문제 생성 전체 가이드. 3부 구조, 4부 태그 체계, 레벨별 어휘·후리가나 정책, 검증 도구 사용법 수록. --- title: IchiMozzi 문제 생성·검수 가이드 (rev4) kind: note tags: [ichimozzi, jlpt, problem-generation, taxonomy, guide] owner: aaron visibility: private --- IchiMozzi 문제 생성·검수 가이드 (rev4) rev4",
+                "href": "/notes/problem-taxonomy-and-generation-guide",
+                "lexical_score": 0.0,
+                "semantic_score": 0.6005,
+                "confirm_count": 0,
+                "score": 0.015625
+              },
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/report_patterns_2026_04_17.md",
+                "slug": "report-patterns-2026-04-17",
+                "title": "IchiMozzi 신고 문제 5가지 함정",
+                "kind": "reference",
+                "project": "openakashic",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "ichimozzi",
+                  "quality",
+                  "prompt-engineering"
+                ],
+                "summary": "사용자 신고(problem reports) 반복 관찰 패턴.",
+                "href": "/notes/report-patterns-2026-04-17",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5955,
+                "confirm_count": 0,
+                "score": 0.015385
+              }
+            ],
+            "hints": [],
+            "count": 5,
+            "note": {
+              "path": "personal_vault/projects/personal/ichimozzi/example-n4-vocab-001.md",
+              "slug": "example-n4-vocab-001",
+              "title": "IchiMozzi N4 어휘 문제 예시",
+              "kind": "reference",
+              "project": "openakashic",
+              "status": "active",
+              "owner": "admin",
+              "original_owner": "admin",
+              "created_by": "admin",
+              "visibility": "private",
+              "publication_status": "none",
+              "tags": [],
+              "related": [],
+              "summary": "---",
+              "body": "---\ntitle: IchiMozzi N4 어휘 문제 예시 (始まる)\nkind: reference\ntags: [ichimozzi, jlpt, n4, vocabulary, example]\nowner: aaron\nvisibility: private\n---\n\n## 문제 ID\n- `n4-vocab-001`\n- 레벨: N4\n- 유형: vocabulary_fill\n- 카테고리: 일상생활\n\n## Part 1: 문제 문장\n明日の会議は9時に____ます。\n\n## Part 2: 선택지 (4지선다)\n- A: 始まり (はじまり)\n- B: 始まる (はじまる) ← 정답\n- C: 始める (はじめる)\n- D: 始め (はじめ)\n\n## Part 3: 정답 및 설명\n**정답: B (始まる)**\n\n문맥에서 「会議が始まる」라는 의미로 자동사 「始まる」의 -ます형을 사용합니다.",
+              "body_html": "<hr>\n<p>title: IchiMozzi N4 어휘 문제 예시 (始まる)\nkind: reference\ntags: [ichimozzi, jlpt, n4, vocabulary, example]\nowner: aaron\nvisibility: private</p>\n<hr>\n<h2 id=\"문제-id\">문제 ID<a class=\"heading-anchor\" href=\"#문제-id\">#</a></h2>\n<ul>\n<li><code>n4-vocab-001</code></li>\n<li>레벨: N4</li>\n<li>유형: vocabulary_fill</li>\n<li>카테고리: 일상생활</li>\n</ul>\n<h2 id=\"part-1-문제-문장\">Part 1: 문제 문장<a class=\"heading-anchor\" href=\"#part-1-문제-문장\">#</a></h2>\n<p>明日の会議は9時に____ます。</p>\n<h2 id=\"part-2-선택지-4지선다\">Part 2: 선택지 (4지선다)<a class=\"heading-anchor\" href=\"#part-2-선택지-4지선다\">#</a></h2>\n<ul>\n<li>A: 始まり (はじまり)</li>\n<li>B: 始まる (はじまる) ← 정답</li>\n<li>C: 始める (はじめる)</li>\n<li>D: 始め (はじめ)</li>\n</ul>\n<h2 id=\"part-3-정답-및-설명\">Part 3: 정답 및 설명<a class=\"heading-anchor\" href=\"#part-3-정답-및-설명\">#</a></h2>\n<p><strong>정답: B (始まる)</strong></p>\n<p>문맥에서 「会議が始まる」라는 의미로 자동사 「始まる」의 -ます형을 사용합니다.</p>",
+              "links": [],
+              "related_notes": [],
+              "backlinks": [],
+              "outbound": 0,
+              "href": "/notes/example-n4-vocab-001"
+            }
+          },
+          "error": null,
+          "duration_ms": 5830.5
+        }
+      ],
+      "answer": "IchiMozzi N4 레벨 어휘 문제의 형식은 다음과 같습니다:\n\n**문제 구조:**\n- 문제 ID: `n4-vocab-001`\n- 유형: `vocabulary_fill` (빈칸 채우기)\n- 카테고리: 일상생활\n\n**문제 예시:**\n문제: 明日の会議は9時に____ます。\n\n선택지 (4지선다):\n- A: 始まり (はじまり)\n- B: 始まる (はじまる) ← 정답\n- C: 始める (はじめる)\n- D: 始め (はじめ)\n\n**정답 및 해설:**\n정답은 B (始まる)입니다. 문맥에서 「会議が始まる」라는 의미로 자동사 「始まる」의 -ます형을 사용합니다. (출처: personal_vault/projects/personal/ichimozzi/example-n4-vocab-001.md)",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"Akashic에서 IchiMozzi의 기존 어휘 문제 형식/스키마 확인 후, 그에 맞춰 JLPT N4 fill-in 문제 1개 생성\",\n  \"tool_calls\": [\n    {\n      \"tool\": \"search_and_read_top\",\n      \"arguments\": {\n        \"query\": \"IchiMozzi 어휘 문제 형식 vocabulary question fill-in 샘플\"\n      }\n    }\n  ]\n}\n```",
+      "raw_model_output_turn2": "```json\n{\n  \"answer\": \"IchiMozzi N4 레벨 어휘 문제의 형식은 다음과 같습니다:\\n\\n**문제 구조:**\\n- 문제 ID: `n4-vocab-001`\\n- 유형: `vocabulary_fill` (빈칸 채우기)\\n- 카테고리: 일상생활\\n\\n**문제 예시:**\\n문제: 明日の会議は9時に____ます。\\n\\n선택지 (4지선다):\\n- A: 始まり (はじまり)\\n- B: 始まる (はじまる) ← 정답\\n- C: 始める (はじめる)\\n- D: 始め (はじめ)\\n\\n**정답 및 해설:**\\n정답은 B (始まる)입니다. 문맥에서 「会議が始まる」라는 의미로 자동사 「始まる」의 -ます형을 사용합니다. (출처: personal_vault/projects/personal/ichimozzi/example-n4-vocab-001.md)\"\n}\n```",
+      "error": null,
+      "format_violation": false
+    },
+    {
+      "task_id": "onboarding_openakashic",
+      "condition": "openakashic",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-18T01:14:42+00:00",
+      "finished_at": "2026-04-18T01:14:56+00:00",
+      "plan": "OpenAkashic 프로젝트의 온보딩 문서와 경로 구조를 검색으로 확인하고, 필요시 path_suggestion으로 정확한 경로 제안받기",
+      "tool_calls": [
+        {
+          "tool": "search_and_read_top",
+          "arguments": {
+            "query": "OpenAkashic 온보딩 시작가이드 프로젝트 구조 README"
+          },
+          "result": {
+            "directive": "노트 본문의 사실을 인용해 질문에 직접 답하세요. 경로 나열·도구명 반복 금지. 부족하면 read_note 추가 호출.",
+            "note_body_preview": "## Summary\nOpenAkashic 관련 설계, 운영 플레이북, 구현 메모리는 이 프로젝트 폴더에 모은다.\n홈서버 Docker 스택 기반 (EC2 아님).\n\n## Quick Answer — 신규 에이전트 온보딩\n\n**한 문장 요약**: `search_and_read_top(query=<주제>)` 한 번이면 상위 노트 본문까지 즉시 읽는다. 여기부터 시작할 것.\n\n순서:\n1. **진입점 검색**: `search_and_read_top(query=\"openakashic 온보딩\")` 또는 주제를 바꿔 호출 — 상위 매칭 노트의 `note_body_preview`(본문 앞부분)와 `note.body`(전체 본문)가 바로 반환된다. 도구 호출 한 번으로 본문이 들어오므로 `search_notes` → `read_note` 2단 호출보다 작은 모델에 유리.\n2. **추가 본문 필요 시**: `read_note(path=<path>)`로 특정 노트 전체 읽기. `list_notes`는 사용하지 말 것 (존재하지 않음).\n3. **경로 제약**: 모든 쓰기 경로는 `personal_vault/` 또는 `doc/` 로 시작해야 함.\n4. **작업 후 writeback**: 결과물을 `upsert_note(path, body, title, kind, tags)` 로 저장.\n   - `body` 필드에 markdown 본문. 편의상 `content`로 보내도 받아 주지만 정식 필드명은 `body`.\n   - 기존 노트 섹션 추가는 `append_note_section(path, section_title, body)` 사용.\n5. **공개 요청**: 공유 가치가 있으면 `request_note_publication(path, rationale)` 호출.\n   직접 `visibility=public` 을 세팅하지 않음 — librarian(사관)이 승인.\n\n## Tool Cheatsheet\n- 읽기: `search_and_read_top(query)` → `read_note(path)` → `search_notes(query)`\n- 쓰기: `upsert_note(path, body, title)` → `append_note_section(path, section_title, body)`\n- 공개: `request_note_publication(path, rationale)` (직접 visibility 변경 금지)\n- 부트스트랩:",
+            "retrieval_value": {
+              "directive": "경로 나열 금지. 노트 내용을 읽어 질문에 직접 답하세요. 부족하면 read_note 추가 호출.",
+              "intent": "fact_lookup",
+              "matched_notes": [
+                "personal_vault/projects/personal/openakashic/README.md",
+                "doc/reference/Development Resource Map.md",
+                "doc/general/roadmap.md"
+              ],
+              "writeback_suggested": false,
+              "read_note_hint": "본문이 필요하면 read_note(path=<path>) 추가 호출. 쓰기는 upsert_note(path, body, title)."
+            },
+            "query": "OpenAkashic 온보딩 시작가이드 프로젝트 구조 README",
+            "top": {
+              "path": "personal_vault/projects/personal/openakashic/README.md",
+              "slug": "personal-vault-projects-personal-openakashic-readme",
+              "title": "OpenAkashic Project Index & Agent Onboarding",
+              "kind": "reference",
+              "project": "openakashic",
+              "owner": "sagwan",
+              "visibility": "public",
+              "publication_status": "published",
+              "tags": [
+                "openakashic",
+                "readme",
+                "onboarding",
+                "index"
+              ],
+              "summary": "OpenAkashic 관련 설계, 운영 플레이북, 구현 메모리는 이 프로젝트 폴더에 모은다. 홈서버 Docker 스택 기반 (EC2 아님).",
+              "href": "/notes/personal-vault-projects-personal-openakashic-readme",
+              "lexical_score": 0.0,
+              "semantic_score": 0.6357,
+              "confirm_count": 0,
+              "score": 0.016393
+            },
+            "other_results": [
+              {
+                "path": "doc/reference/Development Resource Map.md",
+                "slug": "development-resource-map",
+                "title": "Development Resource Map",
+                "kind": "reference",
+                "project": "openakashic",
+                "owner": "sagwan",
+                "visibility": "public",
+                "publication_status": "published",
+                "tags": [
+                  "development",
+                  "reference",
+                  "frontend",
+                  "backend",
+                  "agents",
+                  "mcp",
+                  "openakashic"
+                ],
+                "summary": "OpenAkashic에서 개발 에이전트와 사용자가 공용 근거로 쓰기 좋은 1차 개발 자료 지도다. 원칙은 단순하다. 언어와 플랫폼 기본기는 공식 문서에서 가져오고, 실전 노하우는 capsule로 짧게 압축해서 공개한다.",
+                "href": "/notes/development-resource-map",
+                "lexical_score": 0.0,
+                "semantic_score": 0.608,
+                "confirm_count": 0,
+                "score": 0.016129
+              },
+              {
+                "path": "doc/general/roadmap.md",
+                "slug": "roadmap",
+                "title": "OpenAkashic Roadmap",
+                "kind": "reference",
+                "project": "openakashic",
+                "owner": "sagwan",
+                "visibility": "public",
+                "publication_status": "published",
+                "tags": [
+                  "openakashic",
+                  "roadmap",
+                  "plan"
+                ],
+                "summary": "OpenAkashic의 현재 구현 상태, 이미 완료된 항목, 남은 작업을 한 곳에 정리한다. 설계 철학은 Open and Closed Akashic Strategy를, 아키텍처는 plan.md를 참고한다.",
+                "href": "/notes/roadmap",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5881,
+                "confirm_count": 0,
+                "score": 0.015873
+              },
+              {
+                "path": "personal_vault/knowledge/dev/reference-sites.md",
+                "slug": "reference-sites",
+                "title": "개발 참고 사이트 큐레이션",
+                "kind": "reference",
+                "project": "openakashic",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "rejected",
+                "tags": [
+                  "resources",
+                  "reference",
+                  "web"
+                ],
+                "summary": "개발자 필수 참조 사이트 큐레이션. 공식 문서·학습 플랫폼·도구·커뮤니티·뉴스 카테고리로 분류. \"북마크 대신 이 노트만 참조\" 목표.",
+                "href": "/notes/reference-sites",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5827,
+                "confirm_count": 0,
+                "score": 0.015625
+              },
+              {
+                "path": "personal_vault/projects/personal/openakashic/design-brief-codex-2026-04-17.md",
+                "slug": "design-brief-codex-2026-04-17",
+                "title": "OpenAkashic 종합 설계 브리핑 — Codex 토론용 2026-04-17",
+                "kind": "capsule",
+                "project": "openakashic",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "design",
+                  "gaps",
+                  "codex-debate",
+                  "architecture"
+                ],
+                "summary": "---",
+                "href": "/notes/design-brief-codex-2026-04-17",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5824,
+                "confirm_count": 0,
+                "score": 0.015385
+              }
+            ],
+            "hints": [],
+            "count": 5,
+            "note": {
+              "path": "personal_vault/projects/personal/openakashic/README.md",
+              "slug": "personal-vault-projects-personal-openakashic-readme",
+              "title": "OpenAkashic Project Index & Agent Onboarding",
+              "kind": "reference",
+              "project": "openakashic",
+              "status": "active",
+              "owner": "sagwan",
+              "original_owner": "aaron",
+              "created_by": "aaron",
+              "visibility": "public",
+              "publication_status": "published",
+              "tags": [
+                "openakashic",
+                "readme",
+                "onboarding",
+                "index"
+              ],
+              "related": [
+                "Project Memory Intake",
+                "AWS Central Vault",
+                "Agent Memory Workflow"
+              ],
+              "summary": "OpenAkashic 관련 설계, 운영 플레이북, 구현 메모리는 이 프로젝트 폴더에 모은다. 홈서버 Docker 스택 기반 (EC2 아님).",
+              "body": "## Summary\nOpenAkashic 관련 설계, 운영 플레이북, 구현 메모리는 이 프로젝트 폴더에 모은다.\n홈서버 Docker 스택 기반 (EC2 아님).\n\n## Quick Answer — 신규 에이전트 온보딩\n\n**한 문장 요약**: `search_and_read_top(query=<주제>)` 한 번이면 상위 노트 본문까지 즉시 읽는다. 여기부터 시작할 것.\n\n순서:\n1. **진입점 검색**: `search_and_read_top(query=\"openakashic 온보딩\")` 또는 주제를 바꿔 호출 — 상위 매칭 노트의 `note_body_preview`(본문 앞부분)와 `note.body`(전체 본문)가 바로 반환된다. 도구 호출 한 번으로 본문이 들어오므로 `search_notes` → `read_note` 2단 호출보다 작은 모델에 유리.\n2. **추가 본문 필요 시**: `read_note(path=<path>)`로 특정 노트 전체 읽기. `list_notes`는 사용하지 말 것 (존재하지 않음).\n3. **경로 제약**: 모든 쓰기 경로는 `personal_vault/` 또는 `doc/` 로 시작해야 함.\n4. **작업 후 writeback**: 결과물을 `upsert_note(path, body, title, kind, tags)` 로 저장.\n   - `body` 필드에 markdown 본문. 편의상 `content`로 보내도 받아 주지만 정식 필드명은 `body`.\n   - 기존 노트 섹션 추가는 `append_note_section(path, section_title, body)` 사용.\n5. **공개 요청**: 공유 가치가 있으면 `request_note_publication(path, rationale)` 호출.\n   직접 `visibility=public` 을 세팅하지 않음 — librarian(사관)이 승인.\n\n## Tool Cheatsheet\n- 읽기: `search_and_read_top(query)` → `read_note(path)` → `search_notes(query)`\n- 쓰기: `upsert_note(path, body, title)` → `append_note_section(path, section_title, body)`\n- 공개: `request_note_publication(path, rationale)` (직접 visibility 변경 금지)\n- 부트스트랩: `bootstrap_project(name)` — **인덱스가 없을 때만**. 이 README가 있으면 호출 불필요.\n\n## Canonical Docs (홈서버 절대 경로)\n- 이 서버 리포지토리 루트: `/home/insu/insu_server/`\n- OpenAkashic web 서버 소스: `/home/insu/insu_server/apps/openakashic/closed-web/server/`\n- Compose: `/home/insu/insu_server/compose/production.yml`\n\n## Active Surfaces\n- browser: `https://openakashic.com`\n- api: `https://api.openakashic.com`\n- knowledge (MCP): `https://knowledge.openakashic.com/mcp/`\n\n## Memory Map (하위 폴더)\n- `architecture/` — 배포 구조, 데이터 모델\n- `playbooks/` — 배포, 복구, MCP/도메인 연결, 운영 절차\n- `incidents/` — 운영 장애, 라우팅/데이터 연결 이슈\n- `decisions/` — 오픈/클로즈드 아카식 경계, 구조 선택\n- `experiments/` — 검색·그래프·UI 실험\n- `reference/` — 샘플 출력, 검증 메모, A/B bench 결과\n- `bench-v0*.md` — OpenAkashicBench 결과 모음\n\n## Agent Roles\n두 종류의 운영 에이전트가 있다:\n- **사관 (Sagwan)** — Claude CLI 기반, high-quality/저주기 워커 (승인·게이트)\n- **부사관 (Busagwan)** — Ollama gemma 기반, 빠른/고주기 워커 (1차 리뷰·크롤)\n자세한 차이: `personal_vault/projects/ops/librarian/profile/busagwan-sagwan-roles.md`\n\n## Reuse\n새 작업 전에는 이 인덱스로 canonical docs와 이미 축적된 노트를 함께 확인한다.\n\n## Sagwan Revalidation 2026-04-17T16:35:25Z\n- verdict: `ok`\n- note: 현재 지침과 완전 일치하며 링크/경로 유효. 마이너 오탈자(마지막 문단 경로 끝)는 스타일 이슈로 내용 신뢰도에 영향 없음.\n\n## 2026-04-18 Update\n- onboarding Quick Answer 재작성: `search_and_read_top`을 1순위 진입점으로 명시 (소형 모델이 `search_notes`→`read_note` 2단을 놓치는 OpenAkashicBench v0.5 실패 패턴 반영)\n- `upsert_note`가 `content` alias를 받도록 서버 조정 — 문서에도 반영\n- Tool Cheatsheet 섹션 추가",
+              "body_html": "<h2 id=\"summary\">Summary<a class=\"heading-anchor\" href=\"#summary\">#</a></h2>\n<p>OpenAkashic 관련 설계, 운영 플레이북, 구현 메모리는 이 프로젝트 폴더에 모은다.\n홈서버 Docker 스택 기반 (EC2 아님).</p>\n<h2 id=\"quick-answer-신규-에이전트-온보딩\">Quick Answer — 신규 에이전트 온보딩<a class=\"heading-anchor\" href=\"#quick-answer-신규-에이전트-온보딩\">#</a></h2>\n<p><strong>한 문장 요약</strong>: <code>search_and_read_top(query=&lt;주제&gt;)</code> 한 번이면 상위 노트 본문까지 즉시 읽는다. 여기부터 시작할 것.</p>\n<p>순서:\n1. <strong>진입점 검색</strong>: <code>search_and_read_top(query=\"openakashic 온보딩\")</code> 또는 주제를 바꿔 호출 — 상위 매칭 노트의 <code>note_body_preview</code>(본문 앞부분)와 <code>note.body</code>(전체 본문)가 바로 반환된다. 도구 호출 한 번으로 본문이 들어오므로 <code>search_notes</code> → <code>read_note</code> 2단 호출보다 작은 모델에 유리.\n2. <strong>추가 본문 필요 시</strong>: <code>read_note(path=&lt;path&gt;)</code>로 특정 노트 전체 읽기. <code>list_notes</code>는 사용하지 말 것 (존재하지 않음).\n3. <strong>경로 제약</strong>: 모든 쓰기 경로는 <code>personal_vault/</code> 또는 <code>doc/</code> 로 시작해야 함.\n4. <strong>작업 후 writeback</strong>: 결과물을 <code>upsert_note(path, body, title, kind, tags)</code> 로 저장.\n   - <code>body</code> 필드에 markdown 본문. 편의상 <code>content</code>로 보내도 받아 주지만 정식 필드명은 <code>body</code>.\n   - 기존 노트 섹션 추가는 <code>append_note_section(path, section_title, body)</code> 사용.\n5. <strong>공개 요청</strong>: 공유 가치가 있으면 <code>request_note_publication(path, rationale)</code> 호출.\n   직접 <code>visibility=public</code> 을 세팅하지 않음 — librarian(사관)이 승인.</p>\n<h2 id=\"tool-cheatsheet\">Tool Cheatsheet<a class=\"heading-anchor\" href=\"#tool-cheatsheet\">#</a></h2>\n<ul>\n<li>읽기: <code>search_and_read_top(query)</code> → <code>read_note(path)</code> → <code>search_notes(query)</code></li>\n<li>쓰기: <code>upsert_note(path, body, title)</code> → <code>append_note_section(path, section_title, body)</code></li>\n<li>공개: <code>request_note_publication(path, rationale)</code> (직접 visibility 변경 금지)</li>\n<li>부트스트랩: <code>bootstrap_project(name)</code> — <strong>인덱스가 없을 때만</strong>. 이 README가 있으면 호출 불필요.</li>\n</ul>\n<h2 id=\"canonical-docs-홈서버-절대-경로\">Canonical Docs (홈서버 절대 경로)<a class=\"heading-anchor\" href=\"#canonical-docs-홈서버-절대-경로\">#</a></h2>\n<ul>\n<li>이 서버 리포지토리 루트: <code>/home/insu/insu_server/</code></li>\n<li>OpenAkashic web 서버 소스: <code>/home/insu/insu_server/apps/openakashic/closed-web/server/</code></li>\n<li>Compose: <code>/home/insu/insu_server/compose/production.yml</code></li>\n</ul>\n<h2 id=\"active-surfaces\">Active Surfaces<a class=\"heading-anchor\" href=\"#active-surfaces\">#</a></h2>\n<ul>\n<li>browser: <code>https://openakashic.com</code></li>\n<li>api: <code>https://api.openakashic.com</code></li>\n<li>knowledge (MCP): <code>https://knowledge.openakashic.com/mcp/</code></li>\n</ul>\n<h2 id=\"memory-map-하위-폴더\">Memory Map (하위 폴더)<a class=\"heading-anchor\" href=\"#memory-map-하위-폴더\">#</a></h2>\n<ul>\n<li><code>architecture/</code> — 배포 구조, 데이터 모델</li>\n<li><code>playbooks/</code> — 배포, 복구, MCP/도메인 연결, 운영 절차</li>\n<li><code>incidents/</code> — 운영 장애, 라우팅/데이터 연결 이슈</li>\n<li><code>decisions/</code> — 오픈/클로즈드 아카식 경계, 구조 선택</li>\n<li><code>experiments/</code> — 검색·그래프·UI 실험</li>\n<li><code>reference/</code> — 샘플 출력, 검증 메모, A/B bench 결과</li>\n<li><code>bench-v0*.md</code> — OpenAkashicBench 결과 모음</li>\n</ul>\n<h2 id=\"agent-roles\">Agent Roles<a class=\"heading-anchor\" href=\"#agent-roles\">#</a></h2>\n<p>두 종류의 운영 에이전트가 있다:\n- <strong>사관 (Sagwan)</strong> — Claude CLI 기반, high-quality/저주기 워커 (승인·게이트)\n- <strong>부사관 (Busagwan)</strong> — Ollama gemma 기반, 빠른/고주기 워커 (1차 리뷰·크롤)\n자세한 차이: <code>personal_vault/projects/ops/librarian/profile/busagwan-sagwan-roles.md</code></p>\n<h2 id=\"reuse\">Reuse<a class=\"heading-anchor\" href=\"#reuse\">#</a></h2>\n<p>새 작업 전에는 이 인덱스로 canonical docs와 이미 축적된 노트를 함께 확인한다.</p>\n<h2 id=\"sagwan-revalidation-2026-04-17t16-35-25z\">Sagwan Revalidation 2026-04-17T16:35:25Z<a class=\"heading-anchor\" href=\"#sagwan-revalidation-2026-04-17t16-35-25z\">#</a></h2>\n<ul>\n<li>verdict: <code>ok</code></li>\n<li>note: 현재 지침과 완전 일치하며 링크/경로 유효. 마이너 오탈자(마지막 문단 경로 끝)는 스타일 이슈로 내용 신뢰도에 영향 없음.</li>\n</ul>\n<h2 id=\"2026-04-18-update\">2026-04-18 Update<a class=\"heading-anchor\" href=\"#2026-04-18-update\">#</a></h2>\n<ul>\n<li>onboarding Quick Answer 재작성: <code>search_and_read_top</code>을 1순위 진입점으로 명시 (소형 모델이 <code>search_notes</code>→<code>read_note</code> 2단을 놓치는 OpenAkashicBench v0.5 실패 패턴 반영)</li>\n<li><code>upsert_note</code>가 <code>content</code> alias를 받도록 서버 조정 — 문서에도 반영</li>\n<li>Tool Cheatsheet 섹션 추가</li>\n</ul>",
+              "links": [],
+              "related_notes": [
+                {
+                  "slug": "project-memory-intake",
+                  "title": "Project Memory Intake",
+                  "summary": "에이전트는 중앙 Closed Akashic MCP에서 프로젝트 인덱스와 관련 노트를 먼저 확인하고, 프로젝트 원본 문서를 읽은 뒤, 재사용 가능한 기억만 다시 Closed Akashic에 남긴다.",
+                  "href": "/notes/project-memory-intake"
+                },
+                {
+                  "slug": "aws-central-vault",
+                  "title": "AWS Central Vault",
+                  "summary": "AWS에 중앙 vault를 두고 개인 Codex/Cursor 에이전트는 MCP 서버를 통해 읽고 쓴다.",
+                  "href": "/notes/aws-central-vault"
+                },
+                {
+                  "slug": "agent-memory-workflow",
+                  "title": "Agent Memory Workflow",
+                  "summary": "에이전트는 작업 시작 전에 기억을 검색하고, 작업 종료 후 경험을 짧은 구조화 노트로 남긴다.",
+                  "href": "/notes/agent-memory-workflow"
+                }
+              ],
+              "backlinks": [],
+              "outbound": 3,
+              "href": "/notes/personal-vault-projects-personal-openakashic-readme"
+            }
+          },
+          "error": null,
+          "duration_ms": 594.3
+        },
+        {
+          "tool": "path_suggestion",
+          "arguments": {
+            "partial_path": "personal_vault/projects/personal/openakashic"
+          },
+          "result": {
+            "raw_text": "Error executing tool path_suggestion: 1 validation error for path_suggestionArguments\ntitle\n  Field required [type=missing, input_value={'partial_path': 'persona...s/personal/openakashic'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/missing"
+          },
+          "error": null,
+          "duration_ms": 245.0
+        }
+      ],
+      "answer": "OpenAkashic 신규 에이전트 온보딩 가이드는 다음과 같습니다:\n\n**기본 구조:**\nOpenAkashic은 홈서버 Docker 스택 기반으로 운영되며, 설계·플레이북·메모리는 `personal_vault/projects/personal/openakashic/` 폴더에 집중됩니다.\n\n**온보딩 순서:**\n\n1. **진입점 검색**: `search_and_read_top(query=<주제>)` 한 번 호출하면 상위 매칭 노트의 본문이 즉시 반환됩니다. `search_notes` → `read_note` 2단계보다 효율적입니다.\n\n2. **추가 본문 필요 시**: `read_note(path=<path>)`로 특정 노트 전체를 읽습니다. (`list_notes`는 사용하지 않음)\n\n3. **경로 규칙**: 모든 쓰기 경로는 `personal_vault/` 또는 `doc/`로 시작해야 합니다.\n\n4. **작업 후 저장**: `upsert_note(path, body, title, kind, tags)`로 저장합니다. 기존 노트에 섹션을 추가할 때는 `append_note_section(path, section_title, body)` 사용.\n\n5. **공개 요청**: `request_note_publication(path, rationale)`로 공개를 요청합니다. 직접 `visibility=public`으로 변경하지 않습니다 (librarian 승인 필요).\n\n**Tool Cheatsheet:**\n읽기: `search_and_read_top` → `read_note` → `search_notes` | 쓰기: `upsert_note` → `append_note_section` | 공개: `request_note_publication`\n\n참고: `path_suggestion` 도구는 현재 `title` 필드가 필수이므로 단독 사용 불가.",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"OpenAkashic 프로젝트의 온보딩 문서와 경로 구조를 검색으로 확인하고, 필요시 path_suggestion으로 정확한 경로 제안받기\",\n  \"tool_calls\": [\n    {\n      \"tool\": \"search_and_read_top\",\n      \"arguments\": {\n        \"query\": \"OpenAkashic 온보딩 시작가이드 프로젝트 구조 README\"\n      }\n    },\n    {\n      \"tool\": \"path_suggestion\",\n      \"arguments\": {\n        \"partial_path\": \"personal_vault/projects/personal/openakashic\"\n      }\n    }\n  ]\n}\n```",
+      "raw_model_output_turn2": "```json\n{\n  \"answer\": \"OpenAkashic 신규 에이전트 온보딩 가이드는 다음과 같습니다:\\n\\n**기본 구조:**\\nOpenAkashic은 홈서버 Docker 스택 기반으로 운영되며, 설계·플레이북·메모리는 `personal_vault/projects/personal/openakashic/` 폴더에 집중됩니다.\\n\\n**온보딩 순서:**\\n\\n1. **진입점 검색**: `search_and_read_top(query=<주제>)` 한 번 호출하면 상위 매칭 노트의 본문이 즉시 반환됩니다. `search_notes` → `read_note` 2단계보다 효율적입니다.\\n\\n2. **추가 본문 필요 시**: `read_note(path=<path>)`로 특정 노트 전체를 읽습니다. (`list_notes`는 사용하지 않음)\\n\\n3. **경로 규칙**: 모든 쓰기 경로는 `personal_vault/` 또는 `doc/`로 시작해야 합니다.\\n\\n4. **작업 후 저장**: `upsert_note(path, body, title, kind, tags)`로 저장합니다. 기존 노트에 섹션을 추가할 때는 `append_note_section(path, section_title, body)` 사용.\\n\\n5. **공개 요청**: `request_note_publication(path, rationale)`로 공개를 요청합니다. 직접 `visibility=public`으로 변경하지 않습니다 (librarian 승인 필요).\\n\\n**Tool Cheatsheet:**\\n읽기: `search_and_read_top` → `read_note` → `search_notes` | 쓰기: `upsert_note` → `append_note_section` | 공개: `request_note_publication`\\n\\n참고: `path_suggestion` 도구는 현재 `title` 필드가 필수이므로 단독 사용 불가.\"\n}\n```",
+      "error": null,
+      "format_violation": false
+    },
+    {
+      "task_id": "triage_ichimozzi_500",
+      "condition": "openakashic",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-18T01:14:56+00:00",
+      "finished_at": "2026-04-18T01:15:07+00:00",
+      "plan": "insu-server Docker 스택의 ichimozzi 관련 컨테이너 구조와 500 에러 트러블슈팅 가이드를 Akashic에서 검색",
+      "tool_calls": [
+        {
+          "tool": "search_and_read_top",
+          "arguments": {
+            "query": "insu-server ichimozzi 컨테이너 Docker 500 에러 트러블슈팅 triage"
+          },
+          "result": {
+            "directive": "노트 본문의 사실을 인용해 질문에 직접 답하세요. 경로 나열·도구명 반복 금지. 부족하면 read_note 추가 호출.",
+            "note_body_preview": "## Summary\nichimozzi.com 이 5xx (특히 500) 에러를 반환할 때 홈서버 Docker 스택에서 확인하는 순서.\nEC2·AWS·Lambda 아님. **모두 로컬 Docker 컨테이너**로 돌아간다.\n\n## Topology\n요청 흐름: `브라우저 → insu-shared-caddy (리버스 프록시, TLS) → insu-server-backend-prod-1 (NestJS) → insu-server-ichimozzi-db-1 (Postgres)`\n\n## Triage 순서 (프록시 → 앱 → DB)\n\n### 1. 리버스 프록시 — insu-shared-caddy\n```bash\ndocker ps | grep caddy\ndocker logs --tail 100 insu-shared-caddy\n```\nCaddy가 죽어 있거나 upstream 연결 실패 로그가 있으면 여기서 차단. 재시작:\n```bash\ncd /home/insu/insu_server/compose\ndocker compose -f production.yml restart caddy\n```\n\n### 2. IchiMozzi 백엔드 — insu-server-backend-prod-1\n```bash\ndocker ps | grep backend-prod\ndocker logs --tail 200 insu-server-backend-prod-1\n```\n500이면 대부분 여기. 부팅 실패 / DB connection refused / 마이그레이션 스키마 불일치 등.\n\n### 3. 의존 DB — insu-server-ichimozzi-db-1\n```bash\ndocker ps | grep ichimozzi-db\ndocker exec insu-server-ichimozzi-db-1 pg_isready -U postgres -d IchiMozzi\n```\nDB 가장 마지막에 확인 — 가장 흔한 원인은 1 또는 2번이다.\n\n## 관련 컨테이너 목록 (참고)\n| 이름 | 역할 |\n|---|---|\n| `insu-shared-caddy` | Caddy 리버스 프록시 (TLS + 라우팅) |\n| `insu-server-backend-prod-1` | IchiMozzi NestJS 백엔드 |\n| `insu-server-ichimozzi-db-1` | IchiMozzi PostgreSQL |\n| `insu-server-openakashic-web-1` | OpenAka",
+            "retrieval_value": {
+              "directive": "경로 나열 금지. 노트 내용을 읽어 질문에 직접 답하세요. 부족하면 read_note 추가 호출.",
+              "intent": "fact_lookup",
+              "matched_notes": [
+                "personal_vault/projects/personal/insu-server/triage-500-runbook.md",
+                "personal_vault/projects/personal/insu-server/container-naming.md",
+                "personal_vault/projects/personal/ichimozzi/deployment.md"
+              ],
+              "writeback_suggested": false,
+              "read_note_hint": "본문이 필요하면 read_note(path=<path>) 추가 호출. 쓰기는 upsert_note(path, body, title)."
+            },
+            "query": "insu-server ichimozzi 컨테이너 Docker 500 에러 트러블슈팅 triage",
+            "top": {
+              "path": "personal_vault/projects/personal/insu-server/triage-500-runbook.md",
+              "slug": "triage-500-runbook",
+              "title": "insu-server 500 에러 triage 런북 (Caddy → backend → DB)",
+              "kind": "playbook",
+              "project": "insu-server",
+              "owner": "admin",
+              "visibility": "private",
+              "publication_status": "none",
+              "tags": [
+                "insu-server",
+                "triage",
+                "500",
+                "docker",
+                "caddy",
+                "playbook",
+                "ichimozzi"
+              ],
+              "summary": "ichimozzi.com 이 5xx (특히 500) 에러를 반환할 때 홈서버 Docker 스택에서 확인하는 순서. EC2·AWS·Lambda 아님. 모두 로컬 Docker 컨테이너 로 돌아간다.",
+              "href": "/notes/triage-500-runbook",
+              "lexical_score": 0.0,
+              "semantic_score": 0.7594,
+              "confirm_count": 0,
+              "score": 0.016393
+            },
+            "other_results": [
+              {
+                "path": "personal_vault/projects/personal/insu-server/container-naming.md",
+                "slug": "container-naming",
+                "title": "insu-server 컨테이너 네이밍 정리 (2026-04-16)",
+                "kind": "reference",
+                "project": "openakashic",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "docker",
+                  "infra",
+                  "openakashic",
+                  "naming"
+                ],
+                "summary": "초기에 OpenAkashic private web 서비스를 IchiMozzi 인프라에 붙여 만들면서",
+                "href": "/notes/container-naming",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5452,
+                "confirm_count": 0,
+                "score": 0.016129
+              },
+              {
+                "path": "doc/knowledge-gaps/insu-server-openakashic-docker-container-컨테이너-구조-로-6de89d.md",
+                "slug": "insu-server-openakashic-docker-container-컨테이너-구조-로-6de89d",
+                "title": "[Gap] insu_server openakashic docker container 컨테이너 구조 로그",
+                "kind": "reference",
+                "project": "openakashic",
+                "owner": "sagwan",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "gap",
+                  "knowledge-gap",
+                  "subordinate"
+                ],
+                "summary": "에이전트가 insu server openakashic docker container 컨테이너 구조 로그 쿼리로 검색했으나 관련 노트가 없었습니다.",
+                "href": "/notes/insu-server-openakashic-docker-container-컨테이너-구조-로-6de89d",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5452,
+                "confirm_count": 0,
+                "score": 0.015873
+              },
+              {
+                "path": "doc/knowledge-gaps/insu-server-docker-compose-containers-infrastructu-470506.md",
+                "slug": "insu-server-docker-compose-containers-infrastructu-470506",
+                "title": "[Gap] insu-server docker compose containers infrastructure",
+                "kind": "reference",
+                "project": "openakashic",
+                "owner": "sagwan",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "gap",
+                  "knowledge-gap",
+                  "subordinate"
+                ],
+                "summary": "에이전트가 insu-server docker compose containers infrastructure 쿼리로 검색했으나 관련 노트가 없었습니다.",
+                "href": "/notes/insu-server-docker-compose-containers-infrastructu-470506",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5419,
+                "confirm_count": 0,
+                "score": 0.015625
+              },
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/deployment.md",
+                "slug": "deployment",
+                "title": "IchiMozzi 배포 가이드",
+                "kind": "reference",
+                "project": "openakashic",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [],
+                "summary": "EC2 없음. 홈서버 Docker에서 실행.",
+                "href": "/notes/deployment",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5336,
+                "confirm_count": 0,
+                "score": 0.015385
+              }
+            ],
+            "hints": [],
+            "count": 5,
+            "note": {
+              "path": "personal_vault/projects/personal/insu-server/triage-500-runbook.md",
+              "slug": "triage-500-runbook",
+              "title": "insu-server 500 에러 triage 런북 (Caddy → backend → DB)",
+              "kind": "playbook",
+              "project": "insu-server",
+              "status": "active",
+              "owner": "admin",
+              "original_owner": "admin",
+              "created_by": "admin",
+              "visibility": "private",
+              "publication_status": "none",
+              "tags": [
+                "insu-server",
+                "triage",
+                "500",
+                "docker",
+                "caddy",
+                "playbook",
+                "ichimozzi"
+              ],
+              "related": [],
+              "summary": "ichimozzi.com 이 5xx (특히 500) 에러를 반환할 때 홈서버 Docker 스택에서 확인하는 순서. EC2·AWS·Lambda 아님. 모두 로컬 Docker 컨테이너 로 돌아간다.",
+              "body": "## Summary\nichimozzi.com 이 5xx (특히 500) 에러를 반환할 때 홈서버 Docker 스택에서 확인하는 순서.\nEC2·AWS·Lambda 아님. **모두 로컬 Docker 컨테이너**로 돌아간다.\n\n## Topology\n요청 흐름: `브라우저 → insu-shared-caddy (리버스 프록시, TLS) → insu-server-backend-prod-1 (NestJS) → insu-server-ichimozzi-db-1 (Postgres)`\n\n## Triage 순서 (프록시 → 앱 → DB)\n\n### 1. 리버스 프록시 — insu-shared-caddy\n```bash\ndocker ps | grep caddy\ndocker logs --tail 100 insu-shared-caddy\n```\nCaddy가 죽어 있거나 upstream 연결 실패 로그가 있으면 여기서 차단. 재시작:\n```bash\ncd /home/insu/insu_server/compose\ndocker compose -f production.yml restart caddy\n```\n\n### 2. IchiMozzi 백엔드 — insu-server-backend-prod-1\n```bash\ndocker ps | grep backend-prod\ndocker logs --tail 200 insu-server-backend-prod-1\n```\n500이면 대부분 여기. 부팅 실패 / DB connection refused / 마이그레이션 스키마 불일치 등.\n\n### 3. 의존 DB — insu-server-ichimozzi-db-1\n```bash\ndocker ps | grep ichimozzi-db\ndocker exec insu-server-ichimozzi-db-1 pg_isready -U postgres -d IchiMozzi\n```\nDB 가장 마지막에 확인 — 가장 흔한 원인은 1 또는 2번이다.\n\n## 관련 컨테이너 목록 (참고)\n| 이름 | 역할 |\n|---|---|\n| `insu-shared-caddy` | Caddy 리버스 프록시 (TLS + 라우팅) |\n| `insu-server-backend-prod-1` | IchiMozzi NestJS 백엔드 |\n| `insu-server-ichimozzi-db-1` | IchiMozzi PostgreSQL |\n| `insu-server-openakashic-web-1` | OpenAkashic web (별개 도메인) |\n| `insu-server-openakashic-api-1` | OpenAkashic Core API |\n\n자세한 컨테이너 이름 히스토리: `personal_vault/projects/personal/insu-server/container-naming.md`\n\n## 흔한 오진 (피하기)\n- ❌ EC2/AWS 스택으로 가정 — **실제는 홈서버 Docker**\n- ❌ nginx로 가정 — **Caddy**\n- ❌ `ichimozzi-api-1` / `ichimozzi-migration-backend-prod-1` 같은 과거/가상 이름 — 현행은 `insu-server-backend-prod-1`\n- ❌ DB부터 확인 — 역순. 프록시 → 앱 → DB가 맞다.",
+              "body_html": "<h2 id=\"summary\">Summary<a class=\"heading-anchor\" href=\"#summary\">#</a></h2>\n<p>ichimozzi.com 이 5xx (특히 500) 에러를 반환할 때 홈서버 Docker 스택에서 확인하는 순서.\nEC2·AWS·Lambda 아님. <strong>모두 로컬 Docker 컨테이너</strong>로 돌아간다.</p>\n<h2 id=\"topology\">Topology<a class=\"heading-anchor\" href=\"#topology\">#</a></h2>\n<p>요청 흐름: <code>브라우저 → insu-shared-caddy (리버스 프록시, TLS) → insu-server-backend-prod-1 (NestJS) → insu-server-ichimozzi-db-1 (Postgres)</code></p>\n<h2 id=\"triage-순서-프록시-앱-db\">Triage 순서 (프록시 → 앱 → DB)<a class=\"heading-anchor\" href=\"#triage-순서-프록시-앱-db\">#</a></h2>\n<h3 id=\"1-리버스-프록시-insu-shared-caddy\">1. 리버스 프록시 — insu-shared-caddy<a class=\"heading-anchor\" href=\"#1-리버스-프록시-insu-shared-caddy\">#</a></h3>\n<pre><code class=\"language-bash\">docker ps | grep caddy\ndocker logs --tail 100 insu-shared-caddy\n</code></pre>\n<p>Caddy가 죽어 있거나 upstream 연결 실패 로그가 있으면 여기서 차단. 재시작:</p>\n<pre><code class=\"language-bash\">cd /home/insu/insu_server/compose\ndocker compose -f production.yml restart caddy\n</code></pre>\n<h3 id=\"2-ichimozzi-백엔드-insu-server-backend-prod-1\">2. IchiMozzi 백엔드 — insu-server-backend-prod-1<a class=\"heading-anchor\" href=\"#2-ichimozzi-백엔드-insu-server-backend-prod-1\">#</a></h3>\n<pre><code class=\"language-bash\">docker ps | grep backend-prod\ndocker logs --tail 200 insu-server-backend-prod-1\n</code></pre>\n<p>500이면 대부분 여기. 부팅 실패 / DB connection refused / 마이그레이션 스키마 불일치 등.</p>\n<h3 id=\"3-의존-db-insu-server-ichimozzi-db-1\">3. 의존 DB — insu-server-ichimozzi-db-1<a class=\"heading-anchor\" href=\"#3-의존-db-insu-server-ichimozzi-db-1\">#</a></h3>\n<pre><code class=\"language-bash\">docker ps | grep ichimozzi-db\ndocker exec insu-server-ichimozzi-db-1 pg_isready -U postgres -d IchiMozzi\n</code></pre>\n<p>DB 가장 마지막에 확인 — 가장 흔한 원인은 1 또는 2번이다.</p>\n<h2 id=\"관련-컨테이너-목록-참고\">관련 컨테이너 목록 (참고)<a class=\"heading-anchor\" href=\"#관련-컨테이너-목록-참고\">#</a></h2>\n<table>\n<thead>\n<tr>\n<th>이름</th>\n<th>역할</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><code>insu-shared-caddy</code></td>\n<td>Caddy 리버스 프록시 (TLS + 라우팅)</td>\n</tr>\n<tr>\n<td><code>insu-server-backend-prod-1</code></td>\n<td>IchiMozzi NestJS 백엔드</td>\n</tr>\n<tr>\n<td><code>insu-server-ichimozzi-db-1</code></td>\n<td>IchiMozzi PostgreSQL</td>\n</tr>\n<tr>\n<td><code>insu-server-openakashic-web-1</code></td>\n<td>OpenAkashic web (별개 도메인)</td>\n</tr>\n<tr>\n<td><code>insu-server-openakashic-api-1</code></td>\n<td>OpenAkashic Core API</td>\n</tr>\n</tbody>\n</table>\n<p>자세한 컨테이너 이름 히스토리: <code>personal_vault/projects/personal/insu-server/container-naming.md</code></p>\n<h2 id=\"흔한-오진-피하기\">흔한 오진 (피하기)<a class=\"heading-anchor\" href=\"#흔한-오진-피하기\">#</a></h2>\n<ul>\n<li>❌ EC2/AWS 스택으로 가정 — <strong>실제는 홈서버 Docker</strong></li>\n<li>❌ nginx로 가정 — <strong>Caddy</strong></li>\n<li>❌ <code>ichimozzi-api-1</code> / <code>ichimozzi-migration-backend-prod-1</code> 같은 과거/가상 이름 — 현행은 <code>insu-server-backend-prod-1</code></li>\n<li>❌ DB부터 확인 — 역순. 프록시 → 앱 → DB가 맞다.</li>\n</ul>",
+              "links": [],
+              "related_notes": [],
+              "backlinks": [],
+              "outbound": 0,
+              "href": "/notes/triage-500-runbook"
+            }
+          },
+          "error": null,
+          "duration_ms": 452.8
+        }
+      ],
+      "answer": "ichimozzi.com의 500 에러 트러블슈팅은 다음 순서로 진행합니다:\n\n**요청 흐름:**\n브라우저 → `insu-shared-caddy` (리버스 프록시, TLS) → `insu-server-backend-prod-1` (NestJS) → `insu-server-ichimozzi-db-1` (Postgres)\n\n**Triage 순서 (프록시 → 앱 → DB):**\n\n**1단계: 리버스 프록시 (`insu-shared-caddy`) 확인**\n```bash\ndocker ps | grep caddy\ndocker logs --tail 100 insu-shared-caddy\n```\nCaddy가 죽어 있거나 upstream 연결 실패 로그가 있으면 재시작:\n```bash\ncd /home/insu/insu_server/compose\ndocker compose -f production.yml restart caddy\n```\n\n**2단계: 백엔드 (`insu-server-backend-prod-1`) 확인 — 대부분 500 에러는 여기서 발생**\n```bash\ndocker ps | grep backend-prod\ndocker logs --tail 200 insu-server-backend-prod-1\n```\n부팅 실패, DB connection refused, 마이그레이션 스키마 불일치 등을 확인합니다.\n\n**3단계: DB (`insu-server-ichimozzi-db-1`) 확인 — 가장 마지막에 확인**\n```bash\ndocker ps | grep ichimozzi-db\ndocker exec insu-server-ichimozzi-db-1 pg_isready -U postgres -d IchiMozzi\n```\n\n500 에러의 대부분 원인은 1단계 또는 2단계에서 나타납니다.",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"insu-server Docker 스택의 ichimozzi 관련 컨테이너 구조와 500 에러 트러블슈팅 가이드를 Akashic에서 검색\",\n  \"tool_calls\": [\n    {\n      \"tool\": \"search_and_read_top\",\n      \"arguments\": {\n        \"query\": \"insu-server ichimozzi 컨테이너 Docker 500 에러 트러블슈팅 triage\"\n      }\n    }\n  ]\n}\n```",
+      "raw_model_output_turn2": "```json\n{\n  \"answer\": \"ichimozzi.com의 500 에러 트러블슈팅은 다음 순서로 진행합니다:\\n\\n**요청 흐름:**\\n브라우저 → `insu-shared-caddy` (리버스 프록시, TLS) → `insu-server-backend-prod-1` (NestJS) → `insu-server-ichimozzi-db-1` (Postgres)\\n\\n**Triage 순서 (프록시 → 앱 → DB):**\\n\\n**1단계: 리버스 프록시 (`insu-shared-caddy`) 확인**\\n```bash\\ndocker ps | grep caddy\\ndocker logs --tail 100 insu-shared-caddy\\n```\\nCaddy가 죽어 있거나 upstream 연결 실패 로그가 있으면 재시작:\\n```bash\\ncd /home/insu/insu_server/compose\\ndocker compose -f production.yml restart caddy\\n```\\n\\n**2단계: 백엔드 (`insu-server-backend-prod-1`) 확인 — 대부분 500 에러는 여기서 발생**\\n```bash\\ndocker ps | grep backend-prod\\ndocker logs --tail 200 insu-server-backend-prod-1\\n```\\n부팅 실패, DB connection refused, 마이그레이션 스키마 불일치 등을 확인합니다.\\n\\n**3단계: DB (`insu-server-ichimozzi-db-1`) 확인 — 가장 마지막에 확인**\\n```bash\\ndocker ps | grep ichimozzi-db\\ndocker exec insu-server-ichimozzi-db-1 pg_isready -U postgres -d IchiMozzi\\n```\\n\\n500 에러의 대부분 원인은 1단계 또는 2단계에서 나타납니다.\"\n}\n```",
+      "error": null,
+      "format_violation": false
+    },
+    {
+      "task_id": "ichimozzi_deploy",
+      "condition": "openakashic",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-18T01:15:07+00:00",
+      "finished_at": "2026-04-18T01:15:19+00:00",
+      "plan": "IchiMozzi 프로젝트의 배포 가이드 및 구체적 배포 명령어를 Akashic에서 검색",
+      "tool_calls": [
+        {
+          "tool": "search_and_read_top",
+          "arguments": {
+            "query": "IchiMozzi 배포 deploy 백엔드 배포 명령어 CI/CD pipeline"
+          },
+          "result": {
+            "directive": "노트 본문의 사실을 인용해 질문에 직접 답하세요. 경로 나열·도구명 반복 금지. 부족하면 read_note 추가 호출.",
+            "note_body_preview": "# IchiMozzi 배포 가이드\n\n## 백엔드 배포 (로컬 Docker)\n\nEC2 없음. 홈서버 Docker에서 실행.\n\n```bash\n# 리빌드 및 재시작\ncd /home/insu/insu_server/compose\ndocker compose -f production.yml up -d --build backend-prod\n```\n\n## DB 마이그레이션 (synchronize=false)\n\n```bash\ndocker exec insu-server-ichimozzi-db-1 psql -U postgres -d IchiMozzi -c \"ALTER TABLE ...\"\n```\n\n## 프론트엔드 OTA 배포\n\n```bash\ncd /home/insu/insu_server/apps/ichimozzi/frontend\nrm -rf dist/\nEXPO_TOKEN=kGmlnJG-SIOPnw_oIJZfoubUGRdYC2pZvtsPY4Sg eas update --channel master --message \"...\" --non-interactive\n```\n\n## 컨테이너 구조\n\n| 컨테이너 | 역할 |\n|---|---|\n| `insu-server-backend-prod-1` | NestJS 백엔드 (포트 3000 내부) |\n| `insu-server-ichimozzi-db-1` | PostgreSQL (포트 5432 내부) |\n| `insu-shared-caddy` | 리버스 프록시 |\n\n## 주의사항\n\n- `deploy.sh`는 구 EC2용, 사용 안 함\n- `DB_SYNCHRONIZE=false` → 컬럼 추가는 SQL 직접 실행 필요\n- 타입스크립트 체크: `./node_modules/.bin/tsc --noEmit`\n- 빌드: `npm run build` (NestJS)",
+            "retrieval_value": {
+              "directive": "경로 나열 금지. 노트 내용을 읽어 질문에 직접 답하세요. 부족하면 read_note 추가 호출.",
+              "intent": "fact_lookup",
+              "matched_notes": [
+                "personal_vault/projects/personal/ichimozzi/deployment.md",
+                "personal_vault/projects/personal/ichimozzi/playbooks/update-and-deploy.md",
+                "personal_vault/projects/personal/ichimozzi/deployment-log.md"
+              ],
+              "writeback_suggested": false,
+              "read_note_hint": "본문이 필요하면 read_note(path=<path>) 추가 호출. 쓰기는 upsert_note(path, body, title)."
+            },
+            "query": "IchiMozzi 배포 deploy 백엔드 배포 명령어 CI/CD pipeline",
+            "top": {
+              "path": "personal_vault/projects/personal/ichimozzi/deployment.md",
+              "slug": "deployment",
+              "title": "IchiMozzi 배포 가이드",
+              "kind": "reference",
+              "project": "openakashic",
+              "owner": "aaron",
+              "visibility": "private",
+              "publication_status": "none",
+              "tags": [],
+              "summary": "EC2 없음. 홈서버 Docker에서 실행.",
+              "href": "/notes/deployment",
+              "lexical_score": 0.0,
+              "semantic_score": 0.6501,
+              "confirm_count": 0,
+              "score": 0.016393
+            },
+            "other_results": [
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/playbooks/update-and-deploy.md",
+                "slug": "update-and-deploy",
+                "title": "IchiMozzi Update & Deploy Playbook (post-migration)",
+                "kind": "playbook",
+                "project": "personal/ichimozzi",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "ichimozzi",
+                  "playbook",
+                  "deploy",
+                  "webhook",
+                  "ops"
+                ],
+                "summary": "백엔드 소스(/home/insu/insu server/apps/ichimozzi/backend)를 수정한 뒤 다음 절차로 재배포한다.",
+                "href": "/notes/update-and-deploy",
+                "lexical_score": 0.0,
+                "semantic_score": 0.6027,
+                "confirm_count": 0,
+                "score": 0.016129
+              },
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/deployment-log.md",
+                "slug": "deployment-log",
+                "title": "IchiMozzi 배포 로그",
+                "kind": "reference",
+                "project": "ichimozzi",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "ichimozzi",
+                  "deployment",
+                  "backend",
+                  "frontend"
+                ],
+                "summary": "- auth: forgotPassword(6자리 코드 이메일), resetPassword, refreshToken, guestLogin(deviceId 중복방지)",
+                "href": "/notes/deployment-log",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5832,
+                "confirm_count": 0,
+                "score": 0.015873
+              },
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/README.md",
+                "slug": "personal-vault-projects-personal-ichimozzi-readme",
+                "title": "IchiMozzi Project",
+                "kind": "index",
+                "project": "personal/ichimozzi",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "project",
+                  "ichimozzi"
+                ],
+                "summary": "IchiMozzi 관련 아키텍처 노트와 운영 플레이북을 이 폴더에 모은다.",
+                "href": "/notes/personal-vault-projects-personal-ichimozzi-readme",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5764,
+                "confirm_count": 0,
+                "score": 0.015625
+              },
+              {
+                "path": "personal_vault/knowledge/dev/CI/CD 배포 전략 실전 가이드 Capsule.md",
+                "slug": "cd-배포-전략-실전-가이드-capsule",
+                "title": "CI/CD 배포 전략 실전 가이드 Capsule",
+                "kind": "capsule",
+                "project": "openakashic",
+                "owner": "sagwan",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "capsule",
+                  "subordinate",
+                  "draft"
+                ],
+                "summary": "이 가이드는 안정적이고 신뢰성 높은 소프트웨어 배포를 위한 핵심 CI/CD 패턴과 아키텍처 원칙을 정리합니다. 단순히 코드를 배포하는 것을 넘어, 다운타임 제로(Zero Downtime) 와 자동 롤백(Automatic Rollback) 을 보장하는 운영 레벨의 전략을 다룹니다.",
+                "href": "/notes/cd-배포-전략-실전-가이드-capsule",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5622,
+                "confirm_count": 0,
+                "score": 0.015385
+              }
+            ],
+            "hints": [],
+            "count": 5,
+            "note": {
+              "path": "personal_vault/projects/personal/ichimozzi/deployment.md",
+              "slug": "deployment",
+              "title": "IchiMozzi 배포 가이드",
+              "kind": "reference",
+              "project": "openakashic",
+              "status": "active",
+              "owner": "aaron",
+              "original_owner": "aaron",
+              "created_by": "aaron",
+              "visibility": "private",
+              "publication_status": "none",
+              "tags": [],
+              "related": [],
+              "summary": "EC2 없음. 홈서버 Docker에서 실행.",
+              "body": "# IchiMozzi 배포 가이드\n\n## 백엔드 배포 (로컬 Docker)\n\nEC2 없음. 홈서버 Docker에서 실행.\n\n```bash\n# 리빌드 및 재시작\ncd /home/insu/insu_server/compose\ndocker compose -f production.yml up -d --build backend-prod\n```\n\n## DB 마이그레이션 (synchronize=false)\n\n```bash\ndocker exec insu-server-ichimozzi-db-1 psql -U postgres -d IchiMozzi -c \"ALTER TABLE ...\"\n```\n\n## 프론트엔드 OTA 배포\n\n```bash\ncd /home/insu/insu_server/apps/ichimozzi/frontend\nrm -rf dist/\nEXPO_TOKEN=kGmlnJG-SIOPnw_oIJZfoubUGRdYC2pZvtsPY4Sg eas update --channel master --message \"...\" --non-interactive\n```\n\n## 컨테이너 구조\n\n| 컨테이너 | 역할 |\n|---|---|\n| `insu-server-backend-prod-1` | NestJS 백엔드 (포트 3000 내부) |\n| `insu-server-ichimozzi-db-1` | PostgreSQL (포트 5432 내부) |\n| `insu-shared-caddy` | 리버스 프록시 |\n\n## 주의사항\n\n- `deploy.sh`는 구 EC2용, 사용 안 함\n- `DB_SYNCHRONIZE=false` → 컬럼 추가는 SQL 직접 실행 필요\n- 타입스크립트 체크: `./node_modules/.bin/tsc --noEmit`\n- 빌드: `npm run build` (NestJS)",
+              "body_html": "<h1>IchiMozzi 배포 가이드</h1>\n<h2 id=\"백엔드-배포-로컬-docker\">백엔드 배포 (로컬 Docker)<a class=\"heading-anchor\" href=\"#백엔드-배포-로컬-docker\">#</a></h2>\n<p>EC2 없음. 홈서버 Docker에서 실행.</p>\n<pre><code class=\"language-bash\"># 리빌드 및 재시작\ncd /home/insu/insu_server/compose\ndocker compose -f production.yml up -d --build backend-prod\n</code></pre>\n<h2 id=\"db-마이그레이션-synchronize-false\">DB 마이그레이션 (synchronize=false)<a class=\"heading-anchor\" href=\"#db-마이그레이션-synchronize-false\">#</a></h2>\n<pre><code class=\"language-bash\">docker exec insu-server-ichimozzi-db-1 psql -U postgres -d IchiMozzi -c \"ALTER TABLE ...\"\n</code></pre>\n<h2 id=\"프론트엔드-ota-배포\">프론트엔드 OTA 배포<a class=\"heading-anchor\" href=\"#프론트엔드-ota-배포\">#</a></h2>\n<pre><code class=\"language-bash\">cd /home/insu/insu_server/apps/ichimozzi/frontend\nrm -rf dist/\nEXPO_TOKEN=kGmlnJG-SIOPnw_oIJZfoubUGRdYC2pZvtsPY4Sg eas update --channel master --message \"...\" --non-interactive\n</code></pre>\n<h2 id=\"컨테이너-구조\">컨테이너 구조<a class=\"heading-anchor\" href=\"#컨테이너-구조\">#</a></h2>\n<table>\n<thead>\n<tr>\n<th>컨테이너</th>\n<th>역할</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><code>insu-server-backend-prod-1</code></td>\n<td>NestJS 백엔드 (포트 3000 내부)</td>\n</tr>\n<tr>\n<td><code>insu-server-ichimozzi-db-1</code></td>\n<td>PostgreSQL (포트 5432 내부)</td>\n</tr>\n<tr>\n<td><code>insu-shared-caddy</code></td>\n<td>리버스 프록시</td>\n</tr>\n</tbody>\n</table>\n<h2 id=\"주의사항\">주의사항<a class=\"heading-anchor\" href=\"#주의사항\">#</a></h2>\n<ul>\n<li><code>deploy.sh</code>는 구 EC2용, 사용 안 함</li>\n<li><code>DB_SYNCHRONIZE=false</code> → 컬럼 추가는 SQL 직접 실행 필요</li>\n<li>타입스크립트 체크: <code>./node_modules/.bin/tsc --noEmit</code></li>\n<li>빌드: <code>npm run build</code> (NestJS)</li>\n</ul>",
+              "links": [],
+              "related_notes": [],
+              "backlinks": [],
+              "outbound": 0,
+              "href": "/notes/deployment"
+            }
+          },
+          "error": null,
+          "duration_ms": 1106.3
+        }
+      ],
+      "answer": "IchiMozzi 배포는 다음과 같이 진행합니다:\n\n**백엔드 배포 (NestJS 리빌드 및 재시작)**\n```bash\ncd /home/insu/insu_server/compose\ndocker compose -f production.yml up -d --build backend-prod\n```\n이 명령어는 `insu-server-backend-prod-1` 컨테이너를 재빌드하고 재시작합니다.\n\n**데이터베이스 마이그레이션**\n`DB_SYNCHRONIZE=false` 설정이므로 컬럼 추가는 SQL을 직접 실행합니다:\n```bash\ndocker exec insu-server-ichimozzi-db-1 psql -U postgres -d IchiMozzi -c \"ALTER TABLE ...\"\n```\n\n**프론트엔드 OTA 배포 (Expo)**\n```bash\ncd /home/insu/insu_server/apps/ichimozzi/frontend\nrm -rf dist/\nEXPO_TOKEN=kGmlnJG-SIOPnw_oIJZfoubUGRdYC2pZvtsPY4Sg eas update --channel master --message \"...\" --non-interactive\n```\n\n**배포 전 체크사항**\n- 타입스크립트 검사: `./node_modules/.bin/tsc --noEmit`\n- NestJS 빌드: `npm run build`\n\n**주의사항**\n- `deploy.sh`는 구 EC2용이므로 사용하지 않습니다.\n- 모든 컨테이너는 홈서버 Docker에서 실행됩니다: `insu-server-backend-prod-1` (백엔드), `insu-server-ichimozzi-db-1` (PostgreSQL), `insu-shared-caddy` (리버스 프록시)",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"IchiMozzi 프로젝트의 배포 가이드 및 구체적 배포 명령어를 Akashic에서 검색\",\n  \"tool_calls\": [\n    {\n      \"tool\": \"search_and_read_top\",\n      \"arguments\": {\n        \"query\": \"IchiMozzi 배포 deploy 백엔드 배포 명령어 CI/CD pipeline\"\n      }\n    }\n  ]\n}\n```",
+      "raw_model_output_turn2": "```json\n{\n  \"answer\": \"IchiMozzi 배포는 다음과 같이 진행합니다:\\n\\n**백엔드 배포 (NestJS 리빌드 및 재시작)**\\n```bash\\ncd /home/insu/insu_server/compose\\ndocker compose -f production.yml up -d --build backend-prod\\n```\\n이 명령어는 `insu-server-backend-prod-1` 컨테이너를 재빌드하고 재시작합니다.\\n\\n**데이터베이스 마이그레이션**\\n`DB_SYNCHRONIZE=false` 설정이므로 컬럼 추가는 SQL을 직접 실행합니다:\\n```bash\\ndocker exec insu-server-ichimozzi-db-1 psql -U postgres -d IchiMozzi -c \\\"ALTER TABLE ...\\\"\\n```\\n\\n**프론트엔드 OTA 배포 (Expo)**\\n```bash\\ncd /home/insu/insu_server/apps/ichimozzi/frontend\\nrm -rf dist/\\nEXPO_TOKEN=kGmlnJG-SIOPnw_oIJZfoubUGRdYC2pZvtsPY4Sg eas update --channel master --message \\\"...\\\" --non-interactive\\n```\\n\\n**배포 전 체크사항**\\n- 타입스크립트 검사: `./node_modules/.bin/tsc --noEmit`\\n- NestJS 빌드: `npm run build`\\n\\n**주의사항**\\n- `deploy.sh`는 구 EC2용이므로 사용하지 않습니다.\\n- 모든 컨테이너는 홈서버 Docker에서 실행됩니다: `insu-server-backend-prod-1` (백엔드), `insu-server-ichimozzi-db-1` (PostgreSQL), `insu-shared-caddy` (리버스 프록시)\"\n}\n```",
+      "error": null,
+      "format_violation": false
+    },
+    {
+      "task_id": "general_web_fact",
+      "condition": "openakashic",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-18T01:15:19+00:00",
+      "finished_at": "2026-04-18T01:15:29+00:00",
+      "plan": "MCP는 공개된 표준 프로토콜이므로 Akashic 조회 불필요. 공개 지식으로 저장소 URL과 설명 제공",
+      "tool_calls": [],
+      "answer": "Anthropic의 Model Context Protocol(MCP) 공식 저장소는 https://github.com/anthropics/model-context-protocol 입니다.\n\nMCP는 Claude와 같은 대규모 언어 모델이 로컬 파일 시스템, 데이터베이스, REST API, 웹 서비스, 엔터프라이즈 애플리케이션 등 다양한 외부 데이터 소스와 도구에 안전하고 표준화된 방식으로 접근할 수 있도록 설계된 개방형 프로토콜입니다. 이를 통해 모델은 실시간 정보를 조회하고 외부 시스템과 상호작용하며 사용자 정의 기능을 활용할 수 있으며, 개발자는 자신의 특정 시스템과 데이터에 맞게 커스텀 MCP 서버를 구축하여 모델의 기능을 확장할 수 있습니다.",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"MCP는 공개된 표준 프로토콜이므로 Akashic 조회 불필요. 공개 지식으로 저장소 URL과 설명 제공\",\n  \"tool_calls\": []\n}\n```",
+      "raw_model_output_turn2": "```json\n{\n  \"answer\": \"Anthropic의 Model Context Protocol(MCP) 공식 저장소는 https://github.com/anthropics/model-context-protocol 입니다.\\n\\nMCP는 Claude와 같은 대규모 언어 모델이 로컬 파일 시스템, 데이터베이스, REST API, 웹 서비스, 엔터프라이즈 애플리케이션 등 다양한 외부 데이터 소스와 도구에 안전하고 표준화된 방식으로 접근할 수 있도록 설계된 개방형 프로토콜입니다. 이를 통해 모델은 실시간 정보를 조회하고 외부 시스템과 상호작용하며 사용자 정의 기능을 활용할 수 있으며, 개발자는 자신의 특정 시스템과 데이터에 맞게 커스텀 MCP 서버를 구축하여 모델의 기능을 확장할 수 있습니다.\"\n}\n```",
+      "error": null,
+      "format_violation": false
+    },
+    {
+      "task_id": "memory_roundtrip",
+      "condition": "openakashic",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-18T01:15:29+00:00",
+      "finished_at": "2026-04-18T01:15:39+00:00",
+      "plan": "사용자의 선호사항 3가지를 upsert_note로 Akashic에 저장한 후, 즉시 read_note로 회수하여 저장 확인",
+      "tool_calls": [
+        {
+          "tool": "upsert_note",
+          "arguments": {
+            "path": "personal_vault/user/preferences",
+            "title": "개인 선호사항",
+            "body": "# 개인 선호사항\n\n1. 저녁에 커피 금지\n2. 주말에는 이메일 확인 안 함\n3. 운동은 아침 6시 30분에"
+          },
+          "result": {
+            "path": "personal_vault/user/preferences.md",
+            "slug": "preferences",
+            "note": {
+              "path": "personal_vault/user/preferences.md",
+              "slug": "preferences",
+              "title": "개인 선호사항",
+              "kind": "reference",
+              "project": "openakashic",
+              "status": "active",
+              "owner": "admin",
+              "original_owner": "admin",
+              "created_by": "admin",
+              "visibility": "private",
+              "publication_status": "none",
+              "tags": [
+                "preferences",
+                "user",
+                "insu"
+              ],
+              "related": [],
+              "summary": "1. 저녁에 커피 금지",
+              "body": "# 개인 선호사항\n\n1. 저녁에 커피 금지\n2. 주말에는 이메일 확인 안 함\n3. 운동은 아침 6시 30분에",
+              "body_html": "<h1>개인 선호사항</h1>\n<ol>\n<li>저녁에 커피 금지</li>\n<li>주말에는 이메일 확인 안 함</li>\n<li>운동은 아침 6시 30분에</li>\n</ol>",
+              "links": [],
+              "related_notes": [],
+              "backlinks": [],
+              "outbound": 0,
+              "href": "/notes/preferences"
+            },
+            "publication_request": null,
+            "_next": "Note saved at 'personal_vault/user/preferences.md'. To submit for public review: call request_note_publication with path='personal_vault/user/preferences.md', rationale='<why this is worth publishing>', evidence_paths=['<supporting note paths or URLs>']"
+          },
+          "error": null,
+          "duration_ms": 507.1
+        },
+        {
+          "tool": "read_note",
+          "arguments": {
+            "path": "personal_vault/user/preferences"
+          },
+          "result": {
+            "path": "personal_vault/user/preferences.md",
+            "slug": "preferences",
+            "title": "개인 선호사항",
+            "kind": "reference",
+            "project": "openakashic",
+            "status": "active",
+            "owner": "admin",
+            "original_owner": "admin",
+            "created_by": "admin",
+            "visibility": "private",
+            "publication_status": "none",
+            "tags": [
+              "preferences",
+              "user",
+              "insu"
+            ],
+            "related": [],
+            "summary": "1. 저녁에 커피 금지",
+            "body": "# 개인 선호사항\n\n1. 저녁에 커피 금지\n2. 주말에는 이메일 확인 안 함\n3. 운동은 아침 6시 30분에",
+            "body_html": "<h1>개인 선호사항</h1>\n<ol>\n<li>저녁에 커피 금지</li>\n<li>주말에는 이메일 확인 안 함</li>\n<li>운동은 아침 6시 30분에</li>\n</ol>",
+            "links": [],
+            "related_notes": [],
+            "backlinks": [],
+            "outbound": 0,
+            "href": "/notes/preferences"
+          },
+          "error": null,
+          "duration_ms": 245.1
+        }
+      ],
+      "answer": "개인 선호사항을 OpenAkashic에 저장했습니다.\n\n**저장된 위치:** `personal_vault/user/preferences.md`\n\n**저장된 내용:**\n1. 저녁에 커피 금지\n2. 주말에는 이메일 확인 안 함\n3. 운동은 아침 6시 30분에\n\n노트는 private 권한으로 설정되어 있습니다. 공개하려면 `request_note_publication(path='personal_vault/user/preferences.md', rationale='...')`을 호출하면 됩니다.",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"사용자의 선호사항 3가지를 upsert_note로 Akashic에 저장한 후, 즉시 read_note로 회수하여 저장 확인\",\n  \"tool_calls\": [\n    {\n      \"tool\": \"upsert_note\",\n      \"arguments\": {\n        \"path\": \"personal_vault/user/preferences\",\n        \"title\": \"개인 선호사항\",\n        \"body\": \"# 개인 선호사항\\n\\n1. 저녁에 커피 금지\\n2. 주말에는 이메일 확인 안 함\\n3. 운동은 아침 6시 30분에\"\n      }\n    },\n    {\n      \"tool\": \"read_note\",\n      \"arguments\": {\n        \"path\": \"personal_vault/user/preferences\"\n      }\n    }\n  ]\n}\n```",
+      "raw_model_output_turn2": "```json\n{\n  \"answer\": \"개인 선호사항을 OpenAkashic에 저장했습니다.\\n\\n**저장된 위치:** `personal_vault/user/preferences.md`\\n\\n**저장된 내용:**\\n1. 저녁에 커피 금지\\n2. 주말에는 이메일 확인 안 함\\n3. 운동은 아침 6시 30분에\\n\\n노트는 private 권한으로 설정되어 있습니다. 공개하려면 `request_note_publication(path='personal_vault/user/preferences.md', rationale='...')`을 호출하면 됩니다.\"\n}\n```",
+      "error": null,
+      "format_violation": false
+    },
+    {
+      "task_id": "busagwan_sagwan_roles",
+      "condition": "openakashic",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-18T01:15:39+00:00",
+      "finished_at": "2026-04-18T01:15:58+00:00",
+      "plan": "OpenAkashic 프로젝트의 Busagwan과 Sagwan 컴포넌트의 역할과 차이를 Akashic에서 검색",
+      "tool_calls": [
+        {
+          "tool": "search_and_read_top",
+          "arguments": {
+            "query": "OpenAkashic Busagwan Sagwan 역할 차이 아키텍처"
+          },
+          "result": {
+            "directive": "노트 본문의 사실을 인용해 질문에 직접 답하세요. 경로 나열·도구명 반복 금지. 부족하면 read_note 추가 호출.",
+            "note_body_preview": "---\ntitle: \"OpenAkashic 종합 설계 브리핑 — Codex 토론용 2026-04-17\"\nkind: capsule\nproject: openakashic\nstatus: active\nconfidence: high\ntags: [design, architecture, gaps, incentive, codex-debate, review]\nvisibility: private\n---\n\n# OpenAkashic 종합 설계 브리핑 — Codex CLI 토론용\n\n## 시스템 현황\n\n### 2층 구조\n- Closed Akashic (knowledge.openakashic.com/mcp/) — 개인/공유 작업 메모리\n- Core API (api.openakashic.com) — 검증 완료 공개 지식\n\n### 에이전트 분업\n- Sagwan(사관): Claude CLI, 10분/1시간, 발행 최종 승인 + 5가지 정제 사이클\n- Busagwan(부사관): Ollama gemma4:e4b, 15분, 1차 리뷰 + 큐 태스크 (max 3/run)\n- 외부 에이전트: MCP 직접 호출\n\n### 검색 알고리즘\n- Dual-mode: lexical(정수) + semantic(nomic-embed-text, 0~1)\n- RRF(k=60) 통합 — scale 의존성 제거\n- Gap detection: semantic < 0.62 → gap, ≥ 0.70 → hit\n\n## 코드로 확인된 핵심 GAP\n\n### GAP 1: confirm_count / freshness_date — 저장만, 검색 반영 없음\nsite.py search_closed_notes()는 순수 RRF. confirm_count, freshness_date, decay_tier 모두 frontmatter 기록되지만 랭킹 미반영.\n\n### GAP 2: shared visibility — 코드에 있지만 권한 체계가 무시\n_note_visibility()가 {\"private\",\"public\"} 외 값을 private으로 downgrade.\nbusagwan이 visibility=\"shared\"로 생성한 gap 노트가 외부 에이전트에게 invisible.\n\n### GAP 3: related 필드 — 저장만, 그래프 순회 없음\n노트 frontmatter related: [path1, path2]가 기록되지만 검색이 참조 안 함.\nopenakashic://graph 리소스 있지만 ",
+            "retrieval_value": {
+              "directive": "경로 나열 금지. 노트 내용을 읽어 질문에 직접 답하세요. 부족하면 read_note 추가 호출.",
+              "intent": "synthesis",
+              "matched_notes": [
+                "personal_vault/projects/personal/openakashic/design-brief-codex-2026-04-17.md",
+                "personal_vault/projects/ops/librarian/profile/busagwan-sagwan-roles.md",
+                "doc/general/plan.md"
+              ],
+              "coverage_gaps": [],
+              "writeback_suggested": false,
+              "synthesis_hint": "여러 matched_notes를 교차 참조해서 답할 것. 근거가 부족하면 답 대신 coverage_gap을 명시하고 writeback을 제안.",
+              "read_note_hint": "본문이 필요하면 read_note(path=<path>) 추가 호출. 쓰기는 upsert_note(path, body, title)."
+            },
+            "query": "OpenAkashic Busagwan Sagwan 역할 차이 아키텍처",
+            "top": {
+              "path": "personal_vault/projects/personal/openakashic/design-brief-codex-2026-04-17.md",
+              "slug": "design-brief-codex-2026-04-17",
+              "title": "OpenAkashic 종합 설계 브리핑 — Codex 토론용 2026-04-17",
+              "kind": "capsule",
+              "project": "openakashic",
+              "owner": "aaron",
+              "visibility": "private",
+              "publication_status": "none",
+              "tags": [
+                "design",
+                "gaps",
+                "codex-debate",
+                "architecture"
+              ],
+              "summary": "---",
+              "href": "/notes/design-brief-codex-2026-04-17",
+              "lexical_score": 0.0,
+              "semantic_score": 0.5789,
+              "confirm_count": 0,
+              "score": 0.016393
+            },
+            "other_results": [
+              {
+                "path": "personal_vault/projects/ops/librarian/profile/busagwan-sagwan-roles.md",
+                "slug": "busagwan-sagwan-roles",
+                "title": "사관 vs 부사관 역할·모델·주기 비교",
+                "kind": "reference",
+                "project": "librarian",
+                "owner": "admin",
+                "visibility": "private",
+                "publication_status": "escalated",
+                "tags": [
+                  "librarian",
+                  "sagwan",
+                  "busagwan",
+                  "agent",
+                  "roles",
+                  "reference"
+                ],
+                "summary": "OpenAkashic 운영에는 두 종류의 자동 에이전트가 있다. 모델·주기·역할이 다르며 서로 게이트 관계다. 이 문서는 각 역할과 차이를 한눈에 정리한다.",
+                "href": "/notes/busagwan-sagwan-roles",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5654,
+                "confirm_count": 0,
+                "score": 0.016129
+              },
+              {
+                "path": "doc/general/plan.md",
+                "slug": "plan",
+                "title": "OpenAkashic System Architecture",
+                "kind": "architecture",
+                "project": "openakashic",
+                "owner": "sagwan",
+                "visibility": "public",
+                "publication_status": "published",
+                "tags": [
+                  "architecture",
+                  "openakashic",
+                  "mcp",
+                  "core-api",
+                  "closed-akashic"
+                ],
+                "summary": "OpenAkashic 현재 구현 아키텍처. 두 레이어(Closed Akashic + Core API)와 그 브릿지로 구성된다. ---",
+                "href": "/notes/plan",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5618,
+                "confirm_count": 0,
+                "score": 0.015873
+              },
+              {
+                "path": "doc/general/Open and Closed Akashic Strategy.md",
+                "slug": "open-and-closed-akashic-strategy",
+                "title": "Open and Closed Akashic Strategy",
+                "kind": "architecture",
+                "project": "openakashic",
+                "owner": "sagwan",
+                "visibility": "public",
+                "publication_status": "published",
+                "tags": [
+                  "openakashic",
+                  "closed-akashic",
+                  "strategy",
+                  "architecture"
+                ],
+                "summary": "Open Akashic and Closed Akashic should stay as separate surfaces with a deliberate bridge between them, not as one undifferentiated store. Open Akashic is the public memory layer for publishable claims, evidences, mentions, entities, and derived capsules. Clos",
+                "href": "/notes/open-and-closed-akashic-strategy",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5136,
+                "confirm_count": 0,
+                "score": 0.015625
+              },
+              {
+                "path": "personal_vault/projects/personal/openakashic/impl-2026-04-17.md",
+                "slug": "impl-2026-04-17",
+                "title": "OpenAkashic 3가지 개선 구현 — 2026-04-17",
+                "kind": "capsule",
+                "project": "openakashic",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "implementation",
+                  "confirm-note",
+                  "busagwan-feedback",
+                  "freshness"
+                ],
+                "summary": "---",
+                "href": "/notes/impl-2026-04-17",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5084,
+                "confirm_count": 0,
+                "score": 0.015385
+              }
+            ],
+            "hints": [],
+            "count": 5,
+            "note": {
+              "path": "personal_vault/projects/personal/openakashic/design-brief-codex-2026-04-17.md",
+              "slug": "design-brief-codex-2026-04-17",
+              "title": "OpenAkashic 종합 설계 브리핑 — Codex 토론용 2026-04-17",
+              "kind": "capsule",
+              "project": "openakashic",
+              "status": "active",
+              "owner": "aaron",
+              "original_owner": "aaron",
+              "created_by": "aaron",
+              "visibility": "private",
+              "publication_status": "none",
+              "tags": [
+                "design",
+                "gaps",
+                "codex-debate",
+                "architecture"
+              ],
+              "related": [],
+              "summary": "---",
+              "body": "---\ntitle: \"OpenAkashic 종합 설계 브리핑 — Codex 토론용 2026-04-17\"\nkind: capsule\nproject: openakashic\nstatus: active\nconfidence: high\ntags: [design, architecture, gaps, incentive, codex-debate, review]\nvisibility: private\n---\n\n# OpenAkashic 종합 설계 브리핑 — Codex CLI 토론용\n\n## 시스템 현황\n\n### 2층 구조\n- Closed Akashic (knowledge.openakashic.com/mcp/) — 개인/공유 작업 메모리\n- Core API (api.openakashic.com) — 검증 완료 공개 지식\n\n### 에이전트 분업\n- Sagwan(사관): Claude CLI, 10분/1시간, 발행 최종 승인 + 5가지 정제 사이클\n- Busagwan(부사관): Ollama gemma4:e4b, 15분, 1차 리뷰 + 큐 태스크 (max 3/run)\n- 외부 에이전트: MCP 직접 호출\n\n### 검색 알고리즘\n- Dual-mode: lexical(정수) + semantic(nomic-embed-text, 0~1)\n- RRF(k=60) 통합 — scale 의존성 제거\n- Gap detection: semantic < 0.62 → gap, ≥ 0.70 → hit\n\n## 코드로 확인된 핵심 GAP\n\n### GAP 1: confirm_count / freshness_date — 저장만, 검색 반영 없음\nsite.py search_closed_notes()는 순수 RRF. confirm_count, freshness_date, decay_tier 모두 frontmatter 기록되지만 랭킹 미반영.\n\n### GAP 2: shared visibility — 코드에 있지만 권한 체계가 무시\n_note_visibility()가 {\"private\",\"public\"} 외 값을 private으로 downgrade.\nbusagwan이 visibility=\"shared\"로 생성한 gap 노트가 외부 에이전트에게 invisible.\n\n### GAP 3: related 필드 — 저장만, 그래프 순회 없음\n노트 frontmatter related: [path1, path2]가 기록되지만 검색이 참조 안 함.\nopenakashic://graph 리소스 있지만 search에서 미활용.\n\n### GAP 4: contradicts 필드 — 설계에만 존재\nKARMA 스타일 모순 감지 위해 설계됐으나 코드 미구현.\nSagwan 리뷰 시 contradicts 필드 검증 로직 없음.\n\n### GAP 5: proactive push — 내부 에이전트만 작동\nbefore_task_context() Related(25%)가 내부 루프(Sagwan/Busagwan)에만 적용.\n외부 MCP 에이전트는 스스로 search_notes() 호출해야 관련 지식 얻음.\n\n### GAP 6: 기여 인센티브\n- 에이전트 write-back 24-34% (standing instructions 의존)\n- 상호성 게이트 역효과 (실증)\n- confirm_count 저장되지만 활용 없음\n- \"84.6% 토큰 절감\" 메시지 에이전트에게 전달 없음\n\n### GAP 7: 에이전트 신원/평판\nconfirmed_by 필드의 by가 단순 nickname 문자열.\nSagwan confirm ≠ 임의 에이전트 confirm 구분 없음.\n\n### GAP 8: 파일 기반 저장소 한계\nsemantic-index.json 인메모리 JSON 파일 — 수만 노트부터 병목.\n태스크 큐 우선순위 없음 (miss_count 무관하게 FIFO).\n\n## 즉각 수정 가능한 버그 (빠른 wins)\n1. shared visibility downgrade — mcp_server.py:891 한 줄 수정\n2. confirm_count 검색 가중치 — site.py RRF 후 log 가중치 추가\n3. gap 노트 miss_count 검색 응답 포함 — search 응답에 related_gaps 추가\n4. miss_count 우선순위 큐 — analyze_search_gaps에서 높은 순 처리\n\n## 연구 레퍼런스 vs. 구현 갭\n- Knowledge Compounding (2604.11243): 84.6% 절감 — 토큰 절감 에이전트 전달 없음\n- SSGM Framework: decay_tier 주입됨 — 검색 랭킹 미반영\n- KARMA (NeurIPS 2025): 2-stage 있음 — 3-verdict 미구현\n- Sequential Public Goods Game: confirm_note 있음 — closed system 가정, 실제 보상 없음\n- A-Mem (Zettelkasten): claim 원자 노트 — related 그래프 순회 없음\n- MemOS: 4계층 메모리 — 크로스 유저 federation 없음\n- \"Policy violations = dataflow problem\": 일부 구조적 강제 — write-back 여전히 24-34%\n\n## Codex 토론 핵심 질문\n1. 검색 랭킹에 confirm_count/freshness 반영 — 어떤 방식이 게이밍 저항성과 효과 균형을 맞추는가?\n2. 기여 인센티브 재설계 — 84.6% 절감 메시지 전달로 충분한가?\n3. shared visibility — 즉시 수정 vs. team scope 설계 후 수정?\n4. KARMA 3-verdict vs. 2-stage — 비용 대비 83.1% 정확도 향상 가치 있는가?\n5. contradicts 자동 감지 — upsert 시 유사도 > 0.8 노트 충돌 확인 LLM 호출 비용 vs. 품질?",
+              "body_html": "<hr>\n<p>title: \"OpenAkashic 종합 설계 브리핑 — Codex 토론용 2026-04-17\"\nkind: capsule\nproject: openakashic\nstatus: active\nconfidence: high\ntags: [design, architecture, gaps, incentive, codex-debate, review]\nvisibility: private</p>\n<hr>\n<h1>OpenAkashic 종합 설계 브리핑 — Codex CLI 토론용</h1>\n<h2 id=\"시스템-현황\">시스템 현황<a class=\"heading-anchor\" href=\"#시스템-현황\">#</a></h2>\n<h3 id=\"2층-구조\">2층 구조<a class=\"heading-anchor\" href=\"#2층-구조\">#</a></h3>\n<ul>\n<li>Closed Akashic (knowledge.openakashic.com/mcp/) — 개인/공유 작업 메모리</li>\n<li>Core API (api.openakashic.com) — 검증 완료 공개 지식</li>\n</ul>\n<h3 id=\"에이전트-분업\">에이전트 분업<a class=\"heading-anchor\" href=\"#에이전트-분업\">#</a></h3>\n<ul>\n<li>Sagwan(사관): Claude CLI, 10분/1시간, 발행 최종 승인 + 5가지 정제 사이클</li>\n<li>Busagwan(부사관): Ollama gemma4:e4b, 15분, 1차 리뷰 + 큐 태스크 (max 3/run)</li>\n<li>외부 에이전트: MCP 직접 호출</li>\n</ul>\n<h3 id=\"검색-알고리즘\">검색 알고리즘<a class=\"heading-anchor\" href=\"#검색-알고리즘\">#</a></h3>\n<ul>\n<li>Dual-mode: lexical(정수) + semantic(nomic-embed-text, 0~1)</li>\n<li>RRF(k=60) 통합 — scale 의존성 제거</li>\n<li>Gap detection: semantic &lt; 0.62 → gap, ≥ 0.70 → hit</li>\n</ul>\n<h2 id=\"코드로-확인된-핵심-gap\">코드로 확인된 핵심 GAP<a class=\"heading-anchor\" href=\"#코드로-확인된-핵심-gap\">#</a></h2>\n<h3 id=\"gap-1-confirm-count-freshness-date-저장만-검색-반영-없음\">GAP 1: confirm_count / freshness_date — 저장만, 검색 반영 없음<a class=\"heading-anchor\" href=\"#gap-1-confirm-count-freshness-date-저장만-검색-반영-없음\">#</a></h3>\n<p>site.py search_closed_notes()는 순수 RRF. confirm_count, freshness_date, decay_tier 모두 frontmatter 기록되지만 랭킹 미반영.</p>\n<h3 id=\"gap-2-shared-visibility-코드에-있지만-권한-체계가-무시\">GAP 2: shared visibility — 코드에 있지만 권한 체계가 무시<a class=\"heading-anchor\" href=\"#gap-2-shared-visibility-코드에-있지만-권한-체계가-무시\">#</a></h3>\n<p>_note_visibility()가 {\"private\",\"public\"} 외 값을 private으로 downgrade.\nbusagwan이 visibility=\"shared\"로 생성한 gap 노트가 외부 에이전트에게 invisible.</p>\n<h3 id=\"gap-3-related-필드-저장만-그래프-순회-없음\">GAP 3: related 필드 — 저장만, 그래프 순회 없음<a class=\"heading-anchor\" href=\"#gap-3-related-필드-저장만-그래프-순회-없음\">#</a></h3>\n<p>노트 frontmatter related: [path1, path2]가 기록되지만 검색이 참조 안 함.\nopenakashic://graph 리소스 있지만 search에서 미활용.</p>\n<h3 id=\"gap-4-contradicts-필드-설계에만-존재\">GAP 4: contradicts 필드 — 설계에만 존재<a class=\"heading-anchor\" href=\"#gap-4-contradicts-필드-설계에만-존재\">#</a></h3>\n<p>KARMA 스타일 모순 감지 위해 설계됐으나 코드 미구현.\nSagwan 리뷰 시 contradicts 필드 검증 로직 없음.</p>\n<h3 id=\"gap-5-proactive-push-내부-에이전트만-작동\">GAP 5: proactive push — 내부 에이전트만 작동<a class=\"heading-anchor\" href=\"#gap-5-proactive-push-내부-에이전트만-작동\">#</a></h3>\n<p>before_task_context() Related(25%)가 내부 루프(Sagwan/Busagwan)에만 적용.\n외부 MCP 에이전트는 스스로 search_notes() 호출해야 관련 지식 얻음.</p>\n<h3 id=\"gap-6-기여-인센티브\">GAP 6: 기여 인센티브<a class=\"heading-anchor\" href=\"#gap-6-기여-인센티브\">#</a></h3>\n<ul>\n<li>에이전트 write-back 24-34% (standing instructions 의존)</li>\n<li>상호성 게이트 역효과 (실증)</li>\n<li>confirm_count 저장되지만 활용 없음</li>\n<li>\"84.6% 토큰 절감\" 메시지 에이전트에게 전달 없음</li>\n</ul>\n<h3 id=\"gap-7-에이전트-신원-평판\">GAP 7: 에이전트 신원/평판<a class=\"heading-anchor\" href=\"#gap-7-에이전트-신원-평판\">#</a></h3>\n<p>confirmed_by 필드의 by가 단순 nickname 문자열.\nSagwan confirm ≠ 임의 에이전트 confirm 구분 없음.</p>\n<h3 id=\"gap-8-파일-기반-저장소-한계\">GAP 8: 파일 기반 저장소 한계<a class=\"heading-anchor\" href=\"#gap-8-파일-기반-저장소-한계\">#</a></h3>\n<p>semantic-index.json 인메모리 JSON 파일 — 수만 노트부터 병목.\n태스크 큐 우선순위 없음 (miss_count 무관하게 FIFO).</p>\n<h2 id=\"즉각-수정-가능한-버그-빠른-wins\">즉각 수정 가능한 버그 (빠른 wins)<a class=\"heading-anchor\" href=\"#즉각-수정-가능한-버그-빠른-wins\">#</a></h2>\n<ol>\n<li>shared visibility downgrade — mcp_server.py:891 한 줄 수정</li>\n<li>confirm_count 검색 가중치 — site.py RRF 후 log 가중치 추가</li>\n<li>gap 노트 miss_count 검색 응답 포함 — search 응답에 related_gaps 추가</li>\n<li>miss_count 우선순위 큐 — analyze_search_gaps에서 높은 순 처리</li>\n</ol>\n<h2 id=\"연구-레퍼런스-vs-구현-갭\">연구 레퍼런스 vs. 구현 갭<a class=\"heading-anchor\" href=\"#연구-레퍼런스-vs-구현-갭\">#</a></h2>\n<ul>\n<li>Knowledge Compounding (2604.11243): 84.6% 절감 — 토큰 절감 에이전트 전달 없음</li>\n<li>SSGM Framework: decay_tier 주입됨 — 검색 랭킹 미반영</li>\n<li>KARMA (NeurIPS 2025): 2-stage 있음 — 3-verdict 미구현</li>\n<li>Sequential Public Goods Game: confirm_note 있음 — closed system 가정, 실제 보상 없음</li>\n<li>A-Mem (Zettelkasten): claim 원자 노트 — related 그래프 순회 없음</li>\n<li>MemOS: 4계층 메모리 — 크로스 유저 federation 없음</li>\n<li>\"Policy violations = dataflow problem\": 일부 구조적 강제 — write-back 여전히 24-34%</li>\n</ul>\n<h2 id=\"codex-토론-핵심-질문\">Codex 토론 핵심 질문<a class=\"heading-anchor\" href=\"#codex-토론-핵심-질문\">#</a></h2>\n<ol>\n<li>검색 랭킹에 confirm_count/freshness 반영 — 어떤 방식이 게이밍 저항성과 효과 균형을 맞추는가?</li>\n<li>기여 인센티브 재설계 — 84.6% 절감 메시지 전달로 충분한가?</li>\n<li>shared visibility — 즉시 수정 vs. team scope 설계 후 수정?</li>\n<li>KARMA 3-verdict vs. 2-stage — 비용 대비 83.1% 정확도 향상 가치 있는가?</li>\n<li>contradicts 자동 감지 — upsert 시 유사도 &gt; 0.8 노트 충돌 확인 LLM 호출 비용 vs. 품질?</li>\n</ol>",
+              "links": [],
+              "related_notes": [],
+              "backlinks": [],
+              "outbound": 0,
+              "href": "/notes/design-brief-codex-2026-04-17"
+            }
+          },
+          "error": null,
+          "duration_ms": 486.3
+        }
+      ],
+      "answer": "OpenAkashic의 Sagwan(사관)과 Busagwan(부사관)은 다음과 같이 역할을 분업합니다:\n\n**Sagwan(사관)**\n- Claude CLI 기반\n- 실행 주기: 10분 또는 1시간\n- 역할: 발행 최종 승인 + 5가지 정제 사이클\n\n**Busagwan(부사관)**\n- Ollama gemma4:e4b 모델 기반\n- 실행 주기: 15분\n- 역할: 1차 리뷰 + 큐 태스크 (최대 3개/run)\n\n**전체 시스템 아키텍처**\nOpenAkashic은 2층 구조로 설계되어 있습니다:\n- Closed Akashic (knowledge.openakashic.com/mcp/): 개인/공유 작업 메모리\n- Core API (api.openakashic.com): 검증 완료 공개 지식\n\n**검색 시스템**\nDual-mode 검색을 사용합니다: lexical(정수) + semantic(nomic-embed-text, 0~1) 매칭을 RRF(k=60)로 통합합니다. Gap detection은 semantic 점수 0.62 미만일 때 gap으로, 0.70 이상일 때 hit으로 판단합니다.",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"OpenAkashic 프로젝트의 Busagwan과 Sagwan 컴포넌트의 역할과 차이를 Akashic에서 검색\",\n  \"tool_calls\": [\n    {\n      \"tool\": \"search_and_read_top\",\n      \"arguments\": {\n        \"query\": \"OpenAkashic Busagwan Sagwan 역할 차이 아키텍처\"\n      }\n    }\n  ]\n}\n```",
+      "raw_model_output_turn2": "```json\n{\n  \"answer\": \"OpenAkashic의 Sagwan(사관)과 Busagwan(부사관)은 다음과 같이 역할을 분업합니다:\\n\\n**Sagwan(사관)**\\n- Claude CLI 기반\\n- 실행 주기: 10분 또는 1시간\\n- 역할: 발행 최종 승인 + 5가지 정제 사이클\\n\\n**Busagwan(부사관)**\\n- Ollama gemma4:e4b 모델 기반\\n- 실행 주기: 15분\\n- 역할: 1차 리뷰 + 큐 태스크 (최대 3개/run)\\n\\n**전체 시스템 아키텍처**\\nOpenAkashic은 2층 구조로 설계되어 있습니다:\\n- Closed Akashic (knowledge.openakashic.com/mcp/): 개인/공유 작업 메모리\\n- Core API (api.openakashic.com): 검증 완료 공개 지식\\n\\n**검색 시스템**\\nDual-mode 검색을 사용합니다: lexical(정수) + semantic(nomic-embed-text, 0~1) 매칭을 RRF(k=60)로 통합합니다. Gap detection은 semantic 점수 0.62 미만일 때 gap으로, 0.70 이상일 때 hit으로 판단합니다.\"\n}\n```",
+      "error": null,
+      "format_violation": false
+    }
+  ]
+}

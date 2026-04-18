@@ -5,9 +5,63 @@ from app.schemas import QueryRequest
 from app.utils import json_ready, normalize_text
 
 
+_CAPSULE_MODE_FIELDS = {
+    "compact": {"id", "title", "summary_head", "confidence", "score"},
+    "standard": {
+        "id",
+        "title",
+        "summary",
+        "key_points",
+        "cautions",
+        "confidence",
+        "source_claim_ids",
+        "score",
+    },
+    "full": None,  # all columns
+}
+
+_CLAIM_MODE_FIELDS = {
+    "compact": {"id", "text", "claim_role", "confidence", "score"},
+    "standard": {
+        "id",
+        "text",
+        "claim_role",
+        "status",
+        "confidence",
+        "source_weight",
+        "mentions",
+        "score",
+    },
+    "full": None,
+}
+
+
+def _project_capsule(row: dict[str, Any], mode: str, explicit_fields: set[str]) -> dict[str, Any]:
+    projected = dict(row)
+    if "summary" in projected and isinstance(projected["summary"], list):
+        projected["summary_head"] = projected["summary"][0] if projected["summary"] else ""
+    allowed = _CAPSULE_MODE_FIELDS.get(mode)
+    if explicit_fields:
+        allowed = explicit_fields | {"id", "title", "score"}
+    if allowed is None:
+        return projected
+    return {k: v for k, v in projected.items() if k in allowed}
+
+
+def _project_claim(row: dict[str, Any], mode: str, explicit_fields: set[str]) -> dict[str, Any]:
+    projected = dict(row)
+    allowed = _CLAIM_MODE_FIELDS.get(mode)
+    if explicit_fields:
+        allowed = explicit_fields | {"id", "text", "score"}
+    if allowed is None:
+        return projected
+    return {k: v for k, v in projected.items() if k in allowed}
+
+
 def query_memory(payload: QueryRequest) -> dict[str, Any]:
     include = {"evidences" if item == "evidence" else item for item in payload.include}
     normalized_query = normalize_text(payload.query)
+    explicit_fields = set(payload.fields or [])
     with get_conn() as conn:
         claims = _search_claims(conn, payload, normalized_query)
         expanded = []
@@ -23,15 +77,25 @@ def query_memory(payload: QueryRequest) -> dict[str, Any]:
         capsules = _search_capsules(conn, payload, normalized_query, claim_ids) if "capsules" in include else []
         has_conflict = _has_conflict(conn, claim_ids) if claim_ids else False
 
+    projected_claims = (
+        [json_ready(_project_claim(item, payload.mode, explicit_fields)) for item in combined]
+        if "claims" in include
+        else []
+    )
+    projected_capsules = [
+        json_ready(_project_capsule(item, payload.mode, explicit_fields)) for item in capsules
+    ]
+
     return {
         "query": payload.query,
         "results": {
-            "claims": [json_ready(item) for item in combined] if "claims" in include else [],
+            "claims": projected_claims,
             "evidences": [json_ready(item) for item in evidences],
-            "capsules": [json_ready(item) for item in capsules],
+            "capsules": projected_capsules,
         },
         "meta": {
             "has_conflict": has_conflict,
+            "mode": payload.mode,
             "retrieval": "postgres_fts_trigram_mentions_links_capsules",
             "read_path": "db_search_rank_packaging_no_llm",
         },

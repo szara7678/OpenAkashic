@@ -1,0 +1,85 @@
+{
+  "run_file": "/home/insu/insu_server/apps/openakashic/closed-web/server/bench/results/run-openakashic-claude-haiku-4-5-20260417T155259Z.json",
+  "judge_model": "gpt-5.4",
+  "model": "claude-haiku-4-5",
+  "condition": "openakashic",
+  "judgments": [
+    {
+      "task_id": "domain_jlpt_gen",
+      "condition": "openakashic",
+      "attempt": 1,
+      "verdict": "error",
+      "hits": [],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "",
+      "reason": "judge error: ValueError: No JSON object found: "
+    },
+    {
+      "task_id": "onboarding_openakashic",
+      "condition": "openakashic",
+      "attempt": 1,
+      "verdict": "error",
+      "hits": [],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "",
+      "reason": "judge error: ValueError: No JSON object found: "
+    },
+    {
+      "task_id": "triage_ichimozzi_500",
+      "condition": "openakashic",
+      "attempt": 1,
+      "verdict": "error",
+      "hits": [],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "",
+      "reason": "judge error: ValueError: No JSON object found: "
+    },
+    {
+      "task_id": "ichimozzi_deploy",
+      "condition": "openakashic",
+      "attempt": 1,
+      "verdict": "error",
+      "hits": [],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "",
+      "reason": "judge error: ValueError: No JSON object found: "
+    },
+    {
+      "task_id": "general_web_fact",
+      "condition": "openakashic",
+      "attempt": 1,
+      "verdict": "error",
+      "hits": [],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "",
+      "reason": "judge error: ValueError: No JSON object found: "
+    },
+    {
+      "task_id": "memory_roundtrip",
+      "condition": "openakashic",
+      "attempt": 1,
+      "verdict": "error",
+      "hits": [],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "",
+      "reason": "judge error: ValueError: No JSON object found: "
+    },
+    {
+      "task_id": "busagwan_sagwan_roles",
+      "condition": "openakashic",
+      "attempt": 1,
+      "verdict": "error",
+      "hits": [],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "",
+      "reason": "judge error: ValueError: No JSON object found: "
+    }
+  ]
+}

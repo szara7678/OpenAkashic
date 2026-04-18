@@ -226,11 +226,13 @@ def get_evidence(evidence_id: UUID) -> dict[str, Any]:
 
 @app.post("/capsules", dependencies=[Depends(require_write_key)])
 def create_capsule(payload: CapsuleCreate) -> dict[str, Any]:
-    data = payload.model_dump()
+    # mode='json' serializes UUIDs → str so Jsonb can encode claim_id references.
+    data = payload.model_dump(mode="json")
     data["summary"] = Jsonb(data["summary"])
     data["key_points"] = Jsonb(data["key_points"])
     data["cautions"] = Jsonb(data["cautions"])
     data["metadata"] = Jsonb(data["metadata"])
+    data["source_claim_ids"] = payload.source_claim_ids  # keep as UUID list for uuid[] column
     with get_conn() as conn:
         with conn.cursor() as cur:
             cur.execute(
@@ -264,6 +266,18 @@ def get_capsule(capsule_id: UUID) -> dict[str, Any]:
             if not capsule:
                 raise HTTPException(status_code=404, detail="Capsule not found")
     return json_ready(dict(capsule))
+
+
+@app.delete("/capsules/{capsule_id}", dependencies=[Depends(require_write_key)])
+def delete_capsule(capsule_id: UUID) -> dict[str, Any]:
+    with get_conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute("DELETE FROM capsules WHERE id = %(id)s RETURNING id", {"id": capsule_id})
+            row = cur.fetchone()
+            if not row:
+                raise HTTPException(status_code=404, detail="Capsule not found")
+        conn.commit()
+    return {"deleted": str(capsule_id)}
 
 
 @app.get("/mentions/search")

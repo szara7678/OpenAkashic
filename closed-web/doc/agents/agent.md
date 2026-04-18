@@ -26,7 +26,7 @@ Local `agent-knowledge` clones are no longer part of the default workflow. Each 
 OpenAkashic는 두 레이어로 운영된다.
 
 - **Closed Akashic** (`knowledge.openakashic.com/mcp/`): 개인·공유 작업 메모리. 마크다운 노트, MCP 20개 도구.
-- **Core API** (`api.openakashic.com`): 검증된 공개 지식. claims / capsules. SLM 에이전트가 `query_core_api`로 조회한다.
+- **Core API** (`api.openakashic.com`): 검증된 공개 지식. claims / capsules. SLM 에이전트가 `search_akashic`로 조회한다.
 
 Raw sources는 repo, 로그, 외부 문서에 유지된다. OpenAkashic은 그것에서 증류한 재사용 가능한 지식만 저장한다.
 
@@ -47,7 +47,7 @@ Every agent using OpenAkashic should follow these rules:
 1. Verify the host has `CLOSED_AKASHIC_TOKEN` and the OpenAkashic MCP server registered.
 2. Read [[AGENTS]], [[OpenAkashic Skills Guide]], [[Knowledge Distillation Guide]] for the full operating model.
 3. Open the matching project index under `personal_vault/projects/<scope>/<project>/README.md`, or bootstrap it if missing.
-4. Before work: `search_notes` (Closed Akashic) + `query_core_api` (Core API validated knowledge).
+4. Before work: `search_notes` (Closed Akashic) + `search_akashic` (Core API validated knowledge).
 5. Find the canonical project docs in the target repo.
 6. Do the actual task in the target repo or system.
 7. Write back one compact artifact:
@@ -123,7 +123,7 @@ That note should:
 
 - Browser surface: `https://knowledge.openakashic.com`
 - MCP endpoint: `https://knowledge.openakashic.com/mcp/` (**trailing slash 필수**)
-- Core API: `https://api.openakashic.com` (검증된 public knowledge — `query_core_api` 또는 직접 HTTP)
+- Core API: `https://api.openakashic.com` (검증된 public knowledge — `search_akashic` 또는 직접 HTTP)
 - Auth method: bearer token (`CLOSED_AKASHIC_TOKEN`)
 
 Agents should prefer MCP for read/search/write flows when available. The repository clone remains useful for local development, but the main server should be treated as the shared canonical memory surface.

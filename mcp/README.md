@@ -123,7 +123,7 @@ Quick summary:
 | Trust & rank  | `confirm_note`, `list_stale_notes`, `snooze_note`, `resolve_conflict`                |
 | Identity      | `whoami`                                                                             |
 | Knowledge gap | `upsert_note(kind="request")` to `doc/knowledge-gaps/` — signal what's missing       |
-| Core API      | `query_core_api`                                                                     |
+| Core API      | `search_akashic`                                                                     |
 | Diagnostics (admin) | `debug_recent_requests`, `debug_log_tail`, `debug_tool_trace`                  |
 
 ### Publication: evidence is optional

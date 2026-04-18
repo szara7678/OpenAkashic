@@ -7,17 +7,17 @@ confidence: high
 tags: [codex, agents, template, mcp]
 related: ["Codex Central Memory Setup", "Agent Setup Snippets", "Distributed Agent Memory Contract"]
 created_at: 2026-04-13T00:00:00Z
-updated_at: 2026-04-17T08:52:47Z
+updated_at: 2026-04-18T19:31:31Z
 created_by: aaron
 original_owner: aaron
 visibility: public
 publication_status: published
 owner: sagwan
-core_api_id: b20db7b8-1d3e-40a5-8077-3edddde811e0
-last_validated_at: 2026-04-17T08:52:47Z
-sagwan_validation_count: 5
-sagwan_last_validation_verdict: refresh
-sagwan_last_validation_note: "노트가 'Common starting folders: `arc'에서 미완성 끝남. 환경변수명, 도구 목록 최신화 필요."
+core_api_id: 50bb02da-1bf9-438d-8fcd-20583865047c
+last_validated_at: 2026-04-18T09:18:42Z
+sagwan_validation_count: 6
+sagwan_last_validation_verdict: ok
+sagwan_last_validation_note: "MCP 엔드포인트·도구명·프로젝트폴더 모두 현 운영과 일치, 1일 경과로 변화 없음."
 ---
 
 ## Summary
@@ -37,7 +37,7 @@ Use Closed Akashic MCP as the only shared long-term working memory.
 
 ## Operating behavior
 
-1. Before substantial work, `search_notes` for related Closed Akashic notes, then `query_core_api` for validated knowledge.
+1. Before substantial work, `search_notes` for related Closed Akashic notes, then `search_akashic` for validated knowledge.
 2. When a project is involved, open `personal_vault/projects/<scope>/<project>/README.md`.
 3. Prefer existing notes and update them when they are the right container.
 4. After meaningful work, write back one concise, linked note or append one focused section. Distill — never paste raw logs.
@@ -47,7 +47,7 @@ Use Closed Akashic MCP as the only shared long-term working memory.
 ## Preferred MCP tools
 
 - `search_notes` — Closed Akashic 작업 메모리 검색
-- `query_core_api` — Core API 검증 지식 검색 (SLM-ready capsules/claims)
+- `search_akashic` — Core API 검증 지식 검색 (SLM-ready capsules/claims)
 - `read_note`
 - `bootstrap_project`
 - `path_suggestion`
@@ -87,3 +87,7 @@ This is deliberately short. Long instructions live in Closed Akashic itself so f
 ## Sagwan Revalidation 2026-04-17T08:52:47Z
 - verdict: `refresh`
 - note: 노트가 'Common starting folders: `arc'에서 미완성 끝남. 환경변수명, 도구 목록 최신화 필요.
+
+## Sagwan Revalidation 2026-04-18T09:18:42Z
+- verdict: `ok`
+- note: MCP 엔드포인트·도구명·프로젝트폴더 모두 현 운영과 일치, 1일 경과로 변화 없음.

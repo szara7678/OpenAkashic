@@ -1,0 +1,94 @@
+{
+  "run_file": "/home/insu/insu_server/apps/openakashic/closed-web/server/bench/results/run-baseline-claude-haiku-4-5-20260417T174044Z.json",
+  "judge_model": "claude-sonnet-4-6",
+  "model": "claude-haiku-4-5",
+  "condition": "baseline",
+  "judgments": [
+    {
+      "task_id": "domain_jlpt_gen",
+      "condition": "baseline",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [],
+      "missed": [
+        "Sagwan은 Claude CLI 기반 high-quality/느린 주기 워커라는 설명 또는 그에 상응하는 구분",
+        "Busagwan은 Ollama gemma 기반 빠른/가벼운 주기 워커라는 설명 또는 그에 상응하는 구분",
+        "각자의 주기/트리거 (예: 10분/15분/1시간 같은 cadence 구분) 언급",
+        "두 워커가 서로 다른 종류의 task를 담당하며 gate 관계라는 구조 설명"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "search_and_read_top이 busagwan-sagwan-roles.md를 포함한 5개 노트를 반환했고 synthesis_directive가 내용을 읽어 답을 합성하라고 명시했음에도, 모델은 문서 경로만 나열하고 실제 역할·모델·cadence·gate 구조를 전혀 추출하지 않았다.",
+      "reason": "receipt에 busagwan-sagwan-roles.md 경로가 명시적으로 포함되어 있었으나 모델이 read_note로 본문을 읽지 않고 경로 포인터만 반환하는 path-pointer failure 패턴을 보였다. 4개 expected_outcome 중 단 하나도 충족하지 못해 0/4로 fail이며, traps_hit은 없다.",
+      "score": {
+        "hit_rate": 0.0,
+        "traps_hit_count": 0
+      }
+    },
+    {
+      "task_id": "onboarding_openakashic",
+      "condition": "baseline",
+      "attempt": 1,
+      "verdict": "error",
+      "hits": [],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "",
+      "reason": "judge error: RuntimeError: proxy returned empty stream for model=claude-sonnet-4-6"
+    },
+    {
+      "task_id": "triage_ichimozzi_500",
+      "condition": "baseline",
+      "attempt": 1,
+      "verdict": "error",
+      "hits": [],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "",
+      "reason": "judge error: RuntimeError: proxy returned empty stream for model=claude-sonnet-4-6"
+    },
+    {
+      "task_id": "ichimozzi_deploy",
+      "condition": "baseline",
+      "attempt": 1,
+      "verdict": "error",
+      "hits": [],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "",
+      "reason": "judge error: RuntimeError: proxy returned empty stream for model=claude-sonnet-4-6"
+    },
+    {
+      "task_id": "general_web_fact",
+      "condition": "baseline",
+      "attempt": 1,
+      "verdict": "error",
+      "hits": [],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "",
+      "reason": "judge error: RuntimeError: proxy returned empty stream for model=claude-sonnet-4-6"
+    },
+    {
+      "task_id": "memory_roundtrip",
+      "condition": "baseline",
+      "attempt": 1,
+      "verdict": "error",
+      "hits": [],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "",
+      "reason": "judge error: RuntimeError: proxy returned empty stream for model=claude-sonnet-4-6"
+    },
+    {
+      "task_id": "busagwan_sagwan_roles",
+      "condition": "baseline",
+      "attempt": 1,
+      "verdict": "error",
+      "hits": [],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "",
+      "reason": "judge error: RuntimeError: proxy returned empty stream for model=claude-sonnet-4-6"
+    }
+  ]
+}

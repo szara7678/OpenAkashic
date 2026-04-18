@@ -1,0 +1,39 @@
+/home/insu/insu_server/apps/openakashic/closed-web/server/bench/standard_tools.py:25: RuntimeWarning: This package (`duckduckgo_search`) has been renamed to `ddgs`! Use `pip install ddgs` instead.
+  hits = list(DDGS().text(query, max_results=max_results))
+[standard][domain_jlpt_gen] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: 로컬 노트에 저장된 항목이 없습니다. ichimozzi 관련 문제 형식(ichimozzi_problem_format)과 JLPT 문제(ichimozzi_jlpt_questions) 정보를 찾으려 했으나 현재 저장된 
+  tools: ['notes_list', 'notes_read', 'notes_read']
+[standard][onboarding_openakashic] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: 로컬 노트에 저장된 항목이 없습니다. OpenAkashic 관련 정보(openakashic_overview, openakashic_onboarding, openakashic_architecture)를 찾으려 했으나 
+  tools: ['notes_list', 'notes_read', 'notes_read', 'notes_read']
+[standard][triage_ichimozzi_500] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: 로컬 노트에 저장된 항목이 없습니다. insu_server Docker 스택, ichimozzi 500 에러 트리아지, ichimozzi 배포 관련 정보(insu_server_docker_stack, ichimozz
+  tools: ['notes_list', 'notes_read', 'notes_read', 'notes_read']
+[standard][ichimozzi_deploy] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: 로컬 노트에 저장된 항목이 없습니다. ichimozzi 배포 관련 정보(ichimozzi_backend_deployment, ichimozzi_deployment_guide, ichimozzi_ci_cd)를 찾으려 
+  tools: ['notes_list', 'notes_read', 'notes_read', 'notes_read']
+[standard][general_web_fact] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: Anthropic의 Model Context Protocol(MCP) 공식 저장소는 https://github.com/anthropics/mcp 입니다. MCP는 AI 애플리케이션과 외부 도구, 데이터 소스, 서비스
+[standard][memory_roundtrip] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: 선호사항이 정상적으로 저장되었습니다.  저장된 내용: (1) 저녁에 커피 금지 (2) 주말에는 이메일 확인 안 함 (3) 운동은 아침 6시 30분에  이 설정은 로컬 노트에 기록되었으며, 언제든지 확인하거나 수정할 
+  tools: ['notes_write', 'notes_read']
+[standard][busagwan_sagwan_roles] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: 로컬 노트에 'openakashic_busagwan_sagwan'이나 'openakashic_architecture' 관련 정보가 저장되어 있지 않습니다. 웹 검색 결과도 요청하신 내용과 관련이 없었습니다.  'Bu
+  tools: ['notes_list', 'notes_read', 'notes_read', 'web_search']
+[standard][coding_python_bug] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: 주된 위험 케이스: 빈 리스트가 전달될 때 ZeroDivisionError가 발생합니다. `nums`가 빈 리스트면 `len(nums)`는 0이 되어 0으로 나누려고 시도하기 때문입니다. 예: `avg([])` → 
+[standard][coding_sql_index] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: 이 쿼리를 최적화하려면 `(user_id, created_at)` 복합 인덱스를 만드는 것이 가장 효과적입니다.  **이유:** 1. WHERE 절의 `user_id = 42` 필터로 행의 대부분을 빠르게 제거 2.
+[standard][daily_agenda] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: **월요일 아침 30분 팀 스탠드업 어젠다**  1. **주간 우선순위 정렬 (8분)**    목적: 팀이 이번 주 핵심 목표와 성공 지표를 공유하여 방향 정렬  2. **개인 진행 상황 및 계획 (18분)**   
+[standard][daily_email_rewrite] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: 안녕하세요, 그 보고서 제출이 마감을 지난 것으로 확인되는데, 현재 진행 상황이 어떻게 되는지 여쭤봅니다. 혹시 제출이 어려운 상황이 있으신지, 그리고 언제쯤 제출해 주실 수 있을지 알 수 있을까요? 마감일이 지난 
+[standard][multihop_synthesis] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: 로컬 노트에 저장된 항목이 없습니다. ichimozzi 배포 관련 정보(ichimozzi_pre_deployment_checks, ichimozzi_deployment_guide, ichimozzi_systems)를
+  tools: ['notes_list', 'notes_read', 'notes_read', 'notes_read']
+
+Saved [standard]: /home/insu/insu_server/apps/openakashic/closed-web/server/bench/results/run-standard-claude-haiku-4-5-20260418T073616Z.json
+Records: 12
+
+All outputs:
+  /home/insu/insu_server/apps/openakashic/closed-web/server/bench/results/run-standard-claude-haiku-4-5-20260418T073616Z.json

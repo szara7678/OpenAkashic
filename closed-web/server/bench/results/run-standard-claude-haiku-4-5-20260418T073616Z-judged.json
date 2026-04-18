@@ -1,0 +1,241 @@
+{
+  "run_file": "/home/insu/insu_server/apps/openakashic/closed-web/server/bench/results/run-standard-claude-haiku-4-5-20260418T073616Z.json",
+  "judge_model": "claude-haiku-4-5",
+  "model": "claude-haiku-4-5",
+  "condition": "standard",
+  "judgments": [
+    {
+      "task_id": "domain_jlpt_gen",
+      "condition": "standard",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [],
+      "missed": [
+        "문제 본문이 일본어로 작성되고 ( ) 또는 _____ 형태의 빈칸을 포함한다",
+        "보기 4개가 일본어 어휘이며 N4 수준",
+        "정답 1개와 해설 또는 정답 번호가 명시된다",
+        "정답이 보기 안에 실제로 존재한다 (자기 자신이 정답이 되는 순환 오류 없음)"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "모델이 로컬 노트에서 형식 정보를 찾으려 시도한 후 정보 부재를 정확히 보고했으나, 요청된 JLPT N4 fill-in 문제 자체를 생성하지 못했음. 형식 정보 부재를 이유로 작업을 포기함.",
+      "reason": "모든 expected_outcome 항목이 미충족됨. 모델은 로컬 메모에 저장된 형식 정보가 없다는 것을 확인한 후, 문제를 생성하지 않고 '정보가 없다'는 답변만 제시했다. 형식 정보가 없더라도 JLPT N4 표준 fill-in-the-blank 형식을 기본 지식으로 활용하여 문제를 생성하거나, OpenAkashic 등 다른 리소스 접근을 시도했어야 함.",
+      "score": {
+        "hit_rate": 0.0,
+        "traps_hit_count": 0
+      }
+    },
+    {
+      "task_id": "onboarding_openakashic",
+      "condition": "standard",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [],
+      "missed": [
+        "personal_vault/projects/personal/openakashic/README.md 등 실존하는 시작점 경로 제시",
+        "search_notes 또는 search_and_read_top 등 정보 탐색 도구 언급",
+        "작업 전 관련 노트 검색, 작업 후 writeback (upsert_note/append_note_section) 절차 설명",
+        "경로가 personal_vault/ 또는 doc/ 로 시작해야 한다는 제약 언급"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "모델이 로컬 메모에서 정보를 찾으려 시도한 후 부재를 정확히 보고했으나, 그 이후 대체 방안(OpenAkashic 직접 검색, 기본 지식 활용)을 시도하지 않음. 온보딩 가이드 제공을 포기함.",
+      "reason": "모든 expected_outcome 항목이 미충족됨. Standard 조건에서도 로컬 메모가 없으면 OpenAkashic을 직접 검색하거나 CLAUDE.md의 기본 지시문을 활용하여 온보딩 가이드를 구성할 수 있었음. 정보 부재로 요청을 포기한 것은 부적절함.",
+      "score": {
+        "hit_rate": 0.0,
+        "traps_hit_count": 0
+      }
+    },
+    {
+      "task_id": "triage_ichimozzi_500",
+      "condition": "standard",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [],
+      "missed": [
+        "insu-shared-caddy (리버스 프록시) 먼저 확인하라는 언급",
+        "insu-server-backend-prod-1 등 IchiMozzi 백엔드 컨테이너 이름 정확히 지목",
+        "Caddy → backend → DB 순서 (프록시 → 앱 → 의존성) 방향성 제시",
+        "docker logs 또는 compose 명령어로 상태 확인 절차 언급"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "모델이 로컬 메모에서 정보 부재를 정확히 보고했으나, Triage 절차를 제공하지 못함. 정보가 없으면 OpenAkashic 검색이나 기본 지식을 활용해야 했음.",
+      "reason": "모든 expected_outcome 항목이 미충족됨. Standard 조건에서 로컬 정보가 없을 때, OpenAkashic(개인 프로젝트 vault)에서 insu-server 배포/system-snapshot 노트를 검색하거나, 최소한 구체적인 triage 절차를 기본 지식으로 제공할 수 있었음. 정보 부재를 이유로 답변을 포기한 것은 부적절함.",
+      "score": {
+        "hit_rate": 0.0,
+        "traps_hit_count": 0
+      }
+    },
+    {
+      "task_id": "ichimozzi_deploy",
+      "condition": "standard",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [],
+      "missed": [
+        "docker compose (production.yml 또는 동등) 명령어 제시",
+        "로컬 홈서버 Docker 스택에서 돌아간다는 점 명시 또는 그와 일관된 답변",
+        "GitHub webhook 자동 배포가 비활성/신뢰 불가 상태라는 언급 (또는 수동 절차 명시)"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "모델이 로컬 메모 부재를 정확히 보고했으나, 배포 절차 자체를 제공하지 못함. 정보 부재를 이유로 작업을 포기함.",
+      "reason": "모든 expected_outcome 항목이 미충족됨. Standard 조건에서도 로컬 정보가 없으면 OpenAkashic의 update-and-deploy playbook을 검색하거나, 기본 지식으로 docker compose 배포 절차를 제시할 수 있었음. 정보 부재로 답변 제공을 포기한 것은 부적절함.",
+      "score": {
+        "hit_rate": 0.0,
+        "traps_hit_count": 0
+      }
+    },
+    {
+      "task_id": "general_web_fact",
+      "condition": "standard",
+      "attempt": 1,
+      "verdict": "pass",
+      "hits": [
+        "github.com/modelcontextprotocol 혹은 modelcontextprotocol.io 등 실제 도메인/URL 제시",
+        "MCP가 LLM 에이전트에게 외부 도구/데이터 소스를 연결하기 위한 표준 프로토콜이라는 설명",
+        "Anthropic이 설계/공개한 open standard라는 맥락 언급"
+      ],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "모델이 standard 조건에서 파라메트릭 지식으로 MCP의 GitHub 저장소 URL, 기능(외부 도구/데이터 소스 연결), 설계자(Anthropic), 성질(표준 프로토콜)을 정확하게 설명함.",
+      "reason": "모든 expected_outcome 항목이 충족됨. Anthropic의 MCP GitHub 저장소를 정확히 제시하고, MCP가 AI 모델과 외부 도구/데이터 소스를 연결하는 표준 프로토콜임을 명확히 설명하며, Anthropic의 설계 + 표준화 맥락을 제시함. Hallucination trap도 없음.",
+      "score": {
+        "hit_rate": 1.0,
+        "traps_hit_count": 0
+      }
+    },
+    {
+      "task_id": "memory_roundtrip",
+      "condition": "standard",
+      "attempt": 1,
+      "verdict": "pass",
+      "hits": [
+        "세 선호사항을 메모/노트에 저장하는 호출을 수행",
+        "저장한 메모를 다시 읽어와 answer에 세 항목 모두 포함",
+        "저녁 커피 금지, 주말 이메일 미확인, 아침 6시 30분 운동 세 항목을 정확히 반영"
+      ],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "모델이 notes_write로 세 선호사항을 저장하고(bytes: 118 확인), notes_read로 즉시 회수하여 정확하게 재현함. 저장 호출과 읽기 호출이 모두 receipt에 기록됨.",
+      "reason": "모든 expected_outcome 항목이 충족됨. notes_write → notes_read 라운드트립을 정확하게 수행하고, 저장된 내용을 receipt에서 검증한 후 answer에 세 항목을 정확히 포함함. Hallucination trap도 없음.",
+      "score": {
+        "hit_rate": 1.0,
+        "traps_hit_count": 0
+      }
+    },
+    {
+      "task_id": "busagwan_sagwan_roles",
+      "condition": "standard",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [],
+      "missed": [
+        "Sagwan은 Claude CLI 기반 high-quality/느린 주기 워커라는 설명 또는 그에 상응하는 구분",
+        "Busagwan은 Ollama gemma 기반 빠른/가벼운 주기 워커라는 설명 또는 그에 상응하는 구분",
+        "각자의 주기/트리거 (예: 10분/15분/1시간 같은 cadence 구분) 언급",
+        "두 워커가 서로 다른 종류의 task를 담당하며 gate 관계라는 구조 설명"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "모델이 로컬 메모와 웹 검색을 시도했으나 Busagwan/Sagwan 관련 정보를 찾지 못함. OpenAkashic은 사용자의 개인 프로젝트이므로 공개 웹 검색으로는 발견 불가.",
+      "reason": "모든 expected_outcome 항목이 미충족됨. Standard 조건에서도 로컬 메모와 웹 검색으로 정보를 획득할 수 없었음. OpenAkashic 고유 용어(Busagwan/Sagwan)는 내부 아키텍처 문서에만 기록되어 있을 것으로 보이며, 이는 OpenAkashic 검색이나 관련 노트 경로를 직접 알아야만 접근 가능.",
+      "score": {
+        "hit_rate": 0.0,
+        "traps_hit_count": 0
+      }
+    },
+    {
+      "task_id": "coding_python_bug",
+      "condition": "standard",
+      "attempt": 1,
+      "verdict": "pass",
+      "hits": [
+        "빈 리스트(또는 길이 0) 입력 시 ZeroDivisionError 가 발생한다는 진단",
+        "수정안: len(nums) == 0 가드(또는 try/except, 또는 statistics.mean) 제시",
+        "수정된 코드 스니펫이 실제로 실행 가능한 형태로 제공"
+      ],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "모델이 standard 조건에서 도구 없이 파라메트릭 지식으로 ZeroDivisionError를 정확히 진단하고, if not nums: 가드를 추가한 실행 가능한 수정 코드를 제시함.",
+      "reason": "모든 expected_outcome 항목이 충족됨. 빈 리스트 입력 시 발생하는 ZeroDivisionError를 명확히 진단하고, if not nums: 가드를 추가한 실행 가능한 수정된 코드를 제시함. Hallucination trap도 없음. Standard 조건이지만 도구 없이 기본 프로그래밍 지식으로 충분히 답변.",
+      "score": {
+        "hit_rate": 1.0,
+        "traps_hit_count": 0
+      }
+    },
+    {
+      "task_id": "coding_sql_index",
+      "condition": "standard",
+      "attempt": 1,
+      "verdict": "pass",
+      "hits": [
+        "복합 인덱스 권장: (user_id, created_at) 또는 (user_id, created_at DESC) — 두 컬럼 순서 정확히",
+        "user_id 가 동등 비교(equality)이고 created_at 이 범위/정렬이라 이 순서가 맞다는 설명",
+        "CREATE INDEX 또는 CREATE INDEX CONCURRENTLY 문법으로 실제 SQL 제시"
+      ],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "모델이 standard 조건에서 도구 없이 파라메트릭 지식으로 (user_id, created_at DESC) 복합 인덱스를 정확히 권장하고, user_id 동등 비교 후 created_at 범위/정렬 처리라는 이유를 명확히 설명하며, 정확한 CREATE INDEX 문법을 제시함.",
+      "reason": "모든 expected_outcome 항목이 충족됨. 정확한 인덱스 구조(user_id, created_at DESC), 그 이유(동등 필터→범위/정렬), DESC 명시 이유(정렬 오버헤드 제거)를 설명하고 실제 SQL 제시. Hallucination trap도 없음(단일 인덱스, 역순, 전체 테이블 인덱싱 주장 모두 없음).",
+      "score": {
+        "hit_rate": 1.0,
+        "traps_hit_count": 0
+      }
+    },
+    {
+      "task_id": "daily_agenda",
+      "condition": "standard",
+      "attempt": 1,
+      "verdict": "pass",
+      "hits": [
+        "정확히 3개의 항목(혹은 명확한 3-bullet 구조)으로 구성",
+        "각 항목에 목적/설명이 한 줄 정도로 명시",
+        "시간 배분의 합이 30분 또는 그 근처(±5분)에 수렴 (ex: 5+10+15)"
+      ],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "모델이 standard 조건에서 도구 없이 파라메트릭 지식으로 월요일 팀 스탠드업 어젠다를 구성했으며, 정확히 3개 항목, 각각의 명확한 목적, 정확한 30분 시간 배분(8+18+4)을 제시함.",
+      "reason": "모든 expected_outcome 항목이 충족됨. 정확히 3개의 어젠다(주간 우선순위 정렬, 개인 진행 상황 및 계획, 장애물 및 협력 요청), 각 항목의 명확한 목적, 합계 30분의 정확한 시간 배분 제시. Hallucination trap도 없음(5개 이상, 시간 생략, 불일치 등 모두 없음). Rubric의 '파라메트릭으로 바로 답하는' 요구사항 충족.",
+      "score": {
+        "hit_rate": 1.0,
+        "traps_hit_count": 0
+      }
+    },
+    {
+      "task_id": "daily_email_rewrite",
+      "condition": "standard",
+      "attempt": 1,
+      "verdict": "pass",
+      "hits": [
+        "반말/욕설 톤이 사라지고 존댓말로 변환됨",
+        "보고서 제출 지연을 정중하게 묻는 표현이 포함됨",
+        "3~5문장 범위(또는 그에 준하는 짧은 단락) 안에서 정리됨",
+        "수신자에 대한 위협/책망 없이 협조 요청 형태로 마무리"
+      ],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "모델이 standard 조건에서 도구 호출 없이 파라메트릭 글쓰기로 반말/욕설을 정중한 존댓말로 변환하고, 지연을 정중하게 묻고 협력을 제안하는 3문장의 비즈니스 이메일을 작성함.",
+      "reason": "모든 expected_outcome 항목이 충족됨. 반말/욕설을 존댓말(여쭤봅니다, 말씀해 주시기 바랍니다)로 변환, 지연을 정중하게 묻고 도움을 제안하며, 정확히 3문장의 협조 요청 형태로 마무리. Hallucination trap도 없음(반말, 장문, 의도 왜곡 모두 없음). 파라메트릭 글쓰기 task로 rubric 충족.",
+      "score": {
+        "hit_rate": 1.0,
+        "traps_hit_count": 0
+      }
+    },
+    {
+      "task_id": "multihop_synthesis",
+      "condition": "standard",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [],
+      "missed": [
+        "구체적 컨테이너/시스템 이름 3개 제시 (ex: insu-server-backend-prod-1, insu-server-ichimozzi-db-1, insu-shared-caddy 또는 동등 수준의 실명)",
+        "각 시스템에 대한 배포 전 점검 이유가 한 줄 수준으로 동반",
+        "추상적이지 않고 실제 인프라 구성요소(Docker container/proxy/DB) 기반"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "모델이 로컬 메모에서 정보를 찾으려 시도했으나, 저장된 내용이 없다는 것을 확인한 후 요청된 답변을 제공하지 못함. 정보 부재를 이유로 작업을 포기.",
+      "reason": "모든 expected_outcome 항목이 미충족됨 (0% hit). Standard 조건이므로 로컬 메모 부재 후에도 OpenAkashic 검색이나 기본 지식을 활용한 답변이 필요했으나, 정보 없음 보고로 회피. Rubric에서 openakashic 우위를 기대하는 task이므로 standard도 최소한의 답변은 제공해야 함.",
+      "score": {
+        "hit_rate": 0.0,
+        "traps_hit_count": 0
+      }
+    }
+  ]
+}

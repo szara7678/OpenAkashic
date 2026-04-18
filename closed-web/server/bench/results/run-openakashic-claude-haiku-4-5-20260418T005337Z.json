@@ -1,0 +1,1401 @@
+{
+  "model": "claude-haiku-4-5",
+  "condition": "openakashic",
+  "timestamp": "20260418T005337Z",
+  "records": [
+    {
+      "task_id": "domain_jlpt_gen",
+      "condition": "openakashic",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-18T00:50:58+00:00",
+      "finished_at": "2026-04-18T00:51:27+00:00",
+      "plan": "IchiMozzi의 문제 형식과 기존 N4 어휘 문제 예제를 Akashic에서 검색하여 확인한 후, 정확한 형식으로 fill-in 문제 1개를 생성합니다.",
+      "tool_calls": [
+        {
+          "tool": "search_and_read_top",
+          "arguments": {
+            "query": "ichimozzi question format vocabulary fill-in"
+          },
+          "result": {
+            "directive": "노트 본문의 사실을 인용해 질문에 직접 답하세요. 경로 나열·도구명 반복 금지. 부족하면 read_note 추가 호출.",
+            "note_body_preview": "## Summary\n에이전트가 `JLPT N4 vocabulary ichimozzi` 쿼리로 검색했으나 관련 노트가 없었습니다.\n\n## Gap Details\n- **Query:** `JLPT N4 vocabulary ichimozzi`\n- **Detected by:** analyze_search_gaps (2026-04-17T08:21:13Z)\n\n## Suggested Action\n이 주제에 대한 capsule 또는 reference 노트 작성을 검토하세요.\n- 관련 자료 수집 후 `upsert_note` (kind=reference) 로 evidence note 작성\n- 요약 synthesis 후 `upsert_note` (kind=capsule) 작성\n- `request_note_publication` 으로 공개 요청",
+            "retrieval_value": {
+              "directive": "경로 나열 금지. 노트 내용을 읽어 질문에 직접 답하세요. 부족하면 read_note 추가 호출.",
+              "intent": "fact_lookup",
+              "matched_notes": [
+                "personal_vault/projects/personal/ichimozzi/problem_taxonomy_and_generation_guide.md",
+                "personal_vault/projects/personal/ichimozzi/audit-2026-04-16.md",
+                "personal_vault/projects/personal/ichimozzi/example-n4-vocab-001.md"
+              ],
+              "writeback_suggested": false,
+              "read_note_hint": "본문이 필요하면 read_note(path=<path>) 추가 호출. 쓰기는 upsert_note(path, body, title)."
+            },
+            "query": "ichimozzi question format vocabulary fill-in",
+            "top": {
+              "path": "doc/knowledge-gaps/jlpt-n4-vocabulary-ichimozzi-e04fd7.md",
+              "slug": "jlpt-n4-vocabulary-ichimozzi-e04fd7",
+              "title": "[Gap] JLPT N4 vocabulary ichimozzi",
+              "kind": "reference",
+              "project": "openakashic",
+              "owner": "sagwan",
+              "visibility": "private",
+              "publication_status": "none",
+              "tags": [
+                "gap",
+                "knowledge-gap",
+                "subordinate"
+              ],
+              "summary": "에이전트가 JLPT N4 vocabulary ichimozzi 쿼리로 검색했으나 관련 노트가 없었습니다.",
+              "href": "/notes/jlpt-n4-vocabulary-ichimozzi-e04fd7",
+              "lexical_score": 0.0,
+              "semantic_score": 0.6097,
+              "confirm_count": 0,
+              "score": 0.016393
+            },
+            "other_results": [
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/problem_taxonomy_and_generation_guide.md",
+                "slug": "problem-taxonomy-and-generation-guide",
+                "title": "IchiMozzi 문제 태그 체계 및 생성·검수 가이드 (2026-04-17)",
+                "kind": "reference",
+                "project": "personal/ichimozzi",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "ichimozzi",
+                  "jlpt",
+                  "taxonomy",
+                  "problem-generation",
+                  "review",
+                  "agent-reference"
+                ],
+                "summary": "IchiMozzi JLPT 문제 생성 전체 가이드. 3부 구조, 4부 태그 체계, 레벨별 어휘·후리가나 정책, 검증 도구 사용법 수록. --- title: IchiMozzi 문제 생성·검수 가이드 (rev4) kind: note tags: [ichimozzi, jlpt, problem-generation, taxonomy, guide] owner: aaron visibility: private --- IchiMozzi 문제 생성·검수 가이드 (rev4) rev4",
+                "href": "/notes/problem-taxonomy-and-generation-guide",
+                "lexical_score": 0.0,
+                "semantic_score": 0.6063,
+                "confirm_count": 0,
+                "score": 0.016129
+              },
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/audit-2026-04-16.md",
+                "slug": "audit-2026-04-16",
+                "title": "audit-2026-04-16",
+                "kind": "reference",
+                "project": "openakashic",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [],
+                "summary": "---",
+                "href": "/notes/audit-2026-04-16",
+                "lexical_score": 0.0,
+                "semantic_score": 0.6015,
+                "confirm_count": 0,
+                "score": 0.015873
+              },
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/example-n4-vocab-001.md",
+                "slug": "example-n4-vocab-001",
+                "title": "IchiMozzi N4 어휘 문제 예시",
+                "kind": "reference",
+                "project": "openakashic",
+                "owner": "admin",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [],
+                "summary": "---",
+                "href": "/notes/example-n4-vocab-001",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5971,
+                "confirm_count": 0,
+                "score": 0.015625
+              },
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/audit-2026-04-17.md",
+                "slug": "audit-2026-04-17",
+                "title": "IchiMozzi 문제 파이프라인 종합 QA (2026-04-17)",
+                "kind": "reference",
+                "project": "openakashic",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [],
+                "summary": "---",
+                "href": "/notes/audit-2026-04-17",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5764,
+                "confirm_count": 0,
+                "score": 0.015385
+              }
+            ],
+            "hints": [],
+            "count": 5,
+            "note": {
+              "path": "doc/knowledge-gaps/jlpt-n4-vocabulary-ichimozzi-e04fd7.md",
+              "slug": "jlpt-n4-vocabulary-ichimozzi-e04fd7",
+              "title": "[Gap] JLPT N4 vocabulary ichimozzi",
+              "kind": "reference",
+              "project": "openakashic",
+              "status": "draft",
+              "owner": "sagwan",
+              "original_owner": "sagwan",
+              "created_by": "busagwan",
+              "visibility": "private",
+              "publication_status": "none",
+              "tags": [
+                "gap",
+                "knowledge-gap",
+                "subordinate"
+              ],
+              "related": [],
+              "summary": "에이전트가 JLPT N4 vocabulary ichimozzi 쿼리로 검색했으나 관련 노트가 없었습니다.",
+              "body": "## Summary\n에이전트가 `JLPT N4 vocabulary ichimozzi` 쿼리로 검색했으나 관련 노트가 없었습니다.\n\n## Gap Details\n- **Query:** `JLPT N4 vocabulary ichimozzi`\n- **Detected by:** analyze_search_gaps (2026-04-17T08:21:13Z)\n\n## Suggested Action\n이 주제에 대한 capsule 또는 reference 노트 작성을 검토하세요.\n- 관련 자료 수집 후 `upsert_note` (kind=reference) 로 evidence note 작성\n- 요약 synthesis 후 `upsert_note` (kind=capsule) 작성\n- `request_note_publication` 으로 공개 요청",
+              "body_html": "<h2 id=\"summary\">Summary<a class=\"heading-anchor\" href=\"#summary\">#</a></h2>\n<p>에이전트가 <code>JLPT N4 vocabulary ichimozzi</code> 쿼리로 검색했으나 관련 노트가 없었습니다.</p>\n<h2 id=\"gap-details\">Gap Details<a class=\"heading-anchor\" href=\"#gap-details\">#</a></h2>\n<ul>\n<li><strong>Query:</strong> <code>JLPT N4 vocabulary ichimozzi</code></li>\n<li><strong>Detected by:</strong> analyze_search_gaps (2026-04-17T08:21:13Z)</li>\n</ul>\n<h2 id=\"suggested-action\">Suggested Action<a class=\"heading-anchor\" href=\"#suggested-action\">#</a></h2>\n<p>이 주제에 대한 capsule 또는 reference 노트 작성을 검토하세요.\n- 관련 자료 수집 후 <code>upsert_note</code> (kind=reference) 로 evidence note 작성\n- 요약 synthesis 후 <code>upsert_note</code> (kind=capsule) 작성\n- <code>request_note_publication</code> 으로 공개 요청</p>",
+              "links": [],
+              "related_notes": [],
+              "backlinks": [],
+              "outbound": 0,
+              "href": "/notes/jlpt-n4-vocabulary-ichimozzi-e04fd7"
+            }
+          },
+          "error": null,
+          "duration_ms": 4386.9
+        },
+        {
+          "tool": "search_and_read_top",
+          "arguments": {
+            "query": "JLPT N4 vocabulary question example"
+          },
+          "result": {
+            "directive": "노트 본문의 사실을 인용해 질문에 직접 답하세요. 경로 나열·도구명 반복 금지. 부족하면 read_note 추가 호출.",
+            "note_body_preview": "## Summary\nJLPT N4 문제 유형 전체 참조 + IchiMozzi 문제 생성 가이드.\n각 유형마다 출제 형식, 생성 규칙, 실전 예시 3개 이상, IchiMozzi 3부 구조 매핑 포함.\nN4 수준: 기본 문형 전반 + て형/ない형/조건/수수/경어 초급 ~ 중급.\n\n## 시험 구성 요약\n- **言語知識 (文字·語彙)**: 30분\n- **言語知識 (文法)·読解**: 60분\n- **聴解**: 35분\n- 총 문항: 약 90~100문\n- 형식: 4지선다 객관식\n\n---\n\n# Part 1. 言語知識 (文字·語彙)\n\n## Mondai 1: 漢字読み (한자 읽기)\n\n### 형식\n- 밑줄 친 한자어의 히라가나 읽기 선택 (약 9문항)\n\n### 생성 규칙\n- N4 어휘 kanji 엔트리 타겟 (N5 기본 한자 외 항목 우선)\n- 오답: 음독/훈독 혼동, 탁음·촉음 변형, 유사자 읽기\n- 밑줄 포함 문장은 14자 이내, N4 이하 어휘만 사용\n\n### IchiMozzi 3부 구조 예시\n```\n次の文の___の言葉の読み方として最もよいものを、1・2・3・4から一つ選んでください。\n\n彼は毎日図書館で___勉強しています。\n      _______\n熱心に\n\n1. ねっしんに  2. あつしんに  3. ねつしんに  4. ねっしんく\n```\n정답: 1 | 해설: 熱心(ねっしん) = 열심, 促音便(っ)+음독\n\n### 예시 문제 3개\n\n**例1**\n```\n지시: 次の___の言葉の読み方を選んでください。\n\n彼女は先生に相談しました。\n         ______\n\n1. そうだん  2. さうだん  3. そうたん  4. さうたん\n```\n정답: 1 | 相談(そうだん)\n\n**例2**\n```\n지시: 次の___の言葉の読み方を選んでください。\n\n来週、試験があります。\n     ______\n\n1. しじゅん  2. しけん  3. じけん  4. じきん\n```\n정답: 2 | 試験(しけん) / 事件(じけん)와 혼동 주의\n\n**例3**\n```\n지시: 次の___の言葉の読み方を選んでください。\n\n道が込んでいたので、遅刻しました。\n               ____\n\n1. ちこく  2. ちごく  3. おくれ  4. じこく\n```\n정답: 1 | 遅刻(ちこく) / 地獄(じごく) 혼동 트랩\n\n---\n\n## Mondai 2: 表記 (히라가나→한자)\n\n### 형식\n- 밑줄 친 히라가나를 올바른 한자 표기로 선택 (약 6문항)\n\n### 생성 규칙\n- N4 vocab kana 엔트리 타겟\n- 오답: ",
+            "retrieval_value": {
+              "directive": "경로 나열 금지. 노트 내용을 읽어 질문에 직접 답하세요. 부족하면 read_note 추가 호출.",
+              "intent": "fact_lookup",
+              "matched_notes": [
+                "personal_vault/knowledge/japanese/n4/problem-patterns.md",
+                "personal_vault/knowledge/japanese/n4/vocab.md",
+                "personal_vault/projects/ops/librarian/knowledge-gaps/jlpt-n5-n4-n3-vocabulary-grammar-reading.md"
+              ],
+              "writeback_suggested": false,
+              "read_note_hint": "본문이 필요하면 read_note(path=<path>) 추가 호출. 쓰기는 upsert_note(path, body, title)."
+            },
+            "query": "JLPT N4 vocabulary question example",
+            "top": {
+              "path": "personal_vault/knowledge/japanese/n4/problem-patterns.md",
+              "slug": "personal-vault-knowledge-japanese-n4-problem-patterns",
+              "title": "JLPT N4 Problem Patterns Reference",
+              "kind": "reference",
+              "project": "knowledge/japanese",
+              "owner": "sagwan",
+              "visibility": "private",
+              "publication_status": "rejected",
+              "tags": [
+                "japanese",
+                "jlpt",
+                "n4",
+                "problems",
+                "exam"
+              ],
+              "summary": "JLPT N4 문제 유형 전체 참조 + IchiMozzi 문제 생성 가이드. 각 유형마다 출제 형식, 생성 규칙, 실전 예시 3개 이상, IchiMozzi 3부 구조 매핑 포함. N4 수준: 기본 문형 전반 + て형/ない형/조건/수수/경어 초급 중급.",
+              "href": "/notes/personal-vault-knowledge-japanese-n4-problem-patterns",
+              "lexical_score": 0.0,
+              "semantic_score": 0.6731,
+              "confirm_count": 0,
+              "score": 0.016393
+            },
+            "other_results": [
+              {
+                "path": "personal_vault/knowledge/japanese/n4/vocab.md",
+                "slug": "personal-vault-knowledge-japanese-n4-vocab",
+                "title": "JLPT N4 Vocabulary Reference",
+                "kind": "reference",
+                "project": "knowledge/japanese",
+                "owner": "sagwan",
+                "visibility": "private",
+                "publication_status": "rejected",
+                "tags": [
+                  "japanese",
+                  "jlpt",
+                  "n4",
+                  "vocabulary",
+                  "study"
+                ],
+                "summary": "JLPT N4 핵심 어휘 레퍼런스. N5 어휘에 추가되는 N4 신규 빈출·핵심어 약 500개를 카테고리별로 정리. N5 vocab.md의 어휘는 이미 알고 있다는 전제로 N4 신규어만 수록.",
+                "href": "/notes/personal-vault-knowledge-japanese-n4-vocab",
+                "lexical_score": 0.0,
+                "semantic_score": 0.6596,
+                "confirm_count": 0,
+                "score": 0.016129
+              },
+              {
+                "path": "personal_vault/projects/ops/librarian/knowledge-gaps/jlpt-n5-n4-n3-vocabulary-grammar-reading.md",
+                "slug": "jlpt-n5-n4-n3-vocabulary-grammar-reading",
+                "title": "[Gap] JLPT N5 N4 N3 vocabulary grammar reading 문제 형식 출제 기준",
+                "kind": "reference",
+                "project": "ops/librarian",
+                "owner": "sagwan",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "gap",
+                  "knowledge-gap",
+                  "subordinate"
+                ],
+                "summary": "에이전트가 JLPT N5 N4 N3 vocabulary grammar reading 문제 형식 출제 기준 쿼리로 검색했으나 관련 노트가 없었습니다.",
+                "href": "/notes/jlpt-n5-n4-n3-vocabulary-grammar-reading",
+                "lexical_score": 0.0,
+                "semantic_score": 0.6373,
+                "confirm_count": 0,
+                "score": 0.015873
+              },
+              {
+                "path": "personal_vault/knowledge/japanese/n4/grammar.md",
+                "slug": "personal-vault-knowledge-japanese-n4-grammar",
+                "title": "JLPT N4 Grammar Reference",
+                "kind": "reference",
+                "project": "knowledge/japanese",
+                "owner": "sagwan",
+                "visibility": "private",
+                "publication_status": "requested",
+                "tags": [
+                  "japanese",
+                  "jlpt",
+                  "n4",
+                  "grammar",
+                  "study"
+                ],
+                "summary": "JLPT N4 수준 핵심 문법 약 80문형. N5 기반에서 보통체, 가능형, 수동/사역, 수수동사, 조건문(と・ば・たら・なら), 인용/전문, 명사 수식절 등이 본격 등장. 각 문형은 의미·접속·예문 3개 이상.",
+                "href": "/notes/personal-vault-knowledge-japanese-n4-grammar",
+                "lexical_score": 0.0,
+                "semantic_score": 0.6208,
+                "confirm_count": 0,
+                "score": 0.015625
+              },
+              {
+                "path": "personal_vault/knowledge/japanese/n4/kanji.md",
+                "slug": "personal-vault-knowledge-japanese-n4-kanji",
+                "title": "JLPT N4 Kanji Reference",
+                "kind": "reference",
+                "project": "knowledge/japanese",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "rejected",
+                "tags": [
+                  "japanese",
+                  "jlpt",
+                  "n4",
+                  "kanji",
+                  "study"
+                ],
+                "summary": "JLPT N4 수준 핵심 한자 약 300자(N5 포함 누적) 중 N4 신규 분 약 170자 레퍼런스. 음독·훈독, 대표 단어, 시험 포인트. N4는 복합어 읽기(熟語)와 동사 파생형(動詞活用) 출제가 핵심.",
+                "href": "/notes/personal-vault-knowledge-japanese-n4-kanji",
+                "lexical_score": 0.0,
+                "semantic_score": 0.6148,
+                "confirm_count": 0,
+                "score": 0.015385
+              }
+            ],
+            "hints": [],
+            "count": 5,
+            "note": {
+              "path": "personal_vault/knowledge/japanese/n4/problem-patterns.md",
+              "slug": "personal-vault-knowledge-japanese-n4-problem-patterns",
+              "title": "JLPT N4 Problem Patterns Reference",
+              "kind": "reference",
+              "project": "knowledge/japanese",
+              "status": "active",
+              "owner": "sagwan",
+              "original_owner": "sagwan",
+              "created_by": "sagwan",
+              "visibility": "private",
+              "publication_status": "rejected",
+              "tags": [
+                "japanese",
+                "jlpt",
+                "n4",
+                "problems",
+                "exam"
+              ],
+              "related": [
+                "JLPT N4 Vocabulary Reference",
+                "JLPT N4 Grammar Reference",
+                "JLPT N5 Problem Patterns"
+              ],
+              "summary": "JLPT N4 문제 유형 전체 참조 + IchiMozzi 문제 생성 가이드. 각 유형마다 출제 형식, 생성 규칙, 실전 예시 3개 이상, IchiMozzi 3부 구조 매핑 포함. N4 수준: 기본 문형 전반 + て형/ない형/조건/수수/경어 초급 중급.",
+              "body": "## Summary\nJLPT N4 문제 유형 전체 참조 + IchiMozzi 문제 생성 가이드.\n각 유형마다 출제 형식, 생성 규칙, 실전 예시 3개 이상, IchiMozzi 3부 구조 매핑 포함.\nN4 수준: 기본 문형 전반 + て형/ない형/조건/수수/경어 초급 ~ 중급.\n\n## 시험 구성 요약\n- **言語知識 (文字·語彙)**: 30분\n- **言語知識 (文法)·読解**: 60분\n- **聴解**: 35분\n- 총 문항: 약 90~100문\n- 형식: 4지선다 객관식\n\n---\n\n# Part 1. 言語知識 (文字·語彙)\n\n## Mondai 1: 漢字読み (한자 읽기)\n\n### 형식\n- 밑줄 친 한자어의 히라가나 읽기 선택 (약 9문항)\n\n### 생성 규칙\n- N4 어휘 kanji 엔트리 타겟 (N5 기본 한자 외 항목 우선)\n- 오답: 음독/훈독 혼동, 탁음·촉음 변형, 유사자 읽기\n- 밑줄 포함 문장은 14자 이내, N4 이하 어휘만 사용\n\n### IchiMozzi 3부 구조 예시\n```\n次の文の___の言葉の読み方として最もよいものを、1・2・3・4から一つ選んでください。\n\n彼は毎日図書館で___勉強しています。\n      _______\n熱心に\n\n1. ねっしんに  2. あつしんに  3. ねつしんに  4. ねっしんく\n```\n정답: 1 | 해설: 熱心(ねっしん) = 열심, 促音便(っ)+음독\n\n### 예시 문제 3개\n\n**例1**\n```\n지시: 次の___の言葉の読み方を選んでください。\n\n彼女は先生に相談しました。\n         ______\n\n1. そうだん  2. さうだん  3. そうたん  4. さうたん\n```\n정답: 1 | 相談(そうだん)\n\n**例2**\n```\n지시: 次の___の言葉の読み方を選んでください。\n\n来週、試験があります。\n     ______\n\n1. しじゅん  2. しけん  3. じけん  4. じきん\n```\n정답: 2 | 試験(しけん) / 事件(じけん)와 혼동 주의\n\n**例3**\n```\n지시: 次の___の言葉の読み方を選んでください。\n\n道が込んでいたので、遅刻しました。\n               ____\n\n1. ちこく  2. ちごく  3. おくれ  4. じこく\n```\n정답: 1 | 遅刻(ちこく) / 地獄(じごく) 혼동 트랩\n\n---\n\n## Mondai 2: 表記 (히라가나→한자)\n\n### 형식\n- 밑줄 친 히라가나를 올바른 한자 표기로 선택 (약 6문항)\n\n### 생성 규칙\n- N4 vocab kana 엔트리 타겟\n- 오답: 동음이의어, 모양 유사 한자, 부수 혼동\n\n### 예시 문제 3개\n\n**例1**\n```\n지시: ___のことばはどう書きますか。最もよいものを選んでください。\n\nこのにもつはおもいです。\n     ____\n\n1. 重い  2. 軽い  3. 重い  4. 荷い\n```\n정답: 1 | 重い(おもい) = 무겁다\n\n**例2**\n```\n지시: ___のことばはどう書きますか。\n\nかれはやさしい先生です。\n     _____\n\n1. 優しい  2. 易しい  3. 安しい  4. 優い\n```\n정답: 1 | 優しい(やさしい) = 친절하다 (易しい는 쉽다 — 의미 혼동 트랩)\n\n**例3**\n```\n지시: ___のことばはどう書きますか。\n\nもっとれんしゅうしてください。\n       ______\n\n1. 練習  2. 連習  3. 練修  4. 連修\n```\n정답: 1 | 練習(れんしゅう)\n\n---\n\n## Mondai 3: 文脈規定 (문맥 정의)\n\n### 형식\n- 문장의 ( ) 안에 가장 어울리는 단어 선택 (약 8문항)\n\n### 생성 규칙\n- 정답: 문맥 의미에 맞는 N4 명사/동사/형용사/부사\n- 오답: 같은 품사지만 문맥 부적합 (의미 유사 단어 사용)\n- \"시험 트랩\": 문법상 가능하지만 의미가 어색한 선지 포함\n\n### IchiMozzi 3부 구조 예시\n```\n(  )に入れるのに最もよいものを選んでください。\n\n来年、日本語の(  )を受けるつもりです。\n\n1. 試験  2. 練習  3. 授業  4. 宿題\n```\n정답: 1 | 試験を受ける = 시험을 보다 (자연스러운 콜로케이션)\n\n### 예시 문제 3개\n\n**例1**\n```\n지시: (  )に入れるのに最もよいものを選んでください。\n\nこの映画はとても(  )です。もう一度見たいです。\n\n1. かんたん  2. かんどう  3. きれい  4. ながい\n```\n정답: 2 | 感動(かんどう) — もう一度見たい와 자연스럽게 연결\n\n**例2**\n```\n지시: (  )に入れるのに最もよいものを選んでください。\n\n電車が(  )になったので、バスで行きました。\n\n1. けが  2. じこ  3. きけん  4. きゅうこう\n```\n정답: 4 | 急行(きゅうこう) → 運休(うんきゅう)가 더 적합하나, 急行になった로 특급 전환 표현도 가능. \n> ※ 생성 시 주의: 「運休になった」쪽이 더 자연스러우므로 運休를 정답으로 설계하는 편이 낫다.\n\n**例3**\n```\n지시: (  )に入れるのに最もよいものを選んでください。\n\n彼女は病気で学校を(  )しました。\n\n1. さんか  2. けっせき  3. えんき  4. そつぎょう\n```\n정답: 2 | 欠席(けっせき) = 결석 (참석의 반대)\n\n---\n\n## Mondai 4: 言い換え類義 (유의어)\n\n### 형식\n- 밑줄 친 표현과 의미가 가장 비슷한 것 선택 (약 4문항)\n\n### 생성 규칙\n- 정답: 유의어·바꿔말하기 (긍정↔부정+반의 포함)\n- 오답: 관련 어휘지만 의미 다름, 혼동 쉬운 표현\n\n### 예시 문제 3개\n\n**例1**\n```\n지시: ___に意味が最も近いものを選んでください。\n\n彼はいつも親切にしてくれます。\n         _____\n\n1. やさしくしてくれます\n2. きびしくしてくれます\n3. いそがしくしてくれます\n4. さびしくしてくれます\n```\n정답: 1 | 親切(しんせつ) ≒ やさしい\n\n**例2**\n```\n지시: ___に意味が最も近いものを選んでください。\n\nこの問題はかんたんではありません。\n             ______\n\n1. むずかしいです\n2. おもしろいです\n3. たのしいです\n4. ながいです\n```\n정답: 1 | かんたんではない = むずかしい (반의+부정 패턴)\n\n**例3**\n```\n지시: ___に意味が最も近いものを選んでください。\n\n急いで家を出ました。\n___\n\n1. ゆっくりではなく出ました\n2. はやく出ました\n3. 遅れて出ました\n4. わすれて出ました\n```\n정답: 2 | 急いで = 急いで・はやく\n\n---\n\n## Mondai 5: 用法 (용법 — N4 신규)\n\n### 형식\n- 밑줄 친 단어가 자연스럽게 쓰인 문장 선택 (약 3문항)\n\n### 생성 규칙\n- 타겟 어휘를 4개의 문장에 각각 사용\n- 정답: 올바른 콜로케이션·문맥\n- 오답: 문법상 가능하나 의미적으로 어색한 사용\n\n### 예시 문제 2개\n\n**例1 (타겟: 用意する)**\n```\n지시: 「用意する」の使い方として最もよいものを選んでください。\n\n1. 明日のパーティーのために食べ物を用意しました。\n2. この映画はとても用意で面白かったです。\n3. 彼は毎日用意して電車に乗ります。\n4. 試験に用意してください。\n```\n정답: 1 | 용의하다 = 준비하다 (物事を用意する 형태)\n\n**例2 (타겟: 連絡する)**\n```\n지시: 「連絡する」の使い方として最もよいものを選んでください。\n\n1. 遅れる場合は必ず連絡してください。\n2. 彼女の話はとても連絡でした。\n3. この仕事は連絡がかかります。\n4. 友達に連絡を食べました。\n```\n정답: 1 | 〜に連絡する (연락하다)\n\n---\n\n# Part 2. 言語知識 (文法)\n\n## Mondai 6: 文の文法 1 (문법 형식 판단)\n\n### 형식\n- 빈칸에 들어갈 문법 표현 선택 (약 14문항)\n- **N4 핵심 문법 카테고리 전부 출제 대상**\n\n### IchiMozzi 매핑\n| 카테고리 | 대표 서브패턴 | 오답 함정 |\n|----------|--------------|-----------|\n| 동사활용 | て형, ない형, 가능형 | 활용 어미 혼동 |\n| 조건표현 | たら, ば, と | 조건 용법 혼동 |\n| 수수표현 | あげる/くれる/もらう | 주어·방향 혼동 |\n| 경어표현 | です/ます, 존경어 초급 | 존경/겸양 혼동 |\n| 접속표현 | から, ので, のに, が | 원인·역접 혼동 |\n| 추측표현 | でしょう, かもしれない, そうだ(양태) | 양태/전문 そうだ 혼동 |\n| 조사 | に/で/へ 구분, は/が 구분 | 격조사 기능 혼동 |\n\n### 예시 문제 5개\n\n**例1 (수수표현 — くれる계)**\n```\n지시: (  )に入れるのに最もよいものを選んでください。\n\n友達が駅まで送って(  )ました。\n\n1. あげ  2. くれ  3. もらい  4. いただき\n```\n정답: 2 | 友達が主語+送る+くれる (타인이 나에게 해줌)\n오답 함정: あげる (내가 상대에게), もらう (내가 받음), いただく (겸양)\n\n**例2 (조건표현 — たら)**\n```\n지시: (  )に入れるのに最もよいものを選んでください。\n\n電話し(  )、彼はもう出発したと言っていました。\n\n1. たら  2. ば  3. と  4. ながら\n```\n정답: 1 | 〜たら(조건·발견): 전화했더니 결과 발견\n오답: ば(가정조건), と(자동결과), ながら(동시동작)\n\n**例3 (て형 — てから)**\n```\n지시: (  )に入れるのに最もよいものを選んでください。\n\n宿題を(  )、ゲームをしてもいいよ。\n\n1. して  2. してから  3. するから  4. するので\n```\n정답: 2 | 〜てから = 〜한 다음에 (순서 표현)\n\n**例4 (接続 — のに)**\n```\n지시: (  )に入れるのに最もよいものを選んでください。\n\nたくさん練習した(  )、試合に負けてしまいました。\n\n1. から  2. ので  3. のに  4. と\n```\n정답: 3 | 〜のに (역접·불만): 열심히 했는데도 짐\n오답: から/ので (순접 원인), と (조건)\n\n**例5 (そうだ 양태)**\n```\n지시: (  )に入れるのに最もよいものを選んでください。\n\n空が暗くなってきました。雨が降り(  )です。\n\n1. そうな  2. そうだ  3. らしい  4. ようだ\n```\n정답: 2 | 見た目の推量: 降りそうだ\n※ 양태そうだ = 동사ます형+そうだ; 전문そうだ = 普通形+そうだ 구별 필수\n\n---\n\n## Mondai 7: 文の文法 2 (문장 완성 — 나열 순서 맞추기)\n\n### 형식\n- 뒤섞인 4개의 조각을 올바른 순서로 배열 (★가 있는 위치 선택)\n- 약 5문항\n\n### 생성 규칙\n- IchiMozzi에서는 이 유형을 **「문장 완성형」** 변형으로 구현\n- 빈칸 4개짜리 문장에서 ★ 위치의 조각 번호 선택\n- 조각 순서: 조사+활용 일관성 체크 필수\n\n### 예시 문제\n\n**例1**\n```\n지시: 次の文の★に入るものを選んでください。\n\n彼女は＿＿＿★＿＿＿ほしいです。\n          ①日本語を  ②が  ③話せる  ④ようになって\n\n選択肢:\n1. ①  2. ②  3. ③  4. ④\n```\n정렬: 彼女は **日本語を** 話せる **ようになって** **が** ほしいです。\n→ 올바른 순서: ①日本語を — ③話せる — ④ようになって — ②が\n정답: 3 (★=③)\n\n---\n\n## Mondai 8: 文章の文法 (텍스트 내 문법)\n\n### 형식\n- 100~150자 단문 지문에 빈칸 3~5개, 각각 문법 선택 (약 5문항)\n- N4에서는 메일/일기/짧은 설명문 형식 多\n\n### 생성 규칙\n- 지문: N4 어휘·문법만 사용, 일상 화제 (생활/여행/학교)\n- 빈칸: 연결표현, 조사, 활용 끝부분 위주\n- IchiMozzi 독해 문제의 지문 길이 참고: 3~5문장\n\n### 예시 (메일 형식)\n```\n지시문: 次の文を読んで、(1)〜(3)の問いに答えてください。\n\n田中さんへ\n\n先日は手伝って(1)、ありがとうございました。\nおかげで仕事が早く終わり(2)、夕食に間に合いました。\nまた何か(3)、ぜひ声をかけてください。\n\n山田より\n\n(1) 1. いただき   2. あげ   3. くれ   4. もらい\n(2) 1. ましたので  2. ましたのに  3. ましたから  4. ましたが\n(3) 1. あったら   2. あれば   3. あると   4. あって\n```\n(1)정답: 1 (겸양: いただく)\n(2)정답: 1 (순접 결과: ましたので)\n(3)정답: 1 (발견·가정: たら)\n\n---\n\n# Part 3. 読解 (독해)\n\n## N4 독해 특징\n- 지문 길이: 100~300자 (단문), 350~500자 (중문)\n- 화제: 일상 생활, 짧은 설명문, 안내문, 편지\n- 질문 유형: 내용 일치, 요지 파악, 지시어 해석\n\n## IchiMozzi 독해 문제 3부 구조\n```\n次の文章を読んで、質問に答えてください。\n\n{지문 150~300자, N4 어휘, 1~3문단}\n\nこの文章のテーマとして最もよいものを選んでください。\n```\n\n### 독해 생성 체크리스트\n- [ ] 지문 내 N4 이하 어휘만 사용 (vocab_validator 필수)\n- [ ] 질문의 정답 근거가 지문에 명시되어 있어야 함\n- [ ] 오답은 지문의 일부 내용을 비틀거나 반대로 표현\n- [ ] 지시어(これ/それ/あれ)가 있으면 지시 대상 명확히\n\n---\n\n# IchiMozzi 전용 생성 가이드\n\n## N4 문법 문제 3부 구조 템플릿\n```\n{문법 포인트}の使い方として正しいものを選んでください。\n[または]\n(  )に入れるのに最もよいものを、1・2・3・4から一つ選んでください。\n\n{문제문 — 빈칸 1개, 14~20자, N4 이하 어휘}\n\n{질문 (위 지시문 반복 또는 \"上の文の(  )に入る言葉はどれですか。\")}\n```\n\n## N4 카테고리별 오답 설계 원칙\n| 타겟 문법 | 오답 설계 방법 |\n|-----------|---------------|\n| て형 활용 | 같은 행의 다른 활용형 (て/た/ない) 사용 |\n| あげる/くれる/もらう | 수수 방향 반대인 것, 겸양/존경 버전 |\n| たら/ば/と조건 | 조건 뉘앙스 다른 3개 나열 |\n| から/ので/のに | 순접·역접 혼용 오답 |\n| そうだ양태/らしい | 전문そうだ(보통형+そうだ) 오답으로 포함 |\n\n## 자주 나오는 N4 함정 표현\n- `〜てあげる` vs `〜てくれる`: 주어가 \"나\"냐 \"상대\"냐\n- `〜たら` vs `〜ば`: たら는 완료 후 결과, ば는 가정\n- `〜から` vs `〜ので`: から는 주관적, ので는 객관적 이유\n- `〜そうだ(様態)` vs `〜そうだ(伝聞)`: ます형+そうだ vs 普通形+そうだ\n- `〜かもしれない` vs `〜でしょう`: 개인 추측 vs 청자 동의 구하기\n- `〜なければならない` vs `〜なくてもいい`: 의무 vs 불필요\n\n## related\n- [[personal_vault/knowledge/japanese/n4/grammar.md]]\n- [[personal_vault/knowledge/japanese/n4/vocab.md]]\n- [[personal_vault/projects/personal/ichimozzi/grammar-category-subpattern-map.md]]\n- [[personal_vault/projects/personal/ichimozzi/problem_taxonomy_and_generation_guide.md]]\n- [[personal_vault/knowledge/japanese/n5/problem-patterns.md]]\n- [[personal_vault/knowledge/japanese/n3/problem-patterns.md]]",
+              "body_html": "<h2 id=\"summary\">Summary<a class=\"heading-anchor\" href=\"#summary\">#</a></h2>\n<p>JLPT N4 문제 유형 전체 참조 + IchiMozzi 문제 생성 가이드.\n각 유형마다 출제 형식, 생성 규칙, 실전 예시 3개 이상, IchiMozzi 3부 구조 매핑 포함.\nN4 수준: 기본 문형 전반 + て형/ない형/조건/수수/경어 초급 ~ 중급.</p>\n<h2 id=\"시험-구성-요약\">시험 구성 요약<a class=\"heading-anchor\" href=\"#시험-구성-요약\">#</a></h2>\n<ul>\n<li><strong>言語知識 (文字·語彙)</strong>: 30분</li>\n<li><strong>言語知識 (文法)·読解</strong>: 60분</li>\n<li><strong>聴解</strong>: 35분</li>\n<li>총 문항: 약 90~100문</li>\n<li>형식: 4지선다 객관식</li>\n</ul>\n<hr>\n<h1>Part 1. 言語知識 (文字·語彙)</h1>\n<h2 id=\"mondai-1-漢字読み-한자-읽기\">Mondai 1: 漢字読み (한자 읽기)<a class=\"heading-anchor\" href=\"#mondai-1-漢字読み-한자-읽기\">#</a></h2>\n<h3 id=\"형식\">형식<a class=\"heading-anchor\" href=\"#형식\">#</a></h3>\n<ul>\n<li>밑줄 친 한자어의 히라가나 읽기 선택 (약 9문항)</li>\n</ul>\n<h3 id=\"생성-규칙\">생성 규칙<a class=\"heading-anchor\" href=\"#생성-규칙\">#</a></h3>\n<ul>\n<li>N4 어휘 kanji 엔트리 타겟 (N5 기본 한자 외 항목 우선)</li>\n<li>오답: 음독/훈독 혼동, 탁음·촉음 변형, 유사자 읽기</li>\n<li>밑줄 포함 문장은 14자 이내, N4 이하 어휘만 사용</li>\n</ul>\n<h3 id=\"ichimozzi-3부-구조-예시\">IchiMozzi 3부 구조 예시<a class=\"heading-anchor\" href=\"#ichimozzi-3부-구조-예시\">#</a></h3>\n<pre><code>次の文の___の言葉の読み方として最もよいものを、1・2・3・4から一つ選んでください。\n\n彼は毎日図書館で___勉強しています。\n      _______\n熱心に\n\n1. ねっしんに  2. あつしんに  3. ねつしんに  4. ねっしんく\n</code></pre>\n<p>정답: 1 | 해설: 熱心(ねっしん) = 열심, 促音便(っ)+음독</p>\n<h3 id=\"예시-문제-3개\">예시 문제 3개<a class=\"heading-anchor\" href=\"#예시-문제-3개\">#</a></h3>\n<p><strong>例1</strong></p>\n<pre><code>지시: 次の___の言葉の読み方を選んでください。\n\n彼女は先生に相談しました。\n         ______\n\n1. そうだん  2. さうだん  3. そうたん  4. さうたん\n</code></pre>\n<p>정답: 1 | 相談(そうだん)</p>\n<p><strong>例2</strong></p>\n<pre><code>지시: 次の___の言葉の読み方を選んでください。\n\n来週、試験があります。\n     ______\n\n1. しじゅん  2. しけん  3. じけん  4. じきん\n</code></pre>\n<p>정답: 2 | 試験(しけん) / 事件(じけん)와 혼동 주의</p>\n<p><strong>例3</strong></p>\n<pre><code>지시: 次の___の言葉の読み方を選んでください。\n\n道が込んでいたので、遅刻しました。\n               ____\n\n1. ちこく  2. ちごく  3. おくれ  4. じこく\n</code></pre>\n<p>정답: 1 | 遅刻(ちこく) / 地獄(じごく) 혼동 트랩</p>\n<hr>\n<h2 id=\"mondai-2-表記-히라가나-한자\">Mondai 2: 表記 (히라가나→한자)<a class=\"heading-anchor\" href=\"#mondai-2-表記-히라가나-한자\">#</a></h2>\n<h3 id=\"형식-2\">형식<a class=\"heading-anchor\" href=\"#형식-2\">#</a></h3>\n<ul>\n<li>밑줄 친 히라가나를 올바른 한자 표기로 선택 (약 6문항)</li>\n</ul>\n<h3 id=\"생성-규칙-2\">생성 규칙<a class=\"heading-anchor\" href=\"#생성-규칙-2\">#</a></h3>\n<ul>\n<li>N4 vocab kana 엔트리 타겟</li>\n<li>오답: 동음이의어, 모양 유사 한자, 부수 혼동</li>\n</ul>\n<h3 id=\"예시-문제-3개-2\">예시 문제 3개<a class=\"heading-anchor\" href=\"#예시-문제-3개-2\">#</a></h3>\n<p><strong>例1</strong></p>\n<pre><code>지시: ___のことばはどう書きますか。最もよいものを選んでください。\n\nこのにもつはおもいです。\n     ____\n\n1. 重い  2. 軽い  3. 重い  4. 荷い\n</code></pre>\n<p>정답: 1 | 重い(おもい) = 무겁다</p>\n<p><strong>例2</strong></p>\n<pre><code>지시: ___のことばはどう書きますか。\n\nかれはやさしい先生です。\n     _____\n\n1. 優しい  2. 易しい  3. 安しい  4. 優い\n</code></pre>\n<p>정답: 1 | 優しい(やさしい) = 친절하다 (易しい는 쉽다 — 의미 혼동 트랩)</p>\n<p><strong>例3</strong></p>\n<pre><code>지시: ___のことばはどう書きますか。\n\nもっとれんしゅうしてください。\n       ______\n\n1. 練習  2. 連習  3. 練修  4. 連修\n</code></pre>\n<p>정답: 1 | 練習(れんしゅう)</p>\n<hr>\n<h2 id=\"mondai-3-文脈規定-문맥-정의\">Mondai 3: 文脈規定 (문맥 정의)<a class=\"heading-anchor\" href=\"#mondai-3-文脈規定-문맥-정의\">#</a></h2>\n<h3 id=\"형식-3\">형식<a class=\"heading-anchor\" href=\"#형식-3\">#</a></h3>\n<ul>\n<li>문장의 ( ) 안에 가장 어울리는 단어 선택 (약 8문항)</li>\n</ul>\n<h3 id=\"생성-규칙-3\">생성 규칙<a class=\"heading-anchor\" href=\"#생성-규칙-3\">#</a></h3>\n<ul>\n<li>정답: 문맥 의미에 맞는 N4 명사/동사/형용사/부사</li>\n<li>오답: 같은 품사지만 문맥 부적합 (의미 유사 단어 사용)</li>\n<li>\"시험 트랩\": 문법상 가능하지만 의미가 어색한 선지 포함</li>\n</ul>\n<h3 id=\"ichimozzi-3부-구조-예시-2\">IchiMozzi 3부 구조 예시<a class=\"heading-anchor\" href=\"#ichimozzi-3부-구조-예시-2\">#</a></h3>\n<pre><code>(  )に入れるのに最もよいものを選んでください。\n\n来年、日本語の(  )を受けるつもりです。\n\n1. 試験  2. 練習  3. 授業  4. 宿題\n</code></pre>\n<p>정답: 1 | 試験を受ける = 시험을 보다 (자연스러운 콜로케이션)</p>\n<h3 id=\"예시-문제-3개-3\">예시 문제 3개<a class=\"heading-anchor\" href=\"#예시-문제-3개-3\">#</a></h3>\n<p><strong>例1</strong></p>\n<pre><code>지시: (  )に入れるのに最もよいものを選んでください。\n\nこの映画はとても(  )です。もう一度見たいです。\n\n1. かんたん  2. かんどう  3. きれい  4. ながい\n</code></pre>\n<p>정답: 2 | 感動(かんどう) — もう一度見たい와 자연스럽게 연결</p>\n<p><strong>例2</strong></p>\n<pre><code>지시: (  )に入れるのに最もよいものを選んでください。\n\n電車が(  )になったので、バスで行きました。\n\n1. けが  2. じこ  3. きけん  4. きゅうこう\n</code></pre>\n<p>정답: 4 | 急行(きゅうこう) → 運休(うんきゅう)가 더 적합하나, 急行になった로 특급 전환 표현도 가능. </p>\n<blockquote>\n<p>※ 생성 시 주의: 「運休になった」쪽이 더 자연스러우므로 運休를 정답으로 설계하는 편이 낫다.</p>\n</blockquote>\n<p><strong>例3</strong></p>\n<pre><code>지시: (  )に入れるのに最もよいものを選んでください。\n\n彼女は病気で学校を(  )しました。\n\n1. さんか  2. けっせき  3. えんき  4. そつぎょう\n</code></pre>\n<p>정답: 2 | 欠席(けっせき) = 결석 (참석의 반대)</p>\n<hr>\n<h2 id=\"mondai-4-言い換え類義-유의어\">Mondai 4: 言い換え類義 (유의어)<a class=\"heading-anchor\" href=\"#mondai-4-言い換え類義-유의어\">#</a></h2>\n<h3 id=\"형식-4\">형식<a class=\"heading-anchor\" href=\"#형식-4\">#</a></h3>\n<ul>\n<li>밑줄 친 표현과 의미가 가장 비슷한 것 선택 (약 4문항)</li>\n</ul>\n<h3 id=\"생성-규칙-4\">생성 규칙<a class=\"heading-anchor\" href=\"#생성-규칙-4\">#</a></h3>\n<ul>\n<li>정답: 유의어·바꿔말하기 (긍정↔부정+반의 포함)</li>\n<li>오답: 관련 어휘지만 의미 다름, 혼동 쉬운 표현</li>\n</ul>\n<h3 id=\"예시-문제-3개-4\">예시 문제 3개<a class=\"heading-anchor\" href=\"#예시-문제-3개-4\">#</a></h3>\n<p><strong>例1</strong></p>\n<pre><code>지시: ___に意味が最も近いものを選んでください。\n\n彼はいつも親切にしてくれます。\n         _____\n\n1. やさしくしてくれます\n2. きびしくしてくれます\n3. いそがしくしてくれます\n4. さびしくしてくれます\n</code></pre>\n<p>정답: 1 | 親切(しんせつ) ≒ やさしい</p>\n<p><strong>例2</strong></p>\n<pre><code>지시: ___に意味が最も近いものを選んでください。\n\nこの問題はかんたんではありません。\n             ______\n\n1. むずかしいです\n2. おもしろいです\n3. たのしいです\n4. ながいです\n</code></pre>\n<p>정답: 1 | かんたんではない = むずかしい (반의+부정 패턴)</p>\n<p><strong>例3</strong></p>\n<pre><code>지시: ___に意味が最も近いものを選んでください。\n\n急いで家を出ました。\n___\n\n1. ゆっくりではなく出ました\n2. はやく出ました\n3. 遅れて出ました\n4. わすれて出ました\n</code></pre>\n<p>정답: 2 | 急いで = 急いで・はやく</p>\n<hr>\n<h2 id=\"mondai-5-用法-용법-n4-신규\">Mondai 5: 用法 (용법 — N4 신규)<a class=\"heading-anchor\" href=\"#mondai-5-用法-용법-n4-신규\">#</a></h2>\n<h3 id=\"형식-5\">형식<a class=\"heading-anchor\" href=\"#형식-5\">#</a></h3>\n<ul>\n<li>밑줄 친 단어가 자연스럽게 쓰인 문장 선택 (약 3문항)</li>\n</ul>\n<h3 id=\"생성-규칙-5\">생성 규칙<a class=\"heading-anchor\" href=\"#생성-규칙-5\">#</a></h3>\n<ul>\n<li>타겟 어휘를 4개의 문장에 각각 사용</li>\n<li>정답: 올바른 콜로케이션·문맥</li>\n<li>오답: 문법상 가능하나 의미적으로 어색한 사용</li>\n</ul>\n<h3 id=\"예시-문제-2개\">예시 문제 2개<a class=\"heading-anchor\" href=\"#예시-문제-2개\">#</a></h3>\n<p><strong>例1 (타겟: 用意する)</strong></p>\n<pre><code>지시: 「用意する」の使い方として最もよいものを選んでください。\n\n1. 明日のパーティーのために食べ物を用意しました。\n2. この映画はとても用意で面白かったです。\n3. 彼は毎日用意して電車に乗ります。\n4. 試験に用意してください。\n</code></pre>\n<p>정답: 1 | 용의하다 = 준비하다 (物事を用意する 형태)</p>\n<p><strong>例2 (타겟: 連絡する)</strong></p>\n<pre><code>지시: 「連絡する」の使い方として最もよいものを選んでください。\n\n1. 遅れる場合は必ず連絡してください。\n2. 彼女の話はとても連絡でした。\n3. この仕事は連絡がかかります。\n4. 友達に連絡を食べました。\n</code></pre>\n<p>정답: 1 | 〜に連絡する (연락하다)</p>\n<hr>\n<h1>Part 2. 言語知識 (文法)</h1>\n<h2 id=\"mondai-6-文の文法-1-문법-형식-판단\">Mondai 6: 文の文法 1 (문법 형식 판단)<a class=\"heading-anchor\" href=\"#mondai-6-文の文法-1-문법-형식-판단\">#</a></h2>\n<h3 id=\"형식-6\">형식<a class=\"heading-anchor\" href=\"#형식-6\">#</a></h3>\n<ul>\n<li>빈칸에 들어갈 문법 표현 선택 (약 14문항)</li>\n<li><strong>N4 핵심 문법 카테고리 전부 출제 대상</strong></li>\n</ul>\n<h3 id=\"ichimozzi-매핑\">IchiMozzi 매핑<a class=\"heading-anchor\" href=\"#ichimozzi-매핑\">#</a></h3>\n<table>\n<thead>\n<tr>\n<th>카테고리</th>\n<th>대표 서브패턴</th>\n<th>오답 함정</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>동사활용</td>\n<td>て형, ない형, 가능형</td>\n<td>활용 어미 혼동</td>\n</tr>\n<tr>\n<td>조건표현</td>\n<td>たら, ば, と</td>\n<td>조건 용법 혼동</td>\n</tr>\n<tr>\n<td>수수표현</td>\n<td>あげる/くれる/もらう</td>\n<td>주어·방향 혼동</td>\n</tr>\n<tr>\n<td>경어표현</td>\n<td>です/ます, 존경어 초급</td>\n<td>존경/겸양 혼동</td>\n</tr>\n<tr>\n<td>접속표현</td>\n<td>から, ので, のに, が</td>\n<td>원인·역접 혼동</td>\n</tr>\n<tr>\n<td>추측표현</td>\n<td>でしょう, かもしれない, そうだ(양태)</td>\n<td>양태/전문 そうだ 혼동</td>\n</tr>\n<tr>\n<td>조사</td>\n<td>に/で/へ 구분, は/が 구분</td>\n<td>격조사 기능 혼동</td>\n</tr>\n</tbody>\n</table>\n<h3 id=\"예시-문제-5개\">예시 문제 5개<a class=\"heading-anchor\" href=\"#예시-문제-5개\">#</a></h3>\n<p><strong>例1 (수수표현 — くれる계)</strong></p>\n<pre><code>지시: (  )に入れるのに最もよいものを選んでください。\n\n友達が駅まで送って(  )ました。\n\n1. あげ  2. くれ  3. もらい  4. いただき\n</code></pre>\n<p>정답: 2 | 友達が主語+送る+くれる (타인이 나에게 해줌)\n오답 함정: あげる (내가 상대에게), もらう (내가 받음), いただく (겸양)</p>\n<p><strong>例2 (조건표현 — たら)</strong></p>\n<pre><code>지시: (  )に入れるのに最もよいものを選んでください。\n\n電話し(  )、彼はもう出発したと言っていました。\n\n1. たら  2. ば  3. と  4. ながら\n</code></pre>\n<p>정답: 1 | 〜たら(조건·발견): 전화했더니 결과 발견\n오답: ば(가정조건), と(자동결과), ながら(동시동작)</p>\n<p><strong>例3 (て형 — てから)</strong></p>\n<pre><code>지시: (  )に入れるのに最もよいものを選んでください。\n\n宿題を(  )、ゲームをしてもいいよ。\n\n1. して  2. してから  3. するから  4. するので\n</code></pre>\n<p>정답: 2 | 〜てから = 〜한 다음에 (순서 표현)</p>\n<p><strong>例4 (接続 — のに)</strong></p>\n<pre><code>지시: (  )に入れるのに最もよいものを選んでください。\n\nたくさん練習した(  )、試合に負けてしまいました。\n\n1. から  2. ので  3. のに  4. と\n</code></pre>\n<p>정답: 3 | 〜のに (역접·불만): 열심히 했는데도 짐\n오답: から/ので (순접 원인), と (조건)</p>\n<p><strong>例5 (そうだ 양태)</strong></p>\n<pre><code>지시: (  )に入れるのに最もよいものを選んでください。\n\n空が暗くなってきました。雨が降り(  )です。\n\n1. そうな  2. そうだ  3. らしい  4. ようだ\n</code></pre>\n<p>정답: 2 | 見た目の推量: 降りそうだ\n※ 양태そうだ = 동사ます형+そうだ; 전문そうだ = 普通形+そうだ 구별 필수</p>\n<hr>\n<h2 id=\"mondai-7-文の文法-2-문장-완성-나열-순서-맞추기\">Mondai 7: 文の文法 2 (문장 완성 — 나열 순서 맞추기)<a class=\"heading-anchor\" href=\"#mondai-7-文の文法-2-문장-완성-나열-순서-맞추기\">#</a></h2>\n<h3 id=\"형식-7\">형식<a class=\"heading-anchor\" href=\"#형식-7\">#</a></h3>\n<ul>\n<li>뒤섞인 4개의 조각을 올바른 순서로 배열 (★가 있는 위치 선택)</li>\n<li>약 5문항</li>\n</ul>\n<h3 id=\"생성-규칙-6\">생성 규칙<a class=\"heading-anchor\" href=\"#생성-규칙-6\">#</a></h3>\n<ul>\n<li>IchiMozzi에서는 이 유형을 <strong>「문장 완성형」</strong> 변형으로 구현</li>\n<li>빈칸 4개짜리 문장에서 ★ 위치의 조각 번호 선택</li>\n<li>조각 순서: 조사+활용 일관성 체크 필수</li>\n</ul>\n<h3 id=\"예시-문제\">예시 문제<a class=\"heading-anchor\" href=\"#예시-문제\">#</a></h3>\n<p><strong>例1</strong></p>\n<pre><code>지시: 次の文の★に入るものを選んでください。\n\n彼女は＿＿＿★＿＿＿ほしいです。\n          ①日本語を  ②が  ③話せる  ④ようになって\n\n選択肢:\n1. ①  2. ②  3. ③  4. ④\n</code></pre>\n<p>정렬: 彼女は <strong>日本語を</strong> 話せる <strong>ようになって</strong> <strong>が</strong> ほしいです。\n→ 올바른 순서: ①日本語を — ③話せる — ④ようになって — ②が\n정답: 3 (★=③)</p>\n<hr>\n<h2 id=\"mondai-8-文章の文法-텍스트-내-문법\">Mondai 8: 文章の文法 (텍스트 내 문법)<a class=\"heading-anchor\" href=\"#mondai-8-文章の文法-텍스트-내-문법\">#</a></h2>\n<h3 id=\"형식-8\">형식<a class=\"heading-anchor\" href=\"#형식-8\">#</a></h3>\n<ul>\n<li>100~150자 단문 지문에 빈칸 3~5개, 각각 문법 선택 (약 5문항)</li>\n<li>N4에서는 메일/일기/짧은 설명문 형식 多</li>\n</ul>\n<h3 id=\"생성-규칙-7\">생성 규칙<a class=\"heading-anchor\" href=\"#생성-규칙-7\">#</a></h3>\n<ul>\n<li>지문: N4 어휘·문법만 사용, 일상 화제 (생활/여행/학교)</li>\n<li>빈칸: 연결표현, 조사, 활용 끝부분 위주</li>\n<li>IchiMozzi 독해 문제의 지문 길이 참고: 3~5문장</li>\n</ul>\n<h3 id=\"예시-메일-형식\">예시 (메일 형식)<a class=\"heading-anchor\" href=\"#예시-메일-형식\">#</a></h3>\n<pre><code>지시문: 次の文を読んで、(1)〜(3)の問いに答えてください。\n\n田中さんへ\n\n先日は手伝って(1)、ありがとうございました。\nおかげで仕事が早く終わり(2)、夕食に間に合いました。\nまた何か(3)、ぜひ声をかけてください。\n\n山田より\n\n(1) 1. いただき   2. あげ   3. くれ   4. もらい\n(2) 1. ましたので  2. ましたのに  3. ましたから  4. ましたが\n(3) 1. あったら   2. あれば   3. あると   4. あって\n</code></pre>\n<p>(1)정답: 1 (겸양: いただく)\n(2)정답: 1 (순접 결과: ましたので)\n(3)정답: 1 (발견·가정: たら)</p>\n<hr>\n<h1>Part 3. 読解 (독해)</h1>\n<h2 id=\"n4-독해-특징\">N4 독해 특징<a class=\"heading-anchor\" href=\"#n4-독해-특징\">#</a></h2>\n<ul>\n<li>지문 길이: 100~300자 (단문), 350~500자 (중문)</li>\n<li>화제: 일상 생활, 짧은 설명문, 안내문, 편지</li>\n<li>질문 유형: 내용 일치, 요지 파악, 지시어 해석</li>\n</ul>\n<h2 id=\"ichimozzi-독해-문제-3부-구조\">IchiMozzi 독해 문제 3부 구조<a class=\"heading-anchor\" href=\"#ichimozzi-독해-문제-3부-구조\">#</a></h2>\n<pre><code>次の文章を読んで、質問に答えてください。\n\n{지문 150~300자, N4 어휘, 1~3문단}\n\nこの文章のテーマとして最もよいものを選んでください。\n</code></pre>\n<h3 id=\"독해-생성-체크리스트\">독해 생성 체크리스트<a class=\"heading-anchor\" href=\"#독해-생성-체크리스트\">#</a></h3>\n<ul>\n<li>[ ] 지문 내 N4 이하 어휘만 사용 (vocab_validator 필수)</li>\n<li>[ ] 질문의 정답 근거가 지문에 명시되어 있어야 함</li>\n<li>[ ] 오답은 지문의 일부 내용을 비틀거나 반대로 표현</li>\n<li>[ ] 지시어(これ/それ/あれ)가 있으면 지시 대상 명확히</li>\n</ul>\n<hr>\n<h1>IchiMozzi 전용 생성 가이드</h1>\n<h2 id=\"n4-문법-문제-3부-구조-템플릿\">N4 문법 문제 3부 구조 템플릿<a class=\"heading-anchor\" href=\"#n4-문법-문제-3부-구조-템플릿\">#</a></h2>\n<pre><code>{문법 포인트}の使い方として正しいものを選んでください。\n[または]\n(  )に入れるのに最もよいものを、1・2・3・4から一つ選んでください。\n\n{문제문 — 빈칸 1개, 14~20자, N4 이하 어휘}\n\n{질문 (위 지시문 반복 또는 \"上の文の(  )に入る言葉はどれですか。\")}\n</code></pre>\n<h2 id=\"n4-카테고리별-오답-설계-원칙\">N4 카테고리별 오답 설계 원칙<a class=\"heading-anchor\" href=\"#n4-카테고리별-오답-설계-원칙\">#</a></h2>\n<table>\n<thead>\n<tr>\n<th>타겟 문법</th>\n<th>오답 설계 방법</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>て형 활용</td>\n<td>같은 행의 다른 활용형 (て/た/ない) 사용</td>\n</tr>\n<tr>\n<td>あげる/くれる/もらう</td>\n<td>수수 방향 반대인 것, 겸양/존경 버전</td>\n</tr>\n<tr>\n<td>たら/ば/と조건</td>\n<td>조건 뉘앙스 다른 3개 나열</td>\n</tr>\n<tr>\n<td>から/ので/のに</td>\n<td>순접·역접 혼용 오답</td>\n</tr>\n<tr>\n<td>そうだ양태/らしい</td>\n<td>전문そうだ(보통형+そうだ) 오답으로 포함</td>\n</tr>\n</tbody>\n</table>\n<h2 id=\"자주-나오는-n4-함정-표현\">자주 나오는 N4 함정 표현<a class=\"heading-anchor\" href=\"#자주-나오는-n4-함정-표현\">#</a></h2>\n<ul>\n<li><code>〜てあげる</code> vs <code>〜てくれる</code>: 주어가 \"나\"냐 \"상대\"냐</li>\n<li><code>〜たら</code> vs <code>〜ば</code>: たら는 완료 후 결과, ば는 가정</li>\n<li><code>〜から</code> vs <code>〜ので</code>: から는 주관적, ので는 객관적 이유</li>\n<li><code>〜そうだ(様態)</code> vs <code>〜そうだ(伝聞)</code>: ます형+そうだ vs 普通形+そうだ</li>\n<li><code>〜かもしれない</code> vs <code>〜でしょう</code>: 개인 추측 vs 청자 동의 구하기</li>\n<li><code>〜なければならない</code> vs <code>〜なくてもいい</code>: 의무 vs 불필요</li>\n</ul>\n<h2 id=\"related\">related<a class=\"heading-anchor\" href=\"#related\">#</a></h2>\n<ul>\n<li><a class=\"wiki-link\" data-note-slug=\"personal-vault-knowledge-japanese-n4-grammar\" href=\"/notes/personal-vault-knowledge-japanese-n4-grammar\" rel=\"noopener noreferrer\">personal_vault/knowledge/japanese/n4/grammar.md</a></li>\n<li><a class=\"wiki-link\" data-note-slug=\"personal-vault-knowledge-japanese-n4-vocab\" href=\"/notes/personal-vault-knowledge-japanese-n4-vocab\" rel=\"noopener noreferrer\">personal_vault/knowledge/japanese/n4/vocab.md</a></li>\n<li><a class=\"wiki-link\" data-note-slug=\"grammar-category-subpattern-map\" href=\"/notes/grammar-category-subpattern-map\" rel=\"noopener noreferrer\">personal_vault/projects/personal/ichimozzi/grammar-category-subpattern-map.md</a></li>\n<li><a class=\"wiki-link\" data-note-slug=\"problem-taxonomy-and-generation-guide\" href=\"/notes/problem-taxonomy-and-generation-guide\" rel=\"noopener noreferrer\">personal_vault/projects/personal/ichimozzi/problem_taxonomy_and_generation_guide.md</a></li>\n<li><a class=\"wiki-link\" data-note-slug=\"personal-vault-knowledge-japanese-n5-problem-patterns\" href=\"/notes/personal-vault-knowledge-japanese-n5-problem-patterns\" rel=\"noopener noreferrer\">personal_vault/knowledge/japanese/n5/problem-patterns.md</a></li>\n<li><a class=\"wiki-link\" data-note-slug=\"personal-vault-knowledge-japanese-n3-problem-patterns\" href=\"/notes/personal-vault-knowledge-japanese-n3-problem-patterns\" rel=\"noopener noreferrer\">personal_vault/knowledge/japanese/n3/problem-patterns.md</a></li>\n</ul>",
+              "links": [
+                "personal_vault/knowledge/japanese/n3/problem-patterns.md",
+                "personal_vault/knowledge/japanese/n4/grammar.md",
+                "personal_vault/knowledge/japanese/n4/vocab.md",
+                "personal_vault/knowledge/japanese/n5/problem-patterns.md",
+                "personal_vault/projects/personal/ichimozzi/grammar-category-subpattern-map.md",
+                "personal_vault/projects/personal/ichimozzi/problem_taxonomy_and_generation_guide.md"
+              ],
+              "related_notes": [
+                {
+                  "slug": "personal-vault-knowledge-japanese-n4-vocab",
+                  "title": "JLPT N4 Vocabulary Reference",
+                  "summary": "JLPT N4 핵심 어휘 레퍼런스. N5 어휘에 추가되는 N4 신규 빈출·핵심어 약 500개를 카테고리별로 정리. N5 vocab.md의 어휘는 이미 알고 있다는 전제로 N4 신규어만 수록.",
+                  "href": "/notes/personal-vault-knowledge-japanese-n4-vocab"
+                },
+                {
+                  "slug": "personal-vault-knowledge-japanese-n4-grammar",
+                  "title": "JLPT N4 Grammar Reference",
+                  "summary": "JLPT N4 수준 핵심 문법 약 80문형. N5 기반에서 보통체, 가능형, 수동/사역, 수수동사, 조건문(と・ば・たら・なら), 인용/전문, 명사 수식절 등이 본격 등장. 각 문형은 의미·접속·예문 3개 이상.",
+                  "href": "/notes/personal-vault-knowledge-japanese-n4-grammar"
+                },
+                {
+                  "slug": "personal-vault-knowledge-japanese-n5-problem-patterns",
+                  "title": "JLPT N5 Problem Patterns",
+                  "summary": "JLPT N5 시험의 모든 문제 유형(大問/Mondai)을 구조와 예시로 정리한다. 각 유형마다 출제 형식, 지시문(일/한), 선지 구성 규칙, 생성 템플릿, 실제 예문 3개 이상을 포함한다. 이 문서를 기반으로 자동 문제 생성기가 vocab.md / grammar.md의 entry를 랜덤 샘플링해 시험 문제를 만들 수 있다.",
+                  "href": "/notes/personal-vault-knowledge-japanese-n5-problem-patterns"
+                }
+              ],
+              "backlinks": [
+                {
+                  "slug": "problem-taxonomy-and-generation-guide",
+                  "title": "IchiMozzi 문제 태그 체계 및 생성·검수 가이드 (2026-04-17)",
+                  "summary": "IchiMozzi JLPT 문제 생성 전체 가이드. 3부 구조, 4부 태그 체계, 레벨별 어휘·후리가나 정책, 검증 도구 사용법 수록. --- title: IchiMozzi 문제 생성·검수 가이드 (rev4) kind: note tags: [ichimozzi, jlpt, problem-generation, taxonomy, guide] owner: aaron visibility: private --- IchiMozzi 문제 생성·검수 가이드 (rev4) rev4",
+                  "href": "/notes/problem-taxonomy-and-generation-guide"
+                },
+                {
+                  "slug": "personal-vault-knowledge-japanese-n3-problem-patterns",
+                  "title": "JLPT N3 Problem Patterns Reference",
+                  "summary": "JLPT N3 문제 유형 전체 참조 + IchiMozzi 문제 생성 가이드. N3 수준: N4 문법 총정리 + 복합조사·복합동사·文語的表現 입문. 각 유형마다 출제 형식, 생성 규칙, 실전 예시 3개 이상, IchiMozzi 3부 구조 매핑 포함.",
+                  "href": "/notes/personal-vault-knowledge-japanese-n3-problem-patterns"
+                },
+                {
+                  "slug": "personal-vault-knowledge-japanese-n4-grammar",
+                  "title": "JLPT N4 Grammar Reference",
+                  "summary": "JLPT N4 수준 핵심 문법 약 80문형. N5 기반에서 보통체, 가능형, 수동/사역, 수수동사, 조건문(と・ば・たら・なら), 인용/전문, 명사 수식절 등이 본격 등장. 각 문형은 의미·접속·예문 3개 이상.",
+                  "href": "/notes/personal-vault-knowledge-japanese-n4-grammar"
+                },
+                {
+                  "slug": "personal-vault-knowledge-japanese-n4-vocab",
+                  "title": "JLPT N4 Vocabulary Reference",
+                  "summary": "JLPT N4 핵심 어휘 레퍼런스. N5 어휘에 추가되는 N4 신규 빈출·핵심어 약 500개를 카테고리별로 정리. N5 vocab.md의 어휘는 이미 알고 있다는 전제로 N4 신규어만 수록.",
+                  "href": "/notes/personal-vault-knowledge-japanese-n4-vocab"
+                },
+                {
+                  "slug": "personal-vault-knowledge-japanese-n5-problem-patterns",
+                  "title": "JLPT N5 Problem Patterns",
+                  "summary": "JLPT N5 시험의 모든 문제 유형(大問/Mondai)을 구조와 예시로 정리한다. 각 유형마다 출제 형식, 지시문(일/한), 선지 구성 규칙, 생성 템플릿, 실제 예문 3개 이상을 포함한다. 이 문서를 기반으로 자동 문제 생성기가 vocab.md / grammar.md의 entry를 랜덤 샘플링해 시험 문제를 만들 수 있다.",
+                  "href": "/notes/personal-vault-knowledge-japanese-n5-problem-patterns"
+                },
+                {
+                  "slug": "personal-vault-knowledge-japanese-n1-n5-n4-grammar",
+                  "title": "N4 문법 패턴 정리",
+                  "summary": "| 표현 | 의미 | 방향 |",
+                  "href": "/notes/personal-vault-knowledge-japanese-n1-n5-n4-grammar"
+                }
+              ],
+              "outbound": 9,
+              "href": "/notes/personal-vault-knowledge-japanese-n4-problem-patterns"
+            }
+          },
+          "error": null,
+          "duration_ms": 424.7
+        }
+      ],
+      "answer": "IchiMozzi의 JLPT N4 vocabulary fill-in 문제는 두 가지 형식으로 구성됩니다. 첫 번째는 '漢字読み'(한자 읽기)로, 밑줄 친 한자어의 히라가나 읽기를 4지선다 객관식으로 선택하는 9문항입니다(예: '彼は毎日図書館で___勉強しています。(熱心に)' → 'ねっしんに'·'あつしんに'·'ねつしんに'·'ねっしんく' 중 선택). 두 번째는 '表記'(히라가나→한자)로, 밑줄 친 히라가나를 올바른 한자 표기로 선택하는 6문항입니다. JLPT N4는 총 90~100문의 4지선다 객관식으로, 言語知識(문자·어휘) 30분, 言語知識(문법·읽기) 60분, 聴解 35분으로 구성됩니다. (출처: personal_vault/knowledge/japanese/n4/problem-patterns.md)",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"IchiMozzi의 문제 형식과 기존 N4 어휘 문제 예제를 Akashic에서 검색하여 확인한 후, 정확한 형식으로 fill-in 문제 1개를 생성합니다.\",\n  \"tool_calls\": [\n    {\n      \"tool\": \"search_and_read_top\",\n      \"arguments\": {\n        \"query\": \"ichimozzi question format vocabulary fill-in\"\n      }\n    },\n    {\n      \"tool\": \"search_and_read_top\",\n      \"arguments\": {\n        \"query\": \"JLPT N4 vocabulary question example\"\n      }\n    }\n  ]\n}\n```",
+      "raw_model_output_turn2": "```json\n{\n  \"answer\": \"IchiMozzi의 JLPT N4 vocabulary fill-in 문제는 두 가지 형식으로 구성됩니다. 첫 번째는 '漢字読み'(한자 읽기)로, 밑줄 친 한자어의 히라가나 읽기를 4지선다 객관식으로 선택하는 9문항입니다(예: '彼は毎日図書館で___勉強しています。(熱心に)' → 'ねっしんに'·'あつしんに'·'ねつしんに'·'ねっしんく' 중 선택). 두 번째는 '表記'(히라가나→한자)로, 밑줄 친 히라가나를 올바른 한자 표기로 선택하는 6문항입니다. JLPT N4는 총 90~100문의 4지선다 객관식으로, 言語知識(문자·어휘) 30분, 言語知識(문법·읽기) 60분, 聴解 35분으로 구성됩니다. (출처: personal_vault/knowledge/japanese/n4/problem-patterns.md)\"\n}\n```",
+      "error": null,
+      "format_violation": false
+    },
+    {
+      "task_id": "onboarding_openakashic",
+      "condition": "openakashic",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-18T00:51:27+00:00",
+      "finished_at": "2026-04-18T00:51:45+00:00",
+      "plan": "OpenAkashic 프로젝트의 bootstrap_project 도구로 온보딩 정보를 조회하여, 구조, 주요 경로, 첫 단계 작업을 확인합니다.",
+      "tool_calls": [
+        {
+          "tool": "bootstrap_project",
+          "arguments": {
+            "project_name": "openakashic"
+          },
+          "result": {
+            "raw_text": "Error executing tool bootstrap_project: project is required"
+          },
+          "error": null,
+          "duration_ms": 180.5
+        }
+      ],
+      "answer": "openakashic 프로젝트 부트스트랩 실패: 'project' 파라미터가 필요합니다.",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"OpenAkashic 프로젝트의 bootstrap_project 도구로 온보딩 정보를 조회하여, 구조, 주요 경로, 첫 단계 작업을 확인합니다.\",\n  \"tool_calls\": [\n    {\n      \"tool\": \"bootstrap_project\",\n      \"arguments\": {\n        \"project_name\": \"openakashic\"\n      }\n    }\n  ]\n}\n```",
+      "raw_model_output_turn2": "```json\n{\n  \"answer\": \"openakashic 프로젝트 부트스트랩 실패: 'project' 파라미터가 필요합니다.\"\n}\n```",
+      "error": null,
+      "format_violation": false
+    },
+    {
+      "task_id": "triage_ichimozzi_500",
+      "condition": "openakashic",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-18T00:51:45+00:00",
+      "finished_at": "2026-04-18T00:52:02+00:00",
+      "plan": "insu-server의 Docker 스택 구조와 ichimozzi 컨테이너 구성, triage 절차를 Akashic에서 검색하여 구체적인 체크 순서를 확인합니다.",
+      "tool_calls": [
+        {
+          "tool": "search_and_read_top",
+          "arguments": {
+            "query": "insu-server docker compose ichimozzi containers structure"
+          },
+          "result": {
+            "directive": "노트 본문의 사실을 인용해 질문에 직접 답하세요. 경로 나열·도구명 반복 금지. 부족하면 read_note 추가 호출.",
+            "note_body_preview": "## 배경\n초기에 OpenAkashic private web 서비스를 IchiMozzi 인프라에 붙여 만들면서\nDocker Compose 프로젝트명이 `ichimozzi-migration`, 서비스명이 `closed-akashic-web`으로\n굳어져 있었다. 2026-04-16 전면 정리.\n\n## 변경 내역\n\n| 항목 | 이전 | 이후 |\n|---|---|---|\n| Compose 프로젝트명 | `ichimozzi-migration` | `insu-server` |\n| 서비스명 | `closed-akashic-web` | `openakashic-web` |\n| 컨테이너명 | `ichimozzi-migration-closed-akashic-web-1` | `insu-server-openakashic-web-1` |\n| env 파일 | `closed-akashic.env` | `openakashic-web.env` |\n| Caddy upstream | `closed-akashic-web:8001` | `openakashic-web:8001` |\n\n## 현재 컨테이너 목록\n```\ninsu-shared-caddy          # Caddy 리버스 프록시 (container_name 고정)\ninsu-server-openakashic-web-1   # OpenAkashic private MCP web server\ninsu-server-openakashic-api-1   # OpenAkashic Core API\ninsu-server-openakashic-db-1    # OpenAkashic PostgreSQL\ninsu-server-backend-prod-1      # IchiMozzi 백엔드\ninsu-server-ichimozzi-db-1      # IchiMozzi PostgreSQL\n```\n\n## 볼륨 (데이터 보존)\nDocker 볼륨은 기존 이름 유지 (explicit name으로 고정):\n```\nichimozzi-migration_caddy_data       # Caddy TLS 인증서\nichimozzi-migration_caddy_config\nichimozzi-migration_ichimozzi_pgdata\nichimozzi-migration_openakashic_pgdata\n```\n\n## 주요 파일 경로\n- Compose: `/home/insu/insu_server/compose/production.y",
+            "retrieval_value": {
+              "directive": "경로 나열 금지. 노트 내용을 읽어 질문에 직접 답하세요. 부족하면 read_note 추가 호출.",
+              "intent": "fact_lookup",
+              "matched_notes": [
+                "personal_vault/projects/personal/insu-server/container-naming.md",
+                "personal_vault/projects/personal/insu-server/triage-500-runbook.md",
+                "personal_vault/projects/personal/ichimozzi/deployment.md"
+              ],
+              "writeback_suggested": false,
+              "read_note_hint": "본문이 필요하면 read_note(path=<path>) 추가 호출. 쓰기는 upsert_note(path, body, title)."
+            },
+            "query": "insu-server docker compose ichimozzi containers structure",
+            "top": {
+              "path": "personal_vault/projects/personal/insu-server/container-naming.md",
+              "slug": "container-naming",
+              "title": "insu-server 컨테이너 네이밍 정리 (2026-04-16)",
+              "kind": "reference",
+              "project": "openakashic",
+              "owner": "aaron",
+              "visibility": "private",
+              "publication_status": "none",
+              "tags": [
+                "docker",
+                "infra",
+                "openakashic",
+                "naming"
+              ],
+              "summary": "초기에 OpenAkashic private web 서비스를 IchiMozzi 인프라에 붙여 만들면서",
+              "href": "/notes/container-naming",
+              "lexical_score": 0.0,
+              "semantic_score": 0.6966,
+              "confirm_count": 0,
+              "score": 0.016393
+            },
+            "other_results": [
+              {
+                "path": "doc/knowledge-gaps/insu-server-docker-compose-containers-infrastructu-470506.md",
+                "slug": "insu-server-docker-compose-containers-infrastructu-470506",
+                "title": "[Gap] insu-server docker compose containers infrastructure",
+                "kind": "reference",
+                "project": "openakashic",
+                "owner": "sagwan",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "gap",
+                  "knowledge-gap",
+                  "subordinate"
+                ],
+                "summary": "에이전트가 insu-server docker compose containers infrastructure 쿼리로 검색했으나 관련 노트가 없었습니다.",
+                "href": "/notes/insu-server-docker-compose-containers-infrastructu-470506",
+                "lexical_score": 0.0,
+                "semantic_score": 0.6592,
+                "confirm_count": 0,
+                "score": 0.016129
+              },
+              {
+                "path": "personal_vault/projects/personal/insu-server/triage-500-runbook.md",
+                "slug": "triage-500-runbook",
+                "title": "insu-server 500 에러 triage 런북 (Caddy → backend → DB)",
+                "kind": "playbook",
+                "project": "insu-server",
+                "owner": "admin",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "insu-server",
+                  "triage",
+                  "500",
+                  "docker",
+                  "caddy",
+                  "playbook",
+                  "ichimozzi"
+                ],
+                "summary": "ichimozzi.com 이 5xx (특히 500) 에러를 반환할 때 홈서버 Docker 스택에서 확인하는 순서. EC2·AWS·Lambda 아님. 모두 로컬 Docker 컨테이너 로 돌아간다.",
+                "href": "/notes/triage-500-runbook",
+                "lexical_score": 0.0,
+                "semantic_score": 0.605,
+                "confirm_count": 0,
+                "score": 0.015873
+              },
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/deployment.md",
+                "slug": "deployment",
+                "title": "IchiMozzi 배포 가이드",
+                "kind": "reference",
+                "project": "openakashic",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [],
+                "summary": "EC2 없음. 홈서버 Docker에서 실행.",
+                "href": "/notes/deployment",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5856,
+                "confirm_count": 0,
+                "score": 0.015625
+              },
+              {
+                "path": "doc/knowledge-gaps/insu-server-openakashic-docker-container-컨테이너-구조-로-6de89d.md",
+                "slug": "insu-server-openakashic-docker-container-컨테이너-구조-로-6de89d",
+                "title": "[Gap] insu_server openakashic docker container 컨테이너 구조 로그",
+                "kind": "reference",
+                "project": "openakashic",
+                "owner": "sagwan",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "gap",
+                  "knowledge-gap",
+                  "subordinate"
+                ],
+                "summary": "에이전트가 insu server openakashic docker container 컨테이너 구조 로그 쿼리로 검색했으나 관련 노트가 없었습니다.",
+                "href": "/notes/insu-server-openakashic-docker-container-컨테이너-구조-로-6de89d",
+                "lexical_score": 0.0,
+                "semantic_score": 0.584,
+                "confirm_count": 0,
+                "score": 0.015385
+              }
+            ],
+            "hints": [],
+            "count": 5,
+            "note": {
+              "path": "personal_vault/projects/personal/insu-server/container-naming.md",
+              "slug": "container-naming",
+              "title": "insu-server 컨테이너 네이밍 정리 (2026-04-16)",
+              "kind": "reference",
+              "project": "openakashic",
+              "status": "active",
+              "owner": "aaron",
+              "original_owner": "aaron",
+              "created_by": "aaron",
+              "visibility": "private",
+              "publication_status": "none",
+              "tags": [
+                "docker",
+                "infra",
+                "openakashic",
+                "naming"
+              ],
+              "related": [],
+              "summary": "초기에 OpenAkashic private web 서비스를 IchiMozzi 인프라에 붙여 만들면서",
+              "body": "## 배경\n초기에 OpenAkashic private web 서비스를 IchiMozzi 인프라에 붙여 만들면서\nDocker Compose 프로젝트명이 `ichimozzi-migration`, 서비스명이 `closed-akashic-web`으로\n굳어져 있었다. 2026-04-16 전면 정리.\n\n## 변경 내역\n\n| 항목 | 이전 | 이후 |\n|---|---|---|\n| Compose 프로젝트명 | `ichimozzi-migration` | `insu-server` |\n| 서비스명 | `closed-akashic-web` | `openakashic-web` |\n| 컨테이너명 | `ichimozzi-migration-closed-akashic-web-1` | `insu-server-openakashic-web-1` |\n| env 파일 | `closed-akashic.env` | `openakashic-web.env` |\n| Caddy upstream | `closed-akashic-web:8001` | `openakashic-web:8001` |\n\n## 현재 컨테이너 목록\n```\ninsu-shared-caddy          # Caddy 리버스 프록시 (container_name 고정)\ninsu-server-openakashic-web-1   # OpenAkashic private MCP web server\ninsu-server-openakashic-api-1   # OpenAkashic Core API\ninsu-server-openakashic-db-1    # OpenAkashic PostgreSQL\ninsu-server-backend-prod-1      # IchiMozzi 백엔드\ninsu-server-ichimozzi-db-1      # IchiMozzi PostgreSQL\n```\n\n## 볼륨 (데이터 보존)\nDocker 볼륨은 기존 이름 유지 (explicit name으로 고정):\n```\nichimozzi-migration_caddy_data       # Caddy TLS 인증서\nichimozzi-migration_caddy_config\nichimozzi-migration_ichimozzi_pgdata\nichimozzi-migration_openakashic_pgdata\n```\n\n## 주요 파일 경로\n- Compose: `/home/insu/insu_server/compose/production.yml`\n- Caddy: `/home/insu/insu_server/infra/caddy/caddy.json`\n- App 소스: `/home/insu/insu_server/apps/openakashic/closed-web/server/`\n- Env: `/home/insu/insu_server/infra/env/openakashic-web.env`\n\n## 재시작 명령\n```bash\ncd /home/insu/insu_server/compose\ndocker compose -f production.yml up -d --build openakashic-web\n```",
+              "body_html": "<h2 id=\"배경\">배경<a class=\"heading-anchor\" href=\"#배경\">#</a></h2>\n<p>초기에 OpenAkashic private web 서비스를 IchiMozzi 인프라에 붙여 만들면서\nDocker Compose 프로젝트명이 <code>ichimozzi-migration</code>, 서비스명이 <code>closed-akashic-web</code>으로\n굳어져 있었다. 2026-04-16 전면 정리.</p>\n<h2 id=\"변경-내역\">변경 내역<a class=\"heading-anchor\" href=\"#변경-내역\">#</a></h2>\n<table>\n<thead>\n<tr>\n<th>항목</th>\n<th>이전</th>\n<th>이후</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>Compose 프로젝트명</td>\n<td><code>ichimozzi-migration</code></td>\n<td><code>insu-server</code></td>\n</tr>\n<tr>\n<td>서비스명</td>\n<td><code>closed-akashic-web</code></td>\n<td><code>openakashic-web</code></td>\n</tr>\n<tr>\n<td>컨테이너명</td>\n<td><code>ichimozzi-migration-closed-akashic-web-1</code></td>\n<td><code>insu-server-openakashic-web-1</code></td>\n</tr>\n<tr>\n<td>env 파일</td>\n<td><code>closed-akashic.env</code></td>\n<td><code>openakashic-web.env</code></td>\n</tr>\n<tr>\n<td>Caddy upstream</td>\n<td><code>closed-akashic-web:8001</code></td>\n<td><code>openakashic-web:8001</code></td>\n</tr>\n</tbody>\n</table>\n<h2 id=\"현재-컨테이너-목록\">현재 컨테이너 목록<a class=\"heading-anchor\" href=\"#현재-컨테이너-목록\">#</a></h2>\n<pre><code>insu-shared-caddy          # Caddy 리버스 프록시 (container_name 고정)\ninsu-server-openakashic-web-1   # OpenAkashic private MCP web server\ninsu-server-openakashic-api-1   # OpenAkashic Core API\ninsu-server-openakashic-db-1    # OpenAkashic PostgreSQL\ninsu-server-backend-prod-1      # IchiMozzi 백엔드\ninsu-server-ichimozzi-db-1      # IchiMozzi PostgreSQL\n</code></pre>\n<h2 id=\"볼륨-데이터-보존\">볼륨 (데이터 보존)<a class=\"heading-anchor\" href=\"#볼륨-데이터-보존\">#</a></h2>\n<p>Docker 볼륨은 기존 이름 유지 (explicit name으로 고정):</p>\n<pre><code>ichimozzi-migration_caddy_data       # Caddy TLS 인증서\nichimozzi-migration_caddy_config\nichimozzi-migration_ichimozzi_pgdata\nichimozzi-migration_openakashic_pgdata\n</code></pre>\n<h2 id=\"주요-파일-경로\">주요 파일 경로<a class=\"heading-anchor\" href=\"#주요-파일-경로\">#</a></h2>\n<ul>\n<li>Compose: <code>/home/insu/insu_server/compose/production.yml</code></li>\n<li>Caddy: <code>/home/insu/insu_server/infra/caddy/caddy.json</code></li>\n<li>App 소스: <code>/home/insu/insu_server/apps/openakashic/closed-web/server/</code></li>\n<li>Env: <code>/home/insu/insu_server/infra/env/openakashic-web.env</code></li>\n</ul>\n<h2 id=\"재시작-명령\">재시작 명령<a class=\"heading-anchor\" href=\"#재시작-명령\">#</a></h2>\n<pre><code class=\"language-bash\">cd /home/insu/insu_server/compose\ndocker compose -f production.yml up -d --build openakashic-web\n</code></pre>",
+              "links": [],
+              "related_notes": [],
+              "backlinks": [],
+              "outbound": 0,
+              "href": "/notes/container-naming"
+            }
+          },
+          "error": null,
+          "duration_ms": 732.1
+        },
+        {
+          "tool": "search_and_read_top",
+          "arguments": {
+            "query": "ichimozzi 500 error troubleshooting triage"
+          },
+          "result": {
+            "directive": "노트 본문의 사실을 인용해 질문에 직접 답하세요. 경로 나열·도구명 반복 금지. 부족하면 read_note 추가 호출.",
+            "note_body_preview": "## Summary\nichimozzi.com 이 5xx (특히 500) 에러를 반환할 때 홈서버 Docker 스택에서 확인하는 순서.\nEC2·AWS·Lambda 아님. **모두 로컬 Docker 컨테이너**로 돌아간다.\n\n## Topology\n요청 흐름: `브라우저 → insu-shared-caddy (리버스 프록시, TLS) → insu-server-backend-prod-1 (NestJS) → insu-server-ichimozzi-db-1 (Postgres)`\n\n## Triage 순서 (프록시 → 앱 → DB)\n\n### 1. 리버스 프록시 — insu-shared-caddy\n```bash\ndocker ps | grep caddy\ndocker logs --tail 100 insu-shared-caddy\n```\nCaddy가 죽어 있거나 upstream 연결 실패 로그가 있으면 여기서 차단. 재시작:\n```bash\ncd /home/insu/insu_server/compose\ndocker compose -f production.yml restart caddy\n```\n\n### 2. IchiMozzi 백엔드 — insu-server-backend-prod-1\n```bash\ndocker ps | grep backend-prod\ndocker logs --tail 200 insu-server-backend-prod-1\n```\n500이면 대부분 여기. 부팅 실패 / DB connection refused / 마이그레이션 스키마 불일치 등.\n\n### 3. 의존 DB — insu-server-ichimozzi-db-1\n```bash\ndocker ps | grep ichimozzi-db\ndocker exec insu-server-ichimozzi-db-1 pg_isready -U postgres -d IchiMozzi\n```\nDB 가장 마지막에 확인 — 가장 흔한 원인은 1 또는 2번이다.\n\n## 관련 컨테이너 목록 (참고)\n| 이름 | 역할 |\n|---|---|\n| `insu-shared-caddy` | Caddy 리버스 프록시 (TLS + 라우팅) |\n| `insu-server-backend-prod-1` | IchiMozzi NestJS 백엔드 |\n| `insu-server-ichimozzi-db-1` | IchiMozzi PostgreSQL |\n| `insu-server-openakashic-web-1` | OpenAka",
+            "retrieval_value": {
+              "directive": "경로 나열 금지. 노트 내용을 읽어 질문에 직접 답하세요. 부족하면 read_note 추가 호출.",
+              "intent": "fact_lookup",
+              "matched_notes": [
+                "personal_vault/projects/personal/insu-server/triage-500-runbook.md",
+                "personal_vault/projects/personal/ichimozzi/audit-2026-04-17.md",
+                "personal_vault/projects/personal/ichimozzi/report_patterns_2026_04_17.md"
+              ],
+              "writeback_suggested": false,
+              "read_note_hint": "본문이 필요하면 read_note(path=<path>) 추가 호출. 쓰기는 upsert_note(path, body, title)."
+            },
+            "query": "ichimozzi 500 error troubleshooting triage",
+            "top": {
+              "path": "personal_vault/projects/personal/insu-server/triage-500-runbook.md",
+              "slug": "triage-500-runbook",
+              "title": "insu-server 500 에러 triage 런북 (Caddy → backend → DB)",
+              "kind": "playbook",
+              "project": "insu-server",
+              "owner": "admin",
+              "visibility": "private",
+              "publication_status": "none",
+              "tags": [
+                "insu-server",
+                "triage",
+                "500",
+                "docker",
+                "caddy",
+                "playbook",
+                "ichimozzi"
+              ],
+              "summary": "ichimozzi.com 이 5xx (특히 500) 에러를 반환할 때 홈서버 Docker 스택에서 확인하는 순서. EC2·AWS·Lambda 아님. 모두 로컬 Docker 컨테이너 로 돌아간다.",
+              "href": "/notes/triage-500-runbook",
+              "lexical_score": 0.0,
+              "semantic_score": 0.6457,
+              "confirm_count": 0,
+              "score": 0.016393
+            },
+            "other_results": [
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/audit-2026-04-17.md",
+                "slug": "audit-2026-04-17",
+                "title": "IchiMozzi 문제 파이프라인 종합 QA (2026-04-17)",
+                "kind": "reference",
+                "project": "openakashic",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [],
+                "summary": "---",
+                "href": "/notes/audit-2026-04-17",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5584,
+                "confirm_count": 0,
+                "score": 0.016129
+              },
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/report_patterns_2026_04_17.md",
+                "slug": "report-patterns-2026-04-17",
+                "title": "IchiMozzi 신고 문제 5가지 함정",
+                "kind": "reference",
+                "project": "openakashic",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "ichimozzi",
+                  "quality",
+                  "prompt-engineering"
+                ],
+                "summary": "사용자 신고(problem reports) 반복 관찰 패턴.",
+                "href": "/notes/report-patterns-2026-04-17",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5389,
+                "confirm_count": 0,
+                "score": 0.015873
+              },
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/reference/play-test-2026-04-15.md",
+                "slug": "play-test-2026-04-15",
+                "title": "IchiMozzi Play-test Findings 2026-04-15 (API level)",
+                "kind": "reference",
+                "project": "personal/ichimozzi",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "ichimozzi",
+                  "play-test",
+                  "findings",
+                  "uiux",
+                  "problem-generation",
+                  "qa"
+                ],
+                "summary": "```bash",
+                "href": "/notes/play-test-2026-04-15",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5307,
+                "confirm_count": 0,
+                "score": 0.015625
+              },
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/problem_generation_methodology_2026-04-15.md",
+                "slug": "problem-generation-methodology-2026-04-15",
+                "title": "problem_generation_methodology_2026-04-15",
+                "kind": "reference",
+                "project": "openakashic",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [],
+                "summary": "DB의 JLPT 문제 분포 분석 결과 주요 gap 발견:",
+                "href": "/notes/problem-generation-methodology-2026-04-15",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5239,
+                "confirm_count": 0,
+                "score": 0.015385
+              }
+            ],
+            "hints": [],
+            "count": 5,
+            "note": {
+              "path": "personal_vault/projects/personal/insu-server/triage-500-runbook.md",
+              "slug": "triage-500-runbook",
+              "title": "insu-server 500 에러 triage 런북 (Caddy → backend → DB)",
+              "kind": "playbook",
+              "project": "insu-server",
+              "status": "active",
+              "owner": "admin",
+              "original_owner": "admin",
+              "created_by": "admin",
+              "visibility": "private",
+              "publication_status": "none",
+              "tags": [
+                "insu-server",
+                "triage",
+                "500",
+                "docker",
+                "caddy",
+                "playbook",
+                "ichimozzi"
+              ],
+              "related": [],
+              "summary": "ichimozzi.com 이 5xx (특히 500) 에러를 반환할 때 홈서버 Docker 스택에서 확인하는 순서. EC2·AWS·Lambda 아님. 모두 로컬 Docker 컨테이너 로 돌아간다.",
+              "body": "## Summary\nichimozzi.com 이 5xx (특히 500) 에러를 반환할 때 홈서버 Docker 스택에서 확인하는 순서.\nEC2·AWS·Lambda 아님. **모두 로컬 Docker 컨테이너**로 돌아간다.\n\n## Topology\n요청 흐름: `브라우저 → insu-shared-caddy (리버스 프록시, TLS) → insu-server-backend-prod-1 (NestJS) → insu-server-ichimozzi-db-1 (Postgres)`\n\n## Triage 순서 (프록시 → 앱 → DB)\n\n### 1. 리버스 프록시 — insu-shared-caddy\n```bash\ndocker ps | grep caddy\ndocker logs --tail 100 insu-shared-caddy\n```\nCaddy가 죽어 있거나 upstream 연결 실패 로그가 있으면 여기서 차단. 재시작:\n```bash\ncd /home/insu/insu_server/compose\ndocker compose -f production.yml restart caddy\n```\n\n### 2. IchiMozzi 백엔드 — insu-server-backend-prod-1\n```bash\ndocker ps | grep backend-prod\ndocker logs --tail 200 insu-server-backend-prod-1\n```\n500이면 대부분 여기. 부팅 실패 / DB connection refused / 마이그레이션 스키마 불일치 등.\n\n### 3. 의존 DB — insu-server-ichimozzi-db-1\n```bash\ndocker ps | grep ichimozzi-db\ndocker exec insu-server-ichimozzi-db-1 pg_isready -U postgres -d IchiMozzi\n```\nDB 가장 마지막에 확인 — 가장 흔한 원인은 1 또는 2번이다.\n\n## 관련 컨테이너 목록 (참고)\n| 이름 | 역할 |\n|---|---|\n| `insu-shared-caddy` | Caddy 리버스 프록시 (TLS + 라우팅) |\n| `insu-server-backend-prod-1` | IchiMozzi NestJS 백엔드 |\n| `insu-server-ichimozzi-db-1` | IchiMozzi PostgreSQL |\n| `insu-server-openakashic-web-1` | OpenAkashic web (별개 도메인) |\n| `insu-server-openakashic-api-1` | OpenAkashic Core API |\n\n자세한 컨테이너 이름 히스토리: `personal_vault/projects/personal/insu-server/container-naming.md`\n\n## 흔한 오진 (피하기)\n- ❌ EC2/AWS 스택으로 가정 — **실제는 홈서버 Docker**\n- ❌ nginx로 가정 — **Caddy**\n- ❌ `ichimozzi-api-1` / `ichimozzi-migration-backend-prod-1` 같은 과거/가상 이름 — 현행은 `insu-server-backend-prod-1`\n- ❌ DB부터 확인 — 역순. 프록시 → 앱 → DB가 맞다.",
+              "body_html": "<h2 id=\"summary\">Summary<a class=\"heading-anchor\" href=\"#summary\">#</a></h2>\n<p>ichimozzi.com 이 5xx (특히 500) 에러를 반환할 때 홈서버 Docker 스택에서 확인하는 순서.\nEC2·AWS·Lambda 아님. <strong>모두 로컬 Docker 컨테이너</strong>로 돌아간다.</p>\n<h2 id=\"topology\">Topology<a class=\"heading-anchor\" href=\"#topology\">#</a></h2>\n<p>요청 흐름: <code>브라우저 → insu-shared-caddy (리버스 프록시, TLS) → insu-server-backend-prod-1 (NestJS) → insu-server-ichimozzi-db-1 (Postgres)</code></p>\n<h2 id=\"triage-순서-프록시-앱-db\">Triage 순서 (프록시 → 앱 → DB)<a class=\"heading-anchor\" href=\"#triage-순서-프록시-앱-db\">#</a></h2>\n<h3 id=\"1-리버스-프록시-insu-shared-caddy\">1. 리버스 프록시 — insu-shared-caddy<a class=\"heading-anchor\" href=\"#1-리버스-프록시-insu-shared-caddy\">#</a></h3>\n<pre><code class=\"language-bash\">docker ps | grep caddy\ndocker logs --tail 100 insu-shared-caddy\n</code></pre>\n<p>Caddy가 죽어 있거나 upstream 연결 실패 로그가 있으면 여기서 차단. 재시작:</p>\n<pre><code class=\"language-bash\">cd /home/insu/insu_server/compose\ndocker compose -f production.yml restart caddy\n</code></pre>\n<h3 id=\"2-ichimozzi-백엔드-insu-server-backend-prod-1\">2. IchiMozzi 백엔드 — insu-server-backend-prod-1<a class=\"heading-anchor\" href=\"#2-ichimozzi-백엔드-insu-server-backend-prod-1\">#</a></h3>\n<pre><code class=\"language-bash\">docker ps | grep backend-prod\ndocker logs --tail 200 insu-server-backend-prod-1\n</code></pre>\n<p>500이면 대부분 여기. 부팅 실패 / DB connection refused / 마이그레이션 스키마 불일치 등.</p>\n<h3 id=\"3-의존-db-insu-server-ichimozzi-db-1\">3. 의존 DB — insu-server-ichimozzi-db-1<a class=\"heading-anchor\" href=\"#3-의존-db-insu-server-ichimozzi-db-1\">#</a></h3>\n<pre><code class=\"language-bash\">docker ps | grep ichimozzi-db\ndocker exec insu-server-ichimozzi-db-1 pg_isready -U postgres -d IchiMozzi\n</code></pre>\n<p>DB 가장 마지막에 확인 — 가장 흔한 원인은 1 또는 2번이다.</p>\n<h2 id=\"관련-컨테이너-목록-참고\">관련 컨테이너 목록 (참고)<a class=\"heading-anchor\" href=\"#관련-컨테이너-목록-참고\">#</a></h2>\n<table>\n<thead>\n<tr>\n<th>이름</th>\n<th>역할</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><code>insu-shared-caddy</code></td>\n<td>Caddy 리버스 프록시 (TLS + 라우팅)</td>\n</tr>\n<tr>\n<td><code>insu-server-backend-prod-1</code></td>\n<td>IchiMozzi NestJS 백엔드</td>\n</tr>\n<tr>\n<td><code>insu-server-ichimozzi-db-1</code></td>\n<td>IchiMozzi PostgreSQL</td>\n</tr>\n<tr>\n<td><code>insu-server-openakashic-web-1</code></td>\n<td>OpenAkashic web (별개 도메인)</td>\n</tr>\n<tr>\n<td><code>insu-server-openakashic-api-1</code></td>\n<td>OpenAkashic Core API</td>\n</tr>\n</tbody>\n</table>\n<p>자세한 컨테이너 이름 히스토리: <code>personal_vault/projects/personal/insu-server/container-naming.md</code></p>\n<h2 id=\"흔한-오진-피하기\">흔한 오진 (피하기)<a class=\"heading-anchor\" href=\"#흔한-오진-피하기\">#</a></h2>\n<ul>\n<li>❌ EC2/AWS 스택으로 가정 — <strong>실제는 홈서버 Docker</strong></li>\n<li>❌ nginx로 가정 — <strong>Caddy</strong></li>\n<li>❌ <code>ichimozzi-api-1</code> / <code>ichimozzi-migration-backend-prod-1</code> 같은 과거/가상 이름 — 현행은 <code>insu-server-backend-prod-1</code></li>\n<li>❌ DB부터 확인 — 역순. 프록시 → 앱 → DB가 맞다.</li>\n</ul>",
+              "links": [],
+              "related_notes": [],
+              "backlinks": [],
+              "outbound": 0,
+              "href": "/notes/triage-500-runbook"
+            }
+          },
+          "error": null,
+          "duration_ms": 431.1
+        }
+      ],
+      "answer": "insu-server Docker 환경의 ichimozzi 관련 컨테이너는 insu-server-backend-prod-1(IchiMozzi NestJS 백엔드)와 insu-server-ichimozzi-db-1(IchiMozzi PostgreSQL)입니다. ichimozzi.com의 500 에러 triage는 요청 흐름(브라우저 → insu-shared-caddy 리버스 프록시 → insu-server-backend-prod-1 → insu-server-ichimozzi-db-1) 순서로 진행합니다. 먼저 insu-shared-caddy의 상태를 확인하고, 다음으로 insu-server-backend-prod-1의 로그를 확인하며(500 에러는 대부분 여기), 마지막으로 insu-server-ichimozzi-db-1을 확인합니다. (출처: personal_vault/projects/personal/insu-server/container-naming.md, personal_vault/projects/personal/insu-server/triage-500-runbook.md)",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"insu-server의 Docker 스택 구조와 ichimozzi 컨테이너 구성, triage 절차를 Akashic에서 검색하여 구체적인 체크 순서를 확인합니다.\",\n  \"tool_calls\": [\n    {\n      \"tool\": \"search_and_read_top\",\n      \"arguments\": {\n        \"query\": \"insu-server docker compose ichimozzi containers structure\"\n      }\n    },\n    {\n      \"tool\": \"search_and_read_top\",\n      \"arguments\": {\n        \"query\": \"ichimozzi 500 error troubleshooting triage\"\n      }\n    }\n  ]\n}\n```",
+      "raw_model_output_turn2": "```json\n{\n  \"answer\": \"insu-server Docker 환경의 ichimozzi 관련 컨테이너는 insu-server-backend-prod-1(IchiMozzi NestJS 백엔드)와 insu-server-ichimozzi-db-1(IchiMozzi PostgreSQL)입니다. ichimozzi.com의 500 에러 triage는 요청 흐름(브라우저 → insu-shared-caddy 리버스 프록시 → insu-server-backend-prod-1 → insu-server-ichimozzi-db-1) 순서로 진행합니다. 먼저 insu-shared-caddy의 상태를 확인하고, 다음으로 insu-server-backend-prod-1의 로그를 확인하며(500 에러는 대부분 여기), 마지막으로 insu-server-ichimozzi-db-1을 확인합니다. (출처: personal_vault/projects/personal/insu-server/container-naming.md, personal_vault/projects/personal/insu-server/triage-500-runbook.md)\"\n}\n```",
+      "error": null,
+      "format_violation": false
+    },
+    {
+      "task_id": "ichimozzi_deploy",
+      "condition": "openakashic",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-18T00:52:02+00:00",
+      "finished_at": "2026-04-18T00:52:30+00:00",
+      "plan": "IchiMozzi 백엔드의 배포 절차, 명령어, 배포 전 체크리스트를 Akashic에서 검색합니다.",
+      "tool_calls": [
+        {
+          "tool": "search_and_read_top",
+          "arguments": {
+            "query": "ichimozzi backend deployment procedure"
+          },
+          "result": {
+            "directive": "노트 본문의 사실을 인용해 질문에 직접 답하세요. 경로 나열·도구명 반복 금지. 부족하면 read_note 추가 호출.",
+            "note_body_preview": "## 현재 업데이트 방법 — 수동\n\n백엔드 소스(`/home/insu/insu_server/apps/ichimozzi/backend`)를 수정한 뒤 다음 절차로 재배포한다.\n\n```bash\n# 1) (선택) 빌드 사전 확인\ncd /home/insu/insu_server/apps/ichimozzi/backend\nnpm run build   # dist/ 확인\n\n# 2) 프로덕션 스택 재빌드 & 재기동\ncd /home/insu/insu_server/compose\ndocker compose -f production.yml build backend-prod\ndocker compose -f production.yml up -d backend-prod\n\n# 3) 헬스 체크\ncurl -s -I https://ichimozzi.com/health   # 200 OK 기대\ndocker logs -f ichimozzi-migration-backend-prod-1 --tail 100\n```\n\n전체 스택 재기동이 필요하면 `/home/insu/insu_server/scripts/start-all.sh` 사용(OpenAkashic·LLM 스택까지 포함해 `up -d --build` 수행 후 `test-all.sh` 실행).\n\n## DB 마이그레이션/시드\n\n- 최초 볼륨 생성 시 `infra/db-init/ichimozzi.sql.gz`가 자동 로드됨. 볼륨이 이미 있으면 미실행.\n- 스키마 변경이 필요하면 TypeORM의 `synchronize` 플래그를 확인한 뒤 필요 시 직접 `psql` 로 ALTER 적용(또는 마이그레이션 파일 작성). 현재 코드는 TypeORM 엔티티 스키마만으로 동기화되므로 새 엔티티 필드 추가 시 기존 row는 DEFAULT로 채워진다.\n- 백업 복원은 `/home/insu/insu_server/archive/ichimozzi-migration-20260414-020020/momhome/db-init/ichimozzi.sql.gz` 참고.\n\n## 🚨 GitHub Webhook 자동 배포 — 현재 **고장**\n\n`webhook.service.ts` 핵심:\n\n```ts\nprivate readonly WEBHOOK_SECRET = 'IchiMozzi';  // 하드코딩\n// ...\nif (req.body.ref !== 'refs/heads/master') throw new Error(...);\nawait exe",
+            "retrieval_value": {
+              "directive": "경로 나열 금지. 노트 내용을 읽어 질문에 직접 답하세요. 부족하면 read_note 추가 호출.",
+              "intent": "fact_lookup",
+              "matched_notes": [
+                "personal_vault/projects/personal/ichimozzi/playbooks/update-and-deploy.md",
+                "personal_vault/projects/personal/ichimozzi/deployment.md",
+                "personal_vault/projects/personal/openakashic/bench-test-note.md"
+              ],
+              "writeback_suggested": false,
+              "read_note_hint": "본문이 필요하면 read_note(path=<path>) 추가 호출. 쓰기는 upsert_note(path, body, title)."
+            },
+            "query": "ichimozzi backend deployment procedure",
+            "top": {
+              "path": "personal_vault/projects/personal/ichimozzi/playbooks/update-and-deploy.md",
+              "slug": "update-and-deploy",
+              "title": "IchiMozzi Update & Deploy Playbook (post-migration)",
+              "kind": "playbook",
+              "project": "personal/ichimozzi",
+              "owner": "aaron",
+              "visibility": "private",
+              "publication_status": "none",
+              "tags": [
+                "ichimozzi",
+                "playbook",
+                "deploy",
+                "webhook",
+                "ops"
+              ],
+              "summary": "백엔드 소스(/home/insu/insu server/apps/ichimozzi/backend)를 수정한 뒤 다음 절차로 재배포한다.",
+              "href": "/notes/update-and-deploy",
+              "lexical_score": 0.0,
+              "semantic_score": 0.6635,
+              "confirm_count": 0,
+              "score": 0.016393
+            },
+            "other_results": [
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/deployment.md",
+                "slug": "deployment",
+                "title": "IchiMozzi 배포 가이드",
+                "kind": "reference",
+                "project": "openakashic",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [],
+                "summary": "EC2 없음. 홈서버 Docker에서 실행.",
+                "href": "/notes/deployment",
+                "lexical_score": 0.0,
+                "semantic_score": 0.6354,
+                "confirm_count": 0,
+                "score": 0.016129
+              },
+              {
+                "path": "personal_vault/projects/personal/openakashic/bench-test-note.md",
+                "slug": "bench-test-note",
+                "title": "대화 요약 - 2026-04-17",
+                "kind": "reference",
+                "project": "openakashic",
+                "owner": "admin",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "openakashic",
+                  "session-summary",
+                  "bench-test"
+                ],
+                "summary": "- 현재 배포 방식: 수동 절차 (GitHub webhook 자동 배포 비활성)",
+                "href": "/notes/bench-test-note",
+                "lexical_score": 0.0,
+                "semantic_score": 0.6217,
+                "confirm_count": 0,
+                "score": 0.015873
+              },
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/deployment-log.md",
+                "slug": "deployment-log",
+                "title": "IchiMozzi 배포 로그",
+                "kind": "reference",
+                "project": "ichimozzi",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "ichimozzi",
+                  "deployment",
+                  "backend",
+                  "frontend"
+                ],
+                "summary": "- auth: forgotPassword(6자리 코드 이메일), resetPassword, refreshToken, guestLogin(deviceId 중복방지)",
+                "href": "/notes/deployment-log",
+                "lexical_score": 0.0,
+                "semantic_score": 0.6117,
+                "confirm_count": 0,
+                "score": 0.015625
+              },
+              {
+                "path": "personal_vault/projects/personal/insu-server/triage-500-runbook.md",
+                "slug": "triage-500-runbook",
+                "title": "insu-server 500 에러 triage 런북 (Caddy → backend → DB)",
+                "kind": "playbook",
+                "project": "insu-server",
+                "owner": "admin",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "insu-server",
+                  "triage",
+                  "500",
+                  "docker",
+                  "caddy",
+                  "playbook",
+                  "ichimozzi"
+                ],
+                "summary": "ichimozzi.com 이 5xx (특히 500) 에러를 반환할 때 홈서버 Docker 스택에서 확인하는 순서. EC2·AWS·Lambda 아님. 모두 로컬 Docker 컨테이너 로 돌아간다.",
+                "href": "/notes/triage-500-runbook",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5761,
+                "confirm_count": 0,
+                "score": 0.015385
+              }
+            ],
+            "hints": [],
+            "count": 5,
+            "note": {
+              "path": "personal_vault/projects/personal/ichimozzi/playbooks/update-and-deploy.md",
+              "slug": "update-and-deploy",
+              "title": "IchiMozzi Update & Deploy Playbook (post-migration)",
+              "kind": "playbook",
+              "project": "personal/ichimozzi",
+              "status": "active",
+              "owner": "aaron",
+              "original_owner": "aaron",
+              "created_by": "aaron",
+              "visibility": "private",
+              "publication_status": "none",
+              "tags": [
+                "ichimozzi",
+                "playbook",
+                "deploy",
+                "webhook",
+                "ops"
+              ],
+              "related": [],
+              "summary": "백엔드 소스(/home/insu/insu server/apps/ichimozzi/backend)를 수정한 뒤 다음 절차로 재배포한다.",
+              "body": "## 현재 업데이트 방법 — 수동\n\n백엔드 소스(`/home/insu/insu_server/apps/ichimozzi/backend`)를 수정한 뒤 다음 절차로 재배포한다.\n\n```bash\n# 1) (선택) 빌드 사전 확인\ncd /home/insu/insu_server/apps/ichimozzi/backend\nnpm run build   # dist/ 확인\n\n# 2) 프로덕션 스택 재빌드 & 재기동\ncd /home/insu/insu_server/compose\ndocker compose -f production.yml build backend-prod\ndocker compose -f production.yml up -d backend-prod\n\n# 3) 헬스 체크\ncurl -s -I https://ichimozzi.com/health   # 200 OK 기대\ndocker logs -f ichimozzi-migration-backend-prod-1 --tail 100\n```\n\n전체 스택 재기동이 필요하면 `/home/insu/insu_server/scripts/start-all.sh` 사용(OpenAkashic·LLM 스택까지 포함해 `up -d --build` 수행 후 `test-all.sh` 실행).\n\n## DB 마이그레이션/시드\n\n- 최초 볼륨 생성 시 `infra/db-init/ichimozzi.sql.gz`가 자동 로드됨. 볼륨이 이미 있으면 미실행.\n- 스키마 변경이 필요하면 TypeORM의 `synchronize` 플래그를 확인한 뒤 필요 시 직접 `psql` 로 ALTER 적용(또는 마이그레이션 파일 작성). 현재 코드는 TypeORM 엔티티 스키마만으로 동기화되므로 새 엔티티 필드 추가 시 기존 row는 DEFAULT로 채워진다.\n- 백업 복원은 `/home/insu/insu_server/archive/ichimozzi-migration-20260414-020020/momhome/db-init/ichimozzi.sql.gz` 참고.\n\n## 🚨 GitHub Webhook 자동 배포 — 현재 **고장**\n\n`webhook.service.ts` 핵심:\n\n```ts\nprivate readonly WEBHOOK_SECRET = 'IchiMozzi';  // 하드코딩\n// ...\nif (req.body.ref !== 'refs/heads/master') throw new Error(...);\nawait execAsync('sh /home/ec2-user/IchiMozzi/deploy.sh');\n```\n\n문제점:\n1. **경로가 AWS EC2 기준** — 현재 WSL2 insu_server에는 `/home/ec2-user/IchiMozzi/deploy.sh`가 없다.\n2. **컨테이너 내부에서 실행**되므로 호스트의 docker compose를 호출할 수 없다 (socket 마운트 없음, docker CLI 없음).\n3. **시크릿 하드코딩** — 문자열 `'IchiMozzi'` 그대로. env의 `WEBHOOK_SECRET` 값은 읽지 않음.\n4. `master` 브랜치 하드코딩. 최신 레포가 `main`이면 무시됨.\n\n결과: 현재 GitHub push → webhook 도달 시 시그니처 통과하더라도 exec 단계에서 실패만 남는다. 프로덕션 자동 배포는 **수동 절차로 대체**한 상태로 봐야 한다.\n\n## 복구 작업 권장(우선순위 순)\n\n1. **웹훅 비활성화 또는 복구 선택**\n   - 옵션 A(권장): `WebhookModule`을 `app.module.ts` imports에서 제거하거나 `POST /webhook`을 404로 응답. 실수 재배포 경로를 완전히 차단.\n   - 옵션 B: 호스트 쪽에 systemd 또는 crontab으로 돌리는 webhook-listener(예: `webhook` 바이너리, Caddy reverse proxy의 별도 path)를 만들고, 컨테이너 밖에서 `docker compose ... up -d --build` 를 실행하게 교체.\n2. **시크릿 env 화**: `WEBHOOK_SECRET`을 `process.env.WEBHOOK_SECRET`로 읽도록 변경하고 `infra/env/ichimozzi-backend.prod.env`에 실제 값을 두되 로그에 찍지 않는다.\n3. **브랜치 파라미터화**: 기본 브랜치를 `main`으로 또는 env로 관리.\n4. **배포 스크립트 재작성**: `scripts/ichimozzi-deploy.sh` 를 insu_server에 새로 만들고 `git -C /home/insu/insu_server/apps/ichimozzi/backend pull && docker compose -f /home/insu/insu_server/compose/production.yml up -d --build backend-prod` 수행. (단, 이 디렉터리가 실제 git 작업트리가 아닐 수 있어 clone 전략부터 합의 필요 — 현재 apps/ichimozzi는 migration 과정의 복사본인지 git repo인지 확인 필요.)\n\n## 관측/로그\n\n- 컨테이너 stdout: `docker logs ichimozzi-migration-backend-prod-1`\n- PostgreSQL: `docker exec -it ichimozzi-migration-ichimozzi-db-1 psql -U postgres -d IchiMozzi`\n- 과거 AWS CloudWatch 에이전트 흔적이 `backend/opt/aws/amazon-cloudwatch-agent` 에 남아 있으나 현 서버에서는 비활성. 이미지 빌드 결과물에도 포함되어 있어 삭제 권장(이미지 크기 절감).\n\n## 관련\n- `/home/insu/insu_server/archive/ichimozzi-migration-20260414-020020/NEXT_STEPS.md`\n- [[ichimozzi-aws-cleanup-2026-04-14|IchiMozzi AWS Cleanup 2026-04-14]]\n- `../architecture/system-snapshot-2026-04-15.md`",
+              "body_html": "<h2 id=\"현재-업데이트-방법-수동\">현재 업데이트 방법 — 수동<a class=\"heading-anchor\" href=\"#현재-업데이트-방법-수동\">#</a></h2>\n<p>백엔드 소스(<code>/home/insu/insu_server/apps/ichimozzi/backend</code>)를 수정한 뒤 다음 절차로 재배포한다.</p>\n<pre><code class=\"language-bash\"># 1) (선택) 빌드 사전 확인\ncd /home/insu/insu_server/apps/ichimozzi/backend\nnpm run build   # dist/ 확인\n\n# 2) 프로덕션 스택 재빌드 &amp; 재기동\ncd /home/insu/insu_server/compose\ndocker compose -f production.yml build backend-prod\ndocker compose -f production.yml up -d backend-prod\n\n# 3) 헬스 체크\ncurl -s -I https://ichimozzi.com/health   # 200 OK 기대\ndocker logs -f ichimozzi-migration-backend-prod-1 --tail 100\n</code></pre>\n<p>전체 스택 재기동이 필요하면 <code>/home/insu/insu_server/scripts/start-all.sh</code> 사용(OpenAkashic·LLM 스택까지 포함해 <code>up -d --build</code> 수행 후 <code>test-all.sh</code> 실행).</p>\n<h2 id=\"db-마이그레이션-시드\">DB 마이그레이션/시드<a class=\"heading-anchor\" href=\"#db-마이그레이션-시드\">#</a></h2>\n<ul>\n<li>최초 볼륨 생성 시 <code>infra/db-init/ichimozzi.sql.gz</code>가 자동 로드됨. 볼륨이 이미 있으면 미실행.</li>\n<li>스키마 변경이 필요하면 TypeORM의 <code>synchronize</code> 플래그를 확인한 뒤 필요 시 직접 <code>psql</code> 로 ALTER 적용(또는 마이그레이션 파일 작성). 현재 코드는 TypeORM 엔티티 스키마만으로 동기화되므로 새 엔티티 필드 추가 시 기존 row는 DEFAULT로 채워진다.</li>\n<li>백업 복원은 <code>/home/insu/insu_server/archive/ichimozzi-migration-20260414-020020/momhome/db-init/ichimozzi.sql.gz</code> 참고.</li>\n</ul>\n<h2 id=\"github-webhook-자동-배포-현재-고장\">🚨 GitHub Webhook 자동 배포 — 현재 <strong>고장</strong><a class=\"heading-anchor\" href=\"#github-webhook-자동-배포-현재-고장\">#</a></h2>\n<p><code>webhook.service.ts</code> 핵심:</p>\n<pre><code class=\"language-ts\">private readonly WEBHOOK_SECRET = 'IchiMozzi';  // 하드코딩\n// ...\nif (req.body.ref !== 'refs/heads/master') throw new Error(...);\nawait execAsync('sh /home/ec2-user/IchiMozzi/deploy.sh');\n</code></pre>\n<p>문제점:\n1. <strong>경로가 AWS EC2 기준</strong> — 현재 WSL2 insu_server에는 <code>/home/ec2-user/IchiMozzi/deploy.sh</code>가 없다.\n2. <strong>컨테이너 내부에서 실행</strong>되므로 호스트의 docker compose를 호출할 수 없다 (socket 마운트 없음, docker CLI 없음).\n3. <strong>시크릿 하드코딩</strong> — 문자열 <code>'IchiMozzi'</code> 그대로. env의 <code>WEBHOOK_SECRET</code> 값은 읽지 않음.\n4. <code>master</code> 브랜치 하드코딩. 최신 레포가 <code>main</code>이면 무시됨.</p>\n<p>결과: 현재 GitHub push → webhook 도달 시 시그니처 통과하더라도 exec 단계에서 실패만 남는다. 프로덕션 자동 배포는 <strong>수동 절차로 대체</strong>한 상태로 봐야 한다.</p>\n<h2 id=\"복구-작업-권장-우선순위-순\">복구 작업 권장(우선순위 순)<a class=\"heading-anchor\" href=\"#복구-작업-권장-우선순위-순\">#</a></h2>\n<ol>\n<li><strong>웹훅 비활성화 또는 복구 선택</strong>\n   - 옵션 A(권장): <code>WebhookModule</code>을 <code>app.module.ts</code> imports에서 제거하거나 <code>POST /webhook</code>을 404로 응답. 실수 재배포 경로를 완전히 차단.\n   - 옵션 B: 호스트 쪽에 systemd 또는 crontab으로 돌리는 webhook-listener(예: <code>webhook</code> 바이너리, Caddy reverse proxy의 별도 path)를 만들고, 컨테이너 밖에서 <code>docker compose ... up -d --build</code> 를 실행하게 교체.</li>\n<li><strong>시크릿 env 화</strong>: <code>WEBHOOK_SECRET</code>을 <code>process.env.WEBHOOK_SECRET</code>로 읽도록 변경하고 <code>infra/env/ichimozzi-backend.prod.env</code>에 실제 값을 두되 로그에 찍지 않는다.</li>\n<li><strong>브랜치 파라미터화</strong>: 기본 브랜치를 <code>main</code>으로 또는 env로 관리.</li>\n<li><strong>배포 스크립트 재작성</strong>: <code>scripts/ichimozzi-deploy.sh</code> 를 insu_server에 새로 만들고 <code>git -C /home/insu/insu_server/apps/ichimozzi/backend pull &amp;&amp; docker compose -f /home/insu/insu_server/compose/production.yml up -d --build backend-prod</code> 수행. (단, 이 디렉터리가 실제 git 작업트리가 아닐 수 있어 clone 전략부터 합의 필요 — 현재 apps/ichimozzi는 migration 과정의 복사본인지 git repo인지 확인 필요.)</li>\n</ol>\n<h2 id=\"관측-로그\">관측/로그<a class=\"heading-anchor\" href=\"#관측-로그\">#</a></h2>\n<ul>\n<li>컨테이너 stdout: <code>docker logs ichimozzi-migration-backend-prod-1</code></li>\n<li>PostgreSQL: <code>docker exec -it ichimozzi-migration-ichimozzi-db-1 psql -U postgres -d IchiMozzi</code></li>\n<li>과거 AWS CloudWatch 에이전트 흔적이 <code>backend/opt/aws/amazon-cloudwatch-agent</code> 에 남아 있으나 현 서버에서는 비활성. 이미지 빌드 결과물에도 포함되어 있어 삭제 권장(이미지 크기 절감).</li>\n</ul>\n<h2 id=\"관련\">관련<a class=\"heading-anchor\" href=\"#관련\">#</a></h2>\n<ul>\n<li><code>/home/insu/insu_server/archive/ichimozzi-migration-20260414-020020/NEXT_STEPS.md</code></li>\n<li><a class=\"wiki-link\" data-note-slug=\"ichimozzi-aws-cleanup-2026-04-14\" href=\"/notes/ichimozzi-aws-cleanup-2026-04-14\" rel=\"noopener noreferrer\">IchiMozzi AWS Cleanup 2026-04-14</a></li>\n<li><code>../architecture/system-snapshot-2026-04-15.md</code></li>\n</ul>",
+              "links": [
+                "ichimozzi-aws-cleanup-2026-04-14"
+              ],
+              "related_notes": [],
+              "backlinks": [
+                {
+                  "slug": "personal-vault-projects-ops-librarian-capsules-ci-cd-배포-전략-실전-가이드-capsule",
+                  "title": "CI/CD 배포 전략 실전 가이드 Capsule",
+                  "summary": "Kubernetes 환경에서 무중단 배포를 구현하기 위한 전략 비교 및 실전 가이드. Recreate부터 Canary, Blue/Green, A/B Testing에 이르는 5가지 배포 패턴의 트레이드오프(다운타임, 롤백성, 리소스 효율)를 명확히 하고, 각 전략의 구현 방식(kubectl, Argo Rollouts, Argo CD)을 코드 예제로 제시합니다.",
+                  "href": "/notes/personal-vault-projects-ops-librarian-capsules-ci-cd-배포-전략-실전-가이드-capsule"
+                }
+              ],
+              "outbound": 1,
+              "href": "/notes/update-and-deploy"
+            }
+          },
+          "error": null,
+          "duration_ms": 426.4
+        },
+        {
+          "tool": "search_and_read_top",
+          "arguments": {
+            "query": "ichimozzi deploy commands docker"
+          },
+          "result": {
+            "directive": "노트 본문의 사실을 인용해 질문에 직접 답하세요. 경로 나열·도구명 반복 금지. 부족하면 read_note 추가 호출.",
+            "note_body_preview": "# IchiMozzi 배포 가이드\n\n## 백엔드 배포 (로컬 Docker)\n\nEC2 없음. 홈서버 Docker에서 실행.\n\n```bash\n# 리빌드 및 재시작\ncd /home/insu/insu_server/compose\ndocker compose -f production.yml up -d --build backend-prod\n```\n\n## DB 마이그레이션 (synchronize=false)\n\n```bash\ndocker exec insu-server-ichimozzi-db-1 psql -U postgres -d IchiMozzi -c \"ALTER TABLE ...\"\n```\n\n## 프론트엔드 OTA 배포\n\n```bash\ncd /home/insu/insu_server/apps/ichimozzi/frontend\nrm -rf dist/\nEXPO_TOKEN=kGmlnJG-SIOPnw_oIJZfoubUGRdYC2pZvtsPY4Sg eas update --channel master --message \"...\" --non-interactive\n```\n\n## 컨테이너 구조\n\n| 컨테이너 | 역할 |\n|---|---|\n| `insu-server-backend-prod-1` | NestJS 백엔드 (포트 3000 내부) |\n| `insu-server-ichimozzi-db-1` | PostgreSQL (포트 5432 내부) |\n| `insu-shared-caddy` | 리버스 프록시 |\n\n## 주의사항\n\n- `deploy.sh`는 구 EC2용, 사용 안 함\n- `DB_SYNCHRONIZE=false` → 컬럼 추가는 SQL 직접 실행 필요\n- 타입스크립트 체크: `./node_modules/.bin/tsc --noEmit`\n- 빌드: `npm run build` (NestJS)",
+            "retrieval_value": {
+              "directive": "경로 나열 금지. 노트 내용을 읽어 질문에 직접 답하세요. 부족하면 read_note 추가 호출.",
+              "intent": "fact_lookup",
+              "matched_notes": [
+                "personal_vault/projects/personal/ichimozzi/deployment.md",
+                "personal_vault/projects/personal/openakashic/bench-test-note.md",
+                "personal_vault/projects/personal/insu-server/container-naming.md"
+              ],
+              "writeback_suggested": false,
+              "read_note_hint": "본문이 필요하면 read_note(path=<path>) 추가 호출. 쓰기는 upsert_note(path, body, title)."
+            },
+            "query": "ichimozzi deploy commands docker",
+            "top": {
+              "path": "personal_vault/projects/personal/ichimozzi/deployment.md",
+              "slug": "deployment",
+              "title": "IchiMozzi 배포 가이드",
+              "kind": "reference",
+              "project": "openakashic",
+              "owner": "aaron",
+              "visibility": "private",
+              "publication_status": "none",
+              "tags": [],
+              "summary": "EC2 없음. 홈서버 Docker에서 실행.",
+              "href": "/notes/deployment",
+              "lexical_score": 0.0,
+              "semantic_score": 0.6525,
+              "confirm_count": 0,
+              "score": 0.016393
+            },
+            "other_results": [
+              {
+                "path": "personal_vault/projects/personal/openakashic/bench-test-note.md",
+                "slug": "bench-test-note",
+                "title": "대화 요약 - 2026-04-17",
+                "kind": "reference",
+                "project": "openakashic",
+                "owner": "admin",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "openakashic",
+                  "session-summary",
+                  "bench-test"
+                ],
+                "summary": "- 현재 배포 방식: 수동 절차 (GitHub webhook 자동 배포 비활성)",
+                "href": "/notes/bench-test-note",
+                "lexical_score": 0.0,
+                "semantic_score": 0.6381,
+                "confirm_count": 0,
+                "score": 0.016129
+              },
+              {
+                "path": "personal_vault/projects/personal/insu-server/container-naming.md",
+                "slug": "container-naming",
+                "title": "insu-server 컨테이너 네이밍 정리 (2026-04-16)",
+                "kind": "reference",
+                "project": "openakashic",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "docker",
+                  "infra",
+                  "openakashic",
+                  "naming"
+                ],
+                "summary": "초기에 OpenAkashic private web 서비스를 IchiMozzi 인프라에 붙여 만들면서",
+                "href": "/notes/container-naming",
+                "lexical_score": 0.0,
+                "semantic_score": 0.6207,
+                "confirm_count": 0,
+                "score": 0.015873
+              },
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/deployment-log.md",
+                "slug": "deployment-log",
+                "title": "IchiMozzi 배포 로그",
+                "kind": "reference",
+                "project": "ichimozzi",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "ichimozzi",
+                  "deployment",
+                  "backend",
+                  "frontend"
+                ],
+                "summary": "- auth: forgotPassword(6자리 코드 이메일), resetPassword, refreshToken, guestLogin(deviceId 중복방지)",
+                "href": "/notes/deployment-log",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5955,
+                "confirm_count": 0,
+                "score": 0.015625
+              },
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/playbooks/update-and-deploy.md",
+                "slug": "update-and-deploy",
+                "title": "IchiMozzi Update & Deploy Playbook (post-migration)",
+                "kind": "playbook",
+                "project": "personal/ichimozzi",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "ichimozzi",
+                  "playbook",
+                  "deploy",
+                  "webhook",
+                  "ops"
+                ],
+                "summary": "백엔드 소스(/home/insu/insu server/apps/ichimozzi/backend)를 수정한 뒤 다음 절차로 재배포한다.",
+                "href": "/notes/update-and-deploy",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5929,
+                "confirm_count": 0,
+                "score": 0.015385
+              }
+            ],
+            "hints": [],
+            "count": 5,
+            "note": {
+              "path": "personal_vault/projects/personal/ichimozzi/deployment.md",
+              "slug": "deployment",
+              "title": "IchiMozzi 배포 가이드",
+              "kind": "reference",
+              "project": "openakashic",
+              "status": "active",
+              "owner": "aaron",
+              "original_owner": "aaron",
+              "created_by": "aaron",
+              "visibility": "private",
+              "publication_status": "none",
+              "tags": [],
+              "related": [],
+              "summary": "EC2 없음. 홈서버 Docker에서 실행.",
+              "body": "# IchiMozzi 배포 가이드\n\n## 백엔드 배포 (로컬 Docker)\n\nEC2 없음. 홈서버 Docker에서 실행.\n\n```bash\n# 리빌드 및 재시작\ncd /home/insu/insu_server/compose\ndocker compose -f production.yml up -d --build backend-prod\n```\n\n## DB 마이그레이션 (synchronize=false)\n\n```bash\ndocker exec insu-server-ichimozzi-db-1 psql -U postgres -d IchiMozzi -c \"ALTER TABLE ...\"\n```\n\n## 프론트엔드 OTA 배포\n\n```bash\ncd /home/insu/insu_server/apps/ichimozzi/frontend\nrm -rf dist/\nEXPO_TOKEN=kGmlnJG-SIOPnw_oIJZfoubUGRdYC2pZvtsPY4Sg eas update --channel master --message \"...\" --non-interactive\n```\n\n## 컨테이너 구조\n\n| 컨테이너 | 역할 |\n|---|---|\n| `insu-server-backend-prod-1` | NestJS 백엔드 (포트 3000 내부) |\n| `insu-server-ichimozzi-db-1` | PostgreSQL (포트 5432 내부) |\n| `insu-shared-caddy` | 리버스 프록시 |\n\n## 주의사항\n\n- `deploy.sh`는 구 EC2용, 사용 안 함\n- `DB_SYNCHRONIZE=false` → 컬럼 추가는 SQL 직접 실행 필요\n- 타입스크립트 체크: `./node_modules/.bin/tsc --noEmit`\n- 빌드: `npm run build` (NestJS)",
+              "body_html": "<h1>IchiMozzi 배포 가이드</h1>\n<h2 id=\"백엔드-배포-로컬-docker\">백엔드 배포 (로컬 Docker)<a class=\"heading-anchor\" href=\"#백엔드-배포-로컬-docker\">#</a></h2>\n<p>EC2 없음. 홈서버 Docker에서 실행.</p>\n<pre><code class=\"language-bash\"># 리빌드 및 재시작\ncd /home/insu/insu_server/compose\ndocker compose -f production.yml up -d --build backend-prod\n</code></pre>\n<h2 id=\"db-마이그레이션-synchronize-false\">DB 마이그레이션 (synchronize=false)<a class=\"heading-anchor\" href=\"#db-마이그레이션-synchronize-false\">#</a></h2>\n<pre><code class=\"language-bash\">docker exec insu-server-ichimozzi-db-1 psql -U postgres -d IchiMozzi -c \"ALTER TABLE ...\"\n</code></pre>\n<h2 id=\"프론트엔드-ota-배포\">프론트엔드 OTA 배포<a class=\"heading-anchor\" href=\"#프론트엔드-ota-배포\">#</a></h2>\n<pre><code class=\"language-bash\">cd /home/insu/insu_server/apps/ichimozzi/frontend\nrm -rf dist/\nEXPO_TOKEN=kGmlnJG-SIOPnw_oIJZfoubUGRdYC2pZvtsPY4Sg eas update --channel master --message \"...\" --non-interactive\n</code></pre>\n<h2 id=\"컨테이너-구조\">컨테이너 구조<a class=\"heading-anchor\" href=\"#컨테이너-구조\">#</a></h2>\n<table>\n<thead>\n<tr>\n<th>컨테이너</th>\n<th>역할</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><code>insu-server-backend-prod-1</code></td>\n<td>NestJS 백엔드 (포트 3000 내부)</td>\n</tr>\n<tr>\n<td><code>insu-server-ichimozzi-db-1</code></td>\n<td>PostgreSQL (포트 5432 내부)</td>\n</tr>\n<tr>\n<td><code>insu-shared-caddy</code></td>\n<td>리버스 프록시</td>\n</tr>\n</tbody>\n</table>\n<h2 id=\"주의사항\">주의사항<a class=\"heading-anchor\" href=\"#주의사항\">#</a></h2>\n<ul>\n<li><code>deploy.sh</code>는 구 EC2용, 사용 안 함</li>\n<li><code>DB_SYNCHRONIZE=false</code> → 컬럼 추가는 SQL 직접 실행 필요</li>\n<li>타입스크립트 체크: <code>./node_modules/.bin/tsc --noEmit</code></li>\n<li>빌드: <code>npm run build</code> (NestJS)</li>\n</ul>",
+              "links": [],
+              "related_notes": [],
+              "backlinks": [],
+              "outbound": 0,
+              "href": "/notes/deployment"
+            }
+          },
+          "error": null,
+          "duration_ms": 446.2
+        }
+      ],
+      "answer": "IchiMozzi 백엔드 배포는 홈서버 Docker에서 실행되며, `/home/insu/insu_server/compose` 디렉토리에서 `docker compose -f production.yml up -d --build backend-prod` 명령으로 리빌드 및 재시작합니다. 선택적으로 `npm run build`로 사전에 빌드를 확인할 수 있으며, 배포 후 `curl -s -I https://ichimozzi.com/health`로 헬스 체크를 하고 `docker logs`로 로그를 확인합니다. DB 마이그레이션이 필요할 경우 TypeORM의 synchronize 플래그를 확인한 뒤 필요시 `docker exec insu-server-ichimozzi-db-1 psql`로 직접 ALTER 명령을 실행합니다. 프론트엔드는 EAS OTA 배포를 사용하며, 구 EC2용 deploy.sh는 더 이상 사용하지 않습니다. (출처: personal_vault/projects/personal/ichimozzi/update-procedure.md, personal_vault/projects/personal/ichimozzi/deployment.md)",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"IchiMozzi 백엔드의 배포 절차, 명령어, 배포 전 체크리스트를 Akashic에서 검색합니다.\",\n  \"tool_calls\": [\n    {\n      \"tool\": \"search_and_read_top\",\n      \"arguments\": {\n        \"query\": \"ichimozzi backend deployment procedure\"\n      }\n    },\n    {\n      \"tool\": \"search_and_read_top\",\n      \"arguments\": {\n        \"query\": \"ichimozzi deploy commands docker\"\n      }\n    }\n  ]\n}\n```",
+      "raw_model_output_turn2": "```json\n{\n  \"answer\": \"IchiMozzi 백엔드 배포는 홈서버 Docker에서 실행되며, `/home/insu/insu_server/compose` 디렉토리에서 `docker compose -f production.yml up -d --build backend-prod` 명령으로 리빌드 및 재시작합니다. 선택적으로 `npm run build`로 사전에 빌드를 확인할 수 있으며, 배포 후 `curl -s -I https://ichimozzi.com/health`로 헬스 체크를 하고 `docker logs`로 로그를 확인합니다. DB 마이그레이션이 필요할 경우 TypeORM의 synchronize 플래그를 확인한 뒤 필요시 `docker exec insu-server-ichimozzi-db-1 psql`로 직접 ALTER 명령을 실행합니다. 프론트엔드는 EAS OTA 배포를 사용하며, 구 EC2용 deploy.sh는 더 이상 사용하지 않습니다. (출처: personal_vault/projects/personal/ichimozzi/update-procedure.md, personal_vault/projects/personal/ichimozzi/deployment.md)\"\n}\n```",
+      "error": null,
+      "format_violation": false
+    },
+    {
+      "task_id": "general_web_fact",
+      "condition": "openakashic",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-18T00:52:30+00:00",
+      "finished_at": "2026-04-18T00:52:45+00:00",
+      "plan": "MCP는 일반 공개 지식이므로 Akashic 조회 없이 답변합니다.",
+      "tool_calls": [],
+      "answer": "1단계에서 실행된 도구 호출이 없습니다.",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"MCP는 일반 공개 지식이므로 Akashic 조회 없이 답변합니다.\",\n  \"tool_calls\": []\n}\n```",
+      "raw_model_output_turn2": "```json\n{\n  \"answer\": \"1단계에서 실행된 도구 호출이 없습니다.\"\n}\n```",
+      "error": null,
+      "format_violation": false
+    },
+    {
+      "task_id": "memory_roundtrip",
+      "condition": "openakashic",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-18T00:52:45+00:00",
+      "finished_at": "2026-04-18T00:53:14+00:00",
+      "plan": "사용자의 선호사항 3가지를 Akashic에 저장하고, 즉시 검색해서 2단계에서 답변합니다.",
+      "tool_calls": [
+        {
+          "tool": "upsert_note",
+          "arguments": {
+            "path": "personal_vault/preferences/user_preferences",
+            "title": "User Preferences",
+            "body": "## 개인 선호사항\n\n1. **저녁에 커피 금지** - 저녁 시간에는 커피를 마시지 않습니다.\n2. **주말에는 이메일 확인 안 함** - 토요일, 일요일에는 이메일을 확인하지 않습니다.\n3. **운동은 아침 6시 30분에** - 매일 아침 6시 30분에 운동합니다."
+          },
+          "result": {
+            "path": "personal_vault/preferences/user_preferences.md",
+            "slug": "user-preferences",
+            "note": {
+              "path": "personal_vault/preferences/user_preferences.md",
+              "slug": "user-preferences",
+              "title": "User Preferences",
+              "kind": "reference",
+              "project": "openakashic",
+              "status": "active",
+              "owner": "admin",
+              "original_owner": "admin",
+              "created_by": "admin",
+              "visibility": "private",
+              "publication_status": "none",
+              "tags": [],
+              "related": [],
+              "summary": "1. 저녁에 커피 금지 - 저녁 시간에는 커피를 마시지 않습니다.",
+              "body": "## 개인 선호사항\n\n1. **저녁에 커피 금지** - 저녁 시간에는 커피를 마시지 않습니다.\n2. **주말에는 이메일 확인 안 함** - 토요일, 일요일에는 이메일을 확인하지 않습니다.\n3. **운동은 아침 6시 30분에** - 매일 아침 6시 30분에 운동합니다.",
+              "body_html": "<h2 id=\"개인-선호사항\">개인 선호사항<a class=\"heading-anchor\" href=\"#개인-선호사항\">#</a></h2>\n<ol>\n<li><strong>저녁에 커피 금지</strong> - 저녁 시간에는 커피를 마시지 않습니다.</li>\n<li><strong>주말에는 이메일 확인 안 함</strong> - 토요일, 일요일에는 이메일을 확인하지 않습니다.</li>\n<li><strong>운동은 아침 6시 30분에</strong> - 매일 아침 6시 30분에 운동합니다.</li>\n</ol>",
+              "links": [],
+              "related_notes": [],
+              "backlinks": [],
+              "outbound": 0,
+              "href": "/notes/user-preferences"
+            },
+            "publication_request": null,
+            "_next": "Note saved at 'personal_vault/preferences/user_preferences.md'. To submit for public review: call request_note_publication with path='personal_vault/preferences/user_preferences.md', rationale='<why this is worth publishing>', evidence_paths=['<supporting note paths or URLs>']"
+          },
+          "error": null,
+          "duration_ms": 572.3
+        },
+        {
+          "tool": "read_note",
+          "arguments": {
+            "path": "personal_vault/preferences/user_preferences"
+          },
+          "result": {
+            "raw_text": "Error executing tool read_note: Note not found"
+          },
+          "error": null,
+          "duration_ms": 184.2
+        }
+      ],
+      "answer": "개인 선호사항(저녁 커피 금지, 주말 이메일 확인 안 함, 아침 6시 30분 운동)이 personal_vault/preferences/user_preferences.md에 저장되었습니다. 다만 저장된 노트를 읽으려는 시도 중에 'Note not found' 에러가 발생했습니다.",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"사용자의 선호사항 3가지를 Akashic에 저장하고, 즉시 검색해서 2단계에서 답변합니다.\",\n  \"tool_calls\": [\n    {\n      \"tool\": \"upsert_note\",\n      \"arguments\": {\n        \"path\": \"personal_vault/preferences/user_preferences\",\n        \"title\": \"User Preferences\",\n        \"body\": \"## 개인 선호사항\\n\\n1. **저녁에 커피 금지** - 저녁 시간에는 커피를 마시지 않습니다.\\n2. **주말에는 이메일 확인 안 함** - 토요일, 일요일에는 이메일을 확인하지 않습니다.\\n3. **운동은 아침 6시 30분에** - 매일 아침 6시 30분에 운동합니다.\"\n      }\n    },\n    {\n      \"tool\": \"read_note\",\n      \"arguments\": {\n        \"path\": \"personal_vault/preferences/user_preferences\"\n      }\n    }\n  ]\n}\n```",
+      "raw_model_output_turn2": "```json\n{\n  \"answer\": \"개인 선호사항(저녁 커피 금지, 주말 이메일 확인 안 함, 아침 6시 30분 운동)이 personal_vault/preferences/user_preferences.md에 저장되었습니다. 다만 저장된 노트를 읽으려는 시도 중에 'Note not found' 에러가 발생했습니다.\"\n}\n```",
+      "error": null,
+      "format_violation": false
+    },
+    {
+      "task_id": "busagwan_sagwan_roles",
+      "condition": "openakashic",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-18T00:53:14+00:00",
+      "finished_at": "2026-04-18T00:53:37+00:00",
+      "plan": "OpenAkashic의 Busagwan과 Sagwan의 역할과 차이를 Akashic에서 검색합니다.",
+      "tool_calls": [
+        {
+          "tool": "search_and_read_top",
+          "arguments": {
+            "query": "openakashic busagwan sagwan role difference"
+          },
+          "result": {
+            "directive": "노트 본문의 사실을 인용해 질문에 직접 답하세요. 경로 나열·도구명 반복 금지. 부족하면 read_note 추가 호출.",
+            "note_body_preview": "## Summary\nOpenAkashic 운영에는 두 종류의 자동 에이전트가 있다. 모델·주기·역할이 다르며 서로 게이트 관계다.\n이 문서는 각 역할과 차이를 한눈에 정리한다.\n\n## 비교표\n\n| 항목 | 사관 (Sagwan) | 부사관 (Busagwan) |\n|---|---|---|\n| 모델 | **Claude CLI** (claude-haiku/sonnet) | **Ollama gemma** (로컬) |\n| 품질/속도 | 높은 품질, 느린 주기 | 낮은 품질, 빠른 주기 |\n| cadence | 1시간 주기 (또는 이벤트 트리거) | 10~15분 주기 |\n| 역할 | 승인·게이트·최종 판정 | 크롤·요약·1차 리뷰·capsule 초안 |\n| 공개 승인 권한 | 있음 (`set_note_publication_status`) | 없음 (의견만, 상태 `reviewing`) |\n| 실행 권한 | 관리자급, `exec` 금지 | 관리자급, `exec` 금지 |\n| 툴 범위 | read/search/upsert/publish/set_status | read/search/append/upsert/request_publication |\n\n## Gate 관계\npublication 흐름에서 두 역할은 명확히 순서가 있다:\n1. 일반 에이전트가 `request_note_publication` 호출\n2. **부사관**이 빠르게 1차 리뷰 (rationale/evidence 확인, capsule 요약 초안)\n3. **사관**이 부사관 리뷰를 근거로 최종 승인/거부 (`set_note_publication_status`)\n\n즉 **부사관은 triage/전처리**, **사관은 gate-keeper**. 부사관이 빠르게 걸러 사관의 비싼 주기를 아낀다.\n\n## 모델 선택 이유\n- 사관 = 최종 판정이므로 높은 품질 필요. Claude 유료 호출 가치 있음.\n- 부사관 = 반복/대량 작업이므로 로컬 gemma 로 속도·비용 최적화.\n\n## 참고\n- Subordinate Profile: `personal_vault/projects/ops/librarian/profile/Subordinate Profile.md`\n- Busagwan distilled memory: `personal_vault/projects/ops/librarian/memory/Busagwan Distilled Memory.md`\n- Publication flow: `re",
+            "retrieval_value": {
+              "directive": "경로 나열 금지. 노트 내용을 읽어 질문에 직접 답하세요. 부족하면 read_note 추가 호출.",
+              "intent": "synthesis",
+              "matched_notes": [
+                "personal_vault/projects/ops/librarian/profile/busagwan-sagwan-roles.md",
+                "personal_vault/projects/personal/openakashic/bench-v05-stage3-2026-04-18.md",
+                "personal_vault/projects/personal/openakashic/design-brief-codex-2026-04-17.md"
+              ],
+              "coverage_gaps": [],
+              "writeback_suggested": false,
+              "synthesis_hint": "여러 matched_notes를 교차 참조해서 답할 것. 근거가 부족하면 답 대신 coverage_gap을 명시하고 writeback을 제안.",
+              "read_note_hint": "본문이 필요하면 read_note(path=<path>) 추가 호출. 쓰기는 upsert_note(path, body, title)."
+            },
+            "query": "openakashic busagwan sagwan role difference",
+            "top": {
+              "path": "personal_vault/projects/ops/librarian/profile/busagwan-sagwan-roles.md",
+              "slug": "busagwan-sagwan-roles",
+              "title": "사관 vs 부사관 역할·모델·주기 비교",
+              "kind": "reference",
+              "project": "librarian",
+              "owner": "admin",
+              "visibility": "private",
+              "publication_status": "escalated",
+              "tags": [
+                "librarian",
+                "sagwan",
+                "busagwan",
+                "agent",
+                "roles",
+                "reference"
+              ],
+              "summary": "OpenAkashic 운영에는 두 종류의 자동 에이전트가 있다. 모델·주기·역할이 다르며 서로 게이트 관계다. 이 문서는 각 역할과 차이를 한눈에 정리한다.",
+              "href": "/notes/busagwan-sagwan-roles",
+              "lexical_score": 0.0,
+              "semantic_score": 0.5744,
+              "confirm_count": 0,
+              "score": 0.016393
+            },
+            "other_results": [
+              {
+                "path": "personal_vault/projects/personal/openakashic/bench-v05-stage3-2026-04-18.md",
+                "slug": "bench-v05-stage3-2026-04-18",
+                "title": "OpenAkashicBench v0.5 Stage 3 결과 (2026-04-18)",
+                "kind": "evidence",
+                "project": "openakashic",
+                "owner": "admin",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "bench",
+                  "openakashic",
+                  "evaluation"
+                ],
+                "summary": "---",
+                "href": "/notes/bench-v05-stage3-2026-04-18",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5245,
+                "confirm_count": 0,
+                "score": 0.016129
+              },
+              {
+                "path": "personal_vault/projects/personal/openakashic/design-brief-codex-2026-04-17.md",
+                "slug": "design-brief-codex-2026-04-17",
+                "title": "OpenAkashic 종합 설계 브리핑 — Codex 토론용 2026-04-17",
+                "kind": "capsule",
+                "project": "openakashic",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "design",
+                  "gaps",
+                  "codex-debate",
+                  "architecture"
+                ],
+                "summary": "---",
+                "href": "/notes/design-brief-codex-2026-04-17",
+                "lexical_score": 0.0,
+                "semantic_score": 0.505,
+                "confirm_count": 0,
+                "score": 0.015873
+              },
+              {
+                "path": "personal_vault/projects/personal/openakashic/impl-2026-04-17.md",
+                "slug": "impl-2026-04-17",
+                "title": "OpenAkashic 3가지 개선 구현 — 2026-04-17",
+                "kind": "capsule",
+                "project": "openakashic",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "implementation",
+                  "confirm-note",
+                  "busagwan-feedback",
+                  "freshness"
+                ],
+                "summary": "---",
+                "href": "/notes/impl-2026-04-17",
+                "lexical_score": 0.0,
+                "semantic_score": 0.4895,
+                "confirm_count": 0,
+                "score": 0.015625
+              },
+              {
+                "path": "doc/general/plan.md",
+                "slug": "plan",
+                "title": "OpenAkashic System Architecture",
+                "kind": "architecture",
+                "project": "openakashic",
+                "owner": "sagwan",
+                "visibility": "public",
+                "publication_status": "published",
+                "tags": [
+                  "architecture",
+                  "openakashic",
+                  "mcp",
+                  "core-api",
+                  "closed-akashic"
+                ],
+                "summary": "OpenAkashic 현재 구현 아키텍처. 두 레이어(Closed Akashic + Core API)와 그 브릿지로 구성된다. ---",
+                "href": "/notes/plan",
+                "lexical_score": 0.0,
+                "semantic_score": 0.4687,
+                "confirm_count": 0,
+                "score": 0.015385
+              }
+            ],
+            "hints": [],
+            "count": 5,
+            "note": {
+              "path": "personal_vault/projects/ops/librarian/profile/busagwan-sagwan-roles.md",
+              "slug": "busagwan-sagwan-roles",
+              "title": "사관 vs 부사관 역할·모델·주기 비교",
+              "kind": "reference",
+              "project": "librarian",
+              "status": "active",
+              "owner": "admin",
+              "original_owner": "admin",
+              "created_by": "admin",
+              "visibility": "private",
+              "publication_status": "escalated",
+              "tags": [
+                "librarian",
+                "sagwan",
+                "busagwan",
+                "agent",
+                "roles",
+                "reference"
+              ],
+              "related": [],
+              "summary": "OpenAkashic 운영에는 두 종류의 자동 에이전트가 있다. 모델·주기·역할이 다르며 서로 게이트 관계다. 이 문서는 각 역할과 차이를 한눈에 정리한다.",
+              "body": "## Summary\nOpenAkashic 운영에는 두 종류의 자동 에이전트가 있다. 모델·주기·역할이 다르며 서로 게이트 관계다.\n이 문서는 각 역할과 차이를 한눈에 정리한다.\n\n## 비교표\n\n| 항목 | 사관 (Sagwan) | 부사관 (Busagwan) |\n|---|---|---|\n| 모델 | **Claude CLI** (claude-haiku/sonnet) | **Ollama gemma** (로컬) |\n| 품질/속도 | 높은 품질, 느린 주기 | 낮은 품질, 빠른 주기 |\n| cadence | 1시간 주기 (또는 이벤트 트리거) | 10~15분 주기 |\n| 역할 | 승인·게이트·최종 판정 | 크롤·요약·1차 리뷰·capsule 초안 |\n| 공개 승인 권한 | 있음 (`set_note_publication_status`) | 없음 (의견만, 상태 `reviewing`) |\n| 실행 권한 | 관리자급, `exec` 금지 | 관리자급, `exec` 금지 |\n| 툴 범위 | read/search/upsert/publish/set_status | read/search/append/upsert/request_publication |\n\n## Gate 관계\npublication 흐름에서 두 역할은 명확히 순서가 있다:\n1. 일반 에이전트가 `request_note_publication` 호출\n2. **부사관**이 빠르게 1차 리뷰 (rationale/evidence 확인, capsule 요약 초안)\n3. **사관**이 부사관 리뷰를 근거로 최종 승인/거부 (`set_note_publication_status`)\n\n즉 **부사관은 triage/전처리**, **사관은 gate-keeper**. 부사관이 빠르게 걸러 사관의 비싼 주기를 아낀다.\n\n## 모델 선택 이유\n- 사관 = 최종 판정이므로 높은 품질 필요. Claude 유료 호출 가치 있음.\n- 부사관 = 반복/대량 작업이므로 로컬 gemma 로 속도·비용 최적화.\n\n## 참고\n- Subordinate Profile: `personal_vault/projects/ops/librarian/profile/Subordinate Profile.md`\n- Busagwan distilled memory: `personal_vault/projects/ops/librarian/memory/Busagwan Distilled Memory.md`\n- Publication flow: `request_note_publication` → reviewer (busagwan) → approver (sagwan)",
+              "body_html": "<h2 id=\"summary\">Summary<a class=\"heading-anchor\" href=\"#summary\">#</a></h2>\n<p>OpenAkashic 운영에는 두 종류의 자동 에이전트가 있다. 모델·주기·역할이 다르며 서로 게이트 관계다.\n이 문서는 각 역할과 차이를 한눈에 정리한다.</p>\n<h2 id=\"비교표\">비교표<a class=\"heading-anchor\" href=\"#비교표\">#</a></h2>\n<table>\n<thead>\n<tr>\n<th>항목</th>\n<th>사관 (Sagwan)</th>\n<th>부사관 (Busagwan)</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>모델</td>\n<td><strong>Claude CLI</strong> (claude-haiku/sonnet)</td>\n<td><strong>Ollama gemma</strong> (로컬)</td>\n</tr>\n<tr>\n<td>품질/속도</td>\n<td>높은 품질, 느린 주기</td>\n<td>낮은 품질, 빠른 주기</td>\n</tr>\n<tr>\n<td>cadence</td>\n<td>1시간 주기 (또는 이벤트 트리거)</td>\n<td>10~15분 주기</td>\n</tr>\n<tr>\n<td>역할</td>\n<td>승인·게이트·최종 판정</td>\n<td>크롤·요약·1차 리뷰·capsule 초안</td>\n</tr>\n<tr>\n<td>공개 승인 권한</td>\n<td>있음 (<code>set_note_publication_status</code>)</td>\n<td>없음 (의견만, 상태 <code>reviewing</code>)</td>\n</tr>\n<tr>\n<td>실행 권한</td>\n<td>관리자급, <code>exec</code> 금지</td>\n<td>관리자급, <code>exec</code> 금지</td>\n</tr>\n<tr>\n<td>툴 범위</td>\n<td>read/search/upsert/publish/set_status</td>\n<td>read/search/append/upsert/request_publication</td>\n</tr>\n</tbody>\n</table>\n<h2 id=\"gate-관계\">Gate 관계<a class=\"heading-anchor\" href=\"#gate-관계\">#</a></h2>\n<p>publication 흐름에서 두 역할은 명확히 순서가 있다:\n1. 일반 에이전트가 <code>request_note_publication</code> 호출\n2. <strong>부사관</strong>이 빠르게 1차 리뷰 (rationale/evidence 확인, capsule 요약 초안)\n3. <strong>사관</strong>이 부사관 리뷰를 근거로 최종 승인/거부 (<code>set_note_publication_status</code>)</p>\n<p>즉 <strong>부사관은 triage/전처리</strong>, <strong>사관은 gate-keeper</strong>. 부사관이 빠르게 걸러 사관의 비싼 주기를 아낀다.</p>\n<h2 id=\"모델-선택-이유\">모델 선택 이유<a class=\"heading-anchor\" href=\"#모델-선택-이유\">#</a></h2>\n<ul>\n<li>사관 = 최종 판정이므로 높은 품질 필요. Claude 유료 호출 가치 있음.</li>\n<li>부사관 = 반복/대량 작업이므로 로컬 gemma 로 속도·비용 최적화.</li>\n</ul>\n<h2 id=\"참고\">참고<a class=\"heading-anchor\" href=\"#참고\">#</a></h2>\n<ul>\n<li>Subordinate Profile: <code>personal_vault/projects/ops/librarian/profile/Subordinate Profile.md</code></li>\n<li>Busagwan distilled memory: <code>personal_vault/projects/ops/librarian/memory/Busagwan Distilled Memory.md</code></li>\n<li>Publication flow: <code>request_note_publication</code> → reviewer (busagwan) → approver (sagwan)</li>\n</ul>",
+              "links": [],
+              "related_notes": [],
+              "backlinks": [
+                {
+                  "slug": "busagwan-sagwan-roles-2026-04-17t16-29-18z",
+                  "title": "Publication Request - 사관 vs 부사관 역할·모델·주기 비교",
+                  "summary": "Publication request for personal vault/projects/ops/librarian/profile/busagwan-sagwan-roles.md.",
+                  "href": "/notes/busagwan-sagwan-roles-2026-04-17t16-29-18z"
+                }
+              ],
+              "outbound": 0,
+              "href": "/notes/busagwan-sagwan-roles"
+            }
+          },
+          "error": null,
+          "duration_ms": 374.4
+        }
+      ],
+      "answer": "OpenAkashic의 사관(Sagwan)과 부사관(Busagwan)은 모델, 품질, 주기, 역할이 다릅니다. 사관은 Claude CLI를 사용하여 높은 품질의 승인·게이트·최종 판정을 1시간 주기로 담당하며 공개 승인 권한이 있습니다. 부사관은 Ollama gemma(로컬)를 사용하여 크롤·요약·1차 리뷰·capsule 초안을 10~15분 주기로 빠르게 처리하지만 공개 승인 권한은 없고 의견만 제시합니다. Publication 흐름에서는 부사관이 먼저 1차 리뷰로 triage/전처리를 하고, 사관이 부사관의 리뷰를 근거로 최종 승인/거부를 하는 게이트 관계입니다. (출처: personal_vault/projects/ops/librarian/profile/busagwan-sagwan-roles.md)",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"OpenAkashic의 Busagwan과 Sagwan의 역할과 차이를 Akashic에서 검색합니다.\",\n  \"tool_calls\": [\n    {\n      \"tool\": \"search_and_read_top\",\n      \"arguments\": {\n        \"query\": \"openakashic busagwan sagwan role difference\"\n      }\n    }\n  ]\n}\n```",
+      "raw_model_output_turn2": "```json\n{\n  \"answer\": \"OpenAkashic의 사관(Sagwan)과 부사관(Busagwan)은 모델, 품질, 주기, 역할이 다릅니다. 사관은 Claude CLI를 사용하여 높은 품질의 승인·게이트·최종 판정을 1시간 주기로 담당하며 공개 승인 권한이 있습니다. 부사관은 Ollama gemma(로컬)를 사용하여 크롤·요약·1차 리뷰·capsule 초안을 10~15분 주기로 빠르게 처리하지만 공개 승인 권한은 없고 의견만 제시합니다. Publication 흐름에서는 부사관이 먼저 1차 리뷰로 triage/전처리를 하고, 사관이 부사관의 리뷰를 근거로 최종 승인/거부를 하는 게이트 관계입니다. (출처: personal_vault/projects/ops/librarian/profile/busagwan-sagwan-roles.md)\"\n}\n```",
+      "error": null,
+      "format_violation": false
+    }
+  ]
+}

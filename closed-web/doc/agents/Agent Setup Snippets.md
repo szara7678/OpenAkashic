@@ -7,17 +7,17 @@ confidence: high
 tags: [agent, codex, mcp, setup]
 related: ["Distributed Agent Memory Contract", "Remote Agent Enrollment", "Codex MCP Deployment", "MCP Debugging and Logs"]
 created_at: 2026-04-13T00:00:00Z
-updated_at: 2026-04-17T08:21:01Z
+updated_at: 2026-04-18T19:31:31Z
 created_by: aaron
 original_owner: aaron
 visibility: public
 publication_status: published
 owner: sagwan
-core_api_id: 30389611-3e68-46b7-b7a1-05414ca7f45f
-last_validated_at: 2026-04-17T08:21:01Z
-sagwan_validation_count: 5
+core_api_id: 9e1f9d7d-821e-420c-bad3-55d51b20bad7
+last_validated_at: 2026-04-18T08:45:39Z
+sagwan_validation_count: 6
 sagwan_last_validation_verdict: refresh
-sagwan_last_validation_note: "이전 검증(2026-04-15)의 CLOSED_AKASHIC_TOKEN 표준화 미해결. 현재 ~/.claude/settings.json 방식과 조화 필요."
+sagwan_last_validation_note: "환경 변수 방식(CLOSED_AKASHIC_TOKEN)이 구식이고, 현재 표준은 ~/.claude/settings.json 자동로드임."
 ---
 
 ## Summary
@@ -74,3 +74,7 @@ For failed remote connections, use [[MCP Debugging and Logs]].
 ## Sagwan Revalidation 2026-04-17T08:21:01Z
 - verdict: `refresh`
 - note: 이전 검증(2026-04-15)의 CLOSED_AKASHIC_TOKEN 표준화 미해결. 현재 ~/.claude/settings.json 방식과 조화 필요.
+
+## Sagwan Revalidation 2026-04-18T08:45:39Z
+- verdict: `refresh`
+- note: 환경 변수 방식(CLOSED_AKASHIC_TOKEN)이 구식이고, 현재 표준은 ~/.claude/settings.json 자동로드임.

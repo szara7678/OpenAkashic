@@ -75,25 +75,40 @@ Use a promotion workflow from Closed to Open, not a raw sync.
    - facts and evidence go to Open
    - internal judgments, strategy, and preference stay in Closed
 
-## Current Implementation Status (2026-04-14)
+## Current Implementation Status (2026-04-18)
 
-브릿지 레이어가 구현되었다.
+브릿지 레이어가 구현되었고, 2026-04-18 에 역할이 재정의되었다.
 
 - **`core_api_bridge.py`**: `set_publication_status("published")` 호출 시 `kind=capsule` → Core API `/capsules`, `kind=claim` → Core API `/claims` + `/evidences` 자동 동기화.
 - **`core_api_id`**: 동기화 후 note frontmatter에 `core_api_id` 자동 기록.
-- **`query_core_api` MCP 도구**: 에이전트가 MCP를 통해 Core API 검증 지식을 직접 검색 가능.
-- **`sync_to_core_api` 태스크**: Busagwan이 주기적으로 미동기화 published notes를 배치 동기화.
+- **`search_akashic` MCP 도구**: 에이전트가 MCP를 통해 Core API 검증 지식을 직접 검색 가능.
+- **`sync_to_core_api` 태스크**: 사관 큐레이션 사이클에서 미동기화 published notes 감지 후 워커(부사관) 큐에 enqueue → 부사관이 순수 HTTP 실행.
+
+### 역할 재정의 (2026-04-18)
+
+| 역할 | 책임 | LLM |
+|---|---|---|
+| **사관 (Sagwan)** | 단독 판정자. publication 승인/거절, capsule 생성, 재검증, 피드 수급, 충돌 판정, 큐레이션 계획 | ✅ claude-haiku-4-5 |
+| **부사관 (Busagwan)** | 워커(큐 실행기). 판단 없음. crawl_url, sync_to_core_api, analyze_search_gaps, scan_stale_private_notes | ❌ 없음 |
+
+과거의 "부사관 1차 리뷰 → 사관 2차 승인" 두 단계 검토는 폐지되었다. 작은 LLM 이 생성·판정하고 큰 LLM 이 재확인하는 것은 redundant 였고, 품질도 거꾸로였다.
 
 흐름:
 ```
 Closed Akashic (kind=capsule/claim)
   → request_note_publication
-  → Busagwan 1차 리뷰 → Sagwan 2차 승인
+  → Sagwan 단독 판정 (rule-based pre-filter + claude-cli LLM)
   → set_publication_status("published")
   → core_api_bridge 자동 실행
   → Core API /capsules or /claims 등록
-  → query_core_api("키워드") 로 SLM 검색 가능
+  → 사관 curation 이 sync_to_core_api 워커 태스크 enqueue (미동기화 감지 시)
+  → search_akashic("키워드") 로 SLM 검색 가능
 ```
+
+### Deprecated
+
+- **Entity 파이프라인** (`/entities`, `claim_mentions.entity_id`): 테이블/엔드포인트는 남아있으나 추출기·소비처 없음. 1082 노트 규모에서 정규화 이득 < 유지 비용. 재활성화는 vault ≥ 10k 노트 또는 alias 충돌 다발 시점까지 보류.
+- **Claim 자동 생성** (`draft_claim`): 수동 `upsert_note(kind=claim)` 만 허용. 자동화는 capsule 과 중복되어 가치 낮음.
 
 ## Reuse
 Keep Open and Closed Akashic separate as products and data models, but make them interoperable through explicit promotion, backlinking, and visibility-aware tooling. The bridge is now operational.

@@ -20,7 +20,7 @@ Remote agents on different servers should use one shared operating pattern: cent
 
 ## Two-Layer Model
 - **Closed Akashic** (`knowledge.openakashic.com/mcp/`): shared memory, operating docs, project indexes, incidents, decisions, playbooks, images. 20 MCP tools.
-- **Core API** (`api.openakashic.com`): validated public knowledge. claims / capsules. SLM agents query this via `query_core_api`.
+- **Core API** (`api.openakashic.com`): validated public knowledge. claims / capsules. SLM agents query this via `search_akashic`.
 - **project repo `doc/`**: canonical product and implementation documents.
 
 `kind=capsule` and `kind=claim` notes auto-sync to Core API on publication approval. This is the bridge from personal work memory to SLM-queryable knowledge.
@@ -31,7 +31,7 @@ Local `agent-knowledge` clones are no longer part of the default workflow.
 1. Verify `CLOSED_AKASHIC_TOKEN` and MCP access to `https://knowledge.openakashic.com/mcp/` (trailing slash required).
 2. Read [[Codex Central Memory Setup]] and this contract when attaching a new Codex host.
 3. Open the project index README in Closed Akashic.
-4. Before implementation: `search_notes` for related Closed Akashic notes, `query_core_api` for validated knowledge.
+4. Before implementation: `search_notes` for related Closed Akashic notes, `search_akashic` for validated knowledge.
 5. Read the project repo's canonical docs.
 6. Do the work in the repo or server.
 7. Write back one concise linked note or update the existing best container. Distill — never paste raw logs.

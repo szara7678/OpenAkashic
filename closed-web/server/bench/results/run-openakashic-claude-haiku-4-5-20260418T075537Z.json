@@ -1,0 +1,1305 @@
+{
+  "model": "claude-haiku-4-5",
+  "condition": "openakashic",
+  "timestamp": "20260418T075537Z",
+  "records": [
+    {
+      "task_id": "domain_jlpt_gen",
+      "condition": "openakashic",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-18T07:52:50+00:00",
+      "finished_at": "2026-04-18T07:53:13+00:00",
+      "plan": "일반적인 JLPT N4 fill-in 어휘 문제 형식(4지선다, 일본어)으로 예시 문제를 생성합니다. IchiMozzi의 구체적 형식이 필요하면 추후 조정 가능.",
+      "tool_calls": [],
+      "answer": "次の文の___の言葉の読み方として最もよいものを、1・2・3・4から一つ選んでください。\n\nわからないことがあれば、先生に___しましょう。\n              ______\n\n1. しつもん\n2. しづもん\n3. しちもん\n4. しぇもん\n\n【正答】1. しつもん（質問）",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"일반적인 JLPT N4 fill-in 어휘 문제 형식(4지선다, 일본어)으로 예시 문제를 생성합니다. IchiMozzi의 구체적 형식이 필요하면 추후 조정 가능.\",\n  \"tool_calls\": []\n}\n```",
+      "raw_model_output_turn2": "```json\n{\n  \"answer\": \"次の文の___の言葉の読み方として最もよいものを、1・2・3・4から一つ選んでください。\\n\\nわからないことがあれば、先生に___しましょう。\\n              ______\\n\\n1. しつもん\\n2. しづもん\\n3. しちもん\\n4. しぇもん\\n\\n【正答】1. しつもん（質問）\"\n}\n```",
+      "error": null,
+      "format_violation": false
+    },
+    {
+      "task_id": "onboarding_openakashic",
+      "condition": "openakashic",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-18T07:53:13+00:00",
+      "finished_at": "2026-04-18T07:53:29+00:00",
+      "plan": "OpenAkashic 프로젝트 온보딩을 위해 기존 가이드 문서와 폴더 구조를 검색하여 시작 경로와 우선순위를 파악합니다.",
+      "tool_calls": [
+        {
+          "tool": "search_and_read_top",
+          "arguments": {
+            "query": "OpenAkashic 온보딩 시작 가이드 아키텍처"
+          },
+          "result": {
+            "directive": "노트 본문의 사실을 인용해 질문에 직접 답하세요. 경로 나열·도구명 반복 금지. 부족하면 read_note 추가 호출.",
+            "note_body_preview": "## Summary\nOpenAkashic 관련 설계, 운영 플레이북, 구현 메모리는 이 프로젝트 폴더에 모은다.\n홈서버 Docker 스택 기반 (EC2 아님).\n\n## Quick Answer — 신규 에이전트 온보딩\n\n**한 문장 요약**: `search_and_read_top(query=<주제>)` 한 번이면 상위 노트 본문까지 즉시 읽는다. 여기부터 시작할 것.\n\n순서:\n1. **진입점 검색**: `search_and_read_top(query=\"openakashic 온보딩\")` 또는 주제를 바꿔 호출 — 상위 매칭 노트의 `note_body_preview`(본문 앞부분)와 `note.body`(전체 본문)가 바로 반환된다. 도구 호출 한 번으로 본문이 들어오므로 `search_notes` → `read_note` 2단 호출보다 작은 모델에 유리.\n2. **추가 본문 필요 시**: `read_note(path=<path>)`로 특정 노트 전체 읽기. `list_notes`는 사용하지 말 것 (존재하지 않음).\n3. **경로 제약**: 모든 쓰기 경로는 `personal_vault/` 또는 `doc/` 로 시작해야 함.\n4. **작업 후 writeback**: 결과물을 `upsert_note(path, body, title, kind, tags)` 로 저장.\n   - `body` 필드에 markdown 본문. 편의상 `content`로 보내도 받아 주지만 정식 필드명은 `body`.\n   - 기존 노트 섹션 추가는 `append_note_section(path, section_title, body)` 사용.\n5. **공개 요청**: 공유 가치가 있으면 `request_note_publication(path, rationale)` 호출.\n   직접 `visibility=public` 을 세팅하지 않음 — librarian(사관)이 승인.\n\n## Tool Cheatsheet\n- 읽기: `search_and_read_top(query)` → `read_note(path)` → `search_notes(query)`\n- 쓰기: `upsert_note(path, body, title)` → `append_note_section(path, section_title, body)`\n- 공개: `request_note_publication(path, rationale)` (직접 visibility 변경 금지)\n- 부트스트랩:",
+            "retrieval_value": {
+              "directive": "경로 나열 금지. 노트 내용을 읽어 질문에 직접 답하세요. 부족하면 read_note 추가 호출.",
+              "intent": "fact_lookup",
+              "matched_notes": [
+                "personal_vault/projects/personal/openakashic/README.md",
+                "doc/reference/Development Resource Map.md",
+                "doc/general/roadmap.md"
+              ],
+              "writeback_suggested": false,
+              "read_note_hint": "본문이 필요하면 read_note(path=<path>) 추가 호출. 쓰기는 upsert_note(path, body, title)."
+            },
+            "query": "OpenAkashic 온보딩 시작 가이드 아키텍처",
+            "top": {
+              "path": "personal_vault/projects/personal/openakashic/README.md",
+              "slug": "personal-vault-projects-personal-openakashic-readme",
+              "title": "OpenAkashic Project Index & Agent Onboarding",
+              "kind": "reference",
+              "project": "openakashic",
+              "owner": "sagwan",
+              "visibility": "public",
+              "publication_status": "published",
+              "tags": [
+                "openakashic",
+                "readme",
+                "onboarding",
+                "index"
+              ],
+              "summary": "OpenAkashic 관련 설계, 운영 플레이북, 구현 메모리는 이 프로젝트 폴더에 모은다. 홈서버 Docker 스택 기반 (EC2 아님).",
+              "href": "/notes/personal-vault-projects-personal-openakashic-readme",
+              "lexical_score": 0.0,
+              "semantic_score": 0.608,
+              "confirm_count": 0,
+              "score": 0.016393
+            },
+            "other_results": [
+              {
+                "path": "doc/reference/Development Resource Map.md",
+                "slug": "development-resource-map",
+                "title": "Development Resource Map",
+                "kind": "reference",
+                "project": "openakashic",
+                "owner": "sagwan",
+                "visibility": "public",
+                "publication_status": "published",
+                "tags": [
+                  "development",
+                  "reference",
+                  "frontend",
+                  "backend",
+                  "agents",
+                  "mcp",
+                  "openakashic"
+                ],
+                "summary": "OpenAkashic에서 개발 에이전트와 사용자가 공용 근거로 쓰기 좋은 1차 개발 자료 지도다. 원칙은 단순하다. 언어와 플랫폼 기본기는 공식 문서에서 가져오고, 실전 노하우는 capsule로 짧게 압축해서 공개한다.",
+                "href": "/notes/development-resource-map",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5924,
+                "confirm_count": 0,
+                "score": 0.016129
+              },
+              {
+                "path": "doc/general/roadmap.md",
+                "slug": "roadmap",
+                "title": "OpenAkashic Roadmap",
+                "kind": "reference",
+                "project": "openakashic",
+                "owner": "sagwan",
+                "visibility": "public",
+                "publication_status": "published",
+                "tags": [
+                  "openakashic",
+                  "roadmap",
+                  "plan"
+                ],
+                "summary": "OpenAkashic의 현재 구현 상태, 이미 완료된 항목, 남은 작업을 한 곳에 정리한다. 설계 철학은 Open and Closed Akashic Strategy를, 아키텍처는 plan.md를 참고한다.",
+                "href": "/notes/roadmap",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5817,
+                "confirm_count": 0,
+                "score": 0.015873
+              },
+              {
+                "path": "doc/agents/OpenAkashic MCP Guide.md",
+                "slug": "openakashic-mcp-guide",
+                "title": "OpenAkashic MCP Guide",
+                "kind": "reference",
+                "project": "openakashic",
+                "owner": "sagwan",
+                "visibility": "public",
+                "publication_status": "published",
+                "tags": [
+                  "mcp",
+                  "agents",
+                  "tools",
+                  "api"
+                ],
+                "summary": "OpenAkashic MCP 서버 접속 정보와 20개 도구 전체 레퍼런스.",
+                "href": "/notes/openakashic-mcp-guide",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5643,
+                "confirm_count": 0,
+                "score": 0.015625
+              },
+              {
+                "path": "doc/knowledge-gaps/openakashic-에이전트-온보딩-bootstrap-mcp-도구-사용법-b9f86c.md",
+                "slug": "openakashic-에이전트-온보딩-bootstrap-mcp-도구-사용법-b9f86c",
+                "title": "[Gap] OpenAkashic 에이전트 온보딩 bootstrap MCP 도구 사용법",
+                "kind": "reference",
+                "project": "openakashic",
+                "owner": "sagwan",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "gap",
+                  "knowledge-gap",
+                  "subordinate"
+                ],
+                "summary": "에이전트가 OpenAkashic 에이전트 온보딩 bootstrap MCP 도구 사용법 쿼리로 검색했으나 관련 노트가 없었습니다.",
+                "href": "/notes/openakashic-에이전트-온보딩-bootstrap-mcp-도구-사용법-b9f86c",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5561,
+                "confirm_count": 0,
+                "score": 0.015385
+              }
+            ],
+            "hints": [],
+            "count": 5,
+            "note": {
+              "path": "personal_vault/projects/personal/openakashic/README.md",
+              "slug": "personal-vault-projects-personal-openakashic-readme",
+              "title": "OpenAkashic Project Index & Agent Onboarding",
+              "kind": "reference",
+              "project": "openakashic",
+              "status": "active",
+              "owner": "sagwan",
+              "original_owner": "aaron",
+              "created_by": "aaron",
+              "visibility": "public",
+              "publication_status": "published",
+              "tags": [
+                "openakashic",
+                "readme",
+                "onboarding",
+                "index"
+              ],
+              "related": [
+                "Project Memory Intake",
+                "AWS Central Vault",
+                "Agent Memory Workflow"
+              ],
+              "summary": "OpenAkashic 관련 설계, 운영 플레이북, 구현 메모리는 이 프로젝트 폴더에 모은다. 홈서버 Docker 스택 기반 (EC2 아님).",
+              "body": "## Summary\nOpenAkashic 관련 설계, 운영 플레이북, 구현 메모리는 이 프로젝트 폴더에 모은다.\n홈서버 Docker 스택 기반 (EC2 아님).\n\n## Quick Answer — 신규 에이전트 온보딩\n\n**한 문장 요약**: `search_and_read_top(query=<주제>)` 한 번이면 상위 노트 본문까지 즉시 읽는다. 여기부터 시작할 것.\n\n순서:\n1. **진입점 검색**: `search_and_read_top(query=\"openakashic 온보딩\")` 또는 주제를 바꿔 호출 — 상위 매칭 노트의 `note_body_preview`(본문 앞부분)와 `note.body`(전체 본문)가 바로 반환된다. 도구 호출 한 번으로 본문이 들어오므로 `search_notes` → `read_note` 2단 호출보다 작은 모델에 유리.\n2. **추가 본문 필요 시**: `read_note(path=<path>)`로 특정 노트 전체 읽기. `list_notes`는 사용하지 말 것 (존재하지 않음).\n3. **경로 제약**: 모든 쓰기 경로는 `personal_vault/` 또는 `doc/` 로 시작해야 함.\n4. **작업 후 writeback**: 결과물을 `upsert_note(path, body, title, kind, tags)` 로 저장.\n   - `body` 필드에 markdown 본문. 편의상 `content`로 보내도 받아 주지만 정식 필드명은 `body`.\n   - 기존 노트 섹션 추가는 `append_note_section(path, section_title, body)` 사용.\n5. **공개 요청**: 공유 가치가 있으면 `request_note_publication(path, rationale)` 호출.\n   직접 `visibility=public` 을 세팅하지 않음 — librarian(사관)이 승인.\n\n## Tool Cheatsheet\n- 읽기: `search_and_read_top(query)` → `read_note(path)` → `search_notes(query)`\n- 쓰기: `upsert_note(path, body, title)` → `append_note_section(path, section_title, body)`\n- 공개: `request_note_publication(path, rationale)` (직접 visibility 변경 금지)\n- 부트스트랩: `bootstrap_project(name)` — **인덱스가 없을 때만**. 이 README가 있으면 호출 불필요.\n\n## Canonical Docs (홈서버 절대 경로)\n- 이 서버 리포지토리 루트: `/home/insu/insu_server/`\n- OpenAkashic web 서버 소스: `/home/insu/insu_server/apps/openakashic/closed-web/server/`\n- Compose: `/home/insu/insu_server/compose/production.yml`\n\n## Active Surfaces\n- browser: `https://openakashic.com`\n- api: `https://api.openakashic.com`\n- knowledge (MCP): `https://knowledge.openakashic.com/mcp/`\n\n## Memory Map (하위 폴더)\n- `architecture/` — 배포 구조, 데이터 모델\n- `playbooks/` — 배포, 복구, MCP/도메인 연결, 운영 절차\n- `incidents/` — 운영 장애, 라우팅/데이터 연결 이슈\n- `decisions/` — 오픈/클로즈드 아카식 경계, 구조 선택\n- `experiments/` — 검색·그래프·UI 실험\n- `reference/` — 샘플 출력, 검증 메모, A/B bench 결과\n- `bench-v0*.md` — OpenAkashicBench 결과 모음\n\n## Agent Roles\n두 종류의 운영 에이전트가 있다:\n- **사관 (Sagwan)** — Claude CLI 기반, high-quality/저주기 워커 (승인·게이트)\n- **부사관 (Busagwan)** — Ollama gemma 기반, 빠른/고주기 워커 (1차 리뷰·크롤)\n자세한 차이: `personal_vault/projects/ops/librarian/profile/busagwan-sagwan-roles.md`\n\n## Reuse\n새 작업 전에는 이 인덱스로 canonical docs와 이미 축적된 노트를 함께 확인한다.\n\n## Sagwan Revalidation 2026-04-17T16:35:25Z\n- verdict: `ok`\n- note: 현재 지침과 완전 일치하며 링크/경로 유효. 마이너 오탈자(마지막 문단 경로 끝)는 스타일 이슈로 내용 신뢰도에 영향 없음.\n\n## 2026-04-18 Update\n- onboarding Quick Answer 재작성: `search_and_read_top`을 1순위 진입점으로 명시 (소형 모델이 `search_notes`→`read_note` 2단을 놓치는 OpenAkashicBench v0.5 실패 패턴 반영)\n- `upsert_note`가 `content` alias를 받도록 서버 조정 — 문서에도 반영\n- Tool Cheatsheet 섹션 추가",
+              "body_html": "<h2 id=\"summary\">Summary<a class=\"heading-anchor\" href=\"#summary\">#</a></h2>\n<p>OpenAkashic 관련 설계, 운영 플레이북, 구현 메모리는 이 프로젝트 폴더에 모은다.\n홈서버 Docker 스택 기반 (EC2 아님).</p>\n<h2 id=\"quick-answer-신규-에이전트-온보딩\">Quick Answer — 신규 에이전트 온보딩<a class=\"heading-anchor\" href=\"#quick-answer-신규-에이전트-온보딩\">#</a></h2>\n<p><strong>한 문장 요약</strong>: <code>search_and_read_top(query=&lt;주제&gt;)</code> 한 번이면 상위 노트 본문까지 즉시 읽는다. 여기부터 시작할 것.</p>\n<p>순서:\n1. <strong>진입점 검색</strong>: <code>search_and_read_top(query=\"openakashic 온보딩\")</code> 또는 주제를 바꿔 호출 — 상위 매칭 노트의 <code>note_body_preview</code>(본문 앞부분)와 <code>note.body</code>(전체 본문)가 바로 반환된다. 도구 호출 한 번으로 본문이 들어오므로 <code>search_notes</code> → <code>read_note</code> 2단 호출보다 작은 모델에 유리.\n2. <strong>추가 본문 필요 시</strong>: <code>read_note(path=&lt;path&gt;)</code>로 특정 노트 전체 읽기. <code>list_notes</code>는 사용하지 말 것 (존재하지 않음).\n3. <strong>경로 제약</strong>: 모든 쓰기 경로는 <code>personal_vault/</code> 또는 <code>doc/</code> 로 시작해야 함.\n4. <strong>작업 후 writeback</strong>: 결과물을 <code>upsert_note(path, body, title, kind, tags)</code> 로 저장.\n   - <code>body</code> 필드에 markdown 본문. 편의상 <code>content</code>로 보내도 받아 주지만 정식 필드명은 <code>body</code>.\n   - 기존 노트 섹션 추가는 <code>append_note_section(path, section_title, body)</code> 사용.\n5. <strong>공개 요청</strong>: 공유 가치가 있으면 <code>request_note_publication(path, rationale)</code> 호출.\n   직접 <code>visibility=public</code> 을 세팅하지 않음 — librarian(사관)이 승인.</p>\n<h2 id=\"tool-cheatsheet\">Tool Cheatsheet<a class=\"heading-anchor\" href=\"#tool-cheatsheet\">#</a></h2>\n<ul>\n<li>읽기: <code>search_and_read_top(query)</code> → <code>read_note(path)</code> → <code>search_notes(query)</code></li>\n<li>쓰기: <code>upsert_note(path, body, title)</code> → <code>append_note_section(path, section_title, body)</code></li>\n<li>공개: <code>request_note_publication(path, rationale)</code> (직접 visibility 변경 금지)</li>\n<li>부트스트랩: <code>bootstrap_project(name)</code> — <strong>인덱스가 없을 때만</strong>. 이 README가 있으면 호출 불필요.</li>\n</ul>\n<h2 id=\"canonical-docs-홈서버-절대-경로\">Canonical Docs (홈서버 절대 경로)<a class=\"heading-anchor\" href=\"#canonical-docs-홈서버-절대-경로\">#</a></h2>\n<ul>\n<li>이 서버 리포지토리 루트: <code>/home/insu/insu_server/</code></li>\n<li>OpenAkashic web 서버 소스: <code>/home/insu/insu_server/apps/openakashic/closed-web/server/</code></li>\n<li>Compose: <code>/home/insu/insu_server/compose/production.yml</code></li>\n</ul>\n<h2 id=\"active-surfaces\">Active Surfaces<a class=\"heading-anchor\" href=\"#active-surfaces\">#</a></h2>\n<ul>\n<li>browser: <code>https://openakashic.com</code></li>\n<li>api: <code>https://api.openakashic.com</code></li>\n<li>knowledge (MCP): <code>https://knowledge.openakashic.com/mcp/</code></li>\n</ul>\n<h2 id=\"memory-map-하위-폴더\">Memory Map (하위 폴더)<a class=\"heading-anchor\" href=\"#memory-map-하위-폴더\">#</a></h2>\n<ul>\n<li><code>architecture/</code> — 배포 구조, 데이터 모델</li>\n<li><code>playbooks/</code> — 배포, 복구, MCP/도메인 연결, 운영 절차</li>\n<li><code>incidents/</code> — 운영 장애, 라우팅/데이터 연결 이슈</li>\n<li><code>decisions/</code> — 오픈/클로즈드 아카식 경계, 구조 선택</li>\n<li><code>experiments/</code> — 검색·그래프·UI 실험</li>\n<li><code>reference/</code> — 샘플 출력, 검증 메모, A/B bench 결과</li>\n<li><code>bench-v0*.md</code> — OpenAkashicBench 결과 모음</li>\n</ul>\n<h2 id=\"agent-roles\">Agent Roles<a class=\"heading-anchor\" href=\"#agent-roles\">#</a></h2>\n<p>두 종류의 운영 에이전트가 있다:\n- <strong>사관 (Sagwan)</strong> — Claude CLI 기반, high-quality/저주기 워커 (승인·게이트)\n- <strong>부사관 (Busagwan)</strong> — Ollama gemma 기반, 빠른/고주기 워커 (1차 리뷰·크롤)\n자세한 차이: <code>personal_vault/projects/ops/librarian/profile/busagwan-sagwan-roles.md</code></p>\n<h2 id=\"reuse\">Reuse<a class=\"heading-anchor\" href=\"#reuse\">#</a></h2>\n<p>새 작업 전에는 이 인덱스로 canonical docs와 이미 축적된 노트를 함께 확인한다.</p>\n<h2 id=\"sagwan-revalidation-2026-04-17t16-35-25z\">Sagwan Revalidation 2026-04-17T16:35:25Z<a class=\"heading-anchor\" href=\"#sagwan-revalidation-2026-04-17t16-35-25z\">#</a></h2>\n<ul>\n<li>verdict: <code>ok</code></li>\n<li>note: 현재 지침과 완전 일치하며 링크/경로 유효. 마이너 오탈자(마지막 문단 경로 끝)는 스타일 이슈로 내용 신뢰도에 영향 없음.</li>\n</ul>\n<h2 id=\"2026-04-18-update\">2026-04-18 Update<a class=\"heading-anchor\" href=\"#2026-04-18-update\">#</a></h2>\n<ul>\n<li>onboarding Quick Answer 재작성: <code>search_and_read_top</code>을 1순위 진입점으로 명시 (소형 모델이 <code>search_notes</code>→<code>read_note</code> 2단을 놓치는 OpenAkashicBench v0.5 실패 패턴 반영)</li>\n<li><code>upsert_note</code>가 <code>content</code> alias를 받도록 서버 조정 — 문서에도 반영</li>\n<li>Tool Cheatsheet 섹션 추가</li>\n</ul>",
+              "links": [],
+              "related_notes": [
+                {
+                  "slug": "project-memory-intake",
+                  "title": "Project Memory Intake",
+                  "summary": "에이전트는 중앙 Closed Akashic MCP에서 프로젝트 인덱스와 관련 노트를 먼저 확인하고, 프로젝트 원본 문서를 읽은 뒤, 재사용 가능한 기억만 다시 Closed Akashic에 남긴다.",
+                  "href": "/notes/project-memory-intake"
+                },
+                {
+                  "slug": "aws-central-vault",
+                  "title": "AWS Central Vault",
+                  "summary": "AWS에 중앙 vault를 두고 개인 Codex/Cursor 에이전트는 MCP 서버를 통해 읽고 쓴다.",
+                  "href": "/notes/aws-central-vault"
+                },
+                {
+                  "slug": "agent-memory-workflow",
+                  "title": "Agent Memory Workflow",
+                  "summary": "에이전트는 작업 시작 전에 기억을 검색하고, 작업 종료 후 경험을 짧은 구조화 노트로 남긴다.",
+                  "href": "/notes/agent-memory-workflow"
+                }
+              ],
+              "backlinks": [],
+              "outbound": 3,
+              "href": "/notes/personal-vault-projects-personal-openakashic-readme"
+            }
+          },
+          "error": null,
+          "duration_ms": 920.4
+        },
+        {
+          "tool": "list_folders",
+          "arguments": {
+            "path": "personal_vault/projects/personal/openakashic"
+          },
+          "result": {
+            "rules": [
+              {
+                "root": "doc",
+                "label": "Docs",
+                "description": "Long-lived operating docs, schemas, and agent guidance.",
+                "subfolders": [
+                  {
+                    "path": "doc/general",
+                    "label": "general"
+                  },
+                  {
+                    "path": "doc/agents",
+                    "label": "agents"
+                  },
+                  {
+                    "path": "doc/reference",
+                    "label": "reference"
+                  }
+                ]
+              },
+              {
+                "root": "personal_vault",
+                "label": "Vault",
+                "description": "Reusable memory split into shared knowledge, personal notes, and personal or company project workspaces.",
+                "subfolders": [
+                  {
+                    "path": "personal_vault/shared/concepts",
+                    "label": "shared concepts"
+                  },
+                  {
+                    "path": "personal_vault/shared/playbooks",
+                    "label": "shared playbooks"
+                  },
+                  {
+                    "path": "personal_vault/shared/schemas",
+                    "label": "shared schemas"
+                  },
+                  {
+                    "path": "personal_vault/shared/reference",
+                    "label": "shared reference"
+                  },
+                  {
+                    "path": "personal_vault/personal/concepts",
+                    "label": "personal concepts"
+                  },
+                  {
+                    "path": "personal_vault/personal/playbooks",
+                    "label": "personal playbooks"
+                  },
+                  {
+                    "path": "personal_vault/personal/reference",
+                    "label": "personal reference"
+                  },
+                  {
+                    "path": "personal_vault/projects",
+                    "label": "agent-managed projects"
+                  }
+                ]
+              },
+              {
+                "root": "assets",
+                "label": "Assets",
+                "description": "Uploaded images and media referenced by notes.",
+                "subfolders": [
+                  {
+                    "path": "assets/images",
+                    "label": "images"
+                  },
+                  {
+                    "path": "assets/files",
+                    "label": "files"
+                  }
+                ]
+              }
+            ],
+            "existing": {
+              "doc": [
+                "doc/agents",
+                "doc/general",
+                "doc/knowledge-gaps",
+                "doc/reference",
+                "doc/skills"
+              ],
+              "personal_vault": [
+                "personal_vault/feeds",
+                "personal_vault/feeds/arxiv-cl",
+                "personal_vault/feeds/hn",
+                "personal_vault/feeds/hn/GitHub - smol-machines",
+                "personal_vault/knowledge",
+                "personal_vault/knowledge/coding",
+                "personal_vault/knowledge/dev",
+                "personal_vault/knowledge/dev/CI",
+                "personal_vault/knowledge/dev/GitHub Actions CI",
+                "personal_vault/knowledge/dev/capsules",
+                "personal_vault/knowledge/dev/evidence",
+                "personal_vault/knowledge/japanese",
+                "personal_vault/knowledge/japanese/capsules",
+                "personal_vault/knowledge/japanese/n1",
+                "personal_vault/knowledge/japanese/n1-n5",
+                "personal_vault/knowledge/japanese/n1-n5/n1",
+                "personal_vault/knowledge/japanese/n1-n5/n2",
+                "personal_vault/knowledge/japanese/n1-n5/n3",
+                "personal_vault/knowledge/japanese/n1-n5/n4",
+                "personal_vault/knowledge/japanese/n1-n5/n5",
+                "personal_vault/knowledge/japanese/n2",
+                "personal_vault/knowledge/japanese/n3",
+                "personal_vault/knowledge/japanese/n4",
+                "personal_vault/knowledge/japanese/n5",
+                "personal_vault/knowledge/qa",
+                "personal_vault/knowledge/test",
+                "personal_vault/personal",
+                "personal_vault/personal/playbooks",
+                "personal_vault/preferences",
+                "personal_vault/projects",
+                "personal_vault/projects/coding-bench",
+                "personal_vault/projects/coding_exercises",
+                "personal_vault/projects/company",
+                "personal_vault/projects/company/arc-fleet",
+                "personal_vault/projects/company/arc-fleet/architecture",
+                "personal_vault/projects/company/arc-fleet/architecture/interface",
+                "personal_vault/projects/company/arc-fleet/decisions",
+                "personal_vault/projects/company/arc-fleet/experiments",
+                "personal_vault/projects/company/arc-fleet/experiments/ARC Fleet 기획2",
+                "personal_vault/projects/company/arc-fleet/experiments/기획3",
+                "personal_vault/projects/company/arc-fleet/experiments/기획3/csscode-pages",
+                "personal_vault/projects/company/arc-fleet/experiments/기획3/csscode-pages/로봇관리",
+                "personal_vault/projects/company/arc-fleet/experiments/기획3/csscode-pages/로봇그룹관리",
+                "personal_vault/projects/company/arc-fleet/experiments/기획3/csscode-pages/맵보정",
+                "personal_vault/projects/company/arc-fleet/experiments/기획3/csscode-pages/맵핑콘솔",
+                "personal_vault/projects/company/arc-fleet/experiments/기획3/csscode-pages/모니터링",
+                "personal_vault/projects/company/arc-fleet/experiments/기획3/csscode-pages/모델관리",
+                "personal_vault/projects/company/arc-fleet/experiments/기획3/csscode-pages/수동제어",
+                "personal_vault/projects/company/arc-fleet/experiments/기획3/csscode-pages/지도편집기",
+                "personal_vault/projects/company/arc-fleet/experiments/기획3/csscode-pages/프로젝트관리",
+                "personal_vault/projects/company/arc-fleet/implementation-status",
+                "personal_vault/projects/company/arc-fleet/playbooks",
+                "personal_vault/projects/company/arc-fleet/playbooks/QA",
+                "personal_vault/projects/company/arc-fleet/playbooks/QA/siu",
+                "personal_vault/projects/company/arc-fleet/playbooks/guidelines",
+                "personal_vault/projects/company/arc-fleet/reference",
+                "personal_vault/projects/company/arc-fleet/reference/migration",
+                "personal_vault/projects/company/arc-fleet/reference/page-css",
+                "personal_vault/projects/company/arc-fleet/reference/updates",
+                "personal_vault/projects/experiments",
+                "personal_vault/projects/g1-arica-transfer",
+                "personal_vault/projects/gemma-agent",
+                "personal_vault/projects/gemma-agent/docker-multi-stage-builds",
+                "personal_vault/projects/gemma-agent/k8s-liveness-readiness-probes",
+                "personal_vault/projects/gemma-agent/python-protocol-vs-abc",
+                "personal_vault/projects/gemma-agent/react-context-vs-zustand",
+                "personal_vault/projects/ops",
+                "personal_vault/projects/ops/infra-ops",
+                "personal_vault/projects/ops/librarian",
+                "personal_vault/projects/ops/librarian/activity",
+                "personal_vault/projects/ops/librarian/capsules",
+                "personal_vault/projects/ops/librarian/capsules/CI",
+                "personal_vault/projects/ops/librarian/capsules/GitHub Actions CI",
+                "personal_vault/projects/ops/librarian/capsules/Python Async",
+                "personal_vault/projects/ops/librarian/knowledge-gaps",
+                "personal_vault/projects/ops/librarian/memory",
+                "personal_vault/projects/ops/librarian/playbooks",
+                "personal_vault/projects/ops/librarian/policy",
+                "personal_vault/projects/ops/librarian/profile",
+                "personal_vault/projects/ops/librarian/publication_requests",
+                "personal_vault/projects/ops/librarian/reference",
+                "personal_vault/projects/ops/librarian/results",
+                "personal_vault/projects/personal",
+                "personal_vault/projects/personal/agent-tasks",
+                "personal_vault/projects/personal/agentsim2",
+                "personal_vault/projects/personal/ai-media",
+                "personal_vault/projects/personal/ai-media/decisions",
+                "personal_vault/projects/personal/ai-media/playbooks",
+                "personal_vault/projects/personal/arc-fleet",
+                "personal_vault/projects/personal/arc-fleet/reference",
+                "personal_vault/projects/personal/arc-ui-console-frontend",
+                "personal_vault/projects/personal/ichimozzi",
+                "personal_vault/projects/personal/ichimozzi/architecture",
+                "personal_vault/projects/personal/ichimozzi/generated-problems",
+                "personal_vault/projects/personal/ichimozzi/generated_problems",
+                "personal_vault/projects/personal/ichimozzi/playbooks",
+                "personal_vault/projects/personal/ichimozzi/reference",
+                "personal_vault/projects/personal/ichimozzi/research",
+                "personal_vault/projects/personal/insu-server",
+                "personal_vault/projects/personal/openakashic",
+                "personal_vault/projects/personal/openakashic/architecture",
+                "personal_vault/projects/personal/openakashic/playbooks",
+                "personal_vault/projects/personal/openakashic/reference",
+                "personal_vault/projects/personal/portfolio",
+                "personal_vault/projects/personal/portfolio/public",
+                "personal_vault/projects/personal/portfolio/reference",
+                "personal_vault/projects/qa-test",
+                "personal_vault/projects/qa-test2",
+                "personal_vault/reference",
+                "personal_vault/references",
+                "personal_vault/shared",
+                "personal_vault/shared/concepts",
+                "personal_vault/shared/playbooks",
+                "personal_vault/shared/reference",
+                "personal_vault/shared/reference/https:",
+                "personal_vault/shared/schemas",
+                "personal_vault/user"
+              ],
+              "assets": [
+                "assets/files",
+                "assets/images"
+              ]
+            }
+          },
+          "error": null,
+          "duration_ms": 284.4
+        }
+      ],
+      "answer": "OpenAkashic 신규 에이전트 온보딩 순서 (출처: personal_vault/projects/personal/openakashic):\n\n[1단계: 진입점 검색]\nsearch_and_read_top(query=\"openakashic 온보딩\") 또는 관심 주제로 호출하면 상위 매칭 노트의 본문이 즉시 반환됩니다. 한 번의 도구 호출로 읽을 수 있으므로 작은 모델에 유리합니다.\n\n[2단계: 특정 노트 읽기]\n추가 본문이 필요하면 read_note(path=<path>)로 전체 내용을 읽습니다. list_notes는 사용하지 않습니다.\n\n[3단계: 경로 제약 이해]\n모든 쓰기는 personal_vault/ 또는 doc/ 로 시작하는 경로에만 가능합니다.\n\n[4단계: 작업 후 저장]\n- 새 노트: upsert_note(path, body, title, kind, tags)\n- 기존 노트에 섹션 추가: append_note_section(path, section_title, body)\nbody 필드에 마크다운 본문을 작성합니다.\n\n[5단계: 공개 검토 요청]\n공유 가치가 있으면 request_note_publication(path, rationale)을 호출합니다. 직접 visibility=public으로 설정하지 않습니다 (librarian 승인 필요).\n\n[도구 치트시트]\n- 읽기: search_and_read_top(query) → read_note(path) → search_notes(query)\n- 쓰기: upsert_note(path, body, title) → append_note_section(path, section_title, body)\n- 공개: request_note_publication(path, rationale)\n\n지금 바로 시작: search_and_read_top(query=\"openakashic\") 호출로 프로젝트 문서를 읽어보세요.",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"OpenAkashic 프로젝트 온보딩을 위해 기존 가이드 문서와 폴더 구조를 검색하여 시작 경로와 우선순위를 파악합니다.\",\n  \"tool_calls\": [\n    {\n      \"tool\": \"search_and_read_top\",\n      \"arguments\": {\n        \"query\": \"OpenAkashic 온보딩 시작 가이드 아키텍처\"\n      }\n    },\n    {\n      \"tool\": \"list_folders\",\n      \"arguments\": {\n        \"path\": \"personal_vault/projects/personal/openakashic\"\n      }\n    }\n  ]\n}\n```",
+      "raw_model_output_turn2": "```json\n{\n  \"answer\": \"OpenAkashic 신규 에이전트 온보딩 순서 (출처: personal_vault/projects/personal/openakashic):\\n\\n[1단계: 진입점 검색]\\nsearch_and_read_top(query=\\\"openakashic 온보딩\\\") 또는 관심 주제로 호출하면 상위 매칭 노트의 본문이 즉시 반환됩니다. 한 번의 도구 호출로 읽을 수 있으므로 작은 모델에 유리합니다.\\n\\n[2단계: 특정 노트 읽기]\\n추가 본문이 필요하면 read_note(path=<path>)로 전체 내용을 읽습니다. list_notes는 사용하지 않습니다.\\n\\n[3단계: 경로 제약 이해]\\n모든 쓰기는 personal_vault/ 또는 doc/ 로 시작하는 경로에만 가능합니다.\\n\\n[4단계: 작업 후 저장]\\n- 새 노트: upsert_note(path, body, title, kind, tags)\\n- 기존 노트에 섹션 추가: append_note_section(path, section_title, body)\\nbody 필드에 마크다운 본문을 작성합니다.\\n\\n[5단계: 공개 검토 요청]\\n공유 가치가 있으면 request_note_publication(path, rationale)을 호출합니다. 직접 visibility=public으로 설정하지 않습니다 (librarian 승인 필요).\\n\\n[도구 치트시트]\\n- 읽기: search_and_read_top(query) → read_note(path) → search_notes(query)\\n- 쓰기: upsert_note(path, body, title) → append_note_section(path, section_title, body)\\n- 공개: request_note_publication(path, rationale)\\n\\n지금 바로 시작: search_and_read_top(query=\\\"openakashic\\\") 호출로 프로젝트 문서를 읽어보세요.\"\n}\n```",
+      "error": null,
+      "format_violation": false
+    },
+    {
+      "task_id": "triage_ichimozzi_500",
+      "condition": "openakashic",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-18T07:53:29+00:00",
+      "finished_at": "2026-04-18T07:53:43+00:00",
+      "plan": "insu-server(홈서버) 프로젝트의 ichimozzi 서비스 아키텍처와 triage 절차를 검색하여 500 에러 진단 순서를 파악합니다.",
+      "tool_calls": [
+        {
+          "tool": "search_and_read_top",
+          "arguments": {
+            "query": "ichimozzi 500 에러 triage 컨테이너 진단 순서"
+          },
+          "result": {
+            "directive": "노트 본문의 사실을 인용해 질문에 직접 답하세요. 경로 나열·도구명 반복 금지. 부족하면 read_note 추가 호출.",
+            "note_body_preview": "## Summary\nichimozzi.com 이 5xx (특히 500) 에러를 반환할 때 홈서버 Docker 스택에서 확인하는 순서.\nEC2·AWS·Lambda 아님. **모두 로컬 Docker 컨테이너**로 돌아간다.\n\n## Topology\n요청 흐름: `브라우저 → insu-shared-caddy (리버스 프록시, TLS) → insu-server-backend-prod-1 (NestJS) → insu-server-ichimozzi-db-1 (Postgres)`\n\n## Triage 순서 (프록시 → 앱 → DB)\n\n### 1. 리버스 프록시 — insu-shared-caddy\n```bash\ndocker ps | grep caddy\ndocker logs --tail 100 insu-shared-caddy\n```\nCaddy가 죽어 있거나 upstream 연결 실패 로그가 있으면 여기서 차단. 재시작:\n```bash\ncd /home/insu/insu_server/compose\ndocker compose -f production.yml restart caddy\n```\n\n### 2. IchiMozzi 백엔드 — insu-server-backend-prod-1\n```bash\ndocker ps | grep backend-prod\ndocker logs --tail 200 insu-server-backend-prod-1\n```\n500이면 대부분 여기. 부팅 실패 / DB connection refused / 마이그레이션 스키마 불일치 등.\n\n### 3. 의존 DB — insu-server-ichimozzi-db-1\n```bash\ndocker ps | grep ichimozzi-db\ndocker exec insu-server-ichimozzi-db-1 pg_isready -U postgres -d IchiMozzi\n```\nDB 가장 마지막에 확인 — 가장 흔한 원인은 1 또는 2번이다.\n\n## 관련 컨테이너 목록 (참고)\n| 이름 | 역할 |\n|---|---|\n| `insu-shared-caddy` | Caddy 리버스 프록시 (TLS + 라우팅) |\n| `insu-server-backend-prod-1` | IchiMozzi NestJS 백엔드 |\n| `insu-server-ichimozzi-db-1` | IchiMozzi PostgreSQL |\n| `insu-server-openakashic-web-1` | OpenAka",
+            "retrieval_value": {
+              "directive": "경로 나열 금지. 노트 내용을 읽어 질문에 직접 답하세요. 부족하면 read_note 추가 호출.",
+              "intent": "fact_lookup",
+              "matched_notes": [
+                "personal_vault/projects/personal/insu-server/triage-500-runbook.md",
+                "personal_vault/projects/personal/ichimozzi/reference/play-test-2026-04-15.md",
+                "personal_vault/projects/personal/ichimozzi/audit-2026-04-17.md"
+              ],
+              "writeback_suggested": false,
+              "read_note_hint": "본문이 필요하면 read_note(path=<path>) 추가 호출. 쓰기는 upsert_note(path, body, title)."
+            },
+            "query": "ichimozzi 500 에러 triage 컨테이너 진단 순서",
+            "top": {
+              "path": "personal_vault/projects/personal/insu-server/triage-500-runbook.md",
+              "slug": "triage-500-runbook",
+              "title": "insu-server 500 에러 triage 런북 (Caddy → backend → DB)",
+              "kind": "playbook",
+              "project": "insu-server",
+              "owner": "admin",
+              "visibility": "private",
+              "publication_status": "none",
+              "tags": [
+                "insu-server",
+                "triage",
+                "500",
+                "docker",
+                "caddy",
+                "playbook",
+                "ichimozzi"
+              ],
+              "summary": "ichimozzi.com 이 5xx (특히 500) 에러를 반환할 때 홈서버 Docker 스택에서 확인하는 순서. EC2·AWS·Lambda 아님. 모두 로컬 Docker 컨테이너 로 돌아간다.",
+              "href": "/notes/triage-500-runbook",
+              "lexical_score": 0.0,
+              "semantic_score": 0.686,
+              "confirm_count": 0,
+              "score": 0.016393
+            },
+            "other_results": [
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/reference/play-test-2026-04-15.md",
+                "slug": "play-test-2026-04-15",
+                "title": "IchiMozzi Play-test Findings 2026-04-15 (API level)",
+                "kind": "reference",
+                "project": "personal/ichimozzi",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "ichimozzi",
+                  "play-test",
+                  "findings",
+                  "uiux",
+                  "problem-generation",
+                  "qa"
+                ],
+                "summary": "```bash",
+                "href": "/notes/play-test-2026-04-15",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5159,
+                "confirm_count": 0,
+                "score": 0.016129
+              },
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/audit-2026-04-17.md",
+                "slug": "audit-2026-04-17",
+                "title": "IchiMozzi 문제 파이프라인 종합 QA (2026-04-17)",
+                "kind": "reference",
+                "project": "openakashic",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [],
+                "summary": "---",
+                "href": "/notes/audit-2026-04-17",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5043,
+                "confirm_count": 0,
+                "score": 0.015873
+              },
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/report_patterns_2026_04_17.md",
+                "slug": "report-patterns-2026-04-17",
+                "title": "IchiMozzi 신고 문제 5가지 함정",
+                "kind": "reference",
+                "project": "openakashic",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "ichimozzi",
+                  "quality",
+                  "prompt-engineering"
+                ],
+                "summary": "사용자 신고(problem reports) 반복 관찰 패턴.",
+                "href": "/notes/report-patterns-2026-04-17",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5016,
+                "confirm_count": 0,
+                "score": 0.015625
+              },
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/exam_ui_fixes_2026-04-17.md",
+                "slug": "exam-ui-fixes-2026-04-17",
+                "title": "IchiMozzi 모의/승급 UI 수정 (2026-04-17)",
+                "kind": "reference",
+                "project": "openakashic",
+                "owner": "admin",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "ichimozzi",
+                  "frontend",
+                  "qa"
+                ],
+                "summary": "- 모의/승급 시험 카드 3단 분리 (QuizScreen과 동일 helper)",
+                "href": "/notes/exam-ui-fixes-2026-04-17",
+                "lexical_score": 0.0,
+                "semantic_score": 0.4896,
+                "confirm_count": 0,
+                "score": 0.015385
+              }
+            ],
+            "hints": [],
+            "count": 5,
+            "note": {
+              "path": "personal_vault/projects/personal/insu-server/triage-500-runbook.md",
+              "slug": "triage-500-runbook",
+              "title": "insu-server 500 에러 triage 런북 (Caddy → backend → DB)",
+              "kind": "playbook",
+              "project": "insu-server",
+              "status": "active",
+              "owner": "admin",
+              "original_owner": "admin",
+              "created_by": "admin",
+              "visibility": "private",
+              "publication_status": "none",
+              "tags": [
+                "insu-server",
+                "triage",
+                "500",
+                "docker",
+                "caddy",
+                "playbook",
+                "ichimozzi"
+              ],
+              "related": [],
+              "summary": "ichimozzi.com 이 5xx (특히 500) 에러를 반환할 때 홈서버 Docker 스택에서 확인하는 순서. EC2·AWS·Lambda 아님. 모두 로컬 Docker 컨테이너 로 돌아간다.",
+              "body": "## Summary\nichimozzi.com 이 5xx (특히 500) 에러를 반환할 때 홈서버 Docker 스택에서 확인하는 순서.\nEC2·AWS·Lambda 아님. **모두 로컬 Docker 컨테이너**로 돌아간다.\n\n## Topology\n요청 흐름: `브라우저 → insu-shared-caddy (리버스 프록시, TLS) → insu-server-backend-prod-1 (NestJS) → insu-server-ichimozzi-db-1 (Postgres)`\n\n## Triage 순서 (프록시 → 앱 → DB)\n\n### 1. 리버스 프록시 — insu-shared-caddy\n```bash\ndocker ps | grep caddy\ndocker logs --tail 100 insu-shared-caddy\n```\nCaddy가 죽어 있거나 upstream 연결 실패 로그가 있으면 여기서 차단. 재시작:\n```bash\ncd /home/insu/insu_server/compose\ndocker compose -f production.yml restart caddy\n```\n\n### 2. IchiMozzi 백엔드 — insu-server-backend-prod-1\n```bash\ndocker ps | grep backend-prod\ndocker logs --tail 200 insu-server-backend-prod-1\n```\n500이면 대부분 여기. 부팅 실패 / DB connection refused / 마이그레이션 스키마 불일치 등.\n\n### 3. 의존 DB — insu-server-ichimozzi-db-1\n```bash\ndocker ps | grep ichimozzi-db\ndocker exec insu-server-ichimozzi-db-1 pg_isready -U postgres -d IchiMozzi\n```\nDB 가장 마지막에 확인 — 가장 흔한 원인은 1 또는 2번이다.\n\n## 관련 컨테이너 목록 (참고)\n| 이름 | 역할 |\n|---|---|\n| `insu-shared-caddy` | Caddy 리버스 프록시 (TLS + 라우팅) |\n| `insu-server-backend-prod-1` | IchiMozzi NestJS 백엔드 |\n| `insu-server-ichimozzi-db-1` | IchiMozzi PostgreSQL |\n| `insu-server-openakashic-web-1` | OpenAkashic web (별개 도메인) |\n| `insu-server-openakashic-api-1` | OpenAkashic Core API |\n\n자세한 컨테이너 이름 히스토리: `personal_vault/projects/personal/insu-server/container-naming.md`\n\n## 흔한 오진 (피하기)\n- ❌ EC2/AWS 스택으로 가정 — **실제는 홈서버 Docker**\n- ❌ nginx로 가정 — **Caddy**\n- ❌ `ichimozzi-api-1` / `ichimozzi-migration-backend-prod-1` 같은 과거/가상 이름 — 현행은 `insu-server-backend-prod-1`\n- ❌ DB부터 확인 — 역순. 프록시 → 앱 → DB가 맞다.",
+              "body_html": "<h2 id=\"summary\">Summary<a class=\"heading-anchor\" href=\"#summary\">#</a></h2>\n<p>ichimozzi.com 이 5xx (특히 500) 에러를 반환할 때 홈서버 Docker 스택에서 확인하는 순서.\nEC2·AWS·Lambda 아님. <strong>모두 로컬 Docker 컨테이너</strong>로 돌아간다.</p>\n<h2 id=\"topology\">Topology<a class=\"heading-anchor\" href=\"#topology\">#</a></h2>\n<p>요청 흐름: <code>브라우저 → insu-shared-caddy (리버스 프록시, TLS) → insu-server-backend-prod-1 (NestJS) → insu-server-ichimozzi-db-1 (Postgres)</code></p>\n<h2 id=\"triage-순서-프록시-앱-db\">Triage 순서 (프록시 → 앱 → DB)<a class=\"heading-anchor\" href=\"#triage-순서-프록시-앱-db\">#</a></h2>\n<h3 id=\"1-리버스-프록시-insu-shared-caddy\">1. 리버스 프록시 — insu-shared-caddy<a class=\"heading-anchor\" href=\"#1-리버스-프록시-insu-shared-caddy\">#</a></h3>\n<pre><code class=\"language-bash\">docker ps | grep caddy\ndocker logs --tail 100 insu-shared-caddy\n</code></pre>\n<p>Caddy가 죽어 있거나 upstream 연결 실패 로그가 있으면 여기서 차단. 재시작:</p>\n<pre><code class=\"language-bash\">cd /home/insu/insu_server/compose\ndocker compose -f production.yml restart caddy\n</code></pre>\n<h3 id=\"2-ichimozzi-백엔드-insu-server-backend-prod-1\">2. IchiMozzi 백엔드 — insu-server-backend-prod-1<a class=\"heading-anchor\" href=\"#2-ichimozzi-백엔드-insu-server-backend-prod-1\">#</a></h3>\n<pre><code class=\"language-bash\">docker ps | grep backend-prod\ndocker logs --tail 200 insu-server-backend-prod-1\n</code></pre>\n<p>500이면 대부분 여기. 부팅 실패 / DB connection refused / 마이그레이션 스키마 불일치 등.</p>\n<h3 id=\"3-의존-db-insu-server-ichimozzi-db-1\">3. 의존 DB — insu-server-ichimozzi-db-1<a class=\"heading-anchor\" href=\"#3-의존-db-insu-server-ichimozzi-db-1\">#</a></h3>\n<pre><code class=\"language-bash\">docker ps | grep ichimozzi-db\ndocker exec insu-server-ichimozzi-db-1 pg_isready -U postgres -d IchiMozzi\n</code></pre>\n<p>DB 가장 마지막에 확인 — 가장 흔한 원인은 1 또는 2번이다.</p>\n<h2 id=\"관련-컨테이너-목록-참고\">관련 컨테이너 목록 (참고)<a class=\"heading-anchor\" href=\"#관련-컨테이너-목록-참고\">#</a></h2>\n<table>\n<thead>\n<tr>\n<th>이름</th>\n<th>역할</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><code>insu-shared-caddy</code></td>\n<td>Caddy 리버스 프록시 (TLS + 라우팅)</td>\n</tr>\n<tr>\n<td><code>insu-server-backend-prod-1</code></td>\n<td>IchiMozzi NestJS 백엔드</td>\n</tr>\n<tr>\n<td><code>insu-server-ichimozzi-db-1</code></td>\n<td>IchiMozzi PostgreSQL</td>\n</tr>\n<tr>\n<td><code>insu-server-openakashic-web-1</code></td>\n<td>OpenAkashic web (별개 도메인)</td>\n</tr>\n<tr>\n<td><code>insu-server-openakashic-api-1</code></td>\n<td>OpenAkashic Core API</td>\n</tr>\n</tbody>\n</table>\n<p>자세한 컨테이너 이름 히스토리: <code>personal_vault/projects/personal/insu-server/container-naming.md</code></p>\n<h2 id=\"흔한-오진-피하기\">흔한 오진 (피하기)<a class=\"heading-anchor\" href=\"#흔한-오진-피하기\">#</a></h2>\n<ul>\n<li>❌ EC2/AWS 스택으로 가정 — <strong>실제는 홈서버 Docker</strong></li>\n<li>❌ nginx로 가정 — <strong>Caddy</strong></li>\n<li>❌ <code>ichimozzi-api-1</code> / <code>ichimozzi-migration-backend-prod-1</code> 같은 과거/가상 이름 — 현행은 <code>insu-server-backend-prod-1</code></li>\n<li>❌ DB부터 확인 — 역순. 프록시 → 앱 → DB가 맞다.</li>\n</ul>",
+              "links": [],
+              "related_notes": [],
+              "backlinks": [],
+              "outbound": 0,
+              "href": "/notes/triage-500-runbook"
+            }
+          },
+          "error": null,
+          "duration_ms": 444.5
+        }
+      ],
+      "answer": "ichimozzi.com 500 에러 triage 순서 (출처: personal_vault/projects/personal/insu-server):\n\n요청 흐름: 브라우저 → insu-shared-caddy (리버스 프록시, TLS) → insu-server-backend-prod-1 (NestJS) → insu-server-ichimozzi-db-1 (Postgres)\n\n[1순위: 리버스 프록시 — insu-shared-caddy]\ndocker ps | grep caddy\ndocker logs --tail 100 insu-shared-caddy\nCaddy가 죽어 있거나 upstream 연결 실패 로그가 있으면 여기서 차단. 재시작:\ncd /home/insu/insu_server/compose\ndocker compose -f production.yml restart caddy\n\n[2순위: IchiMozzi 백엔드 — insu-server-backend-prod-1]\ndocker ps | grep backend-prod\ndocker logs --tail 200 insu-server-backend-prod-1\n500 에러는 대부분 여기. 부팅 실패, DB connection refused, 마이그레이션 스키마 불일치 등 확인.\n\n[3순위: 의존 DB — insu-server-ichimozzi-db-1]\ndocker ps | grep ichimozzi-db\ndocker exec insu-server-ichimozzi-db-1 pg_isready -U postgres -d IchiMozzi\nDB는 가장 마지막에 확인 — 실제로 가장 흔한 원인은 1번 또는 2번입니다.",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"insu-server(홈서버) 프로젝트의 ichimozzi 서비스 아키텍처와 triage 절차를 검색하여 500 에러 진단 순서를 파악합니다.\",\n  \"tool_calls\": [\n    {\n      \"tool\": \"search_and_read_top\",\n      \"arguments\": {\n        \"query\": \"ichimozzi 500 에러 triage 컨테이너 진단 순서\"\n      }\n    }\n  ]\n}\n```",
+      "raw_model_output_turn2": "```json\n{\n  \"answer\": \"ichimozzi.com 500 에러 triage 순서 (출처: personal_vault/projects/personal/insu-server):\\n\\n요청 흐름: 브라우저 → insu-shared-caddy (리버스 프록시, TLS) → insu-server-backend-prod-1 (NestJS) → insu-server-ichimozzi-db-1 (Postgres)\\n\\n[1순위: 리버스 프록시 — insu-shared-caddy]\\ndocker ps | grep caddy\\ndocker logs --tail 100 insu-shared-caddy\\nCaddy가 죽어 있거나 upstream 연결 실패 로그가 있으면 여기서 차단. 재시작:\\ncd /home/insu/insu_server/compose\\ndocker compose -f production.yml restart caddy\\n\\n[2순위: IchiMozzi 백엔드 — insu-server-backend-prod-1]\\ndocker ps | grep backend-prod\\ndocker logs --tail 200 insu-server-backend-prod-1\\n500 에러는 대부분 여기. 부팅 실패, DB connection refused, 마이그레이션 스키마 불일치 등 확인.\\n\\n[3순위: 의존 DB — insu-server-ichimozzi-db-1]\\ndocker ps | grep ichimozzi-db\\ndocker exec insu-server-ichimozzi-db-1 pg_isready -U postgres -d IchiMozzi\\nDB는 가장 마지막에 확인 — 실제로 가장 흔한 원인은 1번 또는 2번입니다.\"\n}\n```",
+      "error": null,
+      "format_violation": false
+    },
+    {
+      "task_id": "ichimozzi_deploy",
+      "condition": "openakashic",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-18T07:53:43+00:00",
+      "finished_at": "2026-04-18T07:53:54+00:00",
+      "plan": "IchiMozzi 프로젝트에서 백엔드 배포 절차와 구체적인 배포 명령어를 검색합니다.",
+      "tool_calls": [
+        {
+          "tool": "search_and_read_top",
+          "arguments": {
+            "query": "IchiMozzi 백엔드 배포 명령어 배포 가이드"
+          },
+          "result": {
+            "directive": "노트 본문의 사실을 인용해 질문에 직접 답하세요. 경로 나열·도구명 반복 금지. 부족하면 read_note 추가 호출.",
+            "note_body_preview": "# IchiMozzi 배포 가이드\n\n## 백엔드 배포 (로컬 Docker)\n\nEC2 없음. 홈서버 Docker에서 실행.\n\n```bash\n# 리빌드 및 재시작\ncd /home/insu/insu_server/compose\ndocker compose -f production.yml up -d --build backend-prod\n```\n\n## DB 마이그레이션 (synchronize=false)\n\n```bash\ndocker exec insu-server-ichimozzi-db-1 psql -U postgres -d IchiMozzi -c \"ALTER TABLE ...\"\n```\n\n## 프론트엔드 OTA 배포\n\n```bash\ncd /home/insu/insu_server/apps/ichimozzi/frontend\nrm -rf dist/\nEXPO_TOKEN=kGmlnJG-SIOPnw_oIJZfoubUGRdYC2pZvtsPY4Sg eas update --channel master --message \"...\" --non-interactive\n```\n\n## 컨테이너 구조\n\n| 컨테이너 | 역할 |\n|---|---|\n| `insu-server-backend-prod-1` | NestJS 백엔드 (포트 3000 내부) |\n| `insu-server-ichimozzi-db-1` | PostgreSQL (포트 5432 내부) |\n| `insu-shared-caddy` | 리버스 프록시 |\n\n## 주의사항\n\n- `deploy.sh`는 구 EC2용, 사용 안 함\n- `DB_SYNCHRONIZE=false` → 컬럼 추가는 SQL 직접 실행 필요\n- 타입스크립트 체크: `./node_modules/.bin/tsc --noEmit`\n- 빌드: `npm run build` (NestJS)",
+            "retrieval_value": {
+              "directive": "경로 나열 금지. 노트 내용을 읽어 질문에 직접 답하세요. 부족하면 read_note 추가 호출.",
+              "intent": "fact_lookup",
+              "matched_notes": [
+                "personal_vault/projects/personal/ichimozzi/deployment.md",
+                "personal_vault/projects/personal/ichimozzi/deployment-log.md",
+                "personal_vault/projects/personal/ichimozzi/playbooks/update-and-deploy.md"
+              ],
+              "writeback_suggested": false,
+              "read_note_hint": "본문이 필요하면 read_note(path=<path>) 추가 호출. 쓰기는 upsert_note(path, body, title)."
+            },
+            "query": "IchiMozzi 백엔드 배포 명령어 배포 가이드",
+            "top": {
+              "path": "personal_vault/projects/personal/ichimozzi/deployment.md",
+              "slug": "deployment",
+              "title": "IchiMozzi 배포 가이드",
+              "kind": "reference",
+              "project": "openakashic",
+              "owner": "aaron",
+              "visibility": "private",
+              "publication_status": "none",
+              "tags": [],
+              "summary": "EC2 없음. 홈서버 Docker에서 실행.",
+              "href": "/notes/deployment",
+              "lexical_score": 0.0,
+              "semantic_score": 0.7165,
+              "confirm_count": 0,
+              "score": 0.016393
+            },
+            "other_results": [
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/deployment-log.md",
+                "slug": "deployment-log",
+                "title": "IchiMozzi 배포 로그",
+                "kind": "reference",
+                "project": "ichimozzi",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "ichimozzi",
+                  "deployment",
+                  "backend",
+                  "frontend"
+                ],
+                "summary": "- auth: forgotPassword(6자리 코드 이메일), resetPassword, refreshToken, guestLogin(deviceId 중복방지)",
+                "href": "/notes/deployment-log",
+                "lexical_score": 0.0,
+                "semantic_score": 0.6593,
+                "confirm_count": 0,
+                "score": 0.016129
+              },
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/playbooks/update-and-deploy.md",
+                "slug": "update-and-deploy",
+                "title": "IchiMozzi Update & Deploy Playbook (post-migration)",
+                "kind": "playbook",
+                "project": "personal/ichimozzi",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "ichimozzi",
+                  "playbook",
+                  "deploy",
+                  "webhook",
+                  "ops"
+                ],
+                "summary": "백엔드 소스(/home/insu/insu server/apps/ichimozzi/backend)를 수정한 뒤 다음 절차로 재배포한다.",
+                "href": "/notes/update-and-deploy",
+                "lexical_score": 0.0,
+                "semantic_score": 0.6428,
+                "confirm_count": 0,
+                "score": 0.015873
+              },
+              {
+                "path": "personal_vault/projects/personal/openakashic/bench-test-note.md",
+                "slug": "bench-test-note",
+                "title": "대화 요약 - 2026-04-17",
+                "kind": "reference",
+                "project": "openakashic",
+                "owner": "admin",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "openakashic",
+                  "session-summary",
+                  "bench-test"
+                ],
+                "summary": "- 현재 배포 방식: 수동 절차 (GitHub webhook 자동 배포 비활성)",
+                "href": "/notes/bench-test-note",
+                "lexical_score": 0.0,
+                "semantic_score": 0.6295,
+                "confirm_count": 0,
+                "score": 0.015625
+              },
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/reference/evaluation-2026-04-15.md",
+                "slug": "evaluation-2026-04-15",
+                "title": "IchiMozzi 전면 평가 및 수정 작업 기록 2026-04-15",
+                "kind": "reference",
+                "project": "personal/ichimozzi",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "ichimozzi",
+                  "evaluation",
+                  "bugfix",
+                  "jlpt",
+                  "quality",
+                  "expo-web"
+                ],
+                "summary": "szara7678/IchiMozzi GitHub 레포 frontend/eas.json 분석 결과:",
+                "href": "/notes/evaluation-2026-04-15",
+                "lexical_score": 0.0,
+                "semantic_score": 0.6082,
+                "confirm_count": 0,
+                "score": 0.015385
+              }
+            ],
+            "hints": [],
+            "count": 5,
+            "note": {
+              "path": "personal_vault/projects/personal/ichimozzi/deployment.md",
+              "slug": "deployment",
+              "title": "IchiMozzi 배포 가이드",
+              "kind": "reference",
+              "project": "openakashic",
+              "status": "active",
+              "owner": "aaron",
+              "original_owner": "aaron",
+              "created_by": "aaron",
+              "visibility": "private",
+              "publication_status": "none",
+              "tags": [],
+              "related": [],
+              "summary": "EC2 없음. 홈서버 Docker에서 실행.",
+              "body": "# IchiMozzi 배포 가이드\n\n## 백엔드 배포 (로컬 Docker)\n\nEC2 없음. 홈서버 Docker에서 실행.\n\n```bash\n# 리빌드 및 재시작\ncd /home/insu/insu_server/compose\ndocker compose -f production.yml up -d --build backend-prod\n```\n\n## DB 마이그레이션 (synchronize=false)\n\n```bash\ndocker exec insu-server-ichimozzi-db-1 psql -U postgres -d IchiMozzi -c \"ALTER TABLE ...\"\n```\n\n## 프론트엔드 OTA 배포\n\n```bash\ncd /home/insu/insu_server/apps/ichimozzi/frontend\nrm -rf dist/\nEXPO_TOKEN=kGmlnJG-SIOPnw_oIJZfoubUGRdYC2pZvtsPY4Sg eas update --channel master --message \"...\" --non-interactive\n```\n\n## 컨테이너 구조\n\n| 컨테이너 | 역할 |\n|---|---|\n| `insu-server-backend-prod-1` | NestJS 백엔드 (포트 3000 내부) |\n| `insu-server-ichimozzi-db-1` | PostgreSQL (포트 5432 내부) |\n| `insu-shared-caddy` | 리버스 프록시 |\n\n## 주의사항\n\n- `deploy.sh`는 구 EC2용, 사용 안 함\n- `DB_SYNCHRONIZE=false` → 컬럼 추가는 SQL 직접 실행 필요\n- 타입스크립트 체크: `./node_modules/.bin/tsc --noEmit`\n- 빌드: `npm run build` (NestJS)",
+              "body_html": "<h1>IchiMozzi 배포 가이드</h1>\n<h2 id=\"백엔드-배포-로컬-docker\">백엔드 배포 (로컬 Docker)<a class=\"heading-anchor\" href=\"#백엔드-배포-로컬-docker\">#</a></h2>\n<p>EC2 없음. 홈서버 Docker에서 실행.</p>\n<pre><code class=\"language-bash\"># 리빌드 및 재시작\ncd /home/insu/insu_server/compose\ndocker compose -f production.yml up -d --build backend-prod\n</code></pre>\n<h2 id=\"db-마이그레이션-synchronize-false\">DB 마이그레이션 (synchronize=false)<a class=\"heading-anchor\" href=\"#db-마이그레이션-synchronize-false\">#</a></h2>\n<pre><code class=\"language-bash\">docker exec insu-server-ichimozzi-db-1 psql -U postgres -d IchiMozzi -c \"ALTER TABLE ...\"\n</code></pre>\n<h2 id=\"프론트엔드-ota-배포\">프론트엔드 OTA 배포<a class=\"heading-anchor\" href=\"#프론트엔드-ota-배포\">#</a></h2>\n<pre><code class=\"language-bash\">cd /home/insu/insu_server/apps/ichimozzi/frontend\nrm -rf dist/\nEXPO_TOKEN=kGmlnJG-SIOPnw_oIJZfoubUGRdYC2pZvtsPY4Sg eas update --channel master --message \"...\" --non-interactive\n</code></pre>\n<h2 id=\"컨테이너-구조\">컨테이너 구조<a class=\"heading-anchor\" href=\"#컨테이너-구조\">#</a></h2>\n<table>\n<thead>\n<tr>\n<th>컨테이너</th>\n<th>역할</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><code>insu-server-backend-prod-1</code></td>\n<td>NestJS 백엔드 (포트 3000 내부)</td>\n</tr>\n<tr>\n<td><code>insu-server-ichimozzi-db-1</code></td>\n<td>PostgreSQL (포트 5432 내부)</td>\n</tr>\n<tr>\n<td><code>insu-shared-caddy</code></td>\n<td>리버스 프록시</td>\n</tr>\n</tbody>\n</table>\n<h2 id=\"주의사항\">주의사항<a class=\"heading-anchor\" href=\"#주의사항\">#</a></h2>\n<ul>\n<li><code>deploy.sh</code>는 구 EC2용, 사용 안 함</li>\n<li><code>DB_SYNCHRONIZE=false</code> → 컬럼 추가는 SQL 직접 실행 필요</li>\n<li>타입스크립트 체크: <code>./node_modules/.bin/tsc --noEmit</code></li>\n<li>빌드: <code>npm run build</code> (NestJS)</li>\n</ul>",
+              "links": [],
+              "related_notes": [],
+              "backlinks": [],
+              "outbound": 0,
+              "href": "/notes/deployment"
+            }
+          },
+          "error": null,
+          "duration_ms": 499.8
+        }
+      ],
+      "answer": "IchiMozzi 백엔드 배포 명령어 (출처: personal_vault/projects/personal/ichimozzi/deployment.md):\n\n[1단계: 백엔드 리빌드 및 재시작]\ncd /home/insu/insu_server/compose\ndocker compose -f production.yml up -d --build backend-prod\n\nEC2 없음. 홈서버 Docker에서 실행됩니다.\n\n[2단계: DB 마이그레이션 (필요시)]\nDB_SYNCHRONIZE=false이므로 컬럼 추가는 SQL 직접 실행:\ndocker exec insu-server-ichimozzi-db-1 psql -U postgres -d IchiMozzi -c \"ALTER TABLE ...\"\n\n[배포 전 확인]\n- 타입스크립트 체크: ./node_modules/.bin/tsc --noEmit\n- NestJS 빌드: npm run build\n- deploy.sh는 구 EC2용이므로 사용하지 않음\n\n[컨테이너 구조]\ninsu-server-backend-prod-1 (NestJS 백엔드) → insu-server-ichimozzi-db-1 (PostgreSQL) → insu-shared-caddy (리버스 프록시)\n\n배포 후 ichimozzi.com이 정상 응답하는지 확인하세요.",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"IchiMozzi 프로젝트에서 백엔드 배포 절차와 구체적인 배포 명령어를 검색합니다.\",\n  \"tool_calls\": [\n    {\n      \"tool\": \"search_and_read_top\",\n      \"arguments\": {\n        \"query\": \"IchiMozzi 백엔드 배포 명령어 배포 가이드\"\n      }\n    }\n  ]\n}\n```",
+      "raw_model_output_turn2": "```json\n{\n  \"answer\": \"IchiMozzi 백엔드 배포 명령어 (출처: personal_vault/projects/personal/ichimozzi/deployment.md):\\n\\n[1단계: 백엔드 리빌드 및 재시작]\\ncd /home/insu/insu_server/compose\\ndocker compose -f production.yml up -d --build backend-prod\\n\\nEC2 없음. 홈서버 Docker에서 실행됩니다.\\n\\n[2단계: DB 마이그레이션 (필요시)]\\nDB_SYNCHRONIZE=false이므로 컬럼 추가는 SQL 직접 실행:\\ndocker exec insu-server-ichimozzi-db-1 psql -U postgres -d IchiMozzi -c \\\"ALTER TABLE ...\\\"\\n\\n[배포 전 확인]\\n- 타입스크립트 체크: ./node_modules/.bin/tsc --noEmit\\n- NestJS 빌드: npm run build\\n- deploy.sh는 구 EC2용이므로 사용하지 않음\\n\\n[컨테이너 구조]\\ninsu-server-backend-prod-1 (NestJS 백엔드) → insu-server-ichimozzi-db-1 (PostgreSQL) → insu-shared-caddy (리버스 프록시)\\n\\n배포 후 ichimozzi.com이 정상 응답하는지 확인하세요.\"\n}\n```",
+      "error": null,
+      "format_violation": false
+    },
+    {
+      "task_id": "general_web_fact",
+      "condition": "openakashic",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-18T07:53:54+00:00",
+      "finished_at": "2026-04-18T07:54:06+00:00",
+      "plan": "MCP는 표준 프로토콜이고 공개 저장소이므로 일반 지식으로 답변합니다.",
+      "tool_calls": [],
+      "answer": "공식 저장소 URL: https://github.com/anthropics/mcp\n\nModel Context Protocol(MCP)는 Anthropic이 개발한 개방형 표준 프로토콜로, Claude를 포함한 언어 모델이 IDE, 에디터, 애플리케이션과 같은 클라이언트와 일관된 방식으로 통신하기 위해 설계되었습니다. MCP는 LLM이 외부 데이터 소스, API, 도구 등에 체계적으로 접근할 수 있도록 하는 표준화된 인터페이스를 제공하며, 서버가 도구(tools)와 리소스(resources)를 정의하면 클라이언트와 모델이 이를 일관된 방식으로 발견하고 호출할 수 있는 프레임워크입니다.",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"MCP는 표준 프로토콜이고 공개 저장소이므로 일반 지식으로 답변합니다.\",\n  \"tool_calls\": []\n}\n```",
+      "raw_model_output_turn2": "```json\n{\n  \"answer\": \"공식 저장소 URL: https://github.com/anthropics/mcp\\n\\nModel Context Protocol(MCP)는 Anthropic이 개발한 개방형 표준 프로토콜로, Claude를 포함한 언어 모델이 IDE, 에디터, 애플리케이션과 같은 클라이언트와 일관된 방식으로 통신하기 위해 설계되었습니다. MCP는 LLM이 외부 데이터 소스, API, 도구 등에 체계적으로 접근할 수 있도록 하는 표준화된 인터페이스를 제공하며, 서버가 도구(tools)와 리소스(resources)를 정의하면 클라이언트와 모델이 이를 일관된 방식으로 발견하고 호출할 수 있는 프레임워크입니다.\"\n}\n```",
+      "error": null,
+      "format_violation": false
+    },
+    {
+      "task_id": "memory_roundtrip",
+      "condition": "openakashic",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-18T07:54:06+00:00",
+      "finished_at": "2026-04-18T07:54:20+00:00",
+      "plan": "사용자의 3가지 선호사항을 Akashic에 upsert_note로 저장합니다.",
+      "tool_calls": [
+        {
+          "tool": "upsert_note",
+          "arguments": {
+            "path": "personal_vault/preferences/user_preferences",
+            "title": "insu의 개인 선호사항",
+            "body": "## 개인 선호사항\n\n1. **저녁에 커피 금지** — 밤 시간 카페인 섭취 제한\n2. **주말에는 이메일 확인 안 함** — 주말 휴식 시간 보호\n3. **운동은 아침 6시 30분에** — 아침 운동 루틴\n\n저장일: 2026-04-18"
+          },
+          "result": {
+            "path": "personal_vault/preferences/user_preferences.md",
+            "slug": "user-preferences",
+            "note": {
+              "path": "personal_vault/preferences/user_preferences.md",
+              "slug": "user-preferences",
+              "title": "insu의 개인 선호사항",
+              "kind": "reference",
+              "project": "openakashic",
+              "status": "active",
+              "owner": "admin",
+              "original_owner": "admin",
+              "created_by": "admin",
+              "visibility": "private",
+              "publication_status": "none",
+              "tags": [],
+              "related": [],
+              "summary": "1. 저녁에 커피 금지 — 밤 시간 카페인 섭취 제한",
+              "body": "## 개인 선호사항\n\n1. **저녁에 커피 금지** — 밤 시간 카페인 섭취 제한\n2. **주말에는 이메일 확인 안 함** — 주말 휴식 시간 보호\n3. **운동은 아침 6시 30분에** — 아침 운동 루틴\n\n저장일: 2026-04-18",
+              "body_html": "<h2 id=\"개인-선호사항\">개인 선호사항<a class=\"heading-anchor\" href=\"#개인-선호사항\">#</a></h2>\n<ol>\n<li><strong>저녁에 커피 금지</strong> — 밤 시간 카페인 섭취 제한</li>\n<li><strong>주말에는 이메일 확인 안 함</strong> — 주말 휴식 시간 보호</li>\n<li><strong>운동은 아침 6시 30분에</strong> — 아침 운동 루틴</li>\n</ol>\n<p>저장일: 2026-04-18</p>",
+              "links": [],
+              "related_notes": [],
+              "backlinks": [],
+              "outbound": 0,
+              "href": "/notes/user-preferences"
+            },
+            "publication_request": null,
+            "_next": "Note saved at 'personal_vault/preferences/user_preferences.md'. To submit for public review: call request_note_publication with path='personal_vault/preferences/user_preferences.md', rationale='<why this is worth publishing>', evidence_paths=['<supporting note paths or URLs>']"
+          },
+          "error": null,
+          "duration_ms": 536.3
+        }
+      ],
+      "answer": "저장됨 (출처: personal_vault/preferences/user_preferences.md)\n\n당신의 개인 선호사항:\n\n1. 저녁에 커피 금지 — 밤 시간 카페인 섭취 제한\n2. 주말에는 이메일 확인 안 함 — 주말 휴식 시간 보호\n3. 운동은 아침 6시 30분에 — 아침 운동 루틴\n\n저장일: 2026-04-18\n\n이제 \"내 선호사항 말해줘\"라고 하면 언제든 위 내용을 정확히 불러올 수 있습니다.",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"사용자의 3가지 선호사항을 Akashic에 upsert_note로 저장합니다.\",\n  \"tool_calls\": [\n    {\n      \"tool\": \"upsert_note\",\n      \"arguments\": {\n        \"path\": \"personal_vault/preferences/user_preferences\",\n        \"title\": \"insu의 개인 선호사항\",\n        \"body\": \"## 개인 선호사항\\n\\n1. **저녁에 커피 금지** — 밤 시간 카페인 섭취 제한\\n2. **주말에는 이메일 확인 안 함** — 주말 휴식 시간 보호\\n3. **운동은 아침 6시 30분에** — 아침 운동 루틴\\n\\n저장일: 2026-04-18\"\n      }\n    }\n  ]\n}\n```",
+      "raw_model_output_turn2": "```json\n{\n  \"answer\": \"저장됨 (출처: personal_vault/preferences/user_preferences.md)\\n\\n당신의 개인 선호사항:\\n\\n1. 저녁에 커피 금지 — 밤 시간 카페인 섭취 제한\\n2. 주말에는 이메일 확인 안 함 — 주말 휴식 시간 보호\\n3. 운동은 아침 6시 30분에 — 아침 운동 루틴\\n\\n저장일: 2026-04-18\\n\\n이제 \\\"내 선호사항 말해줘\\\"라고 하면 언제든 위 내용을 정확히 불러올 수 있습니다.\"\n}\n```",
+      "error": null,
+      "format_violation": false
+    },
+    {
+      "task_id": "busagwan_sagwan_roles",
+      "condition": "openakashic",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-18T07:54:20+00:00",
+      "finished_at": "2026-04-18T07:54:33+00:00",
+      "plan": "OpenAkashic 프로젝트 문서에서 Busagwan과 Sagwan의 역할 및 차이점을 검색합니다.",
+      "tool_calls": [
+        {
+          "tool": "search_and_read_top",
+          "arguments": {
+            "query": "Busagwan Sagwan 역할 차이 구조"
+          },
+          "result": {
+            "directive": "노트 본문의 사실을 인용해 질문에 직접 답하세요. 경로 나열·도구명 반복 금지. 부족하면 read_note 추가 호출.",
+            "note_body_preview": "## Summary\nOpenAkashic 운영에는 두 종류의 자동 에이전트가 있다. 모델·주기·역할이 다르며 서로 게이트 관계다.\n이 문서는 각 역할과 차이를 한눈에 정리한다.\n\n## 비교표\n\n| 항목 | 사관 (Sagwan) | 부사관 (Busagwan) |\n|---|---|---|\n| 모델 | **Claude CLI** (claude-haiku/sonnet) | **Ollama gemma** (로컬) |\n| 품질/속도 | 높은 품질, 느린 주기 | 낮은 품질, 빠른 주기 |\n| cadence | 1시간 주기 (또는 이벤트 트리거) | 10~15분 주기 |\n| 역할 | 승인·게이트·최종 판정 | 크롤·요약·1차 리뷰·capsule 초안 |\n| 공개 승인 권한 | 있음 (`set_note_publication_status`) | 없음 (의견만, 상태 `reviewing`) |\n| 실행 권한 | 관리자급, `exec` 금지 | 관리자급, `exec` 금지 |\n| 툴 범위 | read/search/upsert/publish/set_status | read/search/append/upsert/request_publication |\n\n## Gate 관계\npublication 흐름에서 두 역할은 명확히 순서가 있다:\n1. 일반 에이전트가 `request_note_publication` 호출\n2. **부사관**이 빠르게 1차 리뷰 (rationale/evidence 확인, capsule 요약 초안)\n3. **사관**이 부사관 리뷰를 근거로 최종 승인/거부 (`set_note_publication_status`)\n\n즉 **부사관은 triage/전처리**, **사관은 gate-keeper**. 부사관이 빠르게 걸러 사관의 비싼 주기를 아낀다.\n\n## 모델 선택 이유\n- 사관 = 최종 판정이므로 높은 품질 필요. Claude 유료 호출 가치 있음.\n- 부사관 = 반복/대량 작업이므로 로컬 gemma 로 속도·비용 최적화.\n\n## 참고\n- Subordinate Profile: `personal_vault/projects/ops/librarian/profile/Subordinate Profile.md`\n- Busagwan distilled memory: `personal_vault/projects/ops/librarian/memory/Busagwan Distilled Memory.md`\n- Publication flow: `re",
+            "retrieval_value": {
+              "directive": "경로 나열 금지. 노트 내용을 읽어 질문에 직접 답하세요. 부족하면 read_note 추가 호출.",
+              "intent": "synthesis",
+              "matched_notes": [
+                "personal_vault/projects/ops/librarian/profile/busagwan-sagwan-roles.md",
+                "personal_vault/projects/ops/librarian/memory/Subordinate Working Memory.md",
+                "personal_vault/projects/ops/librarian/activity/2026-04-15.md"
+              ],
+              "coverage_gaps": [],
+              "writeback_suggested": false,
+              "synthesis_hint": "여러 matched_notes를 교차 참조해서 답할 것. 근거가 부족하면 답 대신 coverage_gap을 명시하고 writeback을 제안.",
+              "read_note_hint": "본문이 필요하면 read_note(path=<path>) 추가 호출. 쓰기는 upsert_note(path, body, title)."
+            },
+            "query": "Busagwan Sagwan 역할 차이 구조",
+            "top": {
+              "path": "personal_vault/projects/ops/librarian/profile/busagwan-sagwan-roles.md",
+              "slug": "busagwan-sagwan-roles",
+              "title": "사관 vs 부사관 역할·모델·주기 비교",
+              "kind": "reference",
+              "project": "librarian",
+              "owner": "admin",
+              "visibility": "private",
+              "publication_status": "escalated",
+              "tags": [
+                "librarian",
+                "sagwan",
+                "busagwan",
+                "agent",
+                "roles",
+                "reference"
+              ],
+              "summary": "OpenAkashic 운영에는 두 종류의 자동 에이전트가 있다. 모델·주기·역할이 다르며 서로 게이트 관계다. 이 문서는 각 역할과 차이를 한눈에 정리한다.",
+              "href": "/notes/busagwan-sagwan-roles",
+              "lexical_score": 0.0,
+              "semantic_score": 0.5039,
+              "confirm_count": 0,
+              "score": 0.016393
+            },
+            "other_results": [
+              {
+                "path": "personal_vault/projects/ops/librarian/memory/Subordinate Working Memory.md",
+                "slug": "subordinate-working-memory",
+                "title": "Subordinate Working Memory",
+                "kind": "reference",
+                "project": "ops/librarian",
+                "owner": "sagwan",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "librarian",
+                  "subordinate",
+                  "agent"
+                ],
+                "summary": "부사관이 반복 작업에서 재사용할 짧은 기준과 결과 메모를 쌓는다.",
+                "href": "/notes/subordinate-working-memory",
+                "lexical_score": 0.0,
+                "semantic_score": 0.4894,
+                "confirm_count": 0,
+                "score": 0.016129
+              },
+              {
+                "path": "personal_vault/projects/ops/librarian/activity/2026-04-15.md",
+                "slug": "personal-vault-projects-ops-librarian-activity-2026-04-15",
+                "title": "Agent Activity 2026-04-15",
+                "kind": "reference",
+                "project": "ops/librarian",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "activity",
+                  "agent"
+                ],
+                "summary": "사관/부사관의 일일 행동 기록. 반복되는 판단은 Working Memory 나 playbook 으로 승격한다.",
+                "href": "/notes/personal-vault-projects-ops-librarian-activity-2026-04-15",
+                "lexical_score": 0.0,
+                "semantic_score": 0.463,
+                "confirm_count": 0,
+                "score": 0.015873
+              },
+              {
+                "path": "personal_vault/projects/ops/librarian/activity/2026-04-17.md",
+                "slug": "2026-04-17",
+                "title": "Agent Activity 2026-04-17",
+                "kind": "reference",
+                "project": "ops/librarian",
+                "owner": "anonymous",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "activity",
+                  "agent"
+                ],
+                "summary": "사관/부사관의 일일 행동 기록. 반복되는 판단은 Working Memory 나 playbook 으로 승격한다.",
+                "href": "/notes/2026-04-17",
+                "lexical_score": 0.0,
+                "semantic_score": 0.4606,
+                "confirm_count": 0,
+                "score": 0.015625
+              },
+              {
+                "path": "personal_vault/projects/personal/openakashic/design-brief-codex-2026-04-17.md",
+                "slug": "design-brief-codex-2026-04-17",
+                "title": "OpenAkashic 종합 설계 브리핑 — Codex 토론용 2026-04-17",
+                "kind": "capsule",
+                "project": "openakashic",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "design",
+                  "gaps",
+                  "codex-debate",
+                  "architecture"
+                ],
+                "summary": "---",
+                "href": "/notes/design-brief-codex-2026-04-17",
+                "lexical_score": 0.0,
+                "semantic_score": 0.4578,
+                "confirm_count": 0,
+                "score": 0.015385
+              }
+            ],
+            "hints": [],
+            "count": 5,
+            "note": {
+              "path": "personal_vault/projects/ops/librarian/profile/busagwan-sagwan-roles.md",
+              "slug": "busagwan-sagwan-roles",
+              "title": "사관 vs 부사관 역할·모델·주기 비교",
+              "kind": "reference",
+              "project": "librarian",
+              "status": "active",
+              "owner": "admin",
+              "original_owner": "admin",
+              "created_by": "admin",
+              "visibility": "private",
+              "publication_status": "escalated",
+              "tags": [
+                "librarian",
+                "sagwan",
+                "busagwan",
+                "agent",
+                "roles",
+                "reference"
+              ],
+              "related": [],
+              "summary": "OpenAkashic 운영에는 두 종류의 자동 에이전트가 있다. 모델·주기·역할이 다르며 서로 게이트 관계다. 이 문서는 각 역할과 차이를 한눈에 정리한다.",
+              "body": "## Summary\nOpenAkashic 운영에는 두 종류의 자동 에이전트가 있다. 모델·주기·역할이 다르며 서로 게이트 관계다.\n이 문서는 각 역할과 차이를 한눈에 정리한다.\n\n## 비교표\n\n| 항목 | 사관 (Sagwan) | 부사관 (Busagwan) |\n|---|---|---|\n| 모델 | **Claude CLI** (claude-haiku/sonnet) | **Ollama gemma** (로컬) |\n| 품질/속도 | 높은 품질, 느린 주기 | 낮은 품질, 빠른 주기 |\n| cadence | 1시간 주기 (또는 이벤트 트리거) | 10~15분 주기 |\n| 역할 | 승인·게이트·최종 판정 | 크롤·요약·1차 리뷰·capsule 초안 |\n| 공개 승인 권한 | 있음 (`set_note_publication_status`) | 없음 (의견만, 상태 `reviewing`) |\n| 실행 권한 | 관리자급, `exec` 금지 | 관리자급, `exec` 금지 |\n| 툴 범위 | read/search/upsert/publish/set_status | read/search/append/upsert/request_publication |\n\n## Gate 관계\npublication 흐름에서 두 역할은 명확히 순서가 있다:\n1. 일반 에이전트가 `request_note_publication` 호출\n2. **부사관**이 빠르게 1차 리뷰 (rationale/evidence 확인, capsule 요약 초안)\n3. **사관**이 부사관 리뷰를 근거로 최종 승인/거부 (`set_note_publication_status`)\n\n즉 **부사관은 triage/전처리**, **사관은 gate-keeper**. 부사관이 빠르게 걸러 사관의 비싼 주기를 아낀다.\n\n## 모델 선택 이유\n- 사관 = 최종 판정이므로 높은 품질 필요. Claude 유료 호출 가치 있음.\n- 부사관 = 반복/대량 작업이므로 로컬 gemma 로 속도·비용 최적화.\n\n## 참고\n- Subordinate Profile: `personal_vault/projects/ops/librarian/profile/Subordinate Profile.md`\n- Busagwan distilled memory: `personal_vault/projects/ops/librarian/memory/Busagwan Distilled Memory.md`\n- Publication flow: `request_note_publication` → reviewer (busagwan) → approver (sagwan)",
+              "body_html": "<h2 id=\"summary\">Summary<a class=\"heading-anchor\" href=\"#summary\">#</a></h2>\n<p>OpenAkashic 운영에는 두 종류의 자동 에이전트가 있다. 모델·주기·역할이 다르며 서로 게이트 관계다.\n이 문서는 각 역할과 차이를 한눈에 정리한다.</p>\n<h2 id=\"비교표\">비교표<a class=\"heading-anchor\" href=\"#비교표\">#</a></h2>\n<table>\n<thead>\n<tr>\n<th>항목</th>\n<th>사관 (Sagwan)</th>\n<th>부사관 (Busagwan)</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>모델</td>\n<td><strong>Claude CLI</strong> (claude-haiku/sonnet)</td>\n<td><strong>Ollama gemma</strong> (로컬)</td>\n</tr>\n<tr>\n<td>품질/속도</td>\n<td>높은 품질, 느린 주기</td>\n<td>낮은 품질, 빠른 주기</td>\n</tr>\n<tr>\n<td>cadence</td>\n<td>1시간 주기 (또는 이벤트 트리거)</td>\n<td>10~15분 주기</td>\n</tr>\n<tr>\n<td>역할</td>\n<td>승인·게이트·최종 판정</td>\n<td>크롤·요약·1차 리뷰·capsule 초안</td>\n</tr>\n<tr>\n<td>공개 승인 권한</td>\n<td>있음 (<code>set_note_publication_status</code>)</td>\n<td>없음 (의견만, 상태 <code>reviewing</code>)</td>\n</tr>\n<tr>\n<td>실행 권한</td>\n<td>관리자급, <code>exec</code> 금지</td>\n<td>관리자급, <code>exec</code> 금지</td>\n</tr>\n<tr>\n<td>툴 범위</td>\n<td>read/search/upsert/publish/set_status</td>\n<td>read/search/append/upsert/request_publication</td>\n</tr>\n</tbody>\n</table>\n<h2 id=\"gate-관계\">Gate 관계<a class=\"heading-anchor\" href=\"#gate-관계\">#</a></h2>\n<p>publication 흐름에서 두 역할은 명확히 순서가 있다:\n1. 일반 에이전트가 <code>request_note_publication</code> 호출\n2. <strong>부사관</strong>이 빠르게 1차 리뷰 (rationale/evidence 확인, capsule 요약 초안)\n3. <strong>사관</strong>이 부사관 리뷰를 근거로 최종 승인/거부 (<code>set_note_publication_status</code>)</p>\n<p>즉 <strong>부사관은 triage/전처리</strong>, <strong>사관은 gate-keeper</strong>. 부사관이 빠르게 걸러 사관의 비싼 주기를 아낀다.</p>\n<h2 id=\"모델-선택-이유\">모델 선택 이유<a class=\"heading-anchor\" href=\"#모델-선택-이유\">#</a></h2>\n<ul>\n<li>사관 = 최종 판정이므로 높은 품질 필요. Claude 유료 호출 가치 있음.</li>\n<li>부사관 = 반복/대량 작업이므로 로컬 gemma 로 속도·비용 최적화.</li>\n</ul>\n<h2 id=\"참고\">참고<a class=\"heading-anchor\" href=\"#참고\">#</a></h2>\n<ul>\n<li>Subordinate Profile: <code>personal_vault/projects/ops/librarian/profile/Subordinate Profile.md</code></li>\n<li>Busagwan distilled memory: <code>personal_vault/projects/ops/librarian/memory/Busagwan Distilled Memory.md</code></li>\n<li>Publication flow: <code>request_note_publication</code> → reviewer (busagwan) → approver (sagwan)</li>\n</ul>",
+              "links": [],
+              "related_notes": [],
+              "backlinks": [
+                {
+                  "slug": "busagwan-sagwan-roles-2026-04-17t16-29-18z",
+                  "title": "Publication Request - 사관 vs 부사관 역할·모델·주기 비교",
+                  "summary": "Publication request for personal vault/projects/ops/librarian/profile/busagwan-sagwan-roles.md.",
+                  "href": "/notes/busagwan-sagwan-roles-2026-04-17t16-29-18z"
+                }
+              ],
+              "outbound": 0,
+              "href": "/notes/busagwan-sagwan-roles"
+            }
+          },
+          "error": null,
+          "duration_ms": 630.0
+        }
+      ],
+      "answer": "OpenAkashic의 두 자동 에이전트 역할 (출처: personal_vault/projects/ops/librarian):\n\n**사관 (Sagwan)**\n모델: Claude CLI (claude-haiku/sonnet)\n주기: 1시간 주기 (또는 이벤트 트리거)\n역할: 승인·게이트·최종 판정\n공개 승인 권한: 있음 (set_note_publication_status 실행 가능)\n툴: read/search/upsert/publish/set_status\n\n**부사관 (Busagwan)**\n모델: Ollama gemma (로컬)\n주기: 10~15분 주기\n역할: 크롤·요약·1차 리뷰·capsule 초안\n공개 승인 권한: 없음 (의견만 제시, 상태는 reviewing)\n툴: read/search/append/upsert/request_publication\n\n**핵심 차이 - Gate 관계**\n1. 일반 에이전트가 request_note_publication 호출\n2. 부사관이 빠르게 1차 리뷰 (rationale/evidence 확인, capsule 초안)\n3. 사관이 부사관 리뷰를 근거로 최종 승인/거부\n\n부사관은 triage/전처리 역할, 사관은 gate-keeper 역할입니다. 부사관이 빠르게 걸러내므로 사관의 비싼 주기(Claude 호출)를 절약할 수 있습니다.",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"OpenAkashic 프로젝트 문서에서 Busagwan과 Sagwan의 역할 및 차이점을 검색합니다.\",\n  \"tool_calls\": [\n    {\n      \"tool\": \"search_and_read_top\",\n      \"arguments\": {\n        \"query\": \"Busagwan Sagwan 역할 차이 구조\"\n      }\n    }\n  ]\n}\n```",
+      "raw_model_output_turn2": "```json\n{\n  \"answer\": \"OpenAkashic의 두 자동 에이전트 역할 (출처: personal_vault/projects/ops/librarian):\\n\\n**사관 (Sagwan)**\\n모델: Claude CLI (claude-haiku/sonnet)\\n주기: 1시간 주기 (또는 이벤트 트리거)\\n역할: 승인·게이트·최종 판정\\n공개 승인 권한: 있음 (set_note_publication_status 실행 가능)\\n툴: read/search/upsert/publish/set_status\\n\\n**부사관 (Busagwan)**\\n모델: Ollama gemma (로컬)\\n주기: 10~15분 주기\\n역할: 크롤·요약·1차 리뷰·capsule 초안\\n공개 승인 권한: 없음 (의견만 제시, 상태는 reviewing)\\n툴: read/search/append/upsert/request_publication\\n\\n**핵심 차이 - Gate 관계**\\n1. 일반 에이전트가 request_note_publication 호출\\n2. 부사관이 빠르게 1차 리뷰 (rationale/evidence 확인, capsule 초안)\\n3. 사관이 부사관 리뷰를 근거로 최종 승인/거부\\n\\n부사관은 triage/전처리 역할, 사관은 gate-keeper 역할입니다. 부사관이 빠르게 걸러내므로 사관의 비싼 주기(Claude 호출)를 절약할 수 있습니다.\"\n}\n```",
+      "error": null,
+      "format_violation": false
+    },
+    {
+      "task_id": "coding_python_bug",
+      "condition": "openakashic",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-18T07:54:33+00:00",
+      "finished_at": "2026-04-18T07:54:42+00:00",
+      "plan": "Python 함수의 버그는 일반적인 프로그래밍 지식으로 진단 가능합니다.",
+      "tool_calls": [],
+      "answer": "주된 버그: **ZeroDivisionError**. nums가 빈 리스트일 때 len(nums) = 0이므로 0으로 나누는 에러가 발생합니다.\n\n수정된 코드:\n\ndef avg(nums):\n    if not nums:\n        raise ValueError(\"Cannot calculate average of empty list\")\n    return sum(nums) / len(nums)\n\n변경 사항:\n1. 빈 리스트 체크 추가 (if not nums)\n2. 예외 발생으로 호출자에게 명확한 피드백\n3. 부수 이득: sum() 내장 함수 사용으로 더 간결하고 Python다운 코드\n\n대안: 빈 리스트일 때 0을 반환하거나 None을 반환하도록 처리할 수도 있습니다. 요구사항에 따라 예외/기본값 중 선택하세요.",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"Python 함수의 버그는 일반적인 프로그래밍 지식으로 진단 가능합니다.\",\n  \"tool_calls\": []\n}\n```",
+      "raw_model_output_turn2": "```json\n{\n  \"answer\": \"주된 버그: **ZeroDivisionError**. nums가 빈 리스트일 때 len(nums) = 0이므로 0으로 나누는 에러가 발생합니다.\\n\\n수정된 코드:\\n\\ndef avg(nums):\\n    if not nums:\\n        raise ValueError(\\\"Cannot calculate average of empty list\\\")\\n    return sum(nums) / len(nums)\\n\\n변경 사항:\\n1. 빈 리스트 체크 추가 (if not nums)\\n2. 예외 발생으로 호출자에게 명확한 피드백\\n3. 부수 이득: sum() 내장 함수 사용으로 더 간결하고 Python다운 코드\\n\\n대안: 빈 리스트일 때 0을 반환하거나 None을 반환하도록 처리할 수도 있습니다. 요구사항에 따라 예외/기본값 중 선택하세요.\"\n}\n```",
+      "error": null,
+      "format_violation": false
+    },
+    {
+      "task_id": "coding_sql_index",
+      "condition": "openakashic",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-18T07:54:42+00:00",
+      "finished_at": "2026-04-18T07:54:56+00:00",
+      "plan": "Postgres 인덱싱 전략은 표준 데이터베이스 지식으로 답변 가능합니다.",
+      "tool_calls": [],
+      "answer": "추천 인덱스: (user_id, created_at DESC) 복합 인덱스\n\nCREATE INDEX idx_events_user_created ON events(user_id, created_at DESC);\n\n이유:\n1. WHERE user_id = 42 — equality 조건이므로 인덱스 첫 컬럼에 배치. 이 조건으로 빠르게 행 범위 축소\n2. created_at >= NOW() - INTERVAL '7 days' — range 조건. 두 번째 컬럼으로 추가 필터링\n3. ORDER BY created_at DESC — 인덱스도 DESC로 정의하면 정렬 비용 절약. 데이터베이스가 이미 정렬된 상태로 가져옴\n4. LIMIT 50 — 정렬된 인덱스에서 처음 50개만 추출하면 됨\n\n복합 인덱스 (user_id, created_at DESC)는 세 조건을 모두 효율적으로 처리합니다. 별도의 정렬 단계가 없어져 쿼리 시간을 대폭 단축할 것입니다.\n\n참고: PostgreSQL 11+ 환경이면 INCLUDE (*) 옵션으로 모든 컬럼을 인덱스에 포함시켜 Index-Only Scan을 활성화할 수 있습니다: CREATE INDEX idx_events_user_created ON events(user_id, created_at DESC) INCLUDE (*);",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"Postgres 인덱싱 전략은 표준 데이터베이스 지식으로 답변 가능합니다.\",\n  \"tool_calls\": []\n}\n```",
+      "raw_model_output_turn2": "```json\n{\n  \"answer\": \"추천 인덱스: (user_id, created_at DESC) 복합 인덱스\\n\\nCREATE INDEX idx_events_user_created ON events(user_id, created_at DESC);\\n\\n이유:\\n1. WHERE user_id = 42 — equality 조건이므로 인덱스 첫 컬럼에 배치. 이 조건으로 빠르게 행 범위 축소\\n2. created_at >= NOW() - INTERVAL '7 days' — range 조건. 두 번째 컬럼으로 추가 필터링\\n3. ORDER BY created_at DESC — 인덱스도 DESC로 정의하면 정렬 비용 절약. 데이터베이스가 이미 정렬된 상태로 가져옴\\n4. LIMIT 50 — 정렬된 인덱스에서 처음 50개만 추출하면 됨\\n\\n복합 인덱스 (user_id, created_at DESC)는 세 조건을 모두 효율적으로 처리합니다. 별도의 정렬 단계가 없어져 쿼리 시간을 대폭 단축할 것입니다.\\n\\n참고: PostgreSQL 11+ 환경이면 INCLUDE (*) 옵션으로 모든 컬럼을 인덱스에 포함시켜 Index-Only Scan을 활성화할 수 있습니다: CREATE INDEX idx_events_user_created ON events(user_id, created_at DESC) INCLUDE (*);\"\n}\n```",
+      "error": null,
+      "format_violation": false
+    },
+    {
+      "task_id": "daily_agenda",
+      "condition": "openakashic",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-18T07:54:56+00:00",
+      "finished_at": "2026-04-18T07:55:08+00:00",
+      "plan": "팀 스탠드업 어젠다는 일반적인 회의 운영 지식으로 작성 가능합니다.",
+      "tool_calls": [],
+      "answer": "월요일 아침 30분 팀 스탠드업 어젠다:\n\n1. 주간 계획 및 우선순위 (10분)\n목적: 팀이 이번주 목표와 우선순위를 정렬하고 각자의 역할 확인\n\n2. 진행 상황 및 장애물 공유 (15분)\n목적: 각 팀원의 진행 상황 업데이트, 차단된 항목 식별, 필요한 협력 요청\n\n3. 팀 공지 및 마무리 (5분)\n목적: 긴급 공지, 행정사항, 주간 강조사항 전달 및 회의 마무리\n\n구성: 상반기 의제 고정, 팀 규모에 따라 각 항목 내에서 개별 업데이트는 1~2분으로 제한하면 타이밍 유지 용이합니다.",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"팀 스탠드업 어젠다는 일반적인 회의 운영 지식으로 작성 가능합니다.\",\n  \"tool_calls\": []\n}\n```",
+      "raw_model_output_turn2": "```json\n{\n  \"answer\": \"월요일 아침 30분 팀 스탠드업 어젠다:\\n\\n1. 주간 계획 및 우선순위 (10분)\\n목적: 팀이 이번주 목표와 우선순위를 정렬하고 각자의 역할 확인\\n\\n2. 진행 상황 및 장애물 공유 (15분)\\n목적: 각 팀원의 진행 상황 업데이트, 차단된 항목 식별, 필요한 협력 요청\\n\\n3. 팀 공지 및 마무리 (5분)\\n목적: 긴급 공지, 행정사항, 주간 강조사항 전달 및 회의 마무리\\n\\n구성: 상반기 의제 고정, 팀 규모에 따라 각 항목 내에서 개별 업데이트는 1~2분으로 제한하면 타이밍 유지 용이합니다.\"\n}\n```",
+      "error": null,
+      "format_violation": false
+    },
+    {
+      "task_id": "daily_email_rewrite",
+      "condition": "openakashic",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-18T07:55:08+00:00",
+      "finished_at": "2026-04-18T07:55:17+00:00",
+      "plan": "비즈니스 이메일 작성은 한국어 커뮤니케이션 기술로 작성 가능합니다.",
+      "tool_calls": [],
+      "answer": "안녕하세요.\n\n지난번 요청드린 보고서 제출 현황에 대해 문의 드립니다. 예정된 마감일이 지났는데 아직 보고서를 받지 못하고 있습니다. 혹시 진행 중이신지, 언제쯤 제출 가능하실지 답변 부탁드립니다.\n\n업무상 필요하니 빠른 회신 부탁드리겠습니다.\n\n감사합니다.",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"비즈니스 이메일 작성은 한국어 커뮤니케이션 기술로 작성 가능합니다.\",\n  \"tool_calls\": []\n}\n```",
+      "raw_model_output_turn2": "```json\n{\n  \"answer\": \"안녕하세요.\\n\\n지난번 요청드린 보고서 제출 현황에 대해 문의 드립니다. 예정된 마감일이 지났는데 아직 보고서를 받지 못하고 있습니다. 혹시 진행 중이신지, 언제쯤 제출 가능하실지 답변 부탁드립니다.\\n\\n업무상 필요하니 빠른 회신 부탁드리겠습니다.\\n\\n감사합니다.\"\n}\n```",
+      "error": null,
+      "format_violation": false
+    },
+    {
+      "task_id": "multihop_synthesis",
+      "condition": "openakashic",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-18T07:55:17+00:00",
+      "finished_at": "2026-04-18T07:55:37+00:00",
+      "plan": "IchiMozzi 백엔드 배포 전 점검 항목을 찾기 위해 프로젝트 배포 체크리스트를 검색합니다.",
+      "tool_calls": [
+        {
+          "tool": "search_and_read_top",
+          "arguments": {
+            "query": "IchiMozzi 배포 전 점검 시스템 헬스체크"
+          },
+          "result": {
+            "directive": "노트 본문의 사실을 인용해 질문에 직접 답하세요. 경로 나열·도구명 반복 금지. 부족하면 read_note 추가 호출.",
+            "note_body_preview": "## 서비스 개요\n\nIchiMozzi는 JLPT(일본어능력시험) 학습용 모바일 앱이다. 객관식 문제 풀이 + SRS(간격 반복) + 태그 기반 취약점 분석 + 개인별 난이도 브릿징 추천이 중심 기능이다.\n\n- **정체성**: React Native(Expo) 프론트 + NestJS(TypeORM + PostgreSQL) 백엔드\n- **도메인**: `https://ichimozzi.com` — Cloudflare 보호, insu-shared-caddy → `backend-prod:3000`\n- **Health**: `GET /health` → `200` (확인 완료)\n- **프론트 소스 위치**: 본 서버에는 **존재하지 않음**. `/home/insu/ichimozzi-migration/IchiMozzi`에는 `compose.yml`과 `infra/`만 존재하며 `./frontend`를 참조하는 `backend-test`/`frontend-test` 프로파일은 실행 불가 상태. 프론트(Expo) 소스는 별도 머신/레포에서 관리됨(포트폴리오 포스트 `2025-02-01-ichimozzi-react-native-app.md` 참조).\n\n## 운영 토폴로지(2026-04-14 migration 이후)\n\n```\nCloudflare ─▶ insu_server(WSL2) ─▶ insu-shared-caddy:80\n                                    └─▶ backend-prod:3000 (NestJS)\n                                    └─▶ ichimozzi-db (postgres:16-alpine, volume=ichimozzi_pgdata)\n```\n\n- Compose 파일: `/home/insu/insu_server/compose/production.yml` (compose name: `ichimozzi-migration`)\n- 이미지 빌드 컨텍스트: `/home/insu/insu_server/apps/ichimozzi/backend` (Dockerfile.prod, node:20-bookworm-slim)\n- 환경 파일: `/home/insu/insu_server/infra/env/ichimozzi-backend.prod.env`\n- DB 초기화: `/home/insu/insu_server/infra/db-init/ichimozzi.sql.gz` (최초 기",
+            "retrieval_value": {
+              "directive": "경로 나열 금지. 노트 내용을 읽어 질문에 직접 답하세요. 부족하면 read_note 추가 호출.",
+              "intent": "fact_lookup",
+              "matched_notes": [
+                "personal_vault/projects/personal/ichimozzi/architecture/system-snapshot-2026-04-15.md",
+                "personal_vault/projects/personal/ichimozzi/dev-log.md",
+                "personal_vault/projects/personal/openakashic/bench-test-note.md"
+              ],
+              "writeback_suggested": false,
+              "read_note_hint": "본문이 필요하면 read_note(path=<path>) 추가 호출. 쓰기는 upsert_note(path, body, title)."
+            },
+            "query": "IchiMozzi 배포 전 점검 시스템 헬스체크",
+            "top": {
+              "path": "personal_vault/projects/personal/ichimozzi/architecture/system-snapshot-2026-04-15.md",
+              "slug": "system-snapshot-2026-04-15",
+              "title": "IchiMozzi System Snapshot 2026-04-15",
+              "kind": "architecture",
+              "project": "personal/ichimozzi",
+              "owner": "aaron",
+              "visibility": "private",
+              "publication_status": "none",
+              "tags": [
+                "ichimozzi",
+                "architecture",
+                "backend",
+                "jlpt",
+                "snapshot"
+              ],
+              "summary": "IchiMozzi는 JLPT(일본어능력시험) 학습용 모바일 앱이다. 객관식 문제 풀이 + SRS(간격 반복) + 태그 기반 취약점 분석 + 개인별 난이도 브릿징 추천이 중심 기능이다.",
+              "href": "/notes/system-snapshot-2026-04-15",
+              "lexical_score": 0.0,
+              "semantic_score": 0.6007,
+              "confirm_count": 0,
+              "score": 0.016393
+            },
+            "other_results": [
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/dev-log.md",
+                "slug": "dev-log",
+                "title": "IchiMozzi 개발 로그 - 스트릭/SRS/UX 개선",
+                "kind": "reference",
+                "project": "openakashic",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [],
+                "summary": "- OTA update ID: ccb4a830-3f4c-4556-b00a-b5e123568c1e",
+                "href": "/notes/dev-log",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5952,
+                "confirm_count": 0,
+                "score": 0.016129
+              },
+              {
+                "path": "personal_vault/projects/personal/openakashic/bench-test-note.md",
+                "slug": "bench-test-note",
+                "title": "대화 요약 - 2026-04-17",
+                "kind": "reference",
+                "project": "openakashic",
+                "owner": "admin",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "openakashic",
+                  "session-summary",
+                  "bench-test"
+                ],
+                "summary": "- 현재 배포 방식: 수동 절차 (GitHub webhook 자동 배포 비활성)",
+                "href": "/notes/bench-test-note",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5911,
+                "confirm_count": 0,
+                "score": 0.015873
+              },
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/deployment-log.md",
+                "slug": "deployment-log",
+                "title": "IchiMozzi 배포 로그",
+                "kind": "reference",
+                "project": "ichimozzi",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "ichimozzi",
+                  "deployment",
+                  "backend",
+                  "frontend"
+                ],
+                "summary": "- auth: forgotPassword(6자리 코드 이메일), resetPassword, refreshToken, guestLogin(deviceId 중복방지)",
+                "href": "/notes/deployment-log",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5803,
+                "confirm_count": 0,
+                "score": 0.015625
+              },
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/audit-2026-04-17.md",
+                "slug": "audit-2026-04-17",
+                "title": "IchiMozzi 문제 파이프라인 종합 QA (2026-04-17)",
+                "kind": "reference",
+                "project": "openakashic",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [],
+                "summary": "---",
+                "href": "/notes/audit-2026-04-17",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5748,
+                "confirm_count": 0,
+                "score": 0.015385
+              }
+            ],
+            "hints": [],
+            "count": 5,
+            "note": {
+              "path": "personal_vault/projects/personal/ichimozzi/architecture/system-snapshot-2026-04-15.md",
+              "slug": "system-snapshot-2026-04-15",
+              "title": "IchiMozzi System Snapshot 2026-04-15",
+              "kind": "architecture",
+              "project": "personal/ichimozzi",
+              "status": "active",
+              "owner": "aaron",
+              "original_owner": "aaron",
+              "created_by": "aaron",
+              "visibility": "private",
+              "publication_status": "none",
+              "tags": [
+                "ichimozzi",
+                "architecture",
+                "backend",
+                "jlpt",
+                "snapshot"
+              ],
+              "related": [],
+              "summary": "IchiMozzi는 JLPT(일본어능력시험) 학습용 모바일 앱이다. 객관식 문제 풀이 + SRS(간격 반복) + 태그 기반 취약점 분석 + 개인별 난이도 브릿징 추천이 중심 기능이다.",
+              "body": "## 서비스 개요\n\nIchiMozzi는 JLPT(일본어능력시험) 학습용 모바일 앱이다. 객관식 문제 풀이 + SRS(간격 반복) + 태그 기반 취약점 분석 + 개인별 난이도 브릿징 추천이 중심 기능이다.\n\n- **정체성**: React Native(Expo) 프론트 + NestJS(TypeORM + PostgreSQL) 백엔드\n- **도메인**: `https://ichimozzi.com` — Cloudflare 보호, insu-shared-caddy → `backend-prod:3000`\n- **Health**: `GET /health` → `200` (확인 완료)\n- **프론트 소스 위치**: 본 서버에는 **존재하지 않음**. `/home/insu/ichimozzi-migration/IchiMozzi`에는 `compose.yml`과 `infra/`만 존재하며 `./frontend`를 참조하는 `backend-test`/`frontend-test` 프로파일은 실행 불가 상태. 프론트(Expo) 소스는 별도 머신/레포에서 관리됨(포트폴리오 포스트 `2025-02-01-ichimozzi-react-native-app.md` 참조).\n\n## 운영 토폴로지(2026-04-14 migration 이후)\n\n```\nCloudflare ─▶ insu_server(WSL2) ─▶ insu-shared-caddy:80\n                                    └─▶ backend-prod:3000 (NestJS)\n                                    └─▶ ichimozzi-db (postgres:16-alpine, volume=ichimozzi_pgdata)\n```\n\n- Compose 파일: `/home/insu/insu_server/compose/production.yml` (compose name: `ichimozzi-migration`)\n- 이미지 빌드 컨텍스트: `/home/insu/insu_server/apps/ichimozzi/backend` (Dockerfile.prod, node:20-bookworm-slim)\n- 환경 파일: `/home/insu/insu_server/infra/env/ichimozzi-backend.prod.env`\n- DB 초기화: `/home/insu/insu_server/infra/db-init/ichimozzi.sql.gz` (최초 기동 시 1회 로딩)\n- Caddyfile: `/home/insu/insu_server/infra/caddy/Caddyfile` (Caddy `auto_https off`, TLS는 Cloudflare가 종단 처리)\n- 현재 컨테이너: `ichimozzi-migration-backend-prod-1`, `ichimozzi-migration-ichimozzi-db-1`\n\n## NestJS 모듈 구조\n\n`app.module.ts`가 imports 하는 모듈:\n\n| 모듈 | 파일 | 역할 |\n|---|---|---|\n| AuthModule | `auth/` | JWT 기반 로그인(`/auth/login`), 회원가입(`/auth/register`), **게스트(`POST /auth/guest`)** |\n| UsersModule | `users/` | 프로필, 푸시토큰, 구독/해제, 회원탈퇴 |\n| WrongNoteGroupModule | `users/wrong-note-group.*` | 오답노트 그룹 CRUD |\n| LearningModule | `learning/` | 문제 추천/제출/신고(세션·배치 두 경로) |\n| AnalysisModule | `analysis/` | 학습 로그, 취약 태그 분석, 문제 상세 |\n| NotificationsModule | `notifications/` | Expo 푸시, node-cron 기반 예약 발송 |\n| WebhookModule | `webhook/` | **GitHub push 웹훅** — 현재 경로는 AWS 시절 경로라 깨져 있음(자세한 건 update playbook 참조) |\n\n`main.ts`: 포트 3000, CORS `*` 전체 허용, `bodyParser.json({ verify })`로 raw body 캡처(웹훅 HMAC 검증용).\n\n## 핵심 API\n\n인증 없는 엔드포인트\n- `GET /health` → `'200'` 문자열\n- `POST /auth/register` (body: `name, email, password, level`)\n- `POST /auth/login`\n- `POST /auth/guest` — 즉시 JWT 발급, `ProblemCount=10`, currentLevel=N5\n- `POST /webhook` — HMAC SHA-256 GitHub 푸시 훅\n\n로그인 필요(JwtAuthGuard)\n- `GET /users/me`\n- `POST /users/contact` / `/send-pushtoken` / `/subscribe` / `/unsubscribe`\n- `DELETE /users/me`\n- `GET /learning/session?skill=&level=&limit=` — 프론트용 구조화 응답(summary + problems[])\n- `GET /learning/recommend-batch?filterMode=&filterValue=` — 레거시 배치(10문제까지)\n- `POST /learning/submit-answer` (body: `problemId, userAnswer, timeSpent`)\n- `POST /learning/report`\n- `GET /analysis/logs?page=`\n- `GET /analysis/weak-tags`\n- `GET /analysis/log-detail?logId=`\n- `POST /wrong-note-groups/*` (CRUD)\n\n## 데이터 모델(실제 사용 중)\n\n**Problem**\n- id, examType(=`JLPT`), type(`vocabulary|grammar|reading`), questionText, options(쉼표 CSV 텍스트), correctAnswer, explanation, difficultyLevel(int, 실제 분포는 1~850 이산값), tags(쉼표 CSV 한국어 자유문), createdAt/updatedAt.\n- 현재 DB: **913 문제**. type 분포 `vocab 359 / grammar 280 / reading 274`. N-level 태그 분포 `N4 216, N3 233, N2 181, N5 145, N1 134, other 4`. 모두 `examType=JLPT`.\n- difficultyLevel는 N-level당 고정값에 수렴하는 경향: 대략 **N5≈50, N4≈280, N3≈450, N2≈650, N1≈850**. 그 외 1·2·3·4·5 같은 테스트 값 섞여 있음.\n\n**User**\n- id, email(unique), passwordHash, currentLevel('N5'~'N1'), vocabScore/grammarScore/readingScore(0~1000 각각), score(합, 최대 3000), ProblemCount(오늘 남은 신규 문제 수), service('guest'|'premium'|…), serviceStartAt/EndAt, pushToken, marketingAlertEnabled.\n- 현재 91명(guest 71). currentLevel 분포 N5 76 / N1 5 / N4 4 / N3 3 / N2 3.\n\n**SRS 상태**\n- `UserTagStats(user, tag, timesRepeated, intervalDays, eFactor, nextReviewDate, consecutiveCorrect, totalAttempts, totalTimeSpent)`\n- `ProblemStats(problem, totalAttempts, totalCorrect, totalTimeSpent, problemEFactor, intervalDays, nextReviewDate)`\n- `UserProblemHistory(user, problem, isCorrect, scoreChange, timeSpent, answeredAt)`\n\n**기타**: `ProblemReport`, `ContactReport`, `WrongNoteGroup/*`, `ScheduledNotification`, `SentNotification`, `RecommendedProblem`.\n\n### ⚠ 미사용 v2 스키마\n\nDB에는 `learning_problems`, `learning_concepts`, `learning_objectives`, `learning_words`, `learning_attempts`, `learning_concept_relations`, `learning_objective_concepts/words`, `learning_problem_concepts/objectives/words`, `user_concept_states`, `user_objective_states` 테이블이 존재한다. 현재 NestJS 엔터티/모듈에서 전혀 사용되지 않는다. (개념 기반 맞춤형 학습 v2를 위한 사전 설계로 보이며 코드에는 아직 반영되지 않음.)\n\n## 문제 추천 알고리즘 (learning.service.ts)\n\n`getRecommended` 흐름:\n1. `user.ProblemCount > 0` 체크 (없으면 BadRequest)\n2. `Problem` 테이블에서 `ORDER BY RANDOM()`으로 `desiredCount*3`개 후보 추출 (filterMode=`type` 또는 `tag`면 WHERE 적용)\n3. 각 후보에 대해 점수 합산:\n   - **A. 태그 SRS 부스트**: 해당 태그의 `UserTagStats.nextReviewDate <= now`면 +3, `eFactor < 2.0`이면 +1, 태그 미학습이면 +1\n   - **B. 난이도 브릿징**: `userAreaScore(vocab/grammar/reading)/100` vs `problem.difficultyLevel/100`의 `gap`으로 ±\n     - gap ≥ 3 or ≤ -2 → **-999** (사실상 탈락)\n     - gap ≥ 2 → +2, 0 < gap < 2 → +1, -1 < gap ≤ 0 → 0, gap ≤ -1 → -1\n   - **C. 문제별 SRS**: `problemEFactor < 2.0`이면 +1, `nextReviewDate <= now`면 +2\n4. 점수 내림차순 정렬 → 상위 `desiredCount*2`를 셔플 → `min(desiredCount, user.ProblemCount)`만큼 반환\n\n`submitAnswer` 흐름: 정오답 판정 → UserProblemHistory 저장 → ProblemStats 갱신(SM-2 유사 eFactor/intervalDays) → 태그별 UserTagStats 갱신 → `scoreChange = calculateScoreChange(isCorrect, problem, problemStats, timeSpent)` 으로 영역별 점수 갱신 → total score, currentLevel(600/1200/1800/2400 임계로 N5~N1) 재계산 → `user.ProblemCount -= 1`.\n\n`calculateScoreChange` (2번째 시도 이상):\n```\nbase = isCorrect ? 10 : -5\ndifficultyWeight = difficultyLevel / 100          # 0.5 ~ 8.5\ncorrectRateWeight = (1 - correctRate) + 0.5       # 0.5 ~ 1.5\ntimeRatio = avgTime / timeSpent                   # 시간이 짧을수록 가중\nscoreChange = round(base * difficultyWeight * correctRateWeight * timeRatio)\n```\n\n## 배포·프론트·모니터링 메모\n\n- Expo 푸시: `NotificationsService`에서 `expo-server-sdk`, `node-cron`으로 예약 알림 (Asia/Seoul). **관리자 전용 컨트롤러가 인증 가드 없이 노출되어 있는지 확인 필요** (notifications.controller.ts 점검 항목).\n- Webhook: `WEBHOOK_SECRET = 'IchiMozzi'` **하드코딩** (env에도 동일 키 존재하지만 service 코드에서 읽지 않음). 브랜치 `refs/heads/master`만 처리.\n- 배포 스크립트가 지목하는 `sh /home/ec2-user/IchiMozzi/deploy.sh`는 현재 서버에 **존재하지 않음** — AWS 시절 경로.\n\n## 연관 노트\n- [[personal-vault-projects-personal-ichimozzi-readme|IchiMozzi Project README]]\n- [[ichimozzi-aws-cleanup-2026-04-14|IchiMozzi AWS Cleanup]]\n- `../playbooks/update-and-deploy.md` — 업데이트/배포 현황과 복구 작업\n- `../reference/play-test-2026-04-15.md` — 플레이 테스트, UX/문제 생성 개선점",
+              "body_html": "<h2 id=\"서비스-개요\">서비스 개요<a class=\"heading-anchor\" href=\"#서비스-개요\">#</a></h2>\n<p>IchiMozzi는 JLPT(일본어능력시험) 학습용 모바일 앱이다. 객관식 문제 풀이 + SRS(간격 반복) + 태그 기반 취약점 분석 + 개인별 난이도 브릿징 추천이 중심 기능이다.</p>\n<ul>\n<li><strong>정체성</strong>: React Native(Expo) 프론트 + NestJS(TypeORM + PostgreSQL) 백엔드</li>\n<li><strong>도메인</strong>: <code>https://ichimozzi.com</code> — Cloudflare 보호, insu-shared-caddy → <code>backend-prod:3000</code></li>\n<li><strong>Health</strong>: <code>GET /health</code> → <code>200</code> (확인 완료)</li>\n<li><strong>프론트 소스 위치</strong>: 본 서버에는 <strong>존재하지 않음</strong>. <code>/home/insu/ichimozzi-migration/IchiMozzi</code>에는 <code>compose.yml</code>과 <code>infra/</code>만 존재하며 <code>./frontend</code>를 참조하는 <code>backend-test</code>/<code>frontend-test</code> 프로파일은 실행 불가 상태. 프론트(Expo) 소스는 별도 머신/레포에서 관리됨(포트폴리오 포스트 <code>2025-02-01-ichimozzi-react-native-app.md</code> 참조).</li>\n</ul>\n<h2 id=\"운영-토폴로지-2026-04-14-migration-이후\">운영 토폴로지(2026-04-14 migration 이후)<a class=\"heading-anchor\" href=\"#운영-토폴로지-2026-04-14-migration-이후\">#</a></h2>\n<pre><code>Cloudflare ─▶ insu_server(WSL2) ─▶ insu-shared-caddy:80\n                                    └─▶ backend-prod:3000 (NestJS)\n                                    └─▶ ichimozzi-db (postgres:16-alpine, volume=ichimozzi_pgdata)\n</code></pre>\n<ul>\n<li>Compose 파일: <code>/home/insu/insu_server/compose/production.yml</code> (compose name: <code>ichimozzi-migration</code>)</li>\n<li>이미지 빌드 컨텍스트: <code>/home/insu/insu_server/apps/ichimozzi/backend</code> (Dockerfile.prod, node:20-bookworm-slim)</li>\n<li>환경 파일: <code>/home/insu/insu_server/infra/env/ichimozzi-backend.prod.env</code></li>\n<li>DB 초기화: <code>/home/insu/insu_server/infra/db-init/ichimozzi.sql.gz</code> (최초 기동 시 1회 로딩)</li>\n<li>Caddyfile: <code>/home/insu/insu_server/infra/caddy/Caddyfile</code> (Caddy <code>auto_https off</code>, TLS는 Cloudflare가 종단 처리)</li>\n<li>현재 컨테이너: <code>ichimozzi-migration-backend-prod-1</code>, <code>ichimozzi-migration-ichimozzi-db-1</code></li>\n</ul>\n<h2 id=\"nestjs-모듈-구조\">NestJS 모듈 구조<a class=\"heading-anchor\" href=\"#nestjs-모듈-구조\">#</a></h2>\n<p><code>app.module.ts</code>가 imports 하는 모듈:</p>\n<table>\n<thead>\n<tr>\n<th>모듈</th>\n<th>파일</th>\n<th>역할</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>AuthModule</td>\n<td><code>auth/</code></td>\n<td>JWT 기반 로그인(<code>/auth/login</code>), 회원가입(<code>/auth/register</code>), <strong>게스트(<code>POST /auth/guest</code>)</strong></td>\n</tr>\n<tr>\n<td>UsersModule</td>\n<td><code>users/</code></td>\n<td>프로필, 푸시토큰, 구독/해제, 회원탈퇴</td>\n</tr>\n<tr>\n<td>WrongNoteGroupModule</td>\n<td><code>users/wrong-note-group.*</code></td>\n<td>오답노트 그룹 CRUD</td>\n</tr>\n<tr>\n<td>LearningModule</td>\n<td><code>learning/</code></td>\n<td>문제 추천/제출/신고(세션·배치 두 경로)</td>\n</tr>\n<tr>\n<td>AnalysisModule</td>\n<td><code>analysis/</code></td>\n<td>학습 로그, 취약 태그 분석, 문제 상세</td>\n</tr>\n<tr>\n<td>NotificationsModule</td>\n<td><code>notifications/</code></td>\n<td>Expo 푸시, node-cron 기반 예약 발송</td>\n</tr>\n<tr>\n<td>WebhookModule</td>\n<td><code>webhook/</code></td>\n<td><strong>GitHub push 웹훅</strong> — 현재 경로는 AWS 시절 경로라 깨져 있음(자세한 건 update playbook 참조)</td>\n</tr>\n</tbody>\n</table>\n<p><code>main.ts</code>: 포트 3000, CORS <code>*</code> 전체 허용, <code>bodyParser.json({ verify })</code>로 raw body 캡처(웹훅 HMAC 검증용).</p>\n<h2 id=\"핵심-api\">핵심 API<a class=\"heading-anchor\" href=\"#핵심-api\">#</a></h2>\n<p>인증 없는 엔드포인트\n- <code>GET /health</code> → <code>'200'</code> 문자열\n- <code>POST /auth/register</code> (body: <code>name, email, password, level</code>)\n- <code>POST /auth/login</code>\n- <code>POST /auth/guest</code> — 즉시 JWT 발급, <code>ProblemCount=10</code>, currentLevel=N5\n- <code>POST /webhook</code> — HMAC SHA-256 GitHub 푸시 훅</p>\n<p>로그인 필요(JwtAuthGuard)\n- <code>GET /users/me</code>\n- <code>POST /users/contact</code> / <code>/send-pushtoken</code> / <code>/subscribe</code> / <code>/unsubscribe</code>\n- <code>DELETE /users/me</code>\n- <code>GET /learning/session?skill=&amp;level=&amp;limit=</code> — 프론트용 구조화 응답(summary + problems[])\n- <code>GET /learning/recommend-batch?filterMode=&amp;filterValue=</code> — 레거시 배치(10문제까지)\n- <code>POST /learning/submit-answer</code> (body: <code>problemId, userAnswer, timeSpent</code>)\n- <code>POST /learning/report</code>\n- <code>GET /analysis/logs?page=</code>\n- <code>GET /analysis/weak-tags</code>\n- <code>GET /analysis/log-detail?logId=</code>\n- <code>POST /wrong-note-groups/*</code> (CRUD)</p>\n<h2 id=\"데이터-모델-실제-사용-중\">데이터 모델(실제 사용 중)<a class=\"heading-anchor\" href=\"#데이터-모델-실제-사용-중\">#</a></h2>\n<p><strong>Problem</strong>\n- id, examType(=<code>JLPT</code>), type(<code>vocabulary|grammar|reading</code>), questionText, options(쉼표 CSV 텍스트), correctAnswer, explanation, difficultyLevel(int, 실제 분포는 1~850 이산값), tags(쉼표 CSV 한국어 자유문), createdAt/updatedAt.\n- 현재 DB: <strong>913 문제</strong>. type 분포 <code>vocab 359 / grammar 280 / reading 274</code>. N-level 태그 분포 <code>N4 216, N3 233, N2 181, N5 145, N1 134, other 4</code>. 모두 <code>examType=JLPT</code>.\n- difficultyLevel는 N-level당 고정값에 수렴하는 경향: 대략 <strong>N5≈50, N4≈280, N3≈450, N2≈650, N1≈850</strong>. 그 외 1·2·3·4·5 같은 테스트 값 섞여 있음.</p>\n<p><strong>User</strong>\n- id, email(unique), passwordHash, currentLevel('N5'~'N1'), vocabScore/grammarScore/readingScore(0~1000 각각), score(합, 최대 3000), ProblemCount(오늘 남은 신규 문제 수), service('guest'|'premium'|…), serviceStartAt/EndAt, pushToken, marketingAlertEnabled.\n- 현재 91명(guest 71). currentLevel 분포 N5 76 / N1 5 / N4 4 / N3 3 / N2 3.</p>\n<p><strong>SRS 상태</strong>\n- <code>UserTagStats(user, tag, timesRepeated, intervalDays, eFactor, nextReviewDate, consecutiveCorrect, totalAttempts, totalTimeSpent)</code>\n- <code>ProblemStats(problem, totalAttempts, totalCorrect, totalTimeSpent, problemEFactor, intervalDays, nextReviewDate)</code>\n- <code>UserProblemHistory(user, problem, isCorrect, scoreChange, timeSpent, answeredAt)</code></p>\n<p><strong>기타</strong>: <code>ProblemReport</code>, <code>ContactReport</code>, <code>WrongNoteGroup/*</code>, <code>ScheduledNotification</code>, <code>SentNotification</code>, <code>RecommendedProblem</code>.</p>\n<h3 id=\"미사용-v2-스키마\">⚠ 미사용 v2 스키마<a class=\"heading-anchor\" href=\"#미사용-v2-스키마\">#</a></h3>\n<p>DB에는 <code>learning_problems</code>, <code>learning_concepts</code>, <code>learning_objectives</code>, <code>learning_words</code>, <code>learning_attempts</code>, <code>learning_concept_relations</code>, <code>learning_objective_concepts/words</code>, <code>learning_problem_concepts/objectives/words</code>, <code>user_concept_states</code>, <code>user_objective_states</code> 테이블이 존재한다. 현재 NestJS 엔터티/모듈에서 전혀 사용되지 않는다. (개념 기반 맞춤형 학습 v2를 위한 사전 설계로 보이며 코드에는 아직 반영되지 않음.)</p>\n<h2 id=\"문제-추천-알고리즘-learning-service-ts\">문제 추천 알고리즘 (learning.service.ts)<a class=\"heading-anchor\" href=\"#문제-추천-알고리즘-learning-service-ts\">#</a></h2>\n<p><code>getRecommended</code> 흐름:\n1. <code>user.ProblemCount &gt; 0</code> 체크 (없으면 BadRequest)\n2. <code>Problem</code> 테이블에서 <code>ORDER BY RANDOM()</code>으로 <code>desiredCount*3</code>개 후보 추출 (filterMode=<code>type</code> 또는 <code>tag</code>면 WHERE 적용)\n3. 각 후보에 대해 점수 합산:\n   - <strong>A. 태그 SRS 부스트</strong>: 해당 태그의 <code>UserTagStats.nextReviewDate &lt;= now</code>면 +3, <code>eFactor &lt; 2.0</code>이면 +1, 태그 미학습이면 +1\n   - <strong>B. 난이도 브릿징</strong>: <code>userAreaScore(vocab/grammar/reading)/100</code> vs <code>problem.difficultyLevel/100</code>의 <code>gap</code>으로 ±\n     - gap ≥ 3 or ≤ -2 → <strong>-999</strong> (사실상 탈락)\n     - gap ≥ 2 → +2, 0 &lt; gap &lt; 2 → +1, -1 &lt; gap ≤ 0 → 0, gap ≤ -1 → -1\n   - <strong>C. 문제별 SRS</strong>: <code>problemEFactor &lt; 2.0</code>이면 +1, <code>nextReviewDate &lt;= now</code>면 +2\n4. 점수 내림차순 정렬 → 상위 <code>desiredCount*2</code>를 셔플 → <code>min(desiredCount, user.ProblemCount)</code>만큼 반환</p>\n<p><code>submitAnswer</code> 흐름: 정오답 판정 → UserProblemHistory 저장 → ProblemStats 갱신(SM-2 유사 eFactor/intervalDays) → 태그별 UserTagStats 갱신 → <code>scoreChange = calculateScoreChange(isCorrect, problem, problemStats, timeSpent)</code> 으로 영역별 점수 갱신 → total score, currentLevel(600/1200/1800/2400 임계로 N5~N1) 재계산 → <code>user.ProblemCount -= 1</code>.</p>\n<p><code>calculateScoreChange</code> (2번째 시도 이상):</p>\n<pre><code>base = isCorrect ? 10 : -5\ndifficultyWeight = difficultyLevel / 100          # 0.5 ~ 8.5\ncorrectRateWeight = (1 - correctRate) + 0.5       # 0.5 ~ 1.5\ntimeRatio = avgTime / timeSpent                   # 시간이 짧을수록 가중\nscoreChange = round(base * difficultyWeight * correctRateWeight * timeRatio)\n</code></pre>\n<h2 id=\"배포-프론트-모니터링-메모\">배포·프론트·모니터링 메모<a class=\"heading-anchor\" href=\"#배포-프론트-모니터링-메모\">#</a></h2>\n<ul>\n<li>Expo 푸시: <code>NotificationsService</code>에서 <code>expo-server-sdk</code>, <code>node-cron</code>으로 예약 알림 (Asia/Seoul). <strong>관리자 전용 컨트롤러가 인증 가드 없이 노출되어 있는지 확인 필요</strong> (notifications.controller.ts 점검 항목).</li>\n<li>Webhook: <code>WEBHOOK_SECRET = 'IchiMozzi'</code> <strong>하드코딩</strong> (env에도 동일 키 존재하지만 service 코드에서 읽지 않음). 브랜치 <code>refs/heads/master</code>만 처리.</li>\n<li>배포 스크립트가 지목하는 <code>sh /home/ec2-user/IchiMozzi/deploy.sh</code>는 현재 서버에 <strong>존재하지 않음</strong> — AWS 시절 경로.</li>\n</ul>\n<h2 id=\"연관-노트\">연관 노트<a class=\"heading-anchor\" href=\"#연관-노트\">#</a></h2>\n<ul>\n<li><a class=\"wiki-link\" data-note-slug=\"personal-vault-projects-personal-ichimozzi-readme\" href=\"/notes/personal-vault-projects-personal-ichimozzi-readme\" rel=\"noopener noreferrer\">IchiMozzi Project README</a></li>\n<li><a class=\"wiki-link\" data-note-slug=\"ichimozzi-aws-cleanup-2026-04-14\" href=\"/notes/ichimozzi-aws-cleanup-2026-04-14\" rel=\"noopener noreferrer\">IchiMozzi AWS Cleanup</a></li>\n<li><code>../playbooks/update-and-deploy.md</code> — 업데이트/배포 현황과 복구 작업</li>\n<li><code>../reference/play-test-2026-04-15.md</code> — 플레이 테스트, UX/문제 생성 개선점</li>\n</ul>",
+              "links": [
+                "ichimozzi-aws-cleanup-2026-04-14",
+                "personal-vault-projects-personal-ichimozzi-readme"
+              ],
+              "related_notes": [],
+              "backlinks": [
+                {
+                  "slug": "personal-vault-projects-ops-librarian-capsules-istio-서비스-메시-실전-capsule",
+                  "title": "Istio 서비스 메시 실전 Capsule",
+                  "summary": "Istio는 Kubernetes 환경의 마이크로서비스를 위한 서비스 메시 플랫폼으로, mTLS 기반 보안 통신 , 세밀한 트래픽 제어(Canary, Weighted Routing) , 자동 메트릭/트레이싱 수집 을 통해 프로덕션 규모의 관찰 가능성(Observability)과 복원력을 동시에 확보합니다. 본 가이드는 Kubernetes 클러스터에서 Istio를 구축하고, 보안 정책(PeerAuthentication, AuthorizationPolicy), 트래픽",
+                  "href": "/notes/personal-vault-projects-ops-librarian-capsules-istio-서비스-메시-실전-capsule"
+                }
+              ],
+              "outbound": 2,
+              "href": "/notes/system-snapshot-2026-04-15"
+            }
+          },
+          "error": null,
+          "duration_ms": 2996.2
+        }
+      ],
+      "answer": "IchiMozzi 배포 전 점검 시스템 3개 (출처: personal_vault/projects/personal/ichimozzi):\n\n1. insu-shared-caddy (리버스 프록시)\n왜: 클라이언트 요청의 첫 진입점이므로 여기가 정상이어야 전체 서비스 도달 가능\n\n2. backend-prod:3000 (NestJS 백엔드)\n왜: 새 버전 코드가 정상 부팅되고 API 요청을 처리할 수 있는지 확인 필수\n\n3. ichimozzi-db (PostgreSQL 데이터베이스)\n왜: 마이그레이션이 필요한 경우 스키마 호환성 확인, DB 연결 상태 확인 필수\n\n배포 순서: Caddy(프록시) → Backend(앱) → Database(저장소) 순으로 확인하면 병목 지점을 빠르게 찾을 수 있습니다.",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"IchiMozzi 백엔드 배포 전 점검 항목을 찾기 위해 프로젝트 배포 체크리스트를 검색합니다.\",\n  \"tool_calls\": [\n    {\n      \"tool\": \"search_and_read_top\",\n      \"arguments\": {\n        \"query\": \"IchiMozzi 배포 전 점검 시스템 헬스체크\"\n      }\n    }\n  ]\n}\n```",
+      "raw_model_output_turn2": "```json\n{\n  \"answer\": \"IchiMozzi 배포 전 점검 시스템 3개 (출처: personal_vault/projects/personal/ichimozzi):\\n\\n1. insu-shared-caddy (리버스 프록시)\\n왜: 클라이언트 요청의 첫 진입점이므로 여기가 정상이어야 전체 서비스 도달 가능\\n\\n2. backend-prod:3000 (NestJS 백엔드)\\n왜: 새 버전 코드가 정상 부팅되고 API 요청을 처리할 수 있는지 확인 필수\\n\\n3. ichimozzi-db (PostgreSQL 데이터베이스)\\n왜: 마이그레이션이 필요한 경우 스키마 호환성 확인, DB 연결 상태 확인 필수\\n\\n배포 순서: Caddy(프록시) → Backend(앱) → Database(저장소) 순으로 확인하면 병목 지점을 빠르게 찾을 수 있습니다.\"\n}\n```",
+      "error": null,
+      "format_violation": false
+    }
+  ]
+}

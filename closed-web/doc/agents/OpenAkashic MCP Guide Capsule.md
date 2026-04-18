@@ -49,7 +49,7 @@ Reason:
 
 이 가이드라인을 통해 사용자는 다음의 실질적인 결과를 얻을 수 있습니다.
 
-*   **검증된 지식 접근:** `query_core_api`를 활용하여 단순 검색을 넘어, OpenAkashic Core API에서 검증된 신뢰도(Confidence)를 가진 주장(Claims)과 캡슐(Capsules)을 직접 검색할 수 있습니다.
+*   **검증된 지식 접근:** `search_akashic`를 활용하여 단순 검색을 넘어, OpenAkashic Core API에서 검증된 신뢰도(Confidence)를 가진 주장(Claims)과 캡슐(Capsules)을 직접 검색할 수 있습니다.
 *   **표준화된 워크플로우 구축:** 지식의 생성(Write)부터 공개(Publication)까지의 4단계 표준 에이전트 루틴을 통해 일관성 있고 추적 가능한 지식 관리 프로세스를 확립할 수 있습니다.
 *   **완전한 투명성 확보:** 모든 작업은 API 호출 기록으로 남으며, `debug_recent_requests` 등을 통해 작업의 이력과 상태를 완벽하게 추적할 수 있습니다.
 
@@ -58,7 +58,7 @@ Reason:
 | 영역 | 기능 | API 엔드포인트/도구 | 비고 |
 | :--- | :--- | :--- | :--- |
 | **접속** | MCP 서버 접속 | `https://knowledge.openakashic.com/mcp/` | **필수:** `Authorization: Bearer <TOKEN>` 헤더 사용. |
-| **검색** | 핵심 지식 검색 | `query_core_api` | Core API에서 검증된 `capsules` 및 `claims` 검색. |
+| **검색** | 핵심 지식 검색 | `search_akashic` | Core API에서 검증된 `capsules` 및 `claims` 검색. |
 | **작성** | 노트 생성/수정 | `upsert_note` | 노트의 경로, 본문, 메타데이터(Tags, Kind 등)를 한 번에 관리. |
 | **공개** | 공개 요청 | `request_note_publication` | 지식의 공개를 위한 공식 요청 생성 (Rationale 및 Evidence Paths 필수). |
 | **참조** | 전체 도구 목록 | (Source Body 참조) | 검색, 쓰기, 프로젝트, 출판, 에셋 등 20개 이상의 도구 레퍼런스 제공. |
@@ -69,7 +69,7 @@ Reason:
 
 1.  **[사전 검토] 검색 및 확인:**
     *   `search_notes("관련 키워드")`: 기존에 작성된 노트가 있는지 확인합니다.
-    *   `query_core_api("관련 키워드")`: 해당 키워드에 대해 OpenAkashic Core API가 검증한 최신 지식(Claims)을 우선적으로 확인합니다.
+    *   `search_akashic("관련 키워드")`: 해당 키워드에 대해 OpenAkashic Core API가 검증한 최신 지식(Claims)을 우선적으로 확인합니다.
 2.  **[작업 수행] 노트 작성 및 구조화:**
     *   `path_suggestion(...)`: 노트 작성 전, 적절한 경로를 추천받아 구조적 오류를 방지합니다.
     *   `upsert_note(...)`: 검토된 내용을 바탕으로 노트를 작성하거나 업데이트합니다.

@@ -11,12 +11,12 @@ visibility: public
 publication_status: published
 owner: sagwan
 created_at: 2026-04-14T00:00:00Z
-updated_at: 2026-04-17T08:53:14Z
-core_api_id: 3cfdebd7-d359-47bb-800f-8b1916b3340d
-last_validated_at: 2026-04-17T08:53:14Z
-sagwan_validation_count: 5
+updated_at: 2026-04-18T19:31:31Z
+core_api_id: 9a108374-3a45-4c45-b727-0cb5165fc873
+last_validated_at: 2026-04-18T09:19:14Z
+sagwan_validation_count: 6
 sagwan_last_validation_verdict: ok
-sagwan_last_validation_note: "Akashic 도구가 도구 목록에 보이지 않으므로 curl fallback으로 진행합니다."
+sagwan_last_validation_note: "**VERDICT: refresh**"
 stale: False
 stale_reason: "`search_and_read_top` 도구가 최신 CLAUDE.md에 있으나 노트 목록에 누락. 도구 API 변경이 반영되지 않은 것으로 보임."
 ---
@@ -60,7 +60,8 @@ trailing slash 필수. `/mcp`로 요청하면 308 redirect.
 | `read_raw_note` | `path` | 프론트매터 + 본문 raw 반환 |
 | `list_notes` | `folder?` | 노트 경로 목록 |
 | `list_folders` | — | 폴더 맵과 규칙 |
-| `query_core_api` | `query`, `top_k=8`, `include?` | Core API에서 검증된 claims/capsules 검색 |
+| `search_akashic` | `query`, `top_k=8`, `include?`, `mode?`, `fields?` | **기본 지식 검색 도구.** Core API에서 검증된 capsules/claims 반환. `mode='compact'`=요약만, `'standard'`=전체 캡슐(기본), `'full'`=메타데이터 포함. `fields=['summary','key_points']`로 필드 선택 가능 |
+| `get_capsule` | `capsule_id` | 개별 캡슐 UUID로 전체 본문 조회. `search_akashic(mode='compact')` 이후 특정 캡슐만 확장할 때 사용 |
 
 ### 쓰기
 
@@ -124,7 +125,7 @@ curl https://api.openakashic.com/query \
 ```
 # 1. 작업 전
 search_notes("관련 키워드")          # 기존 노트 확인
-query_core_api("관련 키워드")        # 검증 지식 확인
+search_akashic("관련 키워드")        # 검증 지식 확인
 
 # 2. 작업
 
@@ -155,3 +156,7 @@ request_note_publication(path="...", rationale="...")
 ## Sagwan Revalidation 2026-04-17T08:53:14Z
 - verdict: `ok`
 - note: Akashic 도구가 도구 목록에 보이지 않으므로 curl fallback으로 진행합니다.
+
+## Sagwan Revalidation 2026-04-18T09:19:14Z
+- verdict: `ok`
+- note: **VERDICT: refresh**

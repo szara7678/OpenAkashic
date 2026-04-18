@@ -1,0 +1,81 @@
+/home/insu/insu_server/apps/openakashic/closed-web/server/bench/standard_tools.py:25: RuntimeWarning: This package (`duckduckgo_search`) has been renamed to `ddgs`! Use `pip install ddgs` instead.
+  hits = list(DDGS().text(query, max_results=max_results))
+/home/insu/insu_server/apps/openakashic/closed-web/server/bench/standard_tools.py:25: RuntimeWarning: This package (`duckduckgo_search`) has been renamed to `ddgs`! Use `pip install ddgs` instead.
+  hits = list(DDGS().text(query, max_results=max_results))
+/home/insu/insu_server/apps/openakashic/closed-web/server/bench/standard_tools.py:25: RuntimeWarning: This package (`duckduckgo_search`) has been renamed to `ddgs`! Use `pip install ddgs` instead.
+  hits = list(DDGS().text(query, max_results=max_results))
+/home/insu/insu_server/apps/openakashic/closed-web/server/bench/standard_tools.py:25: RuntimeWarning: This package (`duckduckgo_search`) has been renamed to `ddgs`! Use `pip install ddgs` instead.
+  hits = list(DDGS().text(query, max_results=max_results))
+/home/insu/insu_server/apps/openakashic/closed-web/server/bench/standard_tools.py:25: RuntimeWarning: This package (`duckduckgo_search`) has been renamed to `ddgs`! Use `pip install ddgs` instead.
+  hits = list(DDGS().text(query, max_results=max_results))
+[baseline][domain_jlpt_gen] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: ```json {   "examType": "JLPT",   "type": "vocabulary",   "questionText": "次の文の（　）に入る最も適当なものを一つ選んでください。\n\nこのプロジェクトは多くの部
+[baseline][onboarding_openakashic] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: **OpenAkashic 신규 에이전트 온보딩**  ### **필독 (20분)** ``` doc/general/plan.md          ← 아키텍처 doc/general/roadmap.md       ← 현황 
+[baseline][triage_ichimozzi_500] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: **Triage 순서 (프록시 → 앱 → DB)**  ### **1️⃣ Caddy** (`insu-shared-caddy`) ```bash docker logs --tail 100 insu-shared-caddy d
+[baseline][ichimozzi_deploy] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: **IchiMozzi 백엔드 배포**  ### **한 줄 배포** ```bash cd /home/insu/insu_server/compose && docker compose -f production.yml up -d
+[baseline][general_web_fact] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: **공식 저장소:** - https://github.com/modelcontextprotocol/modelcontextprotocol (spec & SDK) - https://github.com/modelcontex
+[baseline][memory_roundtrip] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: 이미 저장 완료! ✅ 즉시 회수:  **당신의 선호사항 3가지:**  1. **저녁에 커피 금지** — 저녁 시간대에는 카페인 섭취 피함 2. **주말에는 이메일 확인 안 함** — 금요일 저녁부터 월요일까지 업무 
+[baseline][busagwan_sagwan_roles] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: **Busagwan — 1차 리뷰** - 크롤링, capsule 초안 작성 - 형식, 구조, 기술 검증 - publication 1차 리뷰 - Core API 동기화  **Sagwan — 2차 리뷰 & 최종 결정**
+
+Saved [baseline]: /home/insu/insu_server/apps/openakashic/closed-web/server/bench/results/run-baseline-claude-haiku-4-5-20260418T011321Z.json
+Records: 7
+
+[standard][domain_jlpt_gen] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: JLPT N4 빈칸 채우기 예시를 찾기 어렵습니다.  • 로컬 노트: ichimozzi_fill_in_format, jlpt_n4_vocabulary_examples 모두 저장되어 있지 않습니다. • 웹 검색: "J
+  tools: ['notes_read', 'notes_read', 'web_search']
+[standard][onboarding_openakashic] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: 저장된 노트가 없습니다. openakashic_onboarding과 openakashic_project_setup 노트를 찾을 수 없습니다. OpenAkashic 온보딩 및 프로젝트 설정 정보를 저장하거나 필요한 정
+  tools: ['notes_list', 'notes_read', 'notes_read']
+[standard][triage_ichimozzi_500] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: Docker 500 에러 트러블슈팅 정보를 찾았습니다.  • 로컬 노트: insu_server_containers_list, ichimozzi_error_troubleshooting 모두 저장되어 있지 않습니다. •
+  tools: ['notes_read', 'notes_read', 'web_search']
+[standard][ichimozzi_deploy] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: Docker 백엔드 배포 관련 정보를 찾았습니다.  • 로컬 노트: ichimozzi_backend_deploy, ichimozzi_deploy_commands 모두 저장되어 있지 않습니다. • 웹 검색: Docke
+  tools: ['notes_read', 'notes_read', 'web_search']
+[standard][general_web_fact] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: 웹 검색 결과가 MCP와 관련이 없습니다. "Anthropic Model Context Protocol MCP github official repository what is" 검색이 실행되었지만, 반환된 결과는 모두
+  tools: ['web_search']
+[standard][memory_roundtrip] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: 사용자 선호 사항이 저장되었습니다. 저장된 내용:  (1) 저녁에 커피 금지 (2) 주말에는 이메일 확인 안 함 (3) 운동은 아침 6시 30분에  저장된 데이터를 확인했습니다 (104 바이트).
+  tools: ['notes_write', 'notes_read']
+[standard][busagwan_sagwan_roles] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: OpenAkashic Busagwan과 Sagwan 정보를 찾을 수 없습니다.  • 로컬 노트: openakashic_busagwan_sagwan, openakashic_architecture_components 모
+  tools: ['notes_read', 'notes_read', 'web_search']
+
+Saved [standard]: /home/insu/insu_server/apps/openakashic/closed-web/server/bench/results/run-standard-claude-haiku-4-5-20260418T011425Z.json
+Records: 7
+
+[openakashic][domain_jlpt_gen] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: IchiMozzi N4 레벨 어휘 문제의 형식은 다음과 같습니다:  **문제 구조:** - 문제 ID: `n4-vocab-001` - 유형: `vocabulary_fill` (빈칸 채우기) - 카테고리: 일상생활  
+  tools: ['search_and_read_top']
+[openakashic][onboarding_openakashic] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: OpenAkashic 신규 에이전트 온보딩 가이드는 다음과 같습니다:  **기본 구조:** OpenAkashic은 홈서버 Docker 스택 기반으로 운영되며, 설계·플레이북·메모리는 `personal_vault/pr
+  tools: ['search_and_read_top', 'path_suggestion']
+[openakashic][triage_ichimozzi_500] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: ichimozzi.com의 500 에러 트러블슈팅은 다음 순서로 진행합니다:  **요청 흐름:** 브라우저 → `insu-shared-caddy` (리버스 프록시, TLS) → `insu-server-backend-
+  tools: ['search_and_read_top']
+[openakashic][ichimozzi_deploy] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: IchiMozzi 배포는 다음과 같이 진행합니다:  **백엔드 배포 (NestJS 리빌드 및 재시작)** ```bash cd /home/insu/insu_server/compose docker compose -f p
+  tools: ['search_and_read_top']
+[openakashic][general_web_fact] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: Anthropic의 Model Context Protocol(MCP) 공식 저장소는 https://github.com/anthropics/model-context-protocol 입니다.  MCP는 Claude와 같
+[openakashic][memory_roundtrip] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: 개인 선호사항을 OpenAkashic에 저장했습니다.  **저장된 위치:** `personal_vault/user/preferences.md`  **저장된 내용:** 1. 저녁에 커피 금지 2. 주말에는 이메일 확인
+  tools: ['upsert_note', 'read_note']
+[openakashic][busagwan_sagwan_roles] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: OpenAkashic의 Sagwan(사관)과 Busagwan(부사관)은 다음과 같이 역할을 분업합니다:  **Sagwan(사관)** - Claude CLI 기반 - 실행 주기: 10분 또는 1시간 - 역할: 발행 최
+  tools: ['search_and_read_top']
+
+Saved [openakashic]: /home/insu/insu_server/apps/openakashic/closed-web/server/bench/results/run-openakashic-claude-haiku-4-5-20260418T011558Z.json
+Records: 7
+
+All outputs:
+  /home/insu/insu_server/apps/openakashic/closed-web/server/bench/results/run-baseline-claude-haiku-4-5-20260418T011321Z.json
+  /home/insu/insu_server/apps/openakashic/closed-web/server/bench/results/run-standard-claude-haiku-4-5-20260418T011425Z.json
+  /home/insu/insu_server/apps/openakashic/closed-web/server/bench/results/run-openakashic-claude-haiku-4-5-20260418T011558Z.json

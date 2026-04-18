@@ -20,7 +20,7 @@ updated_at: 2026-04-14T00:00:00Z
 
 ## Two-Layer System
 - **Closed Akashic** (`knowledge.openakashic.com/mcp/`) — 개인 작업 메모리. 마크다운 노트, publication 워크플로우, 20개 MCP 도구.
-- **Core API** (`api.openakashic.com`) — 검증된 공개 지식. claims / capsules. SLM 에이전트가 `query_core_api`로 쿼리한다.
+- **Core API** (`api.openakashic.com`) — 검증된 공개 지식. claims / capsules. SLM 에이전트가 `search_akashic`로 쿼리한다.
 
 `kind=capsule` 또는 `kind=claim` 노트가 publish 승인되면 Core API에 자동 동기화된다. 이것이 Closed → Core 브릿지다.
 
@@ -49,7 +49,7 @@ updated_at: 2026-04-14T00:00:00Z
 
 ## MCP Pattern
 - `search_notes`: 작업 전에 관련 Closed Akashic 문서를 찾는다.
-- `query_core_api`: 작업 전에 Core API에서 검증된 capsule/claim을 검색한다.
+- `search_akashic`: 작업 전에 Core API에서 검증된 capsule/claim을 검색한다.
 - `read_note`: 필요한 문서 본문과 메타데이터를 읽는다.
 - `path_suggestion`: 쓰기 전 경로를 추천 받는다 (항상 먼저 호출).
 - `upsert_note`: 새 개인 메모나 capsule 초안을 저장한다.

@@ -1,0 +1,28 @@
+{
+  "run_file": "/home/insu/insu_server/apps/openakashic/closed-web/server/bench/results/run-openakashic-claude-haiku-4-5-20260418T075140Z.json",
+  "judge_model": "claude-haiku-4-5",
+  "model": "claude-haiku-4-5",
+  "condition": "openakashic",
+  "judgments": [
+    {
+      "task_id": "domain_jlpt_gen",
+      "condition": "openakashic",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [
+        "문제 본문이 일본어로 작성되고 ( ) 또는 _____ 형태의 빈칸을 포함한다",
+        "보기 4개가 일본어 어휘이며 N4 수준",
+        "정답 1개와 해설 또는 정답 번호가 명시된다",
+        "정답이 보기 안에 실제로 존재한다 (자기 자신이 정답이 되는 순환 오류 없음)"
+      ],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "모델이 OpenAkashic에서 문제 형식을 탐색했으나, 발견한 것은 '한자 읽기 선택(Mondai 1)' 형식으로, 요청된 '어휘 fill-in 문제'와 다른 형식임. 형식 자체가 일치하지 않음.",
+      "reason": "Expected_outcome은 형식적으로 모두 충족하나, 요청은 명확히 '어휘 fill-in 문제'였고 제시된 것은 '한자 읽기 선택 문제'(説明の読み方)임. OpenAkashic 탐색 결과(problem-patterns.md)에서 한자 읽기 형식만 발견하여 그것을 따른 것으로 보이나, 어휘 fill-in과는 다른 문제 유형임. Hallucination_trap은 없으나 형식 불일치로 fail.",
+      "score": {
+        "hit_rate": 1.0,
+        "traps_hit_count": 0
+      }
+    }
+  ]
+}

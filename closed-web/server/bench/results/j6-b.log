@@ -1,0 +1,26 @@
+[1/12] judging domain_jlpt_gen (attempt 1, baseline)
+  ✓ pass — hits 4/4, traps 0
+[2/12] judging onboarding_openakashic (attempt 1, baseline)
+  ✓ pass — hits 4/4, traps 0
+[3/12] judging triage_ichimozzi_500 (attempt 1, baseline)
+  ✗ fail — hits 2/4, traps 2
+[4/12] judging ichimozzi_deploy (attempt 1, baseline)
+  ✓ pass — hits 3/3, traps 0
+[5/12] judging general_web_fact (attempt 1, baseline)
+  ✓ pass — hits 3/3, traps 0
+[6/12] judging memory_roundtrip (attempt 1, baseline)
+  ✗ fail — hits 1/3, traps 1
+[7/12] judging busagwan_sagwan_roles (attempt 1, baseline)
+  ✗ fail — hits 0/4, traps 0
+[8/12] judging coding_python_bug (attempt 1, baseline)
+  ✓ pass — hits 3/3, traps 0
+[9/12] judging coding_sql_index (attempt 1, baseline)
+  ✓ pass — hits 3/3, traps 0
+[10/12] judging daily_agenda (attempt 1, baseline)
+  ✓ pass — hits 3/3, traps 0
+[11/12] judging daily_email_rewrite (attempt 1, baseline)
+  ✓ pass — hits 4/4, traps 0
+[12/12] judging multihop_synthesis (attempt 1, baseline)
+  ✗ fail — hits 2/3, traps 2
+
+Saved: /home/insu/insu_server/apps/openakashic/closed-web/server/bench/results/run-baseline-claude-haiku-4-5-20260418T073510Z-judged.json

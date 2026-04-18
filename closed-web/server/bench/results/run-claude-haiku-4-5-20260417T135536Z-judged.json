@@ -1,0 +1,16 @@
+{
+  "run_file": "/home/insu/insu_server/apps/openakashic/closed-web/server/bench/results/run-claude-haiku-4-5-20260417T135536Z.json",
+  "judge_model": "gpt-5.4",
+  "model": "claude-haiku-4-5",
+  "judgments": [
+    {
+      "task_id": "ts_001",
+      "axis": "tool_selection",
+      "verdict": "pass",
+      "axis_score": 1,
+      "reason": "실제 tool_calls에 `search_notes` 호출 receipt가 있으며, 쿼리도 IchiMozzi 배포 관련 노트를 찾는 목적에 맞습니다. `bootstrap_project`나 `list_notes`는 호출하지 않았으므로 should_not_call 위반도 없습니다.",
+      "violations": [],
+      "raw_judge_output": "{\"verdict\":\"pass\",\"axis_score\":1,\"reason\":\"실제 tool_calls에 `search_notes` 호출 receipt가 있으며, 쿼리도 IchiMozzi 배포 관련 노트를 찾는 목적에 맞습니다. `bootstrap_project`나 `list_notes`는 호출하지 않았으므로 should_not_call 위반도 없습니다.\",\"violations\":[]}"
+    }
+  ]
+}

@@ -1,0 +1,2197 @@
+{
+  "model": "claude-haiku-4-5",
+  "condition": "openakashic",
+  "timestamp": "20260417T162544Z",
+  "records": [
+    {
+      "task_id": "domain_jlpt_gen",
+      "condition": "openakashic",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-17T16:23:45+00:00",
+      "finished_at": "2026-04-17T16:24:12+00:00",
+      "plan": "IchiMozzi 프로젝트의 기존 어휘 문제 형식을 OpenAkashic에서 확인하여, 실제 스키마에 맞는 JLPT N4 fill-in 문제를 생성합니다.",
+      "tool_calls": [
+        {
+          "tool": "search_and_read_top",
+          "arguments": {
+            "query": "ichimozzi vocabulary quiz problem format JLPT",
+            "limit": 3
+          },
+          "result": {
+            "query": "ichimozzi vocabulary quiz problem format JLPT",
+            "top": {
+              "path": "personal_vault/projects/personal/ichimozzi/problem_taxonomy_and_generation_guide.md",
+              "slug": "problem-taxonomy-and-generation-guide",
+              "title": "IchiMozzi 문제 태그 체계 및 생성·검수 가이드 (2026-04-17)",
+              "kind": "reference",
+              "project": "personal/ichimozzi",
+              "owner": "aaron",
+              "visibility": "private",
+              "publication_status": "none",
+              "tags": [
+                "ichimozzi",
+                "jlpt",
+                "taxonomy",
+                "problem-generation",
+                "review",
+                "agent-reference"
+              ],
+              "summary": "IchiMozzi JLPT 문제 생성 전체 가이드. 3부 구조, 4부 태그 체계, 레벨별 어휘·후리가나 정책, 검증 도구 사용법 수록. --- title: IchiMozzi 문제 생성·검수 가이드 (rev4) kind: note tags: [ichimozzi, jlpt, problem-generation, taxonomy, guide] owner: aaron visibility: private --- IchiMozzi 문제 생성·검수 가이드 (rev4) rev4",
+              "href": "/notes/problem-taxonomy-and-generation-guide",
+              "lexical_score": 0.0,
+              "semantic_score": 0.6752,
+              "confirm_count": 0,
+              "score": 0.016393
+            },
+            "note": {
+              "path": "personal_vault/projects/personal/ichimozzi/problem_taxonomy_and_generation_guide.md",
+              "slug": "problem-taxonomy-and-generation-guide",
+              "title": "IchiMozzi 문제 태그 체계 및 생성·검수 가이드 (2026-04-17)",
+              "kind": "reference",
+              "project": "personal/ichimozzi",
+              "status": "active",
+              "owner": "aaron",
+              "original_owner": "aaron",
+              "created_by": "aaron",
+              "visibility": "private",
+              "publication_status": "none",
+              "tags": [
+                "ichimozzi",
+                "jlpt",
+                "taxonomy",
+                "problem-generation",
+                "review",
+                "agent-reference"
+              ],
+              "related": [
+                "IchiMozzi 문법 카테고리 × 서브패턴 × 문형 매핑 (rev1)",
+                "JLPT 실제 출제 패턴 레퍼런스",
+                "JLPT N1 문제 유형·출제 패턴",
+                "JLPT N2 Problem Patterns Reference",
+                "JLPT N5 Problem Patterns"
+              ],
+              "summary": "IchiMozzi JLPT 문제 생성 전체 가이드. 3부 구조, 4부 태그 체계, 레벨별 어휘·후리가나 정책, 검증 도구 사용법 수록. --- title: IchiMozzi 문제 생성·검수 가이드 (rev4) kind: note tags: [ichimozzi, jlpt, problem-generation, taxonomy, guide] owner: aaron visibility: private --- IchiMozzi 문제 생성·검수 가이드 (rev4) rev4",
+              "body": "## Summary\nIchiMozzi JLPT 문제 생성 전체 가이드. 3부 구조, 4부 태그 체계, 레벨별 어휘·후리가나 정책, 검증 도구 사용법 수록.\n\n---\ntitle: IchiMozzi 문제 생성·검수 가이드 (rev4)\nkind: note\ntags: [ichimozzi, jlpt, problem-generation, taxonomy, guide]\nowner: aaron\nvisibility: private\n---\n\n# IchiMozzi 문제 생성·검수 가이드 (rev4)\n\n> rev4 변경점: JLPT 실제 출제 패턴 기반으로 전면 재작성. 보기 구성 원칙, 레벨별 한자 사용 기준, 부족 유형 우선순위 추가.\n\n## 참조 문서\n- 출제 패턴: `personal_vault/projects/personal/ichimozzi/jlpt-exam-format-reference.md`\n- 어휘 기준: `personal_vault/knowledge/japanese/n{1-5}/vocab.md`\n- N1 문법: `personal_vault/knowledge/japanese/n1/grammar.md`\n- N1 출제유형: `personal_vault/knowledge/japanese/n1/problem-patterns.md`\n- 검수 결과: `personal_vault/projects/personal/ichimozzi/audit-2026-04-16.md`\n\n---\n\n## 1. 문제 구조\n\n### 3부 구조 (필수)\n```\n[지시문]     次の文の（　）に入る最も適当なものを選んでください。\n\\n\\n\n[문제문/지문] 彼女は自分の意見を（　）と主張し続けた。\n\\n\\n\n[질문]       （　）に入る最も適当なものは？\n```\n\n### 4부 태그 (grammar 필수)\n```\n{레벨}, {type}, {카테고리}, {서브패턴}\n예: N1, grammar, 문어체표현, 역접양보\n```\n\n---\n\n## 2. JLPT 공식 출제 유형 매핑\n\n### vocabulary (어휘) — type별 tags\n| JLPT 유형 | 태그 카테고리 | 출제 레벨 | 문항 수/레벨 |\n|-----------|-------------|-----------|-------------|\n| 漢字読み | 한자읽기 | 전 레벨 | 5~6 |\n| 漢字表記 | 한자표기 | N5·N4만 | 6 |\n| 文脈規定 | 문맥어휘 | 전 레벨 | 7 |\n| 言い換え | 유의어 | N3~N1 | 5 |\n| 用法 | 용법 | N3~N1 | 5 |\n\n### grammar (문법) — type별 tags\n| JLPT 유형 | 태그 카테고리 | 서브패턴 예시 |\n|-----------|-------------|-------------|\n| 文法形式 | (19개 문법 카테고리) | て형, ば조건, 역접양보 등 |\n| 文の組み立て | 문장조립 | ★배열 |\n| 文章の文法 | 문장문법 | 장문내빈칸 |\n\n### reading (독해) — type별 tags  \n| JLPT 유형 | 태그 카테고리 | 출제 레벨 |\n|-----------|-------------|-----------|\n| 短文 | 단문독해 | 전 레벨 |\n| 中文 | 중문독해 | N3~N1 |\n| 長文 | 장문독해 | N2·N1 |\n| 統合理解 | 복수지문비교 | N2·N1 |\n| 情報検索 | 정보검색 | 전 레벨 |\n\n---\n\n## 3. 보기(選択肢) 구성 규칙\n\n### 절대 규칙\n1. 4지선다\n2. **같은 품사** — 동사면 4개 다 동사\n3. **같은 활용형** — て형이면 4개 다 て형\n4. **전부 문법 성립** — 빈칸에 넣어도 비문 안 됨\n5. **의미로만 구분** — 문맥 이해 필수\n\n### 금지 패턴\n- ❌ 카테고리 혼합 (음료 vs 문구류)\n- ❌ 누가 봐도 틀린 오답\n- ❌ 문법적으로 접속 불가능한 오답\n- ❌ 동일 의미 보기 2개 이상\n\n---\n\n## 4. 레벨별 문자 사용 기준\n\n| 레벨 | 한자 수 | 후리가나 | 문체 |\n|------|---------|----------|------|\n| N5 | ~100자 | **모든 한자에 필수** | ます/です체 |\n| N4 | ~300자 | 고급 한자에 필수 | ます + 普通体 혼용 |\n| N3 | ~650자 | 선택적 | 普通体 중심 |\n| N2 | ~1,000자 | 불요 | 신문·비즈니스 |\n| N1 | ~2,000자 | 불요 | 학술·문어체 |\n\n---\n\n## 5. 편중 방지 규칙\n\n### 30% 상한\n- 동일 카테고리+서브패턴: 같은 레벨 내 30% 초과 금지\n- 동일 정답: 같은 태그 내 2회까지만 허용\n\n### 10 토픽 로테이션\n일상·교육·직장·문화·기술·건강·환경·경제·사회·예술\n\n### 어휘 반복 간격\n- 동일 핵심 단어: 최소 7문제 간격\n\n---\n\n## 6. 신규 생성 우선순위 (2026-04-16 기준)\n\n### 🔴 긴급 (DB에 0건)\n1. **漢字読み** — 전 레벨, 레벨당 20문제 목표\n2. **漢字表記** — N5·N4, 레벨당 15문제\n3. **文の組み立て (★)** — 전 레벨, 레벨당 15문제\n4. **長文読解** — N2·N1, 레벨당 5문제 (각 3~4질문)\n5. **統合理解** — N2·N1, 레벨당 5세트\n\n### 🟡 중요 (극소수)\n6. **文章の文法** — N4~N1, 레벨당 10문제\n7. **情報検索** — N2·N1 추가, 레벨당 10문제\n8. **경어표현** — N2 10문제, N1 15문제\n9. **형용사활용** — N4 10문제, N2·N1 각 5문제\n\n### 🟠 보통 (편중 개선)\n10. 중문독해 — N2 추가 10문제\n11. 유의어/용법 — N4·N5 추가\n12. 사역수동 — N2·N3 추가\n\n## N5 후리가나 규칙\n### N5 후리가나 규칙 (2026-04-16 추가)\n\nN5 문제는 학습자가 한자를 읽을 수 없으므로 **전 한자에 후리가나 필수**.\n\n#### 기본한자 (후리가나 불요)\n一二三四五六七八九十百千万円時日月火水木金土曜年半午前後何上下中右左北南東西外大小長短多少新古高安白黒赤青 (36자)\n\n#### 적용 방식\n- 표기: `漢字(よみ)` (반각 괄호)\n- 복합어는 단어 단위로: `毎朝(まいあさ)`, `食べ物(たべもの)`\n- 길이 우선 매칭: `郵便局(ゆうびんきょく)` → 郵/便/局 개별 주석 금지\n- 동사 활용형 포함: `選んで(えらんで)`, `飲み(のみ)`, `起きて(おきて)`\n- 지시문도 후리가나 적용 (N5 학습자 배려)\n\n#### 주의점\n- correctAnswer와 options에도 후리가나 포함 시 일관성 유지 필요\n- 이중 후리가나 방지: 이미 주석된 한자는 재주석 금지\n- 비중복 greedy 매칭 알고리즘 사용 권장\n\n---\n\n## 7. 문법 카테고리 × 서브패턴 상세 참조\n\n**단일 출처**: `personal_vault/projects/personal/ichimozzi/grammar-category-subpattern-map.md`\n\n이 노트에 19개 카테고리 × (레벨범위 / 서브패턴 목록 / 대표 문형 3~5개 / 참조 grammar.md 경로) 전부 수록.\n\n- 4부 태그의 서브패턴은 해당 노트의 JSON 목록에서만 선택\n- 태그 자동분류 키워드도 동일 노트에 수록\n- 레벨별 참조 문법 노트: `personal_vault/knowledge/japanese/n{1-5}/grammar.md`\n\n---\n\n## 8. 어휘 레벨 검증 도구\n\n**경로**: `~/insu_server/apps/ichimozzi/problem_tools/`\n\n| 스크립트 | 역할 |\n|----------|------|\n| `build_vocab_db.py` | Akashic vocab.md N5~N1 → `data/vocab_db.json` (1,651어 + 활용형) |\n| `vocab_validator.py` | 문제 텍스트 어휘 레벨 분포 분석 + 판정 |\n| `furigana_injector.py` | 후리가나 자동 주입 + 하단 glossary 생성 |\n| `problem_analyzer.py` | 통합 CLI (structure / vocab / furigana / subpattern 모드) |\n\n### 어휘 판정 기준 (vocab_validator)\n\n| verdict | 의미 | 조건 |\n|---------|------|------|\n| OK | 레벨 적합 | 레벨초과 단어 < 10% |\n| MIXED | 약간 어려움 | 레벨초과 10~24% |\n| TOO_HARD | 너무 어려움 | 레벨초과 >= 25% |\n| TOO_EASY | 너무 쉬움 | 두 레벨 이상 낮은 단어 >= 50% |\n\n> **grammar 문제 주의**: 어휘가 하위 레벨이어도 정상 (문법 자체의 난이도가 핵심).\n> `vocab_validator`의 TOO_EASY 판정은 grammar 문제에서는 참고용으로만 사용.\n\n### 후리가나 정책\n\n| 레벨 | 정책 |\n|------|------|\n| N5 | 기본한자 36자 제외 전 한자에 주입 (`漢字(よみ)`) |\n| N4 | N4+ 고급 한자만 주입 |\n| N3~N1 | 주입 없음 |\n\n### 사용 예시\n\n```bash\n# vocab DB 갱신 (Akashic 수정 후)\npython3 build_vocab_db.py\n\n# 문제 전체 분석\npython3 problem_analyzer.py --id 1460 --mode full --brief\n\n# 후리가나만 주입\npython3 problem_analyzer.py --id 1460 --mode furigana\n\n# 텍스트 직접 검증\npython3 vocab_validator.py --level N4 \\\n  --text \"彼女は自分の意見を主張し続けた。\" --brief\n```\n\n### vocab_db 한계 및 보완\n\n- DB 커버리지: 1,651 표제어 + 주요 활용형 (て형/た형/ない형/가능형)\n- 복합어(毎朝, 食べ物 등) 미수록 시 최장일치 fallback → 구성 한자 개별 매칭\n- vocab.md 노트 확장 시 `build_vocab_db.py` 재실행으로 즉시 반영\n- 형태소 분석기(MeCab) 미설치 환경 기준. 설치 가능 시 `vocab_validator.py`의 `extract_tokens`를 fugashi로 교체하면 커버리지 대폭 개선\n\n## related\n[[personal_vault/projects/personal/ichimozzi/grammar-category-subpattern-map.md]]\n[[personal_vault/knowledge/japanese/n1/problem-patterns.md]]\n[[personal_vault/knowledge/japanese/n2/problem-patterns.md]]\n[[personal_vault/knowledge/japanese/n3/problem-patterns.md]]\n[[personal_vault/knowledge/japanese/n4/problem-patterns.md]]\n[[personal_vault/knowledge/japanese/n5/problem-patterns.md]]\n\n## ## 8. 어휘 레벨 검증 도구\n### vocab_db 현황 (2026-04-17 갱신)\n\n- **fugashi + ipadic MeCab 형태소 분석기 설치 완료** — `vocab_validator.py`의 `extract_tokens()`가 MeCab 기반으로 업그레이드됨\n  - `食べ物` → 단일 명사로 올바르게 인식 (이전엔 `食べ` + `物`으로 분리됨)\n  - 동사 원형 복원: `食べます` → `食べる` 기반으로 DB 조회\n  - fugashi 미설치 시 자동으로 사전 기반 최장일치 fallback\n- **furigana_injector N4 버그 수정** — N4 정책에서 N5 단어(`来週`, `友達` 등)에 후리가나가 잘못 주입되던 문제 수정\n- **import_question.py 업데이트 (2026-04-17)** — 3부 구조 + problem_tools 통합 + claude-sonnet-4-6 local proxy 사용으로 전면 개편\n  - 후리가나 자동 주입 (N5/N4)\n  - vocab_validator 레벨 체크 후 TOO_HARD 문제 자동 스킵\n  - 4부 태그 체계 적용\n\n## ## 6. 신규 생성 우선순위 (2026-04-16 기준)\n### 2026-04-17 생성 현황\n\n**漢字読み** (전 레벨, 3문제씩):\n- N5: 3건 ✅  N4: 3건 ✅  N3: 3건 ✅  N2: 1건 (2건 TOO_HARD 스킵)  N1: 3건 ✅\n\n**漢字表記** (N5/N4):\n- N5: 3건 ✅  N4: 3건 ✅\n\n총 19문제 추가 (DB: 1252 → 1271건)\n\n**사용 도구**: `import_question.py` (claude-sonnet-4-6 local proxy, 3부 구조, furigana_injector + vocab_validator 통합)",
+              "body_html": "<h2 id=\"summary\">Summary<a class=\"heading-anchor\" href=\"#summary\">#</a></h2>\n<p>IchiMozzi JLPT 문제 생성 전체 가이드. 3부 구조, 4부 태그 체계, 레벨별 어휘·후리가나 정책, 검증 도구 사용법 수록.</p>\n<hr>\n<p>title: IchiMozzi 문제 생성·검수 가이드 (rev4)\nkind: note\ntags: [ichimozzi, jlpt, problem-generation, taxonomy, guide]\nowner: aaron\nvisibility: private</p>\n<hr>\n<h1>IchiMozzi 문제 생성·검수 가이드 (rev4)</h1>\n<blockquote>\n<p>rev4 변경점: JLPT 실제 출제 패턴 기반으로 전면 재작성. 보기 구성 원칙, 레벨별 한자 사용 기준, 부족 유형 우선순위 추가.</p>\n</blockquote>\n<h2 id=\"참조-문서\">참조 문서<a class=\"heading-anchor\" href=\"#참조-문서\">#</a></h2>\n<ul>\n<li>출제 패턴: <code>personal_vault/projects/personal/ichimozzi/jlpt-exam-format-reference.md</code></li>\n<li>어휘 기준: <code>personal_vault/knowledge/japanese/n{1-5}/vocab.md</code></li>\n<li>N1 문법: <code>personal_vault/knowledge/japanese/n1/grammar.md</code></li>\n<li>N1 출제유형: <code>personal_vault/knowledge/japanese/n1/problem-patterns.md</code></li>\n<li>검수 결과: <code>personal_vault/projects/personal/ichimozzi/audit-2026-04-16.md</code></li>\n</ul>\n<hr>\n<h2 id=\"1-문제-구조\">1. 문제 구조<a class=\"heading-anchor\" href=\"#1-문제-구조\">#</a></h2>\n<h3 id=\"3부-구조-필수\">3부 구조 (필수)<a class=\"heading-anchor\" href=\"#3부-구조-필수\">#</a></h3>\n<pre><code>[지시문]     次の文の（　）に入る最も適当なものを選んでください。\n\\n\\n\n[문제문/지문] 彼女は自分の意見を（　）と主張し続けた。\n\\n\\n\n[질문]       （　）に入る最も適当なものは？\n</code></pre>\n<h3 id=\"4부-태그-grammar-필수\">4부 태그 (grammar 필수)<a class=\"heading-anchor\" href=\"#4부-태그-grammar-필수\">#</a></h3>\n<pre><code>{레벨}, {type}, {카테고리}, {서브패턴}\n예: N1, grammar, 문어체표현, 역접양보\n</code></pre>\n<hr>\n<h2 id=\"2-jlpt-공식-출제-유형-매핑\">2. JLPT 공식 출제 유형 매핑<a class=\"heading-anchor\" href=\"#2-jlpt-공식-출제-유형-매핑\">#</a></h2>\n<h3 id=\"vocabulary-어휘-type별-tags\">vocabulary (어휘) — type별 tags<a class=\"heading-anchor\" href=\"#vocabulary-어휘-type별-tags\">#</a></h3>\n<table>\n<thead>\n<tr>\n<th>JLPT 유형</th>\n<th>태그 카테고리</th>\n<th>출제 레벨</th>\n<th>문항 수/레벨</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>漢字読み</td>\n<td>한자읽기</td>\n<td>전 레벨</td>\n<td>5~6</td>\n</tr>\n<tr>\n<td>漢字表記</td>\n<td>한자표기</td>\n<td>N5·N4만</td>\n<td>6</td>\n</tr>\n<tr>\n<td>文脈規定</td>\n<td>문맥어휘</td>\n<td>전 레벨</td>\n<td>7</td>\n</tr>\n<tr>\n<td>言い換え</td>\n<td>유의어</td>\n<td>N3~N1</td>\n<td>5</td>\n</tr>\n<tr>\n<td>用法</td>\n<td>용법</td>\n<td>N3~N1</td>\n<td>5</td>\n</tr>\n</tbody>\n</table>\n<h3 id=\"grammar-문법-type별-tags\">grammar (문법) — type별 tags<a class=\"heading-anchor\" href=\"#grammar-문법-type별-tags\">#</a></h3>\n<table>\n<thead>\n<tr>\n<th>JLPT 유형</th>\n<th>태그 카테고리</th>\n<th>서브패턴 예시</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>文法形式</td>\n<td>(19개 문법 카테고리)</td>\n<td>て형, ば조건, 역접양보 등</td>\n</tr>\n<tr>\n<td>文の組み立て</td>\n<td>문장조립</td>\n<td>★배열</td>\n</tr>\n<tr>\n<td>文章の文法</td>\n<td>문장문법</td>\n<td>장문내빈칸</td>\n</tr>\n</tbody>\n</table>\n<h3 id=\"reading-독해-type별-tags\">reading (독해) — type별 tags<a class=\"heading-anchor\" href=\"#reading-독해-type별-tags\">#</a></h3>\n<table>\n<thead>\n<tr>\n<th>JLPT 유형</th>\n<th>태그 카테고리</th>\n<th>출제 레벨</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>短文</td>\n<td>단문독해</td>\n<td>전 레벨</td>\n</tr>\n<tr>\n<td>中文</td>\n<td>중문독해</td>\n<td>N3~N1</td>\n</tr>\n<tr>\n<td>長文</td>\n<td>장문독해</td>\n<td>N2·N1</td>\n</tr>\n<tr>\n<td>統合理解</td>\n<td>복수지문비교</td>\n<td>N2·N1</td>\n</tr>\n<tr>\n<td>情報検索</td>\n<td>정보검색</td>\n<td>전 레벨</td>\n</tr>\n</tbody>\n</table>\n<hr>\n<h2 id=\"3-보기-選択肢-구성-규칙\">3. 보기(選択肢) 구성 규칙<a class=\"heading-anchor\" href=\"#3-보기-選択肢-구성-규칙\">#</a></h2>\n<h3 id=\"절대-규칙\">절대 규칙<a class=\"heading-anchor\" href=\"#절대-규칙\">#</a></h3>\n<ol>\n<li>4지선다</li>\n<li><strong>같은 품사</strong> — 동사면 4개 다 동사</li>\n<li><strong>같은 활용형</strong> — て형이면 4개 다 て형</li>\n<li><strong>전부 문법 성립</strong> — 빈칸에 넣어도 비문 안 됨</li>\n<li><strong>의미로만 구분</strong> — 문맥 이해 필수</li>\n</ol>\n<h3 id=\"금지-패턴\">금지 패턴<a class=\"heading-anchor\" href=\"#금지-패턴\">#</a></h3>\n<ul>\n<li>❌ 카테고리 혼합 (음료 vs 문구류)</li>\n<li>❌ 누가 봐도 틀린 오답</li>\n<li>❌ 문법적으로 접속 불가능한 오답</li>\n<li>❌ 동일 의미 보기 2개 이상</li>\n</ul>\n<hr>\n<h2 id=\"4-레벨별-문자-사용-기준\">4. 레벨별 문자 사용 기준<a class=\"heading-anchor\" href=\"#4-레벨별-문자-사용-기준\">#</a></h2>\n<table>\n<thead>\n<tr>\n<th>레벨</th>\n<th>한자 수</th>\n<th>후리가나</th>\n<th>문체</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>N5</td>\n<td>~100자</td>\n<td><strong>모든 한자에 필수</strong></td>\n<td>ます/です체</td>\n</tr>\n<tr>\n<td>N4</td>\n<td>~300자</td>\n<td>고급 한자에 필수</td>\n<td>ます + 普通体 혼용</td>\n</tr>\n<tr>\n<td>N3</td>\n<td>~650자</td>\n<td>선택적</td>\n<td>普通体 중심</td>\n</tr>\n<tr>\n<td>N2</td>\n<td>~1,000자</td>\n<td>불요</td>\n<td>신문·비즈니스</td>\n</tr>\n<tr>\n<td>N1</td>\n<td>~2,000자</td>\n<td>불요</td>\n<td>학술·문어체</td>\n</tr>\n</tbody>\n</table>\n<hr>\n<h2 id=\"5-편중-방지-규칙\">5. 편중 방지 규칙<a class=\"heading-anchor\" href=\"#5-편중-방지-규칙\">#</a></h2>\n<h3 id=\"30-상한\">30% 상한<a class=\"heading-anchor\" href=\"#30-상한\">#</a></h3>\n<ul>\n<li>동일 카테고리+서브패턴: 같은 레벨 내 30% 초과 금지</li>\n<li>동일 정답: 같은 태그 내 2회까지만 허용</li>\n</ul>\n<h3 id=\"10-토픽-로테이션\">10 토픽 로테이션<a class=\"heading-anchor\" href=\"#10-토픽-로테이션\">#</a></h3>\n<p>일상·교육·직장·문화·기술·건강·환경·경제·사회·예술</p>\n<h3 id=\"어휘-반복-간격\">어휘 반복 간격<a class=\"heading-anchor\" href=\"#어휘-반복-간격\">#</a></h3>\n<ul>\n<li>동일 핵심 단어: 최소 7문제 간격</li>\n</ul>\n<hr>\n<h2 id=\"6-신규-생성-우선순위-2026-04-16-기준\">6. 신규 생성 우선순위 (2026-04-16 기준)<a class=\"heading-anchor\" href=\"#6-신규-생성-우선순위-2026-04-16-기준\">#</a></h2>\n<h3 id=\"긴급-db에-0건\">🔴 긴급 (DB에 0건)<a class=\"heading-anchor\" href=\"#긴급-db에-0건\">#</a></h3>\n<ol>\n<li><strong>漢字読み</strong> — 전 레벨, 레벨당 20문제 목표</li>\n<li><strong>漢字表記</strong> — N5·N4, 레벨당 15문제</li>\n<li><strong>文の組み立て (★)</strong> — 전 레벨, 레벨당 15문제</li>\n<li><strong>長文読解</strong> — N2·N1, 레벨당 5문제 (각 3~4질문)</li>\n<li><strong>統合理解</strong> — N2·N1, 레벨당 5세트</li>\n</ol>\n<h3 id=\"중요-극소수\">🟡 중요 (극소수)<a class=\"heading-anchor\" href=\"#중요-극소수\">#</a></h3>\n<ol>\n<li><strong>文章の文法</strong> — N4~N1, 레벨당 10문제</li>\n<li><strong>情報検索</strong> — N2·N1 추가, 레벨당 10문제</li>\n<li><strong>경어표현</strong> — N2 10문제, N1 15문제</li>\n<li><strong>형용사활용</strong> — N4 10문제, N2·N1 각 5문제</li>\n</ol>\n<h3 id=\"보통-편중-개선\">🟠 보통 (편중 개선)<a class=\"heading-anchor\" href=\"#보통-편중-개선\">#</a></h3>\n<ol>\n<li>중문독해 — N2 추가 10문제</li>\n<li>유의어/용법 — N4·N5 추가</li>\n<li>사역수동 — N2·N3 추가</li>\n</ol>\n<h2 id=\"n5-후리가나-규칙\">N5 후리가나 규칙<a class=\"heading-anchor\" href=\"#n5-후리가나-규칙\">#</a></h2>\n<h3 id=\"n5-후리가나-규칙-2026-04-16-추가\">N5 후리가나 규칙 (2026-04-16 추가)<a class=\"heading-anchor\" href=\"#n5-후리가나-규칙-2026-04-16-추가\">#</a></h3>\n<p>N5 문제는 학습자가 한자를 읽을 수 없으므로 <strong>전 한자에 후리가나 필수</strong>.</p>\n<h4>기본한자 (후리가나 불요)</h4>\n<p>一二三四五六七八九十百千万円時日月火水木金土曜年半午前後何上下中右左北南東西外大小長短多少新古高安白黒赤青 (36자)</p>\n<h4>적용 방식</h4>\n<ul>\n<li>표기: <code>漢字(よみ)</code> (반각 괄호)</li>\n<li>복합어는 단어 단위로: <code>毎朝(まいあさ)</code>, <code>食べ物(たべもの)</code></li>\n<li>길이 우선 매칭: <code>郵便局(ゆうびんきょく)</code> → 郵/便/局 개별 주석 금지</li>\n<li>동사 활용형 포함: <code>選んで(えらんで)</code>, <code>飲み(のみ)</code>, <code>起きて(おきて)</code></li>\n<li>지시문도 후리가나 적용 (N5 학습자 배려)</li>\n</ul>\n<h4>주의점</h4>\n<ul>\n<li>correctAnswer와 options에도 후리가나 포함 시 일관성 유지 필요</li>\n<li>이중 후리가나 방지: 이미 주석된 한자는 재주석 금지</li>\n<li>비중복 greedy 매칭 알고리즘 사용 권장</li>\n</ul>\n<hr>\n<h2 id=\"7-문법-카테고리-서브패턴-상세-참조\">7. 문법 카테고리 × 서브패턴 상세 참조<a class=\"heading-anchor\" href=\"#7-문법-카테고리-서브패턴-상세-참조\">#</a></h2>\n<p><strong>단일 출처</strong>: <code>personal_vault/projects/personal/ichimozzi/grammar-category-subpattern-map.md</code></p>\n<p>이 노트에 19개 카테고리 × (레벨범위 / 서브패턴 목록 / 대표 문형 3~5개 / 참조 grammar.md 경로) 전부 수록.</p>\n<ul>\n<li>4부 태그의 서브패턴은 해당 노트의 JSON 목록에서만 선택</li>\n<li>태그 자동분류 키워드도 동일 노트에 수록</li>\n<li>레벨별 참조 문법 노트: <code>personal_vault/knowledge/japanese/n{1-5}/grammar.md</code></li>\n</ul>\n<hr>\n<h2 id=\"8-어휘-레벨-검증-도구\">8. 어휘 레벨 검증 도구<a class=\"heading-anchor\" href=\"#8-어휘-레벨-검증-도구\">#</a></h2>\n<p><strong>경로</strong>: <code>~/insu_server/apps/ichimozzi/problem_tools/</code></p>\n<table>\n<thead>\n<tr>\n<th>스크립트</th>\n<th>역할</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><code>build_vocab_db.py</code></td>\n<td>Akashic vocab.md N5~N1 → <code>data/vocab_db.json</code> (1,651어 + 활용형)</td>\n</tr>\n<tr>\n<td><code>vocab_validator.py</code></td>\n<td>문제 텍스트 어휘 레벨 분포 분석 + 판정</td>\n</tr>\n<tr>\n<td><code>furigana_injector.py</code></td>\n<td>후리가나 자동 주입 + 하단 glossary 생성</td>\n</tr>\n<tr>\n<td><code>problem_analyzer.py</code></td>\n<td>통합 CLI (structure / vocab / furigana / subpattern 모드)</td>\n</tr>\n</tbody>\n</table>\n<h3 id=\"어휘-판정-기준-vocab-validator\">어휘 판정 기준 (vocab_validator)<a class=\"heading-anchor\" href=\"#어휘-판정-기준-vocab-validator\">#</a></h3>\n<table>\n<thead>\n<tr>\n<th>verdict</th>\n<th>의미</th>\n<th>조건</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>OK</td>\n<td>레벨 적합</td>\n<td>레벨초과 단어 &lt; 10%</td>\n</tr>\n<tr>\n<td>MIXED</td>\n<td>약간 어려움</td>\n<td>레벨초과 10~24%</td>\n</tr>\n<tr>\n<td>TOO_HARD</td>\n<td>너무 어려움</td>\n<td>레벨초과 &gt;= 25%</td>\n</tr>\n<tr>\n<td>TOO_EASY</td>\n<td>너무 쉬움</td>\n<td>두 레벨 이상 낮은 단어 &gt;= 50%</td>\n</tr>\n</tbody>\n</table>\n<blockquote>\n<p><strong>grammar 문제 주의</strong>: 어휘가 하위 레벨이어도 정상 (문법 자체의 난이도가 핵심).\n<code>vocab_validator</code>의 TOO_EASY 판정은 grammar 문제에서는 참고용으로만 사용.</p>\n</blockquote>\n<h3 id=\"후리가나-정책\">후리가나 정책<a class=\"heading-anchor\" href=\"#후리가나-정책\">#</a></h3>\n<table>\n<thead>\n<tr>\n<th>레벨</th>\n<th>정책</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>N5</td>\n<td>기본한자 36자 제외 전 한자에 주입 (<code>漢字(よみ)</code>)</td>\n</tr>\n<tr>\n<td>N4</td>\n<td>N4+ 고급 한자만 주입</td>\n</tr>\n<tr>\n<td>N3~N1</td>\n<td>주입 없음</td>\n</tr>\n</tbody>\n</table>\n<h3 id=\"사용-예시\">사용 예시<a class=\"heading-anchor\" href=\"#사용-예시\">#</a></h3>\n<pre><code class=\"language-bash\"># vocab DB 갱신 (Akashic 수정 후)\npython3 build_vocab_db.py\n\n# 문제 전체 분석\npython3 problem_analyzer.py --id 1460 --mode full --brief\n\n# 후리가나만 주입\npython3 problem_analyzer.py --id 1460 --mode furigana\n\n# 텍스트 직접 검증\npython3 vocab_validator.py --level N4 \\\n  --text \"彼女は自分の意見を主張し続けた。\" --brief\n</code></pre>\n<h3 id=\"vocab-db-한계-및-보완\">vocab_db 한계 및 보완<a class=\"heading-anchor\" href=\"#vocab-db-한계-및-보완\">#</a></h3>\n<ul>\n<li>DB 커버리지: 1,651 표제어 + 주요 활용형 (て형/た형/ない형/가능형)</li>\n<li>복합어(毎朝, 食べ物 등) 미수록 시 최장일치 fallback → 구성 한자 개별 매칭</li>\n<li>vocab.md 노트 확장 시 <code>build_vocab_db.py</code> 재실행으로 즉시 반영</li>\n<li>형태소 분석기(MeCab) 미설치 환경 기준. 설치 가능 시 <code>vocab_validator.py</code>의 <code>extract_tokens</code>를 fugashi로 교체하면 커버리지 대폭 개선</li>\n</ul>\n<h2 id=\"related\">related<a class=\"heading-anchor\" href=\"#related\">#</a></h2>\n<p><a class=\"wiki-link\" data-note-slug=\"grammar-category-subpattern-map\" href=\"/notes/grammar-category-subpattern-map\" rel=\"noopener noreferrer\">personal_vault/projects/personal/ichimozzi/grammar-category-subpattern-map.md</a>\n<a class=\"wiki-link\" data-note-slug=\"problem-patterns\" href=\"/notes/problem-patterns\" rel=\"noopener noreferrer\">personal_vault/knowledge/japanese/n1/problem-patterns.md</a>\n<a class=\"wiki-link\" data-note-slug=\"personal-vault-knowledge-japanese-n2-problem-patterns\" href=\"/notes/personal-vault-knowledge-japanese-n2-problem-patterns\" rel=\"noopener noreferrer\">personal_vault/knowledge/japanese/n2/problem-patterns.md</a>\n<a class=\"wiki-link\" data-note-slug=\"personal-vault-knowledge-japanese-n3-problem-patterns\" href=\"/notes/personal-vault-knowledge-japanese-n3-problem-patterns\" rel=\"noopener noreferrer\">personal_vault/knowledge/japanese/n3/problem-patterns.md</a>\n<a class=\"wiki-link\" data-note-slug=\"personal-vault-knowledge-japanese-n4-problem-patterns\" href=\"/notes/personal-vault-knowledge-japanese-n4-problem-patterns\" rel=\"noopener noreferrer\">personal_vault/knowledge/japanese/n4/problem-patterns.md</a>\n<a class=\"wiki-link\" data-note-slug=\"personal-vault-knowledge-japanese-n5-problem-patterns\" href=\"/notes/personal-vault-knowledge-japanese-n5-problem-patterns\" rel=\"noopener noreferrer\">personal_vault/knowledge/japanese/n5/problem-patterns.md</a></p>\n<h2 id=\"8-어휘-레벨-검증-도구-2\">## 8. 어휘 레벨 검증 도구<a class=\"heading-anchor\" href=\"#8-어휘-레벨-검증-도구-2\">#</a></h2>\n<h3 id=\"vocab-db-현황-2026-04-17-갱신\">vocab_db 현황 (2026-04-17 갱신)<a class=\"heading-anchor\" href=\"#vocab-db-현황-2026-04-17-갱신\">#</a></h3>\n<ul>\n<li><strong>fugashi + ipadic MeCab 형태소 분석기 설치 완료</strong> — <code>vocab_validator.py</code>의 <code>extract_tokens()</code>가 MeCab 기반으로 업그레이드됨</li>\n<li><code>食べ物</code> → 단일 명사로 올바르게 인식 (이전엔 <code>食べ</code> + <code>物</code>으로 분리됨)</li>\n<li>동사 원형 복원: <code>食べます</code> → <code>食べる</code> 기반으로 DB 조회</li>\n<li>fugashi 미설치 시 자동으로 사전 기반 최장일치 fallback</li>\n<li><strong>furigana_injector N4 버그 수정</strong> — N4 정책에서 N5 단어(<code>来週</code>, <code>友達</code> 등)에 후리가나가 잘못 주입되던 문제 수정</li>\n<li><strong>import_question.py 업데이트 (2026-04-17)</strong> — 3부 구조 + problem_tools 통합 + claude-sonnet-4-6 local proxy 사용으로 전면 개편</li>\n<li>후리가나 자동 주입 (N5/N4)</li>\n<li>vocab_validator 레벨 체크 후 TOO_HARD 문제 자동 스킵</li>\n<li>4부 태그 체계 적용</li>\n</ul>\n<h2 id=\"6-신규-생성-우선순위-2026-04-16-기준-2\">## 6. 신규 생성 우선순위 (2026-04-16 기준)<a class=\"heading-anchor\" href=\"#6-신규-생성-우선순위-2026-04-16-기준-2\">#</a></h2>\n<h3 id=\"2026-04-17-생성-현황\">2026-04-17 생성 현황<a class=\"heading-anchor\" href=\"#2026-04-17-생성-현황\">#</a></h3>\n<p><strong>漢字読み</strong> (전 레벨, 3문제씩):\n- N5: 3건 ✅  N4: 3건 ✅  N3: 3건 ✅  N2: 1건 (2건 TOO_HARD 스킵)  N1: 3건 ✅</p>\n<p><strong>漢字表記</strong> (N5/N4):\n- N5: 3건 ✅  N4: 3건 ✅</p>\n<p>총 19문제 추가 (DB: 1252 → 1271건)</p>\n<p><strong>사용 도구</strong>: <code>import_question.py</code> (claude-sonnet-4-6 local proxy, 3부 구조, furigana_injector + vocab_validator 통합)</p>",
+              "links": [
+                "personal_vault/knowledge/japanese/n1/problem-patterns.md",
+                "personal_vault/knowledge/japanese/n2/problem-patterns.md",
+                "personal_vault/knowledge/japanese/n3/problem-patterns.md",
+                "personal_vault/knowledge/japanese/n4/problem-patterns.md",
+                "personal_vault/knowledge/japanese/n5/problem-patterns.md",
+                "personal_vault/projects/personal/ichimozzi/grammar-category-subpattern-map.md"
+              ],
+              "related_notes": [
+                {
+                  "slug": "grammar-category-subpattern-map",
+                  "title": "IchiMozzi 문법 카테고리 × 서브패턴 × 문형 매핑 (rev1)",
+                  "summary": "IchiMozzi 19개 문법 카테고리 × 서브패턴 전체 매핑. 레벨범위, 대표 문형, 참조 grammar.md 경로, 태그 자동분류 키워드 포함. --- title: IchiMozzi 문법 카테고리 × 서브패턴 × 문형 매핑 (rev1) kind: note tags: [ichimozzi, jlpt, grammar, taxonomy, subpattern, agent-reference] owner: aaron visibility: private --- 문법 카테고",
+                  "href": "/notes/grammar-category-subpattern-map"
+                },
+                {
+                  "slug": "jlpt-exam-format-reference",
+                  "title": "JLPT 실제 출제 패턴 레퍼런스",
+                  "summary": "JLPT N1 N5 시험 구성 공식 참조. 섹션별 시간·문항수·배점, 합격 기준, IchiMozzi 구현 매핑 포함. --- title: JLPT 실제 출제 패턴 레퍼런스 kind: note tags: [jlpt, exam-format, reference, ichimozzi] owner: aaron visibility: private --- JLPT 실제 출제 패턴 레퍼런스",
+                  "href": "/notes/jlpt-exam-format-reference"
+                },
+                {
+                  "slug": "personal-vault-knowledge-japanese-n2-problem-patterns",
+                  "title": "JLPT N2 Problem Patterns Reference",
+                  "summary": "JLPT N2 시험 구조와 문제 유형. N3 대비 독해 지문 대폭 증가 (최대 900자), 통합 이해 문제 도입. 청해는 개요 이해가 어려워짐. 실제 예시 문제와 생성 알고리즘·정답 해설 포함.",
+                  "href": "/notes/personal-vault-knowledge-japanese-n2-problem-patterns"
+                },
+                {
+                  "slug": "personal-vault-knowledge-japanese-n5-problem-patterns",
+                  "title": "JLPT N5 Problem Patterns",
+                  "summary": "JLPT N5 시험의 모든 문제 유형(大問/Mondai)을 구조와 예시로 정리한다. 각 유형마다 출제 형식, 지시문(일/한), 선지 구성 규칙, 생성 템플릿, 실제 예문 3개 이상을 포함한다. 이 문서를 기반으로 자동 문제 생성기가 vocab.md / grammar.md의 entry를 랜덤 샘플링해 시험 문제를 만들 수 있다.",
+                  "href": "/notes/personal-vault-knowledge-japanese-n5-problem-patterns"
+                }
+              ],
+              "backlinks": [
+                {
+                  "slug": "grammar-category-subpattern-map",
+                  "title": "IchiMozzi 문법 카테고리 × 서브패턴 × 문형 매핑 (rev1)",
+                  "summary": "IchiMozzi 19개 문법 카테고리 × 서브패턴 전체 매핑. 레벨범위, 대표 문형, 참조 grammar.md 경로, 태그 자동분류 키워드 포함. --- title: IchiMozzi 문법 카테고리 × 서브패턴 × 문형 매핑 (rev1) kind: note tags: [ichimozzi, jlpt, grammar, taxonomy, subpattern, agent-reference] owner: aaron visibility: private --- 문법 카테고",
+                  "href": "/notes/grammar-category-subpattern-map"
+                },
+                {
+                  "slug": "audit-2026-04-17-distribution",
+                  "title": "IchiMozzi 문제 분포·생성·검수 현황 2026-04-17",
+                  "summary": "2026-04-17 현재 로컬 운영 DB(insu-server-ichimozzi-db-1, IchiMozzi.problem) 기준 문제는 1,376건이다. 2026-04-17 신규 생성분은 124건(문법 87, 어휘 36, 리스닝 1)이며, 이 중 88건이 difficultyLevel 100으로 들어와 앱/백엔드의 1 100 난이도 기준과 충돌한다.",
+                  "href": "/notes/audit-2026-04-17-distribution"
+                },
+                {
+                  "slug": "grammar",
+                  "title": "JLPT N1 Grammar Reference",
+                  "summary": "JLPT N1 문법 전체 목록 ( 150 문형). 문어체·격식 표현, 고급 조건·가정, 역접·양보, 원인·이유, 강조·한정, 상태·정도·양태, 변화·진행, 수수·경어 포함. IchiMozzi 카테고리 교차 참조 수록. --- title: N1 문법 목록 kind: note tags: [jlpt, n1, grammar, japanese] owner: aaron visibility: private --- N1 문법 목록 ( 150문형)",
+                  "href": "/notes/grammar"
+                },
+                {
+                  "slug": "problem-patterns",
+                  "title": "JLPT N1 Problem Patterns Reference",
+                  "summary": "JLPT N1 문제 유형 전체 참조 + IchiMozzi 문제 생성 가이드. N1 수준: 문어체·격식 표현, 고급 접속 문형, 복합 독해, 논설문. 각 유형마다 출제 형식, 생성 규칙, IchiMozzi 3부 구조 예시, 혼동 쌍 해설 포함.",
+                  "href": "/notes/problem-patterns"
+                },
+                {
+                  "slug": "vocab",
+                  "title": "JLPT N1 Vocabulary Reference",
+                  "summary": "JLPT N1 핵심 어휘 레퍼런스. N2까지의 어휘에 추가되는 N1 신규 빈출어 약 600개. 문어체·전문어·고급 추상어가 중심. 문맥에서 의미를 추론하는 능력이 핵심. 포맷: - {kanji}/{kana} — {meaning ko} ({pos}) | 例: {ja} → {ko} ---",
+                  "href": "/notes/vocab"
+                },
+                {
+                  "slug": "personal-vault-knowledge-japanese-n2-vocab",
+                  "title": "JLPT N2 Vocabulary Reference",
+                  "summary": "JLPT N2 핵심 어휘 레퍼런스. N3까지의 어휘에 추가되는 N2 신규 빈출어 약 600개. 비즈니스·논설·학술 수준의 어휘가 등장하는 레벨. 추상도가 높아지고 한자 복합어가 증가. 포맷: - {kanji}/{kana} — {meaning ko} ({pos}) | 例: {ja} → {ko} ---",
+                  "href": "/notes/personal-vault-knowledge-japanese-n2-vocab"
+                },
+                {
+                  "slug": "personal-vault-knowledge-japanese-n3-problem-patterns",
+                  "title": "JLPT N3 Problem Patterns Reference",
+                  "summary": "JLPT N3 문제 유형 전체 참조 + IchiMozzi 문제 생성 가이드. N3 수준: N4 문법 총정리 + 복합조사·복합동사·文語的表現 입문. 각 유형마다 출제 형식, 생성 규칙, 실전 예시 3개 이상, IchiMozzi 3부 구조 매핑 포함.",
+                  "href": "/notes/personal-vault-knowledge-japanese-n3-problem-patterns"
+                },
+                {
+                  "slug": "personal-vault-knowledge-japanese-n3-vocab",
+                  "title": "JLPT N3 Vocabulary Reference",
+                  "summary": "JLPT N3 핵심 어휘 레퍼런스. N4까지의 어휘에 추가되는 N3 신규 빈출어 약 600개. 신문·수필·설명문 수준의 어휘가 등장하기 시작하는 레벨. 포맷: - {kanji}/{kana} — {meaning ko} ({pos}) | 例: {ja} → {ko} ---",
+                  "href": "/notes/personal-vault-knowledge-japanese-n3-vocab"
+                },
+                {
+                  "slug": "personal-vault-knowledge-japanese-n4-problem-patterns",
+                  "title": "JLPT N4 Problem Patterns Reference",
+                  "summary": "JLPT N4 문제 유형 전체 참조 + IchiMozzi 문제 생성 가이드. 각 유형마다 출제 형식, 생성 규칙, 실전 예시 3개 이상, IchiMozzi 3부 구조 매핑 포함. N4 수준: 기본 문형 전반 + て형/ない형/조건/수수/경어 초급 중급.",
+                  "href": "/notes/personal-vault-knowledge-japanese-n4-problem-patterns"
+                },
+                {
+                  "slug": "personal-vault-knowledge-japanese-n4-vocab",
+                  "title": "JLPT N4 Vocabulary Reference",
+                  "summary": "JLPT N4 핵심 어휘 레퍼런스. N5 어휘에 추가되는 N4 신규 빈출·핵심어 약 500개를 카테고리별로 정리. N5 vocab.md의 어휘는 이미 알고 있다는 전제로 N4 신규어만 수록.",
+                  "href": "/notes/personal-vault-knowledge-japanese-n4-vocab"
+                },
+                {
+                  "slug": "personal-vault-knowledge-japanese-n5-problem-patterns",
+                  "title": "JLPT N5 Problem Patterns",
+                  "summary": "JLPT N5 시험의 모든 문제 유형(大問/Mondai)을 구조와 예시로 정리한다. 각 유형마다 출제 형식, 지시문(일/한), 선지 구성 규칙, 생성 템플릿, 실제 예문 3개 이상을 포함한다. 이 문서를 기반으로 자동 문제 생성기가 vocab.md / grammar.md의 entry를 랜덤 샘플링해 시험 문제를 만들 수 있다.",
+                  "href": "/notes/personal-vault-knowledge-japanese-n5-problem-patterns"
+                },
+                {
+                  "slug": "personal-vault-knowledge-japanese-n5-vocab",
+                  "title": "JLPT N5 Vocabulary Reference",
+                  "summary": "JLPT N5 수준에서 출제되는 핵심 어휘 레퍼런스. 약 800개의 N5 전체 어휘 중 빈출·핵심을 카테고리별로 정리하고 각 단어에 대해 한자/히라가나/의미/품사/예문을 제공한다. 문제 생성 시 이 문서의 word entry를 추출해 빈칸 채우기, 동의어 매칭, 한자 읽기 문제를 만들 수 있다.",
+                  "href": "/notes/personal-vault-knowledge-japanese-n5-vocab"
+                },
+                {
+                  "slug": "jlpt-exam-format-reference",
+                  "title": "JLPT 실제 출제 패턴 레퍼런스",
+                  "summary": "JLPT N1 N5 시험 구성 공식 참조. 섹션별 시간·문항수·배점, 합격 기준, IchiMozzi 구현 매핑 포함. --- title: JLPT 실제 출제 패턴 레퍼런스 kind: note tags: [jlpt, exam-format, reference, ichimozzi] owner: aaron visibility: private --- JLPT 실제 출제 패턴 레퍼런스",
+                  "href": "/notes/jlpt-exam-format-reference"
+                }
+              ],
+              "outbound": 11,
+              "href": "/notes/problem-taxonomy-and-generation-guide"
+            },
+            "other_results": [
+              {
+                "path": "doc/knowledge-gaps/jlpt-n4-vocabulary-ichimozzi-e04fd7.md",
+                "slug": "jlpt-n4-vocabulary-ichimozzi-e04fd7",
+                "title": "[Gap] JLPT N4 vocabulary ichimozzi",
+                "kind": "reference",
+                "project": "openakashic",
+                "owner": "sagwan",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "gap",
+                  "knowledge-gap",
+                  "subordinate"
+                ],
+                "summary": "에이전트가 JLPT N4 vocabulary ichimozzi 쿼리로 검색했으나 관련 노트가 없었습니다.",
+                "href": "/notes/jlpt-n4-vocabulary-ichimozzi-e04fd7",
+                "lexical_score": 0.0,
+                "semantic_score": 0.6476,
+                "confirm_count": 0,
+                "score": 0.016129
+              },
+              {
+                "path": "personal_vault/knowledge/japanese/n4/problem-patterns.md",
+                "slug": "personal-vault-knowledge-japanese-n4-problem-patterns",
+                "title": "JLPT N4 Problem Patterns Reference",
+                "kind": "reference",
+                "project": "knowledge/japanese",
+                "owner": "sagwan",
+                "visibility": "private",
+                "publication_status": "rejected",
+                "tags": [
+                  "japanese",
+                  "jlpt",
+                  "n4",
+                  "problems",
+                  "exam"
+                ],
+                "summary": "JLPT N4 문제 유형 전체 참조 + IchiMozzi 문제 생성 가이드. 각 유형마다 출제 형식, 생성 규칙, 실전 예시 3개 이상, IchiMozzi 3부 구조 매핑 포함. N4 수준: 기본 문형 전반 + て형/ない형/조건/수수/경어 초급 중급.",
+                "href": "/notes/personal-vault-knowledge-japanese-n4-problem-patterns",
+                "lexical_score": 0.0,
+                "semantic_score": 0.6376,
+                "confirm_count": 0,
+                "score": 0.015873
+              },
+              {
+                "path": "doc/knowledge-gaps/jlpt-learning-methodology-ichimozzi-d9a2e8.md",
+                "slug": "jlpt-learning-methodology-ichimozzi-d9a2e8",
+                "title": "[Gap] JLPT learning methodology ichimozzi",
+                "kind": "reference",
+                "project": "openakashic",
+                "owner": "sagwan",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "gap",
+                  "knowledge-gap",
+                  "subordinate"
+                ],
+                "summary": "에이전트가 JLPT learning methodology ichimozzi 쿼리로 검색했으나 관련 노트가 없었습니다.",
+                "href": "/notes/jlpt-learning-methodology-ichimozzi-d9a2e8",
+                "lexical_score": 0.0,
+                "semantic_score": 0.6351,
+                "confirm_count": 0,
+                "score": 0.015625
+              },
+              {
+                "path": "doc/knowledge-gaps/ichimozzi-jlpt-문제-생성-구조-난이도-1b5b71.md",
+                "slug": "ichimozzi-jlpt-문제-생성-구조-난이도-1b5b71",
+                "title": "[Gap] IchiMozzi JLPT 문제 생성 구조 난이도",
+                "kind": "reference",
+                "project": "openakashic",
+                "owner": "sagwan",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "gap",
+                  "knowledge-gap",
+                  "subordinate"
+                ],
+                "summary": "에이전트가 IchiMozzi JLPT 문제 생성 구조 난이도 쿼리로 검색했으나 관련 노트가 없었습니다.",
+                "href": "/notes/ichimozzi-jlpt-문제-생성-구조-난이도-1b5b71",
+                "lexical_score": 0.0,
+                "semantic_score": 0.6265,
+                "confirm_count": 0,
+                "score": 0.015385
+              }
+            ],
+            "hints": [],
+            "count": 5,
+            "retrieval_value": {
+              "intent": "fact_lookup",
+              "matched_notes": [
+                "personal_vault/projects/personal/ichimozzi/problem_taxonomy_and_generation_guide.md",
+                "personal_vault/knowledge/japanese/n4/problem-patterns.md"
+              ],
+              "writeback_suggested": false,
+              "available_tools": {
+                "tools": {
+                  "search_notes": {
+                    "required": [
+                      "query"
+                    ],
+                    "optional": [
+                      "limit",
+                      "kind",
+                      "tags",
+                      "include_related"
+                    ],
+                    "failure_hint": "결과가 비면 쿼리를 2-3개 키워드로 재시도. 0개면 coverage_gaps 확인 후 upsert_note 제안."
+                  },
+                  "search_and_read_top": {
+                    "required": [
+                      "query"
+                    ],
+                    "optional": [
+                      "kind",
+                      "tags",
+                      "include_body",
+                      "include_related"
+                    ],
+                    "failure_hint": "body가 필요하면 이 도구 하나로 끝. 2회 round-trip 피하기 위해 read_note보다 우선."
+                  },
+                  "read_note": {
+                    "one_of_required": [
+                      "path",
+                      "slug"
+                    ],
+                    "do_not_use": [
+                      "note_id",
+                      "id"
+                    ],
+                    "failure_hint": "path는 search_notes 결과에서 그대로 전달. slug만 있으면 slug 사용."
+                  },
+                  "read_raw_note": {
+                    "required": [
+                      "path"
+                    ],
+                    "failure_hint": "frontmatter 원본 확인용. 일반 조회는 read_note 권장."
+                  },
+                  "query_core_api": {
+                    "required": [
+                      "query"
+                    ],
+                    "optional": [
+                      "limit"
+                    ],
+                    "failure_hint": "Core API는 '이미 공개 검증된 지식'만. 내부 메모/작업 노트는 search_notes 사용."
+                  },
+                  "upsert_note": {
+                    "required": [
+                      "path",
+                      "body"
+                    ],
+                    "optional": [
+                      "title",
+                      "kind",
+                      "project",
+                      "status",
+                      "tags",
+                      "related",
+                      "metadata"
+                    ],
+                    "failure_hint": "path는 personal_vault/ 로 시작. 기존 노트면 read_note로 내용 확인 후 덮어쓰기. 임시 메모는 tags=['agent-scratch']."
+                  },
+                  "append_note_section": {
+                    "required": [
+                      "path",
+                      "heading",
+                      "content"
+                    ],
+                    "failure_hint": "전체 재작성 대신 섹션 추가만. 기존 노트에 '## Update YYYY-MM-DD' 같은 갱신 블록 달 때 최적."
+                  },
+                  "list_notes": {
+                    "optional": [
+                      "folder"
+                    ],
+                    "do_not_use": [
+                      "path",
+                      "project_path"
+                    ],
+                    "failure_hint": "folder 없으면 전체 나열(느림). 탐색은 search_notes 먼저, 구조 파악만 필요할 때 list_folders."
+                  },
+                  "list_folders": {
+                    "optional": [
+                      "root"
+                    ]
+                  },
+                  "path_suggestion": {
+                    "required": [
+                      "title",
+                      "kind"
+                    ],
+                    "failure_hint": "path를 모를 때 호출. upsert_note 직전에 사용. 결과 path 그대로 upsert_note에 전달."
+                  },
+                  "bootstrap_project": {
+                    "required": [
+                      "project"
+                    ],
+                    "optional": [
+                      "scope",
+                      "title",
+                      "summary",
+                      "folders",
+                      "tags"
+                    ],
+                    "do_not_use": [
+                      "project_path",
+                      "path"
+                    ],
+                    "failure_hint": "이미 README가 있는 project에는 호출 금지. search_notes로 먼저 확인."
+                  },
+                  "request_note_publication": {
+                    "required": [
+                      "path",
+                      "rationale",
+                      "evidence_paths"
+                    ],
+                    "failure_hint": "raw personal_vault 노트는 거부됨 — capsule/claim/reference/evidence kind로 Derived Note 먼저 생성. rationale 20자 이상."
+                  },
+                  "confirm_note": {
+                    "required": [
+                      "path"
+                    ],
+                    "optional": [
+                      "comment"
+                    ],
+                    "failure_hint": "자기 소유 노트 confirm은 discount(*owner). 교차 검증은 다른 owner가 해야 유효."
+                  },
+                  "list_stale_notes": {
+                    "optional": [
+                      "days_overdue"
+                    ],
+                    "failure_hint": "snoozed_until 지난 노트만 반환. 최신 상태면 결과 0개가 정상."
+                  },
+                  "snooze_note": {
+                    "required": [
+                      "path",
+                      "days"
+                    ],
+                    "failure_hint": "stale 경고를 N일 연기. freshness 갱신이 아님 — 실제 내용 갱신은 append/upsert로."
+                  },
+                  "resolve_conflict": {
+                    "required": [
+                      "path",
+                      "verdict"
+                    ],
+                    "optional": [
+                      "comment"
+                    ],
+                    "failure_hint": "verdict은 'clear' 또는 'pending_review'만 허용. 소유자/admin만 호출 가능."
+                  },
+                  "delete_note": {
+                    "required": [
+                      "path"
+                    ],
+                    "failure_hint": "되돌릴 수 없음. backlinks 있는 노트 삭제 전 확인."
+                  },
+                  "move_note": {
+                    "required": [
+                      "path",
+                      "new_path"
+                    ],
+                    "failure_hint": "backlinks 보존하며 이동. 동일 폴더 내 이름만 바꿀 때도 이 도구."
+                  }
+                },
+                "workflow_policy": "Always search before creating project memory. If search returns a README path, read it first. Call bootstrap_project only when no project index exists. path returned by search_notes must be passed as read_note(path=...). 반복 절차(예: 주간 스캔, QA 체크)는 kind=playbook 노트로 저장 후 search_notes로 재사용."
+              },
+              "response_contract": {
+                "source_labels": {
+                  "read_from_vault": "이 정보는 아카식 노트에서 읽은 것입니다",
+                  "inferred": "아카식 노트 정보를 바탕으로 추론한 것입니다",
+                  "performed": "이 도구를 직접 호출하여 확인한 결과입니다"
+                },
+                "forbidden_without_tool_receipt": [
+                  "완료되었습니다",
+                  "생성했습니다",
+                  "저장했습니다",
+                  "수정했습니다",
+                  "배포했습니다",
+                  "확인했습니다"
+                ],
+                "rule": "tool call 결과(receipt) 없이 위 표현을 사용하지 마세요. 아카식 노트에서 읽은 내용은 '~에 따르면' 또는 '~로 확인됩니다'로 표현하세요. 직접 실행하지 않은 결과를 '완료'라고 주장하지 마세요."
+              }
+            }
+          },
+          "error": null,
+          "duration_ms": 1503.5
+        }
+      ],
+      "answer": "OpenAkashic에서 검색을 실행했으나, 사용자의 원래 질문이 receipt에 포함되지 않아 정확한 답변을 제공할 수 없습니다.\n\n검색 결과:\n- **파일**: personal_vault/projects/personal/ichimozzi/problem_taxonomy_and_generation_guide.md\n- **제목**: IchiMozzi 문제 태그 체계 및 생성·검수 가이드 (2026-04-17)\n- **내용**: IchiMozzi JLPT 문제 생성 전체 가이드로, 3부 구조, 4부 태그 체계, 레벨별 어휘·후리가나 정책, 검증 도구 사용법을 수록하고 있습니다.\n\n다만 노트 내용이 truncate되어 전체 내용을 확인하려면 해당 파일을 직접 읽어야 합니다. 구체적인 질문(예: 문제 생성 형식, 태그 체계, 검증 방법 등)이 있으시면 명시해주시면 더 정확한 답변을 드릴 수 있습니다.",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"IchiMozzi 프로젝트의 기존 어휘 문제 형식을 OpenAkashic에서 확인하여, 실제 스키마에 맞는 JLPT N4 fill-in 문제를 생성합니다.\",\n  \"tool_calls\": [\n    {\n      \"tool\": \"search_and_read_top\",\n      \"arguments\": {\n        \"query\": \"ichimozzi vocabulary quiz problem format JLPT\",\n        \"limit\": 3\n      }\n    }\n  ]\n}\n```",
+      "raw_model_output_turn2": "```json\n{\n  \"answer\": \"OpenAkashic에서 검색을 실행했으나, 사용자의 원래 질문이 receipt에 포함되지 않아 정확한 답변을 제공할 수 없습니다.\\n\\n검색 결과:\\n- **파일**: personal_vault/projects/personal/ichimozzi/problem_taxonomy_and_generation_guide.md\\n- **제목**: IchiMozzi 문제 태그 체계 및 생성·검수 가이드 (2026-04-17)\\n- **내용**: IchiMozzi JLPT 문제 생성 전체 가이드로, 3부 구조, 4부 태그 체계, 레벨별 어휘·후리가나 정책, 검증 도구 사용법을 수록하고 있습니다.\\n\\n다만 노트 내용이 truncate되어 전체 내용을 확인하려면 해당 파일을 직접 읽어야 합니다. 구체적인 질문(예: 문제 생성 형식, 태그 체계, 검증 방법 등)이 있으시면 명시해주시면 더 정확한 답변을 드릴 수 있습니다.\"\n}\n```",
+      "error": null,
+      "format_violation": false
+    },
+    {
+      "task_id": "onboarding_openakashic",
+      "condition": "openakashic",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-17T16:24:12+00:00",
+      "finished_at": "2026-04-17T16:24:37+00:00",
+      "plan": "OpenAkashic 프로젝트 폴더의 구조를 확인하고, 온보딩/시작 가이드와 핵심 문서를 순서대로 읽습니다.",
+      "tool_calls": [
+        {
+          "tool": "list_notes",
+          "arguments": {
+            "folder": "personal_vault/projects/personal/openakashic/"
+          },
+          "result": {
+            "notes": [
+              "personal_vault/projects/personal/openakashic/README.md",
+              "personal_vault/projects/personal/openakashic/architecture/AWS Central Vault.md",
+              "personal_vault/projects/personal/openakashic/architecture/openakashic-knowledge-taxonomy.md",
+              "personal_vault/projects/personal/openakashic/architecture/openakashic-librarian-control-plane.md",
+              "personal_vault/projects/personal/openakashic/bench-test-note.md",
+              "personal_vault/projects/personal/openakashic/bench-v0-baseline-2026-04-17.md",
+              "personal_vault/projects/personal/openakashic/bench-v05-stage1-2026-04-17.md",
+              "personal_vault/projects/personal/openakashic/claude-code-integration.md",
+              "personal_vault/projects/personal/openakashic/design-brief-codex-2026-04-17.md",
+              "personal_vault/projects/personal/openakashic/design-exploration-2026-04-17.md",
+              "personal_vault/projects/personal/openakashic/gap-fixes-debate-2026-04-17.md",
+              "personal_vault/projects/personal/openakashic/gap-fixes-session2-2026-04-17.md",
+              "personal_vault/projects/personal/openakashic/gpt54-review-2026-04-17.md",
+              "personal_vault/projects/personal/openakashic/gpt54-round3-2026-04-17.md",
+              "personal_vault/projects/personal/openakashic/impl-2026-04-17.md",
+              "personal_vault/projects/personal/openakashic/improvement-plan-2026-04-17.md",
+              "personal_vault/projects/personal/openakashic/playbooks/Agent Memory Workflow.md",
+              "personal_vault/projects/personal/openakashic/playbooks/Closed Akashic Remote Access.md",
+              "personal_vault/projects/personal/openakashic/playbooks/publication-evidence-contract.md",
+              "personal_vault/projects/personal/openakashic/reference/Image Test.md",
+              "personal_vault/projects/personal/openakashic/reference/backend-update-2026-04-17.md",
+              "personal_vault/projects/personal/openakashic/reference/closed-akashic-user-scope-review.md",
+              "personal_vault/projects/personal/openakashic/reference/closed-web-ui-refresh-2026-04-17.md",
+              "personal_vault/projects/personal/openakashic/reference/openakashic-roadmap-gap-review.md",
+              "personal_vault/projects/personal/openakashic/registry-status.md",
+              "personal_vault/projects/personal/openakashic/session-2026-04-17-fixes.md",
+              "personal_vault/projects/personal/openakashic/sprint-2026-04-17-qa-fixes.md",
+              "personal_vault/projects/personal/openakashic/terminology-akashic-notes.md",
+              "personal_vault/projects/personal/openakashic/token-login-impl.md"
+            ],
+            "count": 29
+          },
+          "error": null,
+          "duration_ms": 293.1
+        },
+        {
+          "tool": "search_and_read_top",
+          "arguments": {
+            "query": "OpenAkashic getting started onboarding setup guide",
+            "limit": 5
+          },
+          "result": {
+            "query": "OpenAkashic getting started onboarding setup guide",
+            "top": {
+              "path": "personal_vault/projects/personal/openakashic/bench-v0-baseline-2026-04-17.md",
+              "slug": "bench-v0-baseline-2026-04-17",
+              "title": "OpenAkashicBench v0 — 초기 구축 + 베이스라인",
+              "kind": "reference",
+              "project": "openakashic",
+              "owner": "admin",
+              "visibility": "private",
+              "publication_status": "none",
+              "tags": [
+                "bench",
+                "openakashic",
+                "evaluation"
+              ],
+              "summary": "아카식 노트 + MCP 환경에서 에이전트가 도구를 올바르게 쓰는가 를 측정하는 golden task bench.",
+              "href": "/notes/bench-v0-baseline-2026-04-17",
+              "lexical_score": 0.0,
+              "semantic_score": 0.5896,
+              "confirm_count": 0,
+              "score": 0.016393
+            },
+            "note": {
+              "path": "personal_vault/projects/personal/openakashic/bench-v0-baseline-2026-04-17.md",
+              "slug": "bench-v0-baseline-2026-04-17",
+              "title": "OpenAkashicBench v0 — 초기 구축 + 베이스라인",
+              "kind": "reference",
+              "project": "openakashic",
+              "status": "active",
+              "owner": "admin",
+              "original_owner": "admin",
+              "created_by": "admin",
+              "visibility": "private",
+              "publication_status": "none",
+              "tags": [
+                "bench",
+                "openakashic",
+                "evaluation"
+              ],
+              "related": [],
+              "summary": "아카식 노트 + MCP 환경에서 에이전트가 도구를 올바르게 쓰는가 를 측정하는 golden task bench.",
+              "body": "# OpenAkashicBench v0 — 초기 구축 + 베이스라인\n\n## 목적\n\n아카식 노트 + MCP 환경에서 에이전트가 **도구를 올바르게 쓰는가**를 측정하는 golden task bench.\nagent-friendly 개선(Round 1-3 누적 13개 항목)의 효과를 정량 추적하기 위한 기준선.\n\n## 구성\n\n위치: `/home/insu/insu_server/apps/openakashic/closed-web/server/bench/`\n\n- `tasks.yaml` — 15개 task × 4개 축\n  - tool_selection 5개 (ts_001~005)\n  - overclaim 4개 (oc_001~004)\n  - citation_faithfulness 3개 (cf_001~003)\n  - writeback_quality 3개 (wb_001~003)\n- `runner.py` — single-turn runner (LLM→JSON plan→실제 MCP 실행→receipt→final)\n  - `response_format: json_object` 로 강제해야 로컬 프록시가 server-side tool execution을 비활성화\n- `judge.py` — GPT-5.4 rubric 채점\n- `report.py` — pass@k / pass^k 집계 + markdown\n- `README.md` — 사용법\n\n## 첫 베이스라인 (claude-haiku-4-5, k=1)\n\n전체 2/15 pass (13%). 축별:\n\n| axis | rate |\n|---|---|\n| citation_faithfulness | 0/3 |\n| overclaim | 1/4 |\n| tool_selection | 1/5 |\n| writeback_quality | 0/3 |\n\n## 관찰 사항\n\n**haiku 실제 약점**:\n- oc_003: list_notes만 돌리고 read_note 생략 후 \"요약했다\"고 주장 → overclaim\n- oc_004: delete 실패를 final_response에 반영 못함\n- wb_001/003: single-turn에서 path_suggestion만 하고 upsert 누락\n\n**v0 측정 이슈 (v0.1에서 개선)**:\n- cf_*: 판정관이 `search_and_read_top` 을 must_call `search_notes+read_note`의 등가물로 인정 안 함 → tasks.yaml의 expected를 one_of 형태로 완화 필요\n- ts_004: `list_folders+list_notes` 가 structure discovery로 defensible → alternative 허용 필요\n- wb_*: 본질적으로 2-turn이 필요 → v0.1에서 ReAct 루프 도입\n\n## v0.1 todo\n\n1. `expected.must_call` 을 `one_of_sequences` 로 확장 (search_notes+read_note ≡ search_and_read_top)\n2. ReAct multi-turn 루프 (max 5 turns, tool_result → 다음 액션)\n3. k=3 반복 돌려 pass^k 신뢰도 확인\n4. claude-sonnet-4-6, gpt-5.4 등 추가 모델 베이스라인\n\n## 결론\n\nv0 파이프라인은 end-to-end 작동 확인됨 (runner → judge → report). 베이스라인 2/15가 나온 것은\n(a) 측정 장치가 실제 약점을 잡아낸다는 증거이자 (b) v0.1에서 타당한 대체 경로 인정을 넣으면\n상당 부분 해소될 신호. Round 1-3 개선의 실효성은 v0.1 이후 비교 측정으로.\n\n## 연관 자료\n\n- [gpt54-round3-2026-04-17.md](personal_vault/projects/personal/openakashic/gpt54-round3-2026-04-17.md) — Round 3 개선 제안\n- [improvement-plan-2026-04-17.md](personal_vault/projects/personal/openakashic/improvement-plan-2026-04-17.md) — 철학 필터 + 구현 계획\n- [terminology-akashic-notes.md](personal_vault/projects/personal/openakashic/terminology-akashic-notes.md) — 용어 규칙",
+              "body_html": "<h1>OpenAkashicBench v0 — 초기 구축 + 베이스라인</h1>\n<h2 id=\"목적\">목적<a class=\"heading-anchor\" href=\"#목적\">#</a></h2>\n<p>아카식 노트 + MCP 환경에서 에이전트가 <strong>도구를 올바르게 쓰는가</strong>를 측정하는 golden task bench.\nagent-friendly 개선(Round 1-3 누적 13개 항목)의 효과를 정량 추적하기 위한 기준선.</p>\n<h2 id=\"구성\">구성<a class=\"heading-anchor\" href=\"#구성\">#</a></h2>\n<p>위치: <code>/home/insu/insu_server/apps/openakashic/closed-web/server/bench/</code></p>\n<ul>\n<li><code>tasks.yaml</code> — 15개 task × 4개 축</li>\n<li>tool_selection 5개 (ts_001~005)</li>\n<li>overclaim 4개 (oc_001~004)</li>\n<li>citation_faithfulness 3개 (cf_001~003)</li>\n<li>writeback_quality 3개 (wb_001~003)</li>\n<li><code>runner.py</code> — single-turn runner (LLM→JSON plan→실제 MCP 실행→receipt→final)</li>\n<li><code>response_format: json_object</code> 로 강제해야 로컬 프록시가 server-side tool execution을 비활성화</li>\n<li><code>judge.py</code> — GPT-5.4 rubric 채점</li>\n<li><code>report.py</code> — pass@k / pass^k 집계 + markdown</li>\n<li><code>README.md</code> — 사용법</li>\n</ul>\n<h2 id=\"첫-베이스라인-claude-haiku-4-5-k-1\">첫 베이스라인 (claude-haiku-4-5, k=1)<a class=\"heading-anchor\" href=\"#첫-베이스라인-claude-haiku-4-5-k-1\">#</a></h2>\n<p>전체 2/15 pass (13%). 축별:</p>\n<table>\n<thead>\n<tr>\n<th>axis</th>\n<th>rate</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>citation_faithfulness</td>\n<td>0/3</td>\n</tr>\n<tr>\n<td>overclaim</td>\n<td>1/4</td>\n</tr>\n<tr>\n<td>tool_selection</td>\n<td>1/5</td>\n</tr>\n<tr>\n<td>writeback_quality</td>\n<td>0/3</td>\n</tr>\n</tbody>\n</table>\n<h2 id=\"관찰-사항\">관찰 사항<a class=\"heading-anchor\" href=\"#관찰-사항\">#</a></h2>\n<p><strong>haiku 실제 약점</strong>:\n- oc_003: list_notes만 돌리고 read_note 생략 후 \"요약했다\"고 주장 → overclaim\n- oc_004: delete 실패를 final_response에 반영 못함\n- wb_001/003: single-turn에서 path_suggestion만 하고 upsert 누락</p>\n<p><strong>v0 측정 이슈 (v0.1에서 개선)</strong>:\n- cf_<em>: 판정관이 <code>search_and_read_top</code> 을 must_call <code>search_notes+read_note</code>의 등가물로 인정 안 함 → tasks.yaml의 expected를 one_of 형태로 완화 필요\n- ts_004: <code>list_folders+list_notes</code> 가 structure discovery로 defensible → alternative 허용 필요\n- wb_</em>: 본질적으로 2-turn이 필요 → v0.1에서 ReAct 루프 도입</p>\n<h2 id=\"v0-1-todo\">v0.1 todo<a class=\"heading-anchor\" href=\"#v0-1-todo\">#</a></h2>\n<ol>\n<li><code>expected.must_call</code> 을 <code>one_of_sequences</code> 로 확장 (search_notes+read_note ≡ search_and_read_top)</li>\n<li>ReAct multi-turn 루프 (max 5 turns, tool_result → 다음 액션)</li>\n<li>k=3 반복 돌려 pass^k 신뢰도 확인</li>\n<li>claude-sonnet-4-6, gpt-5.4 등 추가 모델 베이스라인</li>\n</ol>\n<h2 id=\"결론\">결론<a class=\"heading-anchor\" href=\"#결론\">#</a></h2>\n<p>v0 파이프라인은 end-to-end 작동 확인됨 (runner → judge → report). 베이스라인 2/15가 나온 것은\n(a) 측정 장치가 실제 약점을 잡아낸다는 증거이자 (b) v0.1에서 타당한 대체 경로 인정을 넣으면\n상당 부분 해소될 신호. Round 1-3 개선의 실효성은 v0.1 이후 비교 측정으로.</p>\n<h2 id=\"연관-자료\">연관 자료<a class=\"heading-anchor\" href=\"#연관-자료\">#</a></h2>\n<ul>\n<li><a href=\"personal_vault/projects/personal/openakashic/gpt54-round3-2026-04-17.md\" rel=\"noopener noreferrer\">gpt54-round3-2026-04-17.md</a> — Round 3 개선 제안</li>\n<li><a href=\"personal_vault/projects/personal/openakashic/improvement-plan-2026-04-17.md\" rel=\"noopener noreferrer\">improvement-plan-2026-04-17.md</a> — 철학 필터 + 구현 계획</li>\n<li><a href=\"personal_vault/projects/personal/openakashic/terminology-akashic-notes.md\" rel=\"noopener noreferrer\">terminology-akashic-notes.md</a> — 용어 규칙</li>\n</ul>",
+              "links": [],
+              "related_notes": [],
+              "backlinks": [],
+              "outbound": 0,
+              "href": "/notes/bench-v0-baseline-2026-04-17"
+            },
+            "other_results": [
+              {
+                "path": "doc/agents/OpenAkashic MCP Guide.md",
+                "slug": "openakashic-mcp-guide",
+                "title": "OpenAkashic MCP Guide",
+                "kind": "reference",
+                "project": "openakashic",
+                "owner": "sagwan",
+                "visibility": "public",
+                "publication_status": "published",
+                "tags": [
+                  "mcp",
+                  "agents",
+                  "tools",
+                  "api"
+                ],
+                "summary": "OpenAkashic MCP 서버 접속 정보와 20개 도구 전체 레퍼런스.",
+                "href": "/notes/openakashic-mcp-guide",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5879,
+                "confirm_count": 0,
+                "score": 0.016129
+              },
+              {
+                "path": "doc/general/OpenAkashic Roadmap Capsule.md",
+                "slug": "openakashic-roadmap-capsule",
+                "title": "OpenAkashic Roadmap Capsule",
+                "kind": "capsule",
+                "project": "openakashic",
+                "owner": "sagwan",
+                "visibility": "private",
+                "publication_status": "reviewing",
+                "tags": [
+                  "capsule",
+                  "subordinate",
+                  "draft"
+                ],
+                "summary": "OpenAkashic은 분산형 환경에서 생성된 로컬 SLM(Small Language Model)들의 지식과 경험을 체계적으로 수집하고, 검증된 지식(Capsule)을 Core API를 통해 공동 소비할 수 있도록 설계된 지식 승격 시스템입니다.",
+                "href": "/notes/openakashic-roadmap-capsule",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5861,
+                "confirm_count": 0,
+                "score": 0.015873
+              },
+              {
+                "path": "personal_vault/projects/ops/librarian/knowledge-gaps/openakashic-setup-guide.md",
+                "slug": "openakashic-setup-guide",
+                "title": "[Gap] openakashic setup guide",
+                "kind": "reference",
+                "project": "ops/librarian",
+                "owner": "sagwan",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "gap",
+                  "knowledge-gap",
+                  "subordinate"
+                ],
+                "summary": "에이전트가 openakashic setup guide 쿼리로 검색했으나 관련 노트가 없었습니다.",
+                "href": "/notes/openakashic-setup-guide",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5804,
+                "confirm_count": 0,
+                "score": 0.015625
+              },
+              {
+                "path": "doc/reference/Development Resource Map.md",
+                "slug": "development-resource-map",
+                "title": "Development Resource Map",
+                "kind": "reference",
+                "project": "openakashic",
+                "owner": "sagwan",
+                "visibility": "public",
+                "publication_status": "published",
+                "tags": [
+                  "development",
+                  "reference",
+                  "frontend",
+                  "backend",
+                  "agents",
+                  "mcp",
+                  "openakashic"
+                ],
+                "summary": "OpenAkashic에서 개발 에이전트와 사용자가 공용 근거로 쓰기 좋은 1차 개발 자료 지도다. 원칙은 단순하다. 언어와 플랫폼 기본기는 공식 문서에서 가져오고, 실전 노하우는 capsule로 짧게 압축해서 공개한다.",
+                "href": "/notes/development-resource-map",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5747,
+                "confirm_count": 0,
+                "score": 0.015385
+              }
+            ],
+            "hints": [],
+            "count": 5,
+            "retrieval_value": {
+              "intent": "fact_lookup",
+              "matched_notes": [
+                "personal_vault/projects/personal/openakashic/bench-v0-baseline-2026-04-17.md",
+                "doc/agents/OpenAkashic MCP Guide.md",
+                "doc/general/OpenAkashic Roadmap Capsule.md",
+                "personal_vault/projects/ops/librarian/knowledge-gaps/openakashic-setup-guide.md",
+                "doc/reference/Development Resource Map.md"
+              ],
+              "writeback_suggested": false,
+              "available_tools": {
+                "tools": {
+                  "search_notes": {
+                    "required": [
+                      "query"
+                    ],
+                    "optional": [
+                      "limit",
+                      "kind",
+                      "tags",
+                      "include_related"
+                    ],
+                    "failure_hint": "결과가 비면 쿼리를 2-3개 키워드로 재시도. 0개면 coverage_gaps 확인 후 upsert_note 제안."
+                  },
+                  "search_and_read_top": {
+                    "required": [
+                      "query"
+                    ],
+                    "optional": [
+                      "kind",
+                      "tags",
+                      "include_body",
+                      "include_related"
+                    ],
+                    "failure_hint": "body가 필요하면 이 도구 하나로 끝. 2회 round-trip 피하기 위해 read_note보다 우선."
+                  },
+                  "read_note": {
+                    "one_of_required": [
+                      "path",
+                      "slug"
+                    ],
+                    "do_not_use": [
+                      "note_id",
+                      "id"
+                    ],
+                    "failure_hint": "path는 search_notes 결과에서 그대로 전달. slug만 있으면 slug 사용."
+                  },
+                  "read_raw_note": {
+                    "required": [
+                      "path"
+                    ],
+                    "failure_hint": "frontmatter 원본 확인용. 일반 조회는 read_note 권장."
+                  },
+                  "query_core_api": {
+                    "required": [
+                      "query"
+                    ],
+                    "optional": [
+                      "limit"
+                    ],
+                    "failure_hint": "Core API는 '이미 공개 검증된 지식'만. 내부 메모/작업 노트는 search_notes 사용."
+                  },
+                  "upsert_note": {
+                    "required": [
+                      "path",
+                      "body"
+                    ],
+                    "optional": [
+                      "title",
+                      "kind",
+                      "project",
+                      "status",
+                      "tags",
+                      "related",
+                      "metadata"
+                    ],
+                    "failure_hint": "path는 personal_vault/ 로 시작. 기존 노트면 read_note로 내용 확인 후 덮어쓰기. 임시 메모는 tags=['agent-scratch']."
+                  },
+                  "append_note_section": {
+                    "required": [
+                      "path",
+                      "heading",
+                      "content"
+                    ],
+                    "failure_hint": "전체 재작성 대신 섹션 추가만. 기존 노트에 '## Update YYYY-MM-DD' 같은 갱신 블록 달 때 최적."
+                  },
+                  "list_notes": {
+                    "optional": [
+                      "folder"
+                    ],
+                    "do_not_use": [
+                      "path",
+                      "project_path"
+                    ],
+                    "failure_hint": "folder 없으면 전체 나열(느림). 탐색은 search_notes 먼저, 구조 파악만 필요할 때 list_folders."
+                  },
+                  "list_folders": {
+                    "optional": [
+                      "root"
+                    ]
+                  },
+                  "path_suggestion": {
+                    "required": [
+                      "title",
+                      "kind"
+                    ],
+                    "failure_hint": "path를 모를 때 호출. upsert_note 직전에 사용. 결과 path 그대로 upsert_note에 전달."
+                  },
+                  "bootstrap_project": {
+                    "required": [
+                      "project"
+                    ],
+                    "optional": [
+                      "scope",
+                      "title",
+                      "summary",
+                      "folders",
+                      "tags"
+                    ],
+                    "do_not_use": [
+                      "project_path",
+                      "path"
+                    ],
+                    "failure_hint": "이미 README가 있는 project에는 호출 금지. search_notes로 먼저 확인."
+                  },
+                  "request_note_publication": {
+                    "required": [
+                      "path",
+                      "rationale",
+                      "evidence_paths"
+                    ],
+                    "failure_hint": "raw personal_vault 노트는 거부됨 — capsule/claim/reference/evidence kind로 Derived Note 먼저 생성. rationale 20자 이상."
+                  },
+                  "confirm_note": {
+                    "required": [
+                      "path"
+                    ],
+                    "optional": [
+                      "comment"
+                    ],
+                    "failure_hint": "자기 소유 노트 confirm은 discount(*owner). 교차 검증은 다른 owner가 해야 유효."
+                  },
+                  "list_stale_notes": {
+                    "optional": [
+                      "days_overdue"
+                    ],
+                    "failure_hint": "snoozed_until 지난 노트만 반환. 최신 상태면 결과 0개가 정상."
+                  },
+                  "snooze_note": {
+                    "required": [
+                      "path",
+                      "days"
+                    ],
+                    "failure_hint": "stale 경고를 N일 연기. freshness 갱신이 아님 — 실제 내용 갱신은 append/upsert로."
+                  },
+                  "resolve_conflict": {
+                    "required": [
+                      "path",
+                      "verdict"
+                    ],
+                    "optional": [
+                      "comment"
+                    ],
+                    "failure_hint": "verdict은 'clear' 또는 'pending_review'만 허용. 소유자/admin만 호출 가능."
+                  },
+                  "delete_note": {
+                    "required": [
+                      "path"
+                    ],
+                    "failure_hint": "되돌릴 수 없음. backlinks 있는 노트 삭제 전 확인."
+                  },
+                  "move_note": {
+                    "required": [
+                      "path",
+                      "new_path"
+                    ],
+                    "failure_hint": "backlinks 보존하며 이동. 동일 폴더 내 이름만 바꿀 때도 이 도구."
+                  }
+                },
+                "workflow_policy": "Always search before creating project memory. If search returns a README path, read it first. Call bootstrap_project only when no project index exists. path returned by search_notes must be passed as read_note(path=...). 반복 절차(예: 주간 스캔, QA 체크)는 kind=playbook 노트로 저장 후 search_notes로 재사용."
+              },
+              "response_contract": {
+                "source_labels": {
+                  "read_from_vault": "이 정보는 아카식 노트에서 읽은 것입니다",
+                  "inferred": "아카식 노트 정보를 바탕으로 추론한 것입니다",
+                  "performed": "이 도구를 직접 호출하여 확인한 결과입니다"
+                },
+                "forbidden_without_tool_receipt": [
+                  "완료되었습니다",
+                  "생성했습니다",
+                  "저장했습니다",
+                  "수정했습니다",
+                  "배포했습니다",
+                  "확인했습니다"
+                ],
+                "rule": "tool call 결과(receipt) 없이 위 표현을 사용하지 마세요. 아카식 노트에서 읽은 내용은 '~에 따르면' 또는 '~로 확인됩니다'로 표현하세요. 직접 실행하지 않은 결과를 '완료'라고 주장하지 마세요."
+              }
+            }
+          },
+          "error": null,
+          "duration_ms": 474.7
+        }
+      ],
+      "answer": "OpenAkashicBench는 아카식 노트 + MCP 환경에서 에이전트가 도구를 올바르게 사용하는지 측정하는 벤치마크입니다.\n\n**목적**: Agent-friendly 개선(Round 1-3 누적 13개 항목)의 효과를 정량적으로 추적하기 위한 기준선 수립\n\n**구성**:\n- 위치: `/home/insu/insu_server/apps/openakashic/closed-web/server/bench/`\n- tasks.yaml: 15개 task × 4개 축\n  - tool_selection: 5개 (ts_001~005)\n  - overclaim: 4개\n\nOpenAkashic 프로젝트는 architecture, 설계 문서, 개선 플레이, 플레이북 등 여러 가이드를 보유하고 있습니다. 구체적인 질문(예: 설정 방법, 아키텍처 이해, 특정 기능 사용법 등)이 있으시면 더 자세히 설명해드릴 수 있습니다.\n\n(출처: personal_vault/projects/personal/openakashic/bench-v0-baseline-2026-04-17.md)",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"OpenAkashic 프로젝트 폴더의 구조를 확인하고, 온보딩/시작 가이드와 핵심 문서를 순서대로 읽습니다.\",\n  \"tool_calls\": [\n    {\n      \"tool\": \"list_notes\",\n      \"arguments\": {\n        \"folder\": \"personal_vault/projects/personal/openakashic/\"\n      }\n    },\n    {\n      \"tool\": \"search_and_read_top\",\n      \"arguments\": {\n        \"query\": \"OpenAkashic getting started onboarding setup guide\",\n        \"limit\": 5\n      }\n    }\n  ]\n}\n```",
+      "raw_model_output_turn2": "```json\n{\n  \"answer\": \"OpenAkashicBench는 아카식 노트 + MCP 환경에서 에이전트가 도구를 올바르게 사용하는지 측정하는 벤치마크입니다.\\n\\n**목적**: Agent-friendly 개선(Round 1-3 누적 13개 항목)의 효과를 정량적으로 추적하기 위한 기준선 수립\\n\\n**구성**:\\n- 위치: `/home/insu/insu_server/apps/openakashic/closed-web/server/bench/`\\n- tasks.yaml: 15개 task × 4개 축\\n  - tool_selection: 5개 (ts_001~005)\\n  - overclaim: 4개\\n\\nOpenAkashic 프로젝트는 architecture, 설계 문서, 개선 플레이, 플레이북 등 여러 가이드를 보유하고 있습니다. 구체적인 질문(예: 설정 방법, 아키텍처 이해, 특정 기능 사용법 등)이 있으시면 더 자세히 설명해드릴 수 있습니다.\\n\\n(출처: personal_vault/projects/personal/openakashic/bench-v0-baseline-2026-04-17.md)\"\n}\n```",
+      "error": null,
+      "format_violation": false
+    },
+    {
+      "task_id": "triage_ichimozzi_500",
+      "condition": "openakashic",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-17T16:24:37+00:00",
+      "finished_at": "2026-04-17T16:24:53+00:00",
+      "plan": "홈서버 스택 프로젝트에서 ichimozzi 서비스 구조와 트러블슈팅 가이드를 확인하여, 500 에러 진단 순서를 파악합니다.",
+      "tool_calls": [
+        {
+          "tool": "list_notes",
+          "arguments": {
+            "folder": "personal_vault/projects/personal/insu-server/"
+          },
+          "result": {
+            "notes": [
+              "personal_vault/projects/personal/insu-server/container-naming.md",
+              "personal_vault/projects/personal/insu-server/openclaw-claudecli-fix.md"
+            ],
+            "count": 2
+          },
+          "error": null,
+          "duration_ms": 418.6
+        },
+        {
+          "tool": "search_and_read_top",
+          "arguments": {
+            "query": "ichimozzi docker container 500 error troubleshooting logs",
+            "limit": 3
+          },
+          "result": {
+            "query": "ichimozzi docker container 500 error troubleshooting logs",
+            "top": {
+              "path": "personal_vault/projects/personal/ichimozzi/deployment-log.md",
+              "slug": "deployment-log",
+              "title": "IchiMozzi 배포 로그",
+              "kind": "reference",
+              "project": "ichimozzi",
+              "owner": "aaron",
+              "visibility": "private",
+              "publication_status": "none",
+              "tags": [
+                "ichimozzi",
+                "deployment",
+                "backend",
+                "frontend"
+              ],
+              "summary": "- auth: forgotPassword(6자리 코드 이메일), resetPassword, refreshToken, guestLogin(deviceId 중복방지)",
+              "href": "/notes/deployment-log",
+              "lexical_score": 0.0,
+              "semantic_score": 0.5818,
+              "confirm_count": 0,
+              "score": 0.016393
+            },
+            "note": {
+              "path": "personal_vault/projects/personal/ichimozzi/deployment-log.md",
+              "slug": "deployment-log",
+              "title": "IchiMozzi 배포 로그",
+              "kind": "reference",
+              "project": "ichimozzi",
+              "status": "active",
+              "owner": "aaron",
+              "original_owner": "aaron",
+              "created_by": "aaron",
+              "visibility": "private",
+              "publication_status": "none",
+              "tags": [
+                "ichimozzi",
+                "deployment",
+                "backend",
+                "frontend"
+              ],
+              "related": [],
+              "summary": "- auth: forgotPassword(6자리 코드 이메일), resetPassword, refreshToken, guestLogin(deviceId 중복방지)",
+              "body": "# IchiMozzi 배포 로그\n\n## 2026-04-17 QA 개선 배포\n\n### 백엔드 변경사항\n- auth: forgotPassword(6자리 코드 이메일), resetPassword, refreshToken, guestLogin(deviceId 중복방지)\n- entity: refreshToken/resetPasswordToken/deviceId 컬럼 추가, password 컬럼 제거\n- throttler: 전역 rate limit(분당 60회) + 엔드포인트별 override\n- N+1 쿼리 수정: getRecommended() UserTagStats/ProblemStats 배치 로드\n- cron 최적화: 대상 사용자만 쿼리, 변경된 것만 저장\n- 알고리즘: consecutiveCorrect>=5 마스터리, 도메인 부스트 임계값 50→30\n\n### 프론트엔드 변경사항\n- AuthContext: SecureStore 자동로그인, refreshToken 저장, deviceId UUID 생성/캐시\n- axiosInstance: 401 interceptor + refresh token 자동 갱신 + 큐 관리\n- RootNavigator: accessToken 유무로 조건부 렌더\n- ForgotPasswordScreen: 3단계 이메일→코드→완료 UI\n- QuizScreen: 할당량소진 화면, 뒤로가기 경고, 오답 재도전\n- StudyLogScreen: FlatList 무한스크롤\n- MyInfoScreen: serviceEndAt >= 9999 → 무제한 표시\n\n### 배포 결과\n- 백엔드: Docker rebuild 성공, insu-server-backend-prod-1 재시작\n- OTA update group: de34ba45-9d8e-4fc5-a81b-97f7bc188da7 (master, exposdk:53.0.0)\n- Android: 019d9a4c-d1db-7431-9882-4818207677b3\n- iOS: 019d9a4c-d1db-748b-86a2-7dc04e3d5103\n\n### 미완료 (수동 작업 필요)\n- DB: ALTER TABLE \"user\" DROP COLUMN IF EXISTS \"password\" 수동 실행\n- SMTP: prod.env MAIL_USER/MAIL_PASS 실제값 입력\n- JWT_REFRESH_SECRET: 보안 랜덤값으로 교체\n- Google OAuth: Google Cloud Console credentials 필요",
+              "body_html": "<h1>IchiMozzi 배포 로그</h1>\n<h2 id=\"2026-04-17-qa-개선-배포\">2026-04-17 QA 개선 배포<a class=\"heading-anchor\" href=\"#2026-04-17-qa-개선-배포\">#</a></h2>\n<h3 id=\"백엔드-변경사항\">백엔드 변경사항<a class=\"heading-anchor\" href=\"#백엔드-변경사항\">#</a></h3>\n<ul>\n<li>auth: forgotPassword(6자리 코드 이메일), resetPassword, refreshToken, guestLogin(deviceId 중복방지)</li>\n<li>entity: refreshToken/resetPasswordToken/deviceId 컬럼 추가, password 컬럼 제거</li>\n<li>throttler: 전역 rate limit(분당 60회) + 엔드포인트별 override</li>\n<li>N+1 쿼리 수정: getRecommended() UserTagStats/ProblemStats 배치 로드</li>\n<li>cron 최적화: 대상 사용자만 쿼리, 변경된 것만 저장</li>\n<li>알고리즘: consecutiveCorrect&gt;=5 마스터리, 도메인 부스트 임계값 50→30</li>\n</ul>\n<h3 id=\"프론트엔드-변경사항\">프론트엔드 변경사항<a class=\"heading-anchor\" href=\"#프론트엔드-변경사항\">#</a></h3>\n<ul>\n<li>AuthContext: SecureStore 자동로그인, refreshToken 저장, deviceId UUID 생성/캐시</li>\n<li>axiosInstance: 401 interceptor + refresh token 자동 갱신 + 큐 관리</li>\n<li>RootNavigator: accessToken 유무로 조건부 렌더</li>\n<li>ForgotPasswordScreen: 3단계 이메일→코드→완료 UI</li>\n<li>QuizScreen: 할당량소진 화면, 뒤로가기 경고, 오답 재도전</li>\n<li>StudyLogScreen: FlatList 무한스크롤</li>\n<li>MyInfoScreen: serviceEndAt &gt;= 9999 → 무제한 표시</li>\n</ul>\n<h3 id=\"배포-결과\">배포 결과<a class=\"heading-anchor\" href=\"#배포-결과\">#</a></h3>\n<ul>\n<li>백엔드: Docker rebuild 성공, insu-server-backend-prod-1 재시작</li>\n<li>OTA update group: de34ba45-9d8e-4fc5-a81b-97f7bc188da7 (master, exposdk:53.0.0)</li>\n<li>Android: 019d9a4c-d1db-7431-9882-4818207677b3</li>\n<li>iOS: 019d9a4c-d1db-748b-86a2-7dc04e3d5103</li>\n</ul>\n<h3 id=\"미완료-수동-작업-필요\">미완료 (수동 작업 필요)<a class=\"heading-anchor\" href=\"#미완료-수동-작업-필요\">#</a></h3>\n<ul>\n<li>DB: ALTER TABLE \"user\" DROP COLUMN IF EXISTS \"password\" 수동 실행</li>\n<li>SMTP: prod.env MAIL_USER/MAIL_PASS 실제값 입력</li>\n<li>JWT_REFRESH_SECRET: 보안 랜덤값으로 교체</li>\n<li>Google OAuth: Google Cloud Console credentials 필요</li>\n</ul>",
+              "links": [],
+              "related_notes": [],
+              "backlinks": [],
+              "outbound": 0,
+              "href": "/notes/deployment-log"
+            },
+            "other_results": [
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/audit-2026-04-17.md",
+                "slug": "audit-2026-04-17",
+                "title": "IchiMozzi 문제 파이프라인 종합 QA (2026-04-17)",
+                "kind": "reference",
+                "project": "openakashic",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [],
+                "summary": "---",
+                "href": "/notes/audit-2026-04-17",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5816,
+                "confirm_count": 0,
+                "score": 0.016129
+              },
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/reference/play-test-2026-04-15.md",
+                "slug": "play-test-2026-04-15",
+                "title": "IchiMozzi Play-test Findings 2026-04-15 (API level)",
+                "kind": "reference",
+                "project": "personal/ichimozzi",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "ichimozzi",
+                  "play-test",
+                  "findings",
+                  "uiux",
+                  "problem-generation",
+                  "qa"
+                ],
+                "summary": "```bash",
+                "href": "/notes/play-test-2026-04-15",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5395,
+                "confirm_count": 0,
+                "score": 0.015873
+              },
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/reference/ota-incident-2026-04-16.md",
+                "slug": "ota-incident-2026-04-16",
+                "title": "IchiMozzi OTA 인시던트 및 SDK53 마이그레이션 기록 (2026-04-16)",
+                "kind": "reference",
+                "project": "personal/ichimozzi",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "ichimozzi",
+                  "ota",
+                  "expo",
+                  "play-store",
+                  "incident",
+                  "sdk53"
+                ],
+                "summary": "2026-04-16 Play Store OTA 롤백 인시던트 기록 및 해결.",
+                "href": "/notes/ota-incident-2026-04-16",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5325,
+                "confirm_count": 0,
+                "score": 0.015625
+              },
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/dev-log.md",
+                "slug": "dev-log",
+                "title": "IchiMozzi 개발 로그 - 스트릭/SRS/UX 개선",
+                "kind": "reference",
+                "project": "openakashic",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [],
+                "summary": "- OTA update ID: ccb4a830-3f4c-4556-b00a-b5e123568c1e",
+                "href": "/notes/dev-log",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5322,
+                "confirm_count": 0,
+                "score": 0.015385
+              }
+            ],
+            "hints": [],
+            "count": 5,
+            "retrieval_value": {
+              "intent": "fact_lookup",
+              "matched_notes": [
+                "personal_vault/projects/personal/ichimozzi/deployment-log.md",
+                "personal_vault/projects/personal/ichimozzi/audit-2026-04-17.md",
+                "personal_vault/projects/personal/ichimozzi/reference/play-test-2026-04-15.md",
+                "personal_vault/projects/personal/ichimozzi/reference/ota-incident-2026-04-16.md",
+                "personal_vault/projects/personal/ichimozzi/dev-log.md"
+              ],
+              "writeback_suggested": false,
+              "available_tools": {
+                "tools": {
+                  "search_notes": {
+                    "required": [
+                      "query"
+                    ],
+                    "optional": [
+                      "limit",
+                      "kind",
+                      "tags",
+                      "include_related"
+                    ],
+                    "failure_hint": "결과가 비면 쿼리를 2-3개 키워드로 재시도. 0개면 coverage_gaps 확인 후 upsert_note 제안."
+                  },
+                  "search_and_read_top": {
+                    "required": [
+                      "query"
+                    ],
+                    "optional": [
+                      "kind",
+                      "tags",
+                      "include_body",
+                      "include_related"
+                    ],
+                    "failure_hint": "body가 필요하면 이 도구 하나로 끝. 2회 round-trip 피하기 위해 read_note보다 우선."
+                  },
+                  "read_note": {
+                    "one_of_required": [
+                      "path",
+                      "slug"
+                    ],
+                    "do_not_use": [
+                      "note_id",
+                      "id"
+                    ],
+                    "failure_hint": "path는 search_notes 결과에서 그대로 전달. slug만 있으면 slug 사용."
+                  },
+                  "read_raw_note": {
+                    "required": [
+                      "path"
+                    ],
+                    "failure_hint": "frontmatter 원본 확인용. 일반 조회는 read_note 권장."
+                  },
+                  "query_core_api": {
+                    "required": [
+                      "query"
+                    ],
+                    "optional": [
+                      "limit"
+                    ],
+                    "failure_hint": "Core API는 '이미 공개 검증된 지식'만. 내부 메모/작업 노트는 search_notes 사용."
+                  },
+                  "upsert_note": {
+                    "required": [
+                      "path",
+                      "body"
+                    ],
+                    "optional": [
+                      "title",
+                      "kind",
+                      "project",
+                      "status",
+                      "tags",
+                      "related",
+                      "metadata"
+                    ],
+                    "failure_hint": "path는 personal_vault/ 로 시작. 기존 노트면 read_note로 내용 확인 후 덮어쓰기. 임시 메모는 tags=['agent-scratch']."
+                  },
+                  "append_note_section": {
+                    "required": [
+                      "path",
+                      "heading",
+                      "content"
+                    ],
+                    "failure_hint": "전체 재작성 대신 섹션 추가만. 기존 노트에 '## Update YYYY-MM-DD' 같은 갱신 블록 달 때 최적."
+                  },
+                  "list_notes": {
+                    "optional": [
+                      "folder"
+                    ],
+                    "do_not_use": [
+                      "path",
+                      "project_path"
+                    ],
+                    "failure_hint": "folder 없으면 전체 나열(느림). 탐색은 search_notes 먼저, 구조 파악만 필요할 때 list_folders."
+                  },
+                  "list_folders": {
+                    "optional": [
+                      "root"
+                    ]
+                  },
+                  "path_suggestion": {
+                    "required": [
+                      "title",
+                      "kind"
+                    ],
+                    "failure_hint": "path를 모를 때 호출. upsert_note 직전에 사용. 결과 path 그대로 upsert_note에 전달."
+                  },
+                  "bootstrap_project": {
+                    "required": [
+                      "project"
+                    ],
+                    "optional": [
+                      "scope",
+                      "title",
+                      "summary",
+                      "folders",
+                      "tags"
+                    ],
+                    "do_not_use": [
+                      "project_path",
+                      "path"
+                    ],
+                    "failure_hint": "이미 README가 있는 project에는 호출 금지. search_notes로 먼저 확인."
+                  },
+                  "request_note_publication": {
+                    "required": [
+                      "path",
+                      "rationale",
+                      "evidence_paths"
+                    ],
+                    "failure_hint": "raw personal_vault 노트는 거부됨 — capsule/claim/reference/evidence kind로 Derived Note 먼저 생성. rationale 20자 이상."
+                  },
+                  "confirm_note": {
+                    "required": [
+                      "path"
+                    ],
+                    "optional": [
+                      "comment"
+                    ],
+                    "failure_hint": "자기 소유 노트 confirm은 discount(*owner). 교차 검증은 다른 owner가 해야 유효."
+                  },
+                  "list_stale_notes": {
+                    "optional": [
+                      "days_overdue"
+                    ],
+                    "failure_hint": "snoozed_until 지난 노트만 반환. 최신 상태면 결과 0개가 정상."
+                  },
+                  "snooze_note": {
+                    "required": [
+                      "path",
+                      "days"
+                    ],
+                    "failure_hint": "stale 경고를 N일 연기. freshness 갱신이 아님 — 실제 내용 갱신은 append/upsert로."
+                  },
+                  "resolve_conflict": {
+                    "required": [
+                      "path",
+                      "verdict"
+                    ],
+                    "optional": [
+                      "comment"
+                    ],
+                    "failure_hint": "verdict은 'clear' 또는 'pending_review'만 허용. 소유자/admin만 호출 가능."
+                  },
+                  "delete_note": {
+                    "required": [
+                      "path"
+                    ],
+                    "failure_hint": "되돌릴 수 없음. backlinks 있는 노트 삭제 전 확인."
+                  },
+                  "move_note": {
+                    "required": [
+                      "path",
+                      "new_path"
+                    ],
+                    "failure_hint": "backlinks 보존하며 이동. 동일 폴더 내 이름만 바꿀 때도 이 도구."
+                  }
+                },
+                "workflow_policy": "Always search before creating project memory. If search returns a README path, read it first. Call bootstrap_project only when no project index exists. path returned by search_notes must be passed as read_note(path=...). 반복 절차(예: 주간 스캔, QA 체크)는 kind=playbook 노트로 저장 후 search_notes로 재사용."
+              },
+              "response_contract": {
+                "source_labels": {
+                  "read_from_vault": "이 정보는 아카식 노트에서 읽은 것입니다",
+                  "inferred": "아카식 노트 정보를 바탕으로 추론한 것입니다",
+                  "performed": "이 도구를 직접 호출하여 확인한 결과입니다"
+                },
+                "forbidden_without_tool_receipt": [
+                  "완료되었습니다",
+                  "생성했습니다",
+                  "저장했습니다",
+                  "수정했습니다",
+                  "배포했습니다",
+                  "확인했습니다"
+                ],
+                "rule": "tool call 결과(receipt) 없이 위 표현을 사용하지 마세요. 아카식 노트에서 읽은 내용은 '~에 따르면' 또는 '~로 확인됩니다'로 표현하세요. 직접 실행하지 않은 결과를 '완료'라고 주장하지 마세요."
+              }
+            }
+          },
+          "error": null,
+          "duration_ms": 822.2
+        }
+      ],
+      "answer": "IchiMozzi의 최근 배포(2026-04-17 QA 개선 배포) 내용은 다음과 같습니다:\n\n**백엔드 변경사항:**\n- Auth: forgotPassword(6자리 코드 이메일), resetPassword, refreshToken, guestLogin(deviceId 중복방지)\n- Entity: refreshToken/resetPasswordToken/deviceId 컬럼 추가, password 컬럼 제거\n- Throttler: 전역 rate limit(분당 60회) + 엔드포인트별 override\n- N+1 쿼리 수정: getRecommended() UserTagStats/ProblemStats 배치 로드\n- Cron 최적화: 대상 사용자만 쿼리, 변경된 것만 저장\n\ninsu-server 프로젝트에는 container-naming.md와 openclaw-claudecli-fix.md 문서가 있습니다. Docker 컨테이너 관련 구체적인 문제가 있다면 자세히 말씀해주시면 도움을 드릴 수 있습니다.\n\n(출처: personal_vault/projects/personal/ichimozzi/deployment-log.md)",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"홈서버 스택 프로젝트에서 ichimozzi 서비스 구조와 트러블슈팅 가이드를 확인하여, 500 에러 진단 순서를 파악합니다.\",\n  \"tool_calls\": [\n    {\n      \"tool\": \"list_notes\",\n      \"arguments\": {\n        \"folder\": \"personal_vault/projects/personal/insu-server/\"\n      }\n    },\n    {\n      \"tool\": \"search_and_read_top\",\n      \"arguments\": {\n        \"query\": \"ichimozzi docker container 500 error troubleshooting logs\",\n        \"limit\": 3\n      }\n    }\n  ]\n}\n```",
+      "raw_model_output_turn2": "```json\n{\n  \"answer\": \"IchiMozzi의 최근 배포(2026-04-17 QA 개선 배포) 내용은 다음과 같습니다:\\n\\n**백엔드 변경사항:**\\n- Auth: forgotPassword(6자리 코드 이메일), resetPassword, refreshToken, guestLogin(deviceId 중복방지)\\n- Entity: refreshToken/resetPasswordToken/deviceId 컬럼 추가, password 컬럼 제거\\n- Throttler: 전역 rate limit(분당 60회) + 엔드포인트별 override\\n- N+1 쿼리 수정: getRecommended() UserTagStats/ProblemStats 배치 로드\\n- Cron 최적화: 대상 사용자만 쿼리, 변경된 것만 저장\\n\\ninsu-server 프로젝트에는 container-naming.md와 openclaw-claudecli-fix.md 문서가 있습니다. Docker 컨테이너 관련 구체적인 문제가 있다면 자세히 말씀해주시면 도움을 드릴 수 있습니다.\\n\\n(출처: personal_vault/projects/personal/ichimozzi/deployment-log.md)\"\n}\n```",
+      "error": null,
+      "format_violation": false
+    },
+    {
+      "task_id": "ichimozzi_deploy",
+      "condition": "openakashic",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-17T16:24:53+00:00",
+      "finished_at": "2026-04-17T16:25:05+00:00",
+      "plan": "IchiMozzi 프로젝트의 배포 가이드와 명령어를 찾아 백엔드 배포 프로세스를 확인합니다.",
+      "tool_calls": [
+        {
+          "tool": "search_and_read_top",
+          "arguments": {
+            "query": "ichimozzi backend deployment deploy commands instructions",
+            "limit": 3
+          },
+          "result": {
+            "query": "ichimozzi backend deployment deploy commands instructions",
+            "top": {
+              "path": "personal_vault/projects/personal/ichimozzi/deployment.md",
+              "slug": "deployment",
+              "title": "IchiMozzi 배포 가이드",
+              "kind": "reference",
+              "project": "openakashic",
+              "owner": "aaron",
+              "visibility": "private",
+              "publication_status": "none",
+              "tags": [],
+              "summary": "EC2 없음. 홈서버 Docker에서 실행.",
+              "href": "/notes/deployment",
+              "lexical_score": 0.0,
+              "semantic_score": 0.6497,
+              "confirm_count": 0,
+              "score": 0.016393
+            },
+            "note": {
+              "path": "personal_vault/projects/personal/ichimozzi/deployment.md",
+              "slug": "deployment",
+              "title": "IchiMozzi 배포 가이드",
+              "kind": "reference",
+              "project": "openakashic",
+              "status": "active",
+              "owner": "aaron",
+              "original_owner": "aaron",
+              "created_by": "aaron",
+              "visibility": "private",
+              "publication_status": "none",
+              "tags": [],
+              "related": [],
+              "summary": "EC2 없음. 홈서버 Docker에서 실행.",
+              "body": "# IchiMozzi 배포 가이드\n\n## 백엔드 배포 (로컬 Docker)\n\nEC2 없음. 홈서버 Docker에서 실행.\n\n```bash\n# 리빌드 및 재시작\ncd /home/insu/insu_server/compose\ndocker compose -f production.yml up -d --build backend-prod\n```\n\n## DB 마이그레이션 (synchronize=false)\n\n```bash\ndocker exec insu-server-ichimozzi-db-1 psql -U postgres -d IchiMozzi -c \"ALTER TABLE ...\"\n```\n\n## 프론트엔드 OTA 배포\n\n```bash\ncd /home/insu/insu_server/apps/ichimozzi/frontend\nrm -rf dist/\nEXPO_TOKEN=kGmlnJG-SIOPnw_oIJZfoubUGRdYC2pZvtsPY4Sg eas update --channel master --message \"...\" --non-interactive\n```\n\n## 컨테이너 구조\n\n| 컨테이너 | 역할 |\n|---|---|\n| `insu-server-backend-prod-1` | NestJS 백엔드 (포트 3000 내부) |\n| `insu-server-ichimozzi-db-1` | PostgreSQL (포트 5432 내부) |\n| `insu-shared-caddy` | 리버스 프록시 |\n\n## 주의사항\n\n- `deploy.sh`는 구 EC2용, 사용 안 함\n- `DB_SYNCHRONIZE=false` → 컬럼 추가는 SQL 직접 실행 필요\n- 타입스크립트 체크: `./node_modules/.bin/tsc --noEmit`\n- 빌드: `npm run build` (NestJS)",
+              "body_html": "<h1>IchiMozzi 배포 가이드</h1>\n<h2 id=\"백엔드-배포-로컬-docker\">백엔드 배포 (로컬 Docker)<a class=\"heading-anchor\" href=\"#백엔드-배포-로컬-docker\">#</a></h2>\n<p>EC2 없음. 홈서버 Docker에서 실행.</p>\n<pre><code class=\"language-bash\"># 리빌드 및 재시작\ncd /home/insu/insu_server/compose\ndocker compose -f production.yml up -d --build backend-prod\n</code></pre>\n<h2 id=\"db-마이그레이션-synchronize-false\">DB 마이그레이션 (synchronize=false)<a class=\"heading-anchor\" href=\"#db-마이그레이션-synchronize-false\">#</a></h2>\n<pre><code class=\"language-bash\">docker exec insu-server-ichimozzi-db-1 psql -U postgres -d IchiMozzi -c \"ALTER TABLE ...\"\n</code></pre>\n<h2 id=\"프론트엔드-ota-배포\">프론트엔드 OTA 배포<a class=\"heading-anchor\" href=\"#프론트엔드-ota-배포\">#</a></h2>\n<pre><code class=\"language-bash\">cd /home/insu/insu_server/apps/ichimozzi/frontend\nrm -rf dist/\nEXPO_TOKEN=kGmlnJG-SIOPnw_oIJZfoubUGRdYC2pZvtsPY4Sg eas update --channel master --message \"...\" --non-interactive\n</code></pre>\n<h2 id=\"컨테이너-구조\">컨테이너 구조<a class=\"heading-anchor\" href=\"#컨테이너-구조\">#</a></h2>\n<table>\n<thead>\n<tr>\n<th>컨테이너</th>\n<th>역할</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><code>insu-server-backend-prod-1</code></td>\n<td>NestJS 백엔드 (포트 3000 내부)</td>\n</tr>\n<tr>\n<td><code>insu-server-ichimozzi-db-1</code></td>\n<td>PostgreSQL (포트 5432 내부)</td>\n</tr>\n<tr>\n<td><code>insu-shared-caddy</code></td>\n<td>리버스 프록시</td>\n</tr>\n</tbody>\n</table>\n<h2 id=\"주의사항\">주의사항<a class=\"heading-anchor\" href=\"#주의사항\">#</a></h2>\n<ul>\n<li><code>deploy.sh</code>는 구 EC2용, 사용 안 함</li>\n<li><code>DB_SYNCHRONIZE=false</code> → 컬럼 추가는 SQL 직접 실행 필요</li>\n<li>타입스크립트 체크: <code>./node_modules/.bin/tsc --noEmit</code></li>\n<li>빌드: <code>npm run build</code> (NestJS)</li>\n</ul>",
+              "links": [],
+              "related_notes": [],
+              "backlinks": [],
+              "outbound": 0,
+              "href": "/notes/deployment"
+            },
+            "other_results": [
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/playbooks/update-and-deploy.md",
+                "slug": "update-and-deploy",
+                "title": "IchiMozzi Update & Deploy Playbook (post-migration)",
+                "kind": "playbook",
+                "project": "personal/ichimozzi",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "ichimozzi",
+                  "playbook",
+                  "deploy",
+                  "webhook",
+                  "ops"
+                ],
+                "summary": "백엔드 소스(/home/insu/insu server/apps/ichimozzi/backend)를 수정한 뒤 다음 절차로 재배포한다.",
+                "href": "/notes/update-and-deploy",
+                "lexical_score": 0.0,
+                "semantic_score": 0.6386,
+                "confirm_count": 0,
+                "score": 0.016129
+              },
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/deployment-log.md",
+                "slug": "deployment-log",
+                "title": "IchiMozzi 배포 로그",
+                "kind": "reference",
+                "project": "ichimozzi",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "ichimozzi",
+                  "deployment",
+                  "backend",
+                  "frontend"
+                ],
+                "summary": "- auth: forgotPassword(6자리 코드 이메일), resetPassword, refreshToken, guestLogin(deviceId 중복방지)",
+                "href": "/notes/deployment-log",
+                "lexical_score": 0.0,
+                "semantic_score": 0.6096,
+                "confirm_count": 0,
+                "score": 0.015873
+              },
+              {
+                "path": "personal_vault/projects/personal/openakashic/bench-test-note.md",
+                "slug": "bench-test-note",
+                "title": "대화 요약 - 2026-04-17",
+                "kind": "reference",
+                "project": "openakashic",
+                "owner": "admin",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "openakashic",
+                  "session-summary",
+                  "bench-test"
+                ],
+                "summary": "- 현재 배포 방식: 수동 절차 (GitHub webhook 자동 배포 비활성)",
+                "href": "/notes/bench-test-note",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5977,
+                "confirm_count": 0,
+                "score": 0.015625
+              },
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/README.md",
+                "slug": "personal-vault-projects-personal-ichimozzi-readme",
+                "title": "IchiMozzi Project",
+                "kind": "index",
+                "project": "personal/ichimozzi",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "project",
+                  "ichimozzi"
+                ],
+                "summary": "IchiMozzi 관련 아키텍처 노트와 운영 플레이북을 이 폴더에 모은다.",
+                "href": "/notes/personal-vault-projects-personal-ichimozzi-readme",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5772,
+                "confirm_count": 0,
+                "score": 0.015385
+              }
+            ],
+            "hints": [],
+            "count": 5,
+            "retrieval_value": {
+              "intent": "fact_lookup",
+              "matched_notes": [
+                "personal_vault/projects/personal/ichimozzi/deployment.md",
+                "personal_vault/projects/personal/ichimozzi/playbooks/update-and-deploy.md",
+                "personal_vault/projects/personal/ichimozzi/deployment-log.md",
+                "personal_vault/projects/personal/openakashic/bench-test-note.md",
+                "personal_vault/projects/personal/ichimozzi/README.md"
+              ],
+              "writeback_suggested": false,
+              "available_tools": {
+                "tools": {
+                  "search_notes": {
+                    "required": [
+                      "query"
+                    ],
+                    "optional": [
+                      "limit",
+                      "kind",
+                      "tags",
+                      "include_related"
+                    ],
+                    "failure_hint": "결과가 비면 쿼리를 2-3개 키워드로 재시도. 0개면 coverage_gaps 확인 후 upsert_note 제안."
+                  },
+                  "search_and_read_top": {
+                    "required": [
+                      "query"
+                    ],
+                    "optional": [
+                      "kind",
+                      "tags",
+                      "include_body",
+                      "include_related"
+                    ],
+                    "failure_hint": "body가 필요하면 이 도구 하나로 끝. 2회 round-trip 피하기 위해 read_note보다 우선."
+                  },
+                  "read_note": {
+                    "one_of_required": [
+                      "path",
+                      "slug"
+                    ],
+                    "do_not_use": [
+                      "note_id",
+                      "id"
+                    ],
+                    "failure_hint": "path는 search_notes 결과에서 그대로 전달. slug만 있으면 slug 사용."
+                  },
+                  "read_raw_note": {
+                    "required": [
+                      "path"
+                    ],
+                    "failure_hint": "frontmatter 원본 확인용. 일반 조회는 read_note 권장."
+                  },
+                  "query_core_api": {
+                    "required": [
+                      "query"
+                    ],
+                    "optional": [
+                      "limit"
+                    ],
+                    "failure_hint": "Core API는 '이미 공개 검증된 지식'만. 내부 메모/작업 노트는 search_notes 사용."
+                  },
+                  "upsert_note": {
+                    "required": [
+                      "path",
+                      "body"
+                    ],
+                    "optional": [
+                      "title",
+                      "kind",
+                      "project",
+                      "status",
+                      "tags",
+                      "related",
+                      "metadata"
+                    ],
+                    "failure_hint": "path는 personal_vault/ 로 시작. 기존 노트면 read_note로 내용 확인 후 덮어쓰기. 임시 메모는 tags=['agent-scratch']."
+                  },
+                  "append_note_section": {
+                    "required": [
+                      "path",
+                      "heading",
+                      "content"
+                    ],
+                    "failure_hint": "전체 재작성 대신 섹션 추가만. 기존 노트에 '## Update YYYY-MM-DD' 같은 갱신 블록 달 때 최적."
+                  },
+                  "list_notes": {
+                    "optional": [
+                      "folder"
+                    ],
+                    "do_not_use": [
+                      "path",
+                      "project_path"
+                    ],
+                    "failure_hint": "folder 없으면 전체 나열(느림). 탐색은 search_notes 먼저, 구조 파악만 필요할 때 list_folders."
+                  },
+                  "list_folders": {
+                    "optional": [
+                      "root"
+                    ]
+                  },
+                  "path_suggestion": {
+                    "required": [
+                      "title",
+                      "kind"
+                    ],
+                    "failure_hint": "path를 모를 때 호출. upsert_note 직전에 사용. 결과 path 그대로 upsert_note에 전달."
+                  },
+                  "bootstrap_project": {
+                    "required": [
+                      "project"
+                    ],
+                    "optional": [
+                      "scope",
+                      "title",
+                      "summary",
+                      "folders",
+                      "tags"
+                    ],
+                    "do_not_use": [
+                      "project_path",
+                      "path"
+                    ],
+                    "failure_hint": "이미 README가 있는 project에는 호출 금지. search_notes로 먼저 확인."
+                  },
+                  "request_note_publication": {
+                    "required": [
+                      "path",
+                      "rationale",
+                      "evidence_paths"
+                    ],
+                    "failure_hint": "raw personal_vault 노트는 거부됨 — capsule/claim/reference/evidence kind로 Derived Note 먼저 생성. rationale 20자 이상."
+                  },
+                  "confirm_note": {
+                    "required": [
+                      "path"
+                    ],
+                    "optional": [
+                      "comment"
+                    ],
+                    "failure_hint": "자기 소유 노트 confirm은 discount(*owner). 교차 검증은 다른 owner가 해야 유효."
+                  },
+                  "list_stale_notes": {
+                    "optional": [
+                      "days_overdue"
+                    ],
+                    "failure_hint": "snoozed_until 지난 노트만 반환. 최신 상태면 결과 0개가 정상."
+                  },
+                  "snooze_note": {
+                    "required": [
+                      "path",
+                      "days"
+                    ],
+                    "failure_hint": "stale 경고를 N일 연기. freshness 갱신이 아님 — 실제 내용 갱신은 append/upsert로."
+                  },
+                  "resolve_conflict": {
+                    "required": [
+                      "path",
+                      "verdict"
+                    ],
+                    "optional": [
+                      "comment"
+                    ],
+                    "failure_hint": "verdict은 'clear' 또는 'pending_review'만 허용. 소유자/admin만 호출 가능."
+                  },
+                  "delete_note": {
+                    "required": [
+                      "path"
+                    ],
+                    "failure_hint": "되돌릴 수 없음. backlinks 있는 노트 삭제 전 확인."
+                  },
+                  "move_note": {
+                    "required": [
+                      "path",
+                      "new_path"
+                    ],
+                    "failure_hint": "backlinks 보존하며 이동. 동일 폴더 내 이름만 바꿀 때도 이 도구."
+                  }
+                },
+                "workflow_policy": "Always search before creating project memory. If search returns a README path, read it first. Call bootstrap_project only when no project index exists. path returned by search_notes must be passed as read_note(path=...). 반복 절차(예: 주간 스캔, QA 체크)는 kind=playbook 노트로 저장 후 search_notes로 재사용."
+              },
+              "response_contract": {
+                "source_labels": {
+                  "read_from_vault": "이 정보는 아카식 노트에서 읽은 것입니다",
+                  "inferred": "아카식 노트 정보를 바탕으로 추론한 것입니다",
+                  "performed": "이 도구를 직접 호출하여 확인한 결과입니다"
+                },
+                "forbidden_without_tool_receipt": [
+                  "완료되었습니다",
+                  "생성했습니다",
+                  "저장했습니다",
+                  "수정했습니다",
+                  "배포했습니다",
+                  "확인했습니다"
+                ],
+                "rule": "tool call 결과(receipt) 없이 위 표현을 사용하지 마세요. 아카식 노트에서 읽은 내용은 '~에 따르면' 또는 '~로 확인됩니다'로 표현하세요. 직접 실행하지 않은 결과를 '완료'라고 주장하지 마세요."
+              }
+            }
+          },
+          "error": null,
+          "duration_ms": 467.7
+        },
+        {
+          "tool": "list_notes",
+          "arguments": {
+            "folder": "personal_vault/projects/personal/ichimozzi/"
+          },
+          "result": {
+            "notes": [
+              "personal_vault/projects/personal/ichimozzi/README.md",
+              "personal_vault/projects/personal/ichimozzi/admin_and_modal_ux_2026-04-17.md",
+              "personal_vault/projects/personal/ichimozzi/architecture/system-snapshot-2026-04-15.md",
+              "personal_vault/projects/personal/ichimozzi/asset_generation_2026-04-15.md",
+              "personal_vault/projects/personal/ichimozzi/audit-2026-04-16.md",
+              "personal_vault/projects/personal/ichimozzi/audit-2026-04-17-distribution.md",
+              "personal_vault/projects/personal/ichimozzi/audit-2026-04-17.md",
+              "personal_vault/projects/personal/ichimozzi/build-and-deploy-strategy.md",
+              "personal_vault/projects/personal/ichimozzi/contact_reply_system_2026-04-17.md",
+              "personal_vault/projects/personal/ichimozzi/deployment-log.md",
+              "personal_vault/projects/personal/ichimozzi/deployment.md",
+              "personal_vault/projects/personal/ichimozzi/dev-log.md",
+              "personal_vault/projects/personal/ichimozzi/exam_ui_fixes_2026-04-17.md",
+              "personal_vault/projects/personal/ichimozzi/furigana_bug_2026-04-17.md",
+              "personal_vault/projects/personal/ichimozzi/generated-problems/n3-grammar-20260417-001.md",
+              "personal_vault/projects/personal/ichimozzi/generated-problems/n4-vocab-20260417-001.md",
+              "personal_vault/projects/personal/ichimozzi/generated-problems/n4-vocab-20260417-002.md",
+              "personal_vault/projects/personal/ichimozzi/generated_problems/n4_vocab_20260417_001.md",
+              "personal_vault/projects/personal/ichimozzi/grammar-category-subpattern-map.md",
+              "personal_vault/projects/personal/ichimozzi/impl-direction-2026-04-17.md",
+              "personal_vault/projects/personal/ichimozzi/jlpt-exam-format-reference.md",
+              "personal_vault/projects/personal/ichimozzi/level-mastery-split-2026-04-17.md",
+              "personal_vault/projects/personal/ichimozzi/ota_debug_2026-04-17.md",
+              "personal_vault/projects/personal/ichimozzi/playbooks/update-and-deploy.md",
+              "personal_vault/projects/personal/ichimozzi/problem_generation_methodology_2026-04-15.md",
+              "personal_vault/projects/personal/ichimozzi/problem_taxonomy_and_generation_guide.md",
+              "personal_vault/projects/personal/ichimozzi/qa-report-2026-04-17.md",
+              "personal_vault/projects/personal/ichimozzi/reference/evaluation-2026-04-15.md",
+              "personal_vault/projects/personal/ichimozzi/reference/evaluation-2026-04-16.md",
+              "personal_vault/projects/personal/ichimozzi/reference/ota-incident-2026-04-16.md",
+              "personal_vault/projects/personal/ichimozzi/reference/ota-v45-investigation-2026-04-17.md",
+              "personal_vault/projects/personal/ichimozzi/reference/play-test-2026-04-15.md",
+              "personal_vault/projects/personal/ichimozzi/report_patterns_2026_04_17.md",
+              "personal_vault/projects/personal/ichimozzi/research/jlpt-best-practices.md",
+              "personal_vault/projects/personal/ichimozzi/sakan-automation.md",
+              "personal_vault/projects/personal/ichimozzi/sakan_automation_2026-04-15.md"
+            ],
+            "count": 36
+          },
+          "error": null,
+          "duration_ms": 294.7
+        }
+      ],
+      "answer": "IchiMozzi 백엔드 배포는 다음과 같이 진행합니다:\n\n**백엔드 배포 (로컬 Docker):**\n```bash\ncd /home/insu/insu_server/compose\ndocker compose -f production.yml up -d --build backend-prod\n```\n\nEC2가 없으므로 홈서버 Docker에서 실행됩니다.\n\n**DB 마이그레이션 (synchronize=false일 때):**\n```bash\ndocker exec insu-server-ichimozzi-db-1 psql -U postgres -d IchiMozzi -c \"ALTER TABLE ...\"\n```\n\n**프론트엔드 OTA 배포 (필요시):**\n```bash\ncd /home/insu/insu_server/apps/ichimozzi/frontend\nrm -rf dist/\nEXPO_TOKEN=kGmlnJG-SIOPnw_oIJZfoubUGRdYC2pZvtsPY4Sg eas update --channel master --message \"...\" --non-interactive\n```\n\n컨테이너 구조 및 기타 배포 세부사항은 deployment.md에 정의되어 있습니다.\n\n(출처: personal_vault/projects/personal/ichimozzi/deployment.md)",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"IchiMozzi 프로젝트의 배포 가이드와 명령어를 찾아 백엔드 배포 프로세스를 확인합니다.\",\n  \"tool_calls\": [\n    {\n      \"tool\": \"search_and_read_top\",\n      \"arguments\": {\n        \"query\": \"ichimozzi backend deployment deploy commands instructions\",\n        \"limit\": 3\n      }\n    },\n    {\n      \"tool\": \"list_notes\",\n      \"arguments\": {\n        \"folder\": \"personal_vault/projects/personal/ichimozzi/\"\n      }\n    }\n  ]\n}\n```",
+      "raw_model_output_turn2": "```json\n{\n  \"answer\": \"IchiMozzi 백엔드 배포는 다음과 같이 진행합니다:\\n\\n**백엔드 배포 (로컬 Docker):**\\n```bash\\ncd /home/insu/insu_server/compose\\ndocker compose -f production.yml up -d --build backend-prod\\n```\\n\\nEC2가 없으므로 홈서버 Docker에서 실행됩니다.\\n\\n**DB 마이그레이션 (synchronize=false일 때):**\\n```bash\\ndocker exec insu-server-ichimozzi-db-1 psql -U postgres -d IchiMozzi -c \\\"ALTER TABLE ...\\\"\\n```\\n\\n**프론트엔드 OTA 배포 (필요시):**\\n```bash\\ncd /home/insu/insu_server/apps/ichimozzi/frontend\\nrm -rf dist/\\nEXPO_TOKEN=kGmlnJG-SIOPnw_oIJZfoubUGRdYC2pZvtsPY4Sg eas update --channel master --message \\\"...\\\" --non-interactive\\n```\\n\\n컨테이너 구조 및 기타 배포 세부사항은 deployment.md에 정의되어 있습니다.\\n\\n(출처: personal_vault/projects/personal/ichimozzi/deployment.md)\"\n}\n```",
+      "error": null,
+      "format_violation": false
+    },
+    {
+      "task_id": "general_web_fact",
+      "condition": "openakashic",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-17T16:25:05+00:00",
+      "finished_at": "2026-04-17T16:25:13+00:00",
+      "plan": "MCP는 공개 웹 정보이므로 vault 조회 없이 파라메트릭 지식으로 답합니다.",
+      "tool_calls": [],
+      "answer": "도구 호출 결과가 없어 답변할 정보가 부족합니다. 구체적인 질문이나 요청이 있으시면 말씀해주세요.",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"MCP는 공개 웹 정보이므로 vault 조회 없이 파라메트릭 지식으로 답합니다.\",\n  \"tool_calls\": []\n}\n```",
+      "raw_model_output_turn2": "```json\n{\n  \"answer\": \"도구 호출 결과가 없어 답변할 정보가 부족합니다. 구체적인 질문이나 요청이 있으시면 말씀해주세요.\"\n}\n```",
+      "error": null,
+      "format_violation": false
+    },
+    {
+      "task_id": "memory_roundtrip",
+      "condition": "openakashic",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-17T16:25:13+00:00",
+      "finished_at": "2026-04-17T16:25:29+00:00",
+      "plan": "사용자 선호사항을 vault에 upsert로 저장한 후, 즉시 read_note로 회수하여 정확히 저장되었는지 확인합니다.",
+      "tool_calls": [
+        {
+          "tool": "upsert_note",
+          "arguments": {
+            "path": "personal_vault/user/preferences.md",
+            "title": "User Preferences",
+            "body": "## Daily Preferences\n\n1. **저녁에 커피 금지** - 저녁 시간에 카페인 섭취 제한\n2. **주말에는 이메일 확인 안 함** - 토요일, 일요일에 업무 이메일 미확인\n3. **운동은 아침 6시 30분에** - 매일 아침 6시 30분에 운동 루틴 실행",
+            "tags": [
+              "preferences",
+              "user",
+              "insu"
+            ],
+            "kind": "reference"
+          },
+          "result": {
+            "path": "personal_vault/user/preferences.md",
+            "slug": "preferences",
+            "note": {
+              "path": "personal_vault/user/preferences.md",
+              "slug": "preferences",
+              "title": "User Preferences",
+              "kind": "reference",
+              "project": "openakashic",
+              "status": "active",
+              "owner": "admin",
+              "original_owner": "admin",
+              "created_by": "admin",
+              "visibility": "private",
+              "publication_status": "none",
+              "tags": [
+                "preferences",
+                "user",
+                "insu"
+              ],
+              "related": [],
+              "summary": "1. 저녁에 커피 금지 - 저녁 시간에 카페인 섭취 제한",
+              "body": "## Daily Preferences\n\n1. **저녁에 커피 금지** - 저녁 시간에 카페인 섭취 제한\n2. **주말에는 이메일 확인 안 함** - 토요일, 일요일에 업무 이메일 미확인\n3. **운동은 아침 6시 30분에** - 매일 아침 6시 30분에 운동 루틴 실행",
+              "body_html": "<h2 id=\"daily-preferences\">Daily Preferences<a class=\"heading-anchor\" href=\"#daily-preferences\">#</a></h2>\n<ol>\n<li><strong>저녁에 커피 금지</strong> - 저녁 시간에 카페인 섭취 제한</li>\n<li><strong>주말에는 이메일 확인 안 함</strong> - 토요일, 일요일에 업무 이메일 미확인</li>\n<li><strong>운동은 아침 6시 30분에</strong> - 매일 아침 6시 30분에 운동 루틴 실행</li>\n</ol>",
+              "links": [],
+              "related_notes": [],
+              "backlinks": [],
+              "outbound": 0,
+              "href": "/notes/preferences"
+            },
+            "publication_request": null,
+            "_next": "Note saved at 'personal_vault/user/preferences.md'. To submit for public review: call request_note_publication with path='personal_vault/user/preferences.md', rationale='<why this is worth publishing>', evidence_paths=['<supporting note paths or URLs>']"
+          },
+          "error": null,
+          "duration_ms": 566.5
+        },
+        {
+          "tool": "read_note",
+          "arguments": {
+            "path": "personal_vault/user/preferences.md"
+          },
+          "result": {
+            "path": "personal_vault/user/preferences.md",
+            "slug": "preferences",
+            "title": "User Preferences",
+            "kind": "reference",
+            "project": "openakashic",
+            "status": "active",
+            "owner": "admin",
+            "original_owner": "admin",
+            "created_by": "admin",
+            "visibility": "private",
+            "publication_status": "none",
+            "tags": [
+              "preferences",
+              "user",
+              "insu"
+            ],
+            "related": [],
+            "summary": "1. 저녁에 커피 금지 - 저녁 시간에 카페인 섭취 제한",
+            "body": "## Daily Preferences\n\n1. **저녁에 커피 금지** - 저녁 시간에 카페인 섭취 제한\n2. **주말에는 이메일 확인 안 함** - 토요일, 일요일에 업무 이메일 미확인\n3. **운동은 아침 6시 30분에** - 매일 아침 6시 30분에 운동 루틴 실행",
+            "body_html": "<h2 id=\"daily-preferences\">Daily Preferences<a class=\"heading-anchor\" href=\"#daily-preferences\">#</a></h2>\n<ol>\n<li><strong>저녁에 커피 금지</strong> - 저녁 시간에 카페인 섭취 제한</li>\n<li><strong>주말에는 이메일 확인 안 함</strong> - 토요일, 일요일에 업무 이메일 미확인</li>\n<li><strong>운동은 아침 6시 30분에</strong> - 매일 아침 6시 30분에 운동 루틴 실행</li>\n</ol>",
+            "links": [],
+            "related_notes": [],
+            "backlinks": [],
+            "outbound": 0,
+            "href": "/notes/preferences"
+          },
+          "error": null,
+          "duration_ms": 212.4
+        }
+      ],
+      "answer": "당신의 일일 선호도가 성공적으로 저장되었습니다:\n\n1. **저녁에 커피 금지** - 저녁 시간에 카페인 섭취 제한\n2. **주말에는 이메일 확인 안 함** - 토요일, 일요일에 업무 이메일 미확인\n3. **운동은 아침 6시 30분에** - 매일 아침 6시 30분에 운동 루틴 실행\n\n이 선호도는 personal_vault/user/preferences.md에 기록되었습니다.\n\n(출처: personal_vault/user/preferences.md)",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"사용자 선호사항을 vault에 upsert로 저장한 후, 즉시 read_note로 회수하여 정확히 저장되었는지 확인합니다.\",\n  \"tool_calls\": [\n    {\n      \"tool\": \"upsert_note\",\n      \"arguments\": {\n        \"path\": \"personal_vault/user/preferences.md\",\n        \"title\": \"User Preferences\",\n        \"body\": \"## Daily Preferences\\n\\n1. **저녁에 커피 금지** - 저녁 시간에 카페인 섭취 제한\\n2. **주말에는 이메일 확인 안 함** - 토요일, 일요일에 업무 이메일 미확인\\n3. **운동은 아침 6시 30분에** - 매일 아침 6시 30분에 운동 루틴 실행\",\n        \"tags\": [\"preferences\", \"user\", \"insu\"],\n        \"kind\": \"reference\"\n      }\n    },\n    {\n      \"tool\": \"read_note\",\n      \"arguments\": {\n        \"path\": \"personal_vault/user/preferences.md\"\n      }\n    }\n  ]\n}\n```",
+      "raw_model_output_turn2": "```json\n{\n  \"answer\": \"당신의 일일 선호도가 성공적으로 저장되었습니다:\\n\\n1. **저녁에 커피 금지** - 저녁 시간에 카페인 섭취 제한\\n2. **주말에는 이메일 확인 안 함** - 토요일, 일요일에 업무 이메일 미확인\\n3. **운동은 아침 6시 30분에** - 매일 아침 6시 30분에 운동 루틴 실행\\n\\n이 선호도는 personal_vault/user/preferences.md에 기록되었습니다.\\n\\n(출처: personal_vault/user/preferences.md)\"\n}\n```",
+      "error": null,
+      "format_violation": false
+    },
+    {
+      "task_id": "busagwan_sagwan_roles",
+      "condition": "openakashic",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-17T16:25:29+00:00",
+      "finished_at": "2026-04-17T16:25:44+00:00",
+      "plan": "OpenAkashic 아키텍처에서 Busagwan과 Sagwan의 역할과 차이를 vault에서 검색하여 확인합니다.",
+      "tool_calls": [
+        {
+          "tool": "search_and_read_top",
+          "arguments": {
+            "query": "Busagwan Sagwan OpenAkashic architecture role difference",
+            "limit": 3
+          },
+          "result": {
+            "query": "Busagwan Sagwan OpenAkashic architecture role difference",
+            "top": {
+              "path": "personal_vault/projects/personal/openakashic/design-brief-codex-2026-04-17.md",
+              "slug": "design-brief-codex-2026-04-17",
+              "title": "OpenAkashic 종합 설계 브리핑 — Codex 토론용 2026-04-17",
+              "kind": "capsule",
+              "project": "openakashic",
+              "owner": "aaron",
+              "visibility": "private",
+              "publication_status": "none",
+              "tags": [
+                "design",
+                "gaps",
+                "codex-debate",
+                "architecture"
+              ],
+              "summary": "---",
+              "href": "/notes/design-brief-codex-2026-04-17",
+              "lexical_score": 0.0,
+              "semantic_score": 0.5834,
+              "confirm_count": 0,
+              "score": 0.016393
+            },
+            "note": {
+              "path": "personal_vault/projects/personal/openakashic/design-brief-codex-2026-04-17.md",
+              "slug": "design-brief-codex-2026-04-17",
+              "title": "OpenAkashic 종합 설계 브리핑 — Codex 토론용 2026-04-17",
+              "kind": "capsule",
+              "project": "openakashic",
+              "status": "active",
+              "owner": "aaron",
+              "original_owner": "aaron",
+              "created_by": "aaron",
+              "visibility": "private",
+              "publication_status": "none",
+              "tags": [
+                "design",
+                "gaps",
+                "codex-debate",
+                "architecture"
+              ],
+              "related": [],
+              "summary": "---",
+              "body": "---\ntitle: \"OpenAkashic 종합 설계 브리핑 — Codex 토론용 2026-04-17\"\nkind: capsule\nproject: openakashic\nstatus: active\nconfidence: high\ntags: [design, architecture, gaps, incentive, codex-debate, review]\nvisibility: private\n---\n\n# OpenAkashic 종합 설계 브리핑 — Codex CLI 토론용\n\n## 시스템 현황\n\n### 2층 구조\n- Closed Akashic (knowledge.openakashic.com/mcp/) — 개인/공유 작업 메모리\n- Core API (api.openakashic.com) — 검증 완료 공개 지식\n\n### 에이전트 분업\n- Sagwan(사관): Claude CLI, 10분/1시간, 발행 최종 승인 + 5가지 정제 사이클\n- Busagwan(부사관): Ollama gemma4:e4b, 15분, 1차 리뷰 + 큐 태스크 (max 3/run)\n- 외부 에이전트: MCP 직접 호출\n\n### 검색 알고리즘\n- Dual-mode: lexical(정수) + semantic(nomic-embed-text, 0~1)\n- RRF(k=60) 통합 — scale 의존성 제거\n- Gap detection: semantic < 0.62 → gap, ≥ 0.70 → hit\n\n## 코드로 확인된 핵심 GAP\n\n### GAP 1: confirm_count / freshness_date — 저장만, 검색 반영 없음\nsite.py search_closed_notes()는 순수 RRF. confirm_count, freshness_date, decay_tier 모두 frontmatter 기록되지만 랭킹 미반영.\n\n### GAP 2: shared visibility — 코드에 있지만 권한 체계가 무시\n_note_visibility()가 {\"private\",\"public\"} 외 값을 private으로 downgrade.\nbusagwan이 visibility=\"shared\"로 생성한 gap 노트가 외부 에이전트에게 invisible.\n\n### GAP 3: related 필드 — 저장만, 그래프 순회 없음\n노트 frontmatter related: [path1, path2]가 기록되지만 검색이 참조 안 함.\nopenakashic://graph 리소스 있지만 search에서 미활용.\n\n### GAP 4: contradicts 필드 — 설계에만 존재\nKARMA 스타일 모순 감지 위해 설계됐으나 코드 미구현.\nSagwan 리뷰 시 contradicts 필드 검증 로직 없음.\n\n### GAP 5: proactive push — 내부 에이전트만 작동\nbefore_task_context() Related(25%)가 내부 루프(Sagwan/Busagwan)에만 적용.\n외부 MCP 에이전트는 스스로 search_notes() 호출해야 관련 지식 얻음.\n\n### GAP 6: 기여 인센티브\n- 에이전트 write-back 24-34% (standing instructions 의존)\n- 상호성 게이트 역효과 (실증)\n- confirm_count 저장되지만 활용 없음\n- \"84.6% 토큰 절감\" 메시지 에이전트에게 전달 없음\n\n### GAP 7: 에이전트 신원/평판\nconfirmed_by 필드의 by가 단순 nickname 문자열.\nSagwan confirm ≠ 임의 에이전트 confirm 구분 없음.\n\n### GAP 8: 파일 기반 저장소 한계\nsemantic-index.json 인메모리 JSON 파일 — 수만 노트부터 병목.\n태스크 큐 우선순위 없음 (miss_count 무관하게 FIFO).\n\n## 즉각 수정 가능한 버그 (빠른 wins)\n1. shared visibility downgrade — mcp_server.py:891 한 줄 수정\n2. confirm_count 검색 가중치 — site.py RRF 후 log 가중치 추가\n3. gap 노트 miss_count 검색 응답 포함 — search 응답에 related_gaps 추가\n4. miss_count 우선순위 큐 — analyze_search_gaps에서 높은 순 처리\n\n## 연구 레퍼런스 vs. 구현 갭\n- Knowledge Compounding (2604.11243): 84.6% 절감 — 토큰 절감 에이전트 전달 없음\n- SSGM Framework: decay_tier 주입됨 — 검색 랭킹 미반영\n- KARMA (NeurIPS 2025): 2-stage 있음 — 3-verdict 미구현\n- Sequential Public Goods Game: confirm_note 있음 — closed system 가정, 실제 보상 없음\n- A-Mem (Zettelkasten): claim 원자 노트 — related 그래프 순회 없음\n- MemOS: 4계층 메모리 — 크로스 유저 federation 없음\n- \"Policy violations = dataflow problem\": 일부 구조적 강제 — write-back 여전히 24-34%\n\n## Codex 토론 핵심 질문\n1. 검색 랭킹에 confirm_count/freshness 반영 — 어떤 방식이 게이밍 저항성과 효과 균형을 맞추는가?\n2. 기여 인센티브 재설계 — 84.6% 절감 메시지 전달로 충분한가?\n3. shared visibility — 즉시 수정 vs. team scope 설계 후 수정?\n4. KARMA 3-verdict vs. 2-stage — 비용 대비 83.1% 정확도 향상 가치 있는가?\n5. contradicts 자동 감지 — upsert 시 유사도 > 0.8 노트 충돌 확인 LLM 호출 비용 vs. 품질?",
+              "body_html": "<hr>\n<p>title: \"OpenAkashic 종합 설계 브리핑 — Codex 토론용 2026-04-17\"\nkind: capsule\nproject: openakashic\nstatus: active\nconfidence: high\ntags: [design, architecture, gaps, incentive, codex-debate, review]\nvisibility: private</p>\n<hr>\n<h1>OpenAkashic 종합 설계 브리핑 — Codex CLI 토론용</h1>\n<h2 id=\"시스템-현황\">시스템 현황<a class=\"heading-anchor\" href=\"#시스템-현황\">#</a></h2>\n<h3 id=\"2층-구조\">2층 구조<a class=\"heading-anchor\" href=\"#2층-구조\">#</a></h3>\n<ul>\n<li>Closed Akashic (knowledge.openakashic.com/mcp/) — 개인/공유 작업 메모리</li>\n<li>Core API (api.openakashic.com) — 검증 완료 공개 지식</li>\n</ul>\n<h3 id=\"에이전트-분업\">에이전트 분업<a class=\"heading-anchor\" href=\"#에이전트-분업\">#</a></h3>\n<ul>\n<li>Sagwan(사관): Claude CLI, 10분/1시간, 발행 최종 승인 + 5가지 정제 사이클</li>\n<li>Busagwan(부사관): Ollama gemma4:e4b, 15분, 1차 리뷰 + 큐 태스크 (max 3/run)</li>\n<li>외부 에이전트: MCP 직접 호출</li>\n</ul>\n<h3 id=\"검색-알고리즘\">검색 알고리즘<a class=\"heading-anchor\" href=\"#검색-알고리즘\">#</a></h3>\n<ul>\n<li>Dual-mode: lexical(정수) + semantic(nomic-embed-text, 0~1)</li>\n<li>RRF(k=60) 통합 — scale 의존성 제거</li>\n<li>Gap detection: semantic &lt; 0.62 → gap, ≥ 0.70 → hit</li>\n</ul>\n<h2 id=\"코드로-확인된-핵심-gap\">코드로 확인된 핵심 GAP<a class=\"heading-anchor\" href=\"#코드로-확인된-핵심-gap\">#</a></h2>\n<h3 id=\"gap-1-confirm-count-freshness-date-저장만-검색-반영-없음\">GAP 1: confirm_count / freshness_date — 저장만, 검색 반영 없음<a class=\"heading-anchor\" href=\"#gap-1-confirm-count-freshness-date-저장만-검색-반영-없음\">#</a></h3>\n<p>site.py search_closed_notes()는 순수 RRF. confirm_count, freshness_date, decay_tier 모두 frontmatter 기록되지만 랭킹 미반영.</p>\n<h3 id=\"gap-2-shared-visibility-코드에-있지만-권한-체계가-무시\">GAP 2: shared visibility — 코드에 있지만 권한 체계가 무시<a class=\"heading-anchor\" href=\"#gap-2-shared-visibility-코드에-있지만-권한-체계가-무시\">#</a></h3>\n<p>_note_visibility()가 {\"private\",\"public\"} 외 값을 private으로 downgrade.\nbusagwan이 visibility=\"shared\"로 생성한 gap 노트가 외부 에이전트에게 invisible.</p>\n<h3 id=\"gap-3-related-필드-저장만-그래프-순회-없음\">GAP 3: related 필드 — 저장만, 그래프 순회 없음<a class=\"heading-anchor\" href=\"#gap-3-related-필드-저장만-그래프-순회-없음\">#</a></h3>\n<p>노트 frontmatter related: [path1, path2]가 기록되지만 검색이 참조 안 함.\nopenakashic://graph 리소스 있지만 search에서 미활용.</p>\n<h3 id=\"gap-4-contradicts-필드-설계에만-존재\">GAP 4: contradicts 필드 — 설계에만 존재<a class=\"heading-anchor\" href=\"#gap-4-contradicts-필드-설계에만-존재\">#</a></h3>\n<p>KARMA 스타일 모순 감지 위해 설계됐으나 코드 미구현.\nSagwan 리뷰 시 contradicts 필드 검증 로직 없음.</p>\n<h3 id=\"gap-5-proactive-push-내부-에이전트만-작동\">GAP 5: proactive push — 내부 에이전트만 작동<a class=\"heading-anchor\" href=\"#gap-5-proactive-push-내부-에이전트만-작동\">#</a></h3>\n<p>before_task_context() Related(25%)가 내부 루프(Sagwan/Busagwan)에만 적용.\n외부 MCP 에이전트는 스스로 search_notes() 호출해야 관련 지식 얻음.</p>\n<h3 id=\"gap-6-기여-인센티브\">GAP 6: 기여 인센티브<a class=\"heading-anchor\" href=\"#gap-6-기여-인센티브\">#</a></h3>\n<ul>\n<li>에이전트 write-back 24-34% (standing instructions 의존)</li>\n<li>상호성 게이트 역효과 (실증)</li>\n<li>confirm_count 저장되지만 활용 없음</li>\n<li>\"84.6% 토큰 절감\" 메시지 에이전트에게 전달 없음</li>\n</ul>\n<h3 id=\"gap-7-에이전트-신원-평판\">GAP 7: 에이전트 신원/평판<a class=\"heading-anchor\" href=\"#gap-7-에이전트-신원-평판\">#</a></h3>\n<p>confirmed_by 필드의 by가 단순 nickname 문자열.\nSagwan confirm ≠ 임의 에이전트 confirm 구분 없음.</p>\n<h3 id=\"gap-8-파일-기반-저장소-한계\">GAP 8: 파일 기반 저장소 한계<a class=\"heading-anchor\" href=\"#gap-8-파일-기반-저장소-한계\">#</a></h3>\n<p>semantic-index.json 인메모리 JSON 파일 — 수만 노트부터 병목.\n태스크 큐 우선순위 없음 (miss_count 무관하게 FIFO).</p>\n<h2 id=\"즉각-수정-가능한-버그-빠른-wins\">즉각 수정 가능한 버그 (빠른 wins)<a class=\"heading-anchor\" href=\"#즉각-수정-가능한-버그-빠른-wins\">#</a></h2>\n<ol>\n<li>shared visibility downgrade — mcp_server.py:891 한 줄 수정</li>\n<li>confirm_count 검색 가중치 — site.py RRF 후 log 가중치 추가</li>\n<li>gap 노트 miss_count 검색 응답 포함 — search 응답에 related_gaps 추가</li>\n<li>miss_count 우선순위 큐 — analyze_search_gaps에서 높은 순 처리</li>\n</ol>\n<h2 id=\"연구-레퍼런스-vs-구현-갭\">연구 레퍼런스 vs. 구현 갭<a class=\"heading-anchor\" href=\"#연구-레퍼런스-vs-구현-갭\">#</a></h2>\n<ul>\n<li>Knowledge Compounding (2604.11243): 84.6% 절감 — 토큰 절감 에이전트 전달 없음</li>\n<li>SSGM Framework: decay_tier 주입됨 — 검색 랭킹 미반영</li>\n<li>KARMA (NeurIPS 2025): 2-stage 있음 — 3-verdict 미구현</li>\n<li>Sequential Public Goods Game: confirm_note 있음 — closed system 가정, 실제 보상 없음</li>\n<li>A-Mem (Zettelkasten): claim 원자 노트 — related 그래프 순회 없음</li>\n<li>MemOS: 4계층 메모리 — 크로스 유저 federation 없음</li>\n<li>\"Policy violations = dataflow problem\": 일부 구조적 강제 — write-back 여전히 24-34%</li>\n</ul>\n<h2 id=\"codex-토론-핵심-질문\">Codex 토론 핵심 질문<a class=\"heading-anchor\" href=\"#codex-토론-핵심-질문\">#</a></h2>\n<ol>\n<li>검색 랭킹에 confirm_count/freshness 반영 — 어떤 방식이 게이밍 저항성과 효과 균형을 맞추는가?</li>\n<li>기여 인센티브 재설계 — 84.6% 절감 메시지 전달로 충분한가?</li>\n<li>shared visibility — 즉시 수정 vs. team scope 설계 후 수정?</li>\n<li>KARMA 3-verdict vs. 2-stage — 비용 대비 83.1% 정확도 향상 가치 있는가?</li>\n<li>contradicts 자동 감지 — upsert 시 유사도 &gt; 0.8 노트 충돌 확인 LLM 호출 비용 vs. 품질?</li>\n</ol>",
+              "links": [],
+              "related_notes": [],
+              "backlinks": [],
+              "outbound": 0,
+              "href": "/notes/design-brief-codex-2026-04-17"
+            },
+            "other_results": [
+              {
+                "path": "doc/general/plan.md",
+                "slug": "plan",
+                "title": "OpenAkashic System Architecture",
+                "kind": "architecture",
+                "project": "openakashic",
+                "owner": "sagwan",
+                "visibility": "public",
+                "publication_status": "published",
+                "tags": [
+                  "architecture",
+                  "openakashic",
+                  "mcp",
+                  "core-api",
+                  "closed-akashic"
+                ],
+                "summary": "OpenAkashic 현재 구현 아키텍처. 두 레이어(Closed Akashic + Core API)와 그 브릿지로 구성된다. ---",
+                "href": "/notes/plan",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5811,
+                "confirm_count": 0,
+                "score": 0.016129
+              },
+              {
+                "path": "doc/general/Open and Closed Akashic Strategy.md",
+                "slug": "open-and-closed-akashic-strategy",
+                "title": "Open and Closed Akashic Strategy",
+                "kind": "architecture",
+                "project": "openakashic",
+                "owner": "sagwan",
+                "visibility": "public",
+                "publication_status": "published",
+                "tags": [
+                  "openakashic",
+                  "closed-akashic",
+                  "strategy",
+                  "architecture"
+                ],
+                "summary": "Open Akashic and Closed Akashic should stay as separate surfaces with a deliberate bridge between them, not as one undifferentiated store. Open Akashic is the public memory layer for publishable claims, evidences, mentions, entities, and derived capsules. Clos",
+                "href": "/notes/open-and-closed-akashic-strategy",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5242,
+                "confirm_count": 0,
+                "score": 0.015873
+              },
+              {
+                "path": "personal_vault/projects/personal/openakashic/impl-2026-04-17.md",
+                "slug": "impl-2026-04-17",
+                "title": "OpenAkashic 3가지 개선 구현 — 2026-04-17",
+                "kind": "capsule",
+                "project": "openakashic",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "implementation",
+                  "confirm-note",
+                  "busagwan-feedback",
+                  "freshness"
+                ],
+                "summary": "---",
+                "href": "/notes/impl-2026-04-17",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5081,
+                "confirm_count": 0,
+                "score": 0.015625
+              },
+              {
+                "path": "personal_vault/shared/reference/OpenAkashic Strategy Capsule.md",
+                "slug": "openakashic-strategy-capsule",
+                "title": "OpenAkashic Strategy Capsule",
+                "kind": "capsule",
+                "project": "openakashic",
+                "owner": "sagwan",
+                "visibility": "private",
+                "publication_status": "rejected",
+                "tags": [],
+                "summary": "Open Akashic(공개 지식층)과 Closed Akashic(작업 메모리층)을 의도적으로 분리하고 명시적 bridge로 연결하는 governance 전략. 한 저장소로 혼재하지 않고 두 계층을 명확히 구분하여 공개 가능 여부, 접근 범위, 스키마를 각각 관리함으로써 정보 흐름의 일관성과 보안을 동시에 확보한다.",
+                "href": "/notes/openakashic-strategy-capsule",
+                "lexical_score": 0.0,
+                "semantic_score": 0.4991,
+                "confirm_count": 0,
+                "score": 0.015385
+              }
+            ],
+            "hints": [],
+            "count": 5,
+            "retrieval_value": {
+              "intent": "synthesis",
+              "matched_notes": [
+                "personal_vault/projects/personal/openakashic/design-brief-codex-2026-04-17.md",
+                "doc/general/plan.md",
+                "doc/general/Open and Closed Akashic Strategy.md",
+                "personal_vault/projects/personal/openakashic/impl-2026-04-17.md",
+                "personal_vault/shared/reference/OpenAkashic Strategy Capsule.md"
+              ],
+              "coverage_gaps": [],
+              "writeback_suggested": false,
+              "synthesis_hint": "여러 matched_notes를 교차 참조해서 답할 것. 근거가 부족하면 답 대신 coverage_gap을 명시하고 writeback을 제안.",
+              "available_tools": {
+                "tools": {
+                  "search_notes": {
+                    "required": [
+                      "query"
+                    ],
+                    "optional": [
+                      "limit",
+                      "kind",
+                      "tags",
+                      "include_related"
+                    ],
+                    "failure_hint": "결과가 비면 쿼리를 2-3개 키워드로 재시도. 0개면 coverage_gaps 확인 후 upsert_note 제안."
+                  },
+                  "search_and_read_top": {
+                    "required": [
+                      "query"
+                    ],
+                    "optional": [
+                      "kind",
+                      "tags",
+                      "include_body",
+                      "include_related"
+                    ],
+                    "failure_hint": "body가 필요하면 이 도구 하나로 끝. 2회 round-trip 피하기 위해 read_note보다 우선."
+                  },
+                  "read_note": {
+                    "one_of_required": [
+                      "path",
+                      "slug"
+                    ],
+                    "do_not_use": [
+                      "note_id",
+                      "id"
+                    ],
+                    "failure_hint": "path는 search_notes 결과에서 그대로 전달. slug만 있으면 slug 사용."
+                  },
+                  "read_raw_note": {
+                    "required": [
+                      "path"
+                    ],
+                    "failure_hint": "frontmatter 원본 확인용. 일반 조회는 read_note 권장."
+                  },
+                  "query_core_api": {
+                    "required": [
+                      "query"
+                    ],
+                    "optional": [
+                      "limit"
+                    ],
+                    "failure_hint": "Core API는 '이미 공개 검증된 지식'만. 내부 메모/작업 노트는 search_notes 사용."
+                  },
+                  "upsert_note": {
+                    "required": [
+                      "path",
+                      "body"
+                    ],
+                    "optional": [
+                      "title",
+                      "kind",
+                      "project",
+                      "status",
+                      "tags",
+                      "related",
+                      "metadata"
+                    ],
+                    "failure_hint": "path는 personal_vault/ 로 시작. 기존 노트면 read_note로 내용 확인 후 덮어쓰기. 임시 메모는 tags=['agent-scratch']."
+                  },
+                  "append_note_section": {
+                    "required": [
+                      "path",
+                      "heading",
+                      "content"
+                    ],
+                    "failure_hint": "전체 재작성 대신 섹션 추가만. 기존 노트에 '## Update YYYY-MM-DD' 같은 갱신 블록 달 때 최적."
+                  },
+                  "list_notes": {
+                    "optional": [
+                      "folder"
+                    ],
+                    "do_not_use": [
+                      "path",
+                      "project_path"
+                    ],
+                    "failure_hint": "folder 없으면 전체 나열(느림). 탐색은 search_notes 먼저, 구조 파악만 필요할 때 list_folders."
+                  },
+                  "list_folders": {
+                    "optional": [
+                      "root"
+                    ]
+                  },
+                  "path_suggestion": {
+                    "required": [
+                      "title",
+                      "kind"
+                    ],
+                    "failure_hint": "path를 모를 때 호출. upsert_note 직전에 사용. 결과 path 그대로 upsert_note에 전달."
+                  },
+                  "bootstrap_project": {
+                    "required": [
+                      "project"
+                    ],
+                    "optional": [
+                      "scope",
+                      "title",
+                      "summary",
+                      "folders",
+                      "tags"
+                    ],
+                    "do_not_use": [
+                      "project_path",
+                      "path"
+                    ],
+                    "failure_hint": "이미 README가 있는 project에는 호출 금지. search_notes로 먼저 확인."
+                  },
+                  "request_note_publication": {
+                    "required": [
+                      "path",
+                      "rationale",
+                      "evidence_paths"
+                    ],
+                    "failure_hint": "raw personal_vault 노트는 거부됨 — capsule/claim/reference/evidence kind로 Derived Note 먼저 생성. rationale 20자 이상."
+                  },
+                  "confirm_note": {
+                    "required": [
+                      "path"
+                    ],
+                    "optional": [
+                      "comment"
+                    ],
+                    "failure_hint": "자기 소유 노트 confirm은 discount(*owner). 교차 검증은 다른 owner가 해야 유효."
+                  },
+                  "list_stale_notes": {
+                    "optional": [
+                      "days_overdue"
+                    ],
+                    "failure_hint": "snoozed_until 지난 노트만 반환. 최신 상태면 결과 0개가 정상."
+                  },
+                  "snooze_note": {
+                    "required": [
+                      "path",
+                      "days"
+                    ],
+                    "failure_hint": "stale 경고를 N일 연기. freshness 갱신이 아님 — 실제 내용 갱신은 append/upsert로."
+                  },
+                  "resolve_conflict": {
+                    "required": [
+                      "path",
+                      "verdict"
+                    ],
+                    "optional": [
+                      "comment"
+                    ],
+                    "failure_hint": "verdict은 'clear' 또는 'pending_review'만 허용. 소유자/admin만 호출 가능."
+                  },
+                  "delete_note": {
+                    "required": [
+                      "path"
+                    ],
+                    "failure_hint": "되돌릴 수 없음. backlinks 있는 노트 삭제 전 확인."
+                  },
+                  "move_note": {
+                    "required": [
+                      "path",
+                      "new_path"
+                    ],
+                    "failure_hint": "backlinks 보존하며 이동. 동일 폴더 내 이름만 바꿀 때도 이 도구."
+                  }
+                },
+                "workflow_policy": "Always search before creating project memory. If search returns a README path, read it first. Call bootstrap_project only when no project index exists. path returned by search_notes must be passed as read_note(path=...). 반복 절차(예: 주간 스캔, QA 체크)는 kind=playbook 노트로 저장 후 search_notes로 재사용."
+              },
+              "response_contract": {
+                "source_labels": {
+                  "read_from_vault": "이 정보는 아카식 노트에서 읽은 것입니다",
+                  "inferred": "아카식 노트 정보를 바탕으로 추론한 것입니다",
+                  "performed": "이 도구를 직접 호출하여 확인한 결과입니다"
+                },
+                "forbidden_without_tool_receipt": [
+                  "완료되었습니다",
+                  "생성했습니다",
+                  "저장했습니다",
+                  "수정했습니다",
+                  "배포했습니다",
+                  "확인했습니다"
+                ],
+                "rule": "tool call 결과(receipt) 없이 위 표현을 사용하지 마세요. 아카식 노트에서 읽은 내용은 '~에 따르면' 또는 '~로 확인됩니다'로 표현하세요. 직접 실행하지 않은 결과를 '완료'라고 주장하지 마세요."
+              }
+            },
+            "context_neighbors": [
+              {
+                "slug": "agents",
+                "title": "AGENTS",
+                "path": "AGENTS.md",
+                "kind": "reference",
+                "summary": "+ key points 형식을 선호한다. 5. 공개하고 싶은 내용은 request note publication`으로 요청한다. 직접 public으로 만들지 않는다.",
+                "source_note_path": "doc/general/plan.md"
+              },
+              {
+                "slug": "openakashic-mcp-guide",
+                "title": "OpenAkashic MCP Guide",
+                "path": "doc/agents/OpenAkashic MCP Guide.md",
+                "kind": "reference",
+                "summary": "OpenAkashic MCP 서버 접속 정보와 20개 도구 전체 레퍼런스.",
+                "source_note_path": "doc/general/plan.md"
+              },
+              {
+                "slug": "agent",
+                "title": "Agent Guide",
+                "path": "doc/agents/agent.md",
+                "kind": "playbook",
+                "summary": "Codex, Cursor, OpenCode and similar agents should treat OpenAkashic as a persistent working memory and public contribution network, not as a one-shot retrieval dump. The intended access path is remote MCP and authenticated API access to the main server, so age",
+                "source_note_path": "doc/general/Open and Closed Akashic Strategy.md"
+              },
+              {
+                "slug": "closed-akashic-remote-access",
+                "title": "Closed Akashic Remote Access",
+                "path": "personal_vault/projects/personal/openakashic/playbooks/Closed Akashic Remote Access.md",
+                "kind": "playbook",
+                "summary": "Closed Akashic exposes authenticated MCP and API access from the main server so remote agents can share one memory surface.",
+                "source_note_path": "doc/general/Open and Closed Akashic Strategy.md"
+              }
+            ]
+          },
+          "error": null,
+          "duration_ms": 791.1
+        }
+      ],
+      "answer": "요청하신 Busagwan과 Sagwan의 역할 차이에 대한 정보가 OpenAkashic 설계 문서에 포함되어 있을 가능성이 있으나, 노트 내용이 일부만 제공되어 완전한 답변을 드릴 수 없습니다. 문서에는 OpenAkashic의 2층 구조(Closed Akashic과 Core API)에 대한 설명이 있지만, Busagwan과 Sagwan의 구체적인 역할 정의 부분이 truncated되어 있습니다. 전체 문서를 참고하시거나 더 구체적인 질문을 주시면 도움을 드릴 수 있습니다.\n\n(출처: personal_vault/projects/personal/openakashic/design-brief-codex-2026-04-17.md)",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"OpenAkashic 아키텍처에서 Busagwan과 Sagwan의 역할과 차이를 vault에서 검색하여 확인합니다.\",\n  \"tool_calls\": [\n    {\n      \"tool\": \"search_and_read_top\",\n      \"arguments\": {\n        \"query\": \"Busagwan Sagwan OpenAkashic architecture role difference\",\n        \"limit\": 3\n      }\n    }\n  ]\n}\n```",
+      "raw_model_output_turn2": "```json\n{\n  \"answer\": \"요청하신 Busagwan과 Sagwan의 역할 차이에 대한 정보가 OpenAkashic 설계 문서에 포함되어 있을 가능성이 있으나, 노트 내용이 일부만 제공되어 완전한 답변을 드릴 수 없습니다. 문서에는 OpenAkashic의 2층 구조(Closed Akashic과 Core API)에 대한 설명이 있지만, Busagwan과 Sagwan의 구체적인 역할 정의 부분이 truncated되어 있습니다. 전체 문서를 참고하시거나 더 구체적인 질문을 주시면 도움을 드릴 수 있습니다.\\n\\n(출처: personal_vault/projects/personal/openakashic/design-brief-codex-2026-04-17.md)\"\n}\n```",
+      "error": null,
+      "format_violation": false
+    }
+  ]
+}

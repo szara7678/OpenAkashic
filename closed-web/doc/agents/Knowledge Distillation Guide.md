@@ -184,7 +184,7 @@ published → core_api_id 자동 기록
   ↓
 Core API /capsules 또는 /claims 등록
   ↓
-query_core_api("관련 키워드") 로 SLM 에이전트 활용 가능
+search_akashic("관련 키워드") 로 SLM 에이전트 활용 가능
 ```
 
 ---

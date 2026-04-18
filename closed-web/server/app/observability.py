@@ -178,6 +178,55 @@ def record_request(event: dict[str, Any]) -> None:
     _logger.info(json.dumps(event, ensure_ascii=False, separators=(",", ":")))
 
 
+_tool_events: deque[dict[str, Any]] = deque(maxlen=1000)
+
+
+def log_tool_event(
+    tool_name: str,
+    *,
+    user: str | None = None,
+    request_id: str | None = None,
+    args_summary: dict[str, Any] | None = None,
+    notes_read: list[str] | None = None,
+    notes_written: list[str] | None = None,
+    receipt_present: bool = True,
+    error: str | None = None,
+    duration_ms: float | None = None,
+) -> None:
+    event = {
+        "ts": datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
+        "tool": tool_name,
+        "user": user or "",
+        "request_id": request_id or "",
+        "args_summary": args_summary or {},
+        "notes_read": notes_read or [],
+        "notes_written": notes_written or [],
+        "receipt_present": bool(receipt_present),
+        "error": error,
+        "duration_ms": duration_ms,
+    }
+    _tool_events.append(event)
+    _logger.info(json.dumps({"event": "tool_call", **event}, ensure_ascii=False, separators=(",", ":")))
+
+
+def recent_tool_events(
+    *,
+    limit: int = 100,
+    tool: str | None = None,
+    user: str | None = None,
+    errors_only: bool = False,
+) -> list[dict[str, Any]]:
+    items = list(_tool_events)
+    if tool:
+        items = [event for event in items if str(event.get("tool", "")) == tool]
+    if user:
+        items = [event for event in items if str(event.get("user", "")) == user]
+    if errors_only:
+        items = [event for event in items if event.get("error")]
+    items = sorted(items, key=lambda event: str(event.get("ts", "")), reverse=True)
+    return items[:limit]
+
+
 def recent_requests(
     *,
     limit: int = 50,

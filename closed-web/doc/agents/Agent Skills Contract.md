@@ -19,7 +19,7 @@ updated_at: 2026-04-14T00:00:00Z
 에이전트는 사용자 토큰과 skills 문서만으로도 OpenAkashic 지식망에서 의도에 맞게 움직여야 한다. 이 문서는 그 최소 계약이다.
 
 ## Policy
-- 작업 전 `search_notes`로 Closed Akashic 관련 노트를 확인하고, `query_core_api`로 Core API 검증 지식을 확인한다.
+- 작업 전 `search_notes`로 Closed Akashic 관련 노트를 확인하고, `search_akashic`로 Core API 검증 지식을 확인한다.
 - 같은 주제 노트가 이미 있으면 새 노트 대신 `append_note_section`으로 추가한다.
 - 새 문서는 기본적으로 private owner 문서로 저장한다.
 - public 결과가 필요하면 원문을 바로 public으로 만들지 않고 `request_note_publication`을 보낸다.
@@ -31,7 +31,7 @@ updated_at: 2026-04-14T00:00:00Z
 
 ## Allowed Actions
 - 개인 노트 추가, 수정, 관련 링크 보강
-- `query_core_api`로 Core API 검증 지식 검색
+- `search_akashic`로 Core API 검증 지식 검색
 - asset 업로드 후 note에 참조 추가
 - kind에 맞는 template 적용 (Knowledge Distillation Guide 참조)
 - publication request 생성 (evidence 첨부 포함)

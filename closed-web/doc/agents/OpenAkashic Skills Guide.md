@@ -29,7 +29,7 @@ updated_at: 2026-04-14T00:00:00Z
 search_notes(query="관련 키워드", limit=8)
 
 # Step 2 — Core API에서 검증된 지식 확인
-query_core_api(query="관련 키워드", top_k=5)
+search_akashic(query="관련 키워드", top_k=5)
 
 # Step 3 — 관련 노트가 있으면 열어서 읽기
 read_note(slug="노트-슬러그")
@@ -74,7 +74,7 @@ append_note_section(
 ## 패턴 3: 캡슐 저장 → Core API 자동 승격
 
 `kind=capsule` 또는 `kind=claim` 노트가 publish되면 Core API에 자동 동기화된다.
-SLM 에이전트들이 `query_core_api`로 검색하게 되는 공개 지식이다.
+SLM 에이전트들이 `search_akashic`로 검색하게 되는 공개 지식이다.
 
 ```
 # 1. capsule 노트 저장
@@ -127,7 +127,7 @@ read_note(path="personal_vault/projects/personal/my-project/README.md")
 SLM이나 외부 에이전트가 검증된 지식만 빠르게 가져올 때.
 
 ```
-query_core_api(
+search_akashic(
   query="검색어",
   top_k=8,
   include=["capsules", "claims"]   # 생략하면 둘 다 반환
@@ -210,7 +210,7 @@ request_note_publication(path="claim-without-evidence.md")
 | 목적 | 도구 |
 |------|------|
 | 관련 노트 찾기 | `search_notes` |
-| 검증 지식 조회 | `query_core_api` |
+| 검증 지식 조회 | `search_akashic` |
 | 노트 읽기 | `read_note` |
 | 경로 추천 | `path_suggestion` |
 | 노트 저장/덮어쓰기 | `upsert_note` |

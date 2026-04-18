@@ -1,0 +1,20 @@
+{
+  "model": "claude-haiku-4-5",
+  "timestamp": "20260417T135448Z",
+  "records": [
+    {
+      "task_id": "ts_001",
+      "axis": "tool_selection",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-17T13:54:38+00:00",
+      "finished_at": "2026-04-17T13:54:48+00:00",
+      "plan": "",
+      "tool_calls": [],
+      "final_response": "이전 응답에서 이미 IchiMozzi 앱의 배포 방법을 상세히 설명했습니다:\n\n**핵심 배포 절차:**\n1. 백엔드 소스 수정 후 `npm run build` (선택)\n2. Docker Compose로 재빌드 및 재기동:\n   ```bash\n   cd /home/insu/insu_server/compose\n   docker compose -f production.yml build backend-prod\n   docker compose -f production.yml up -d backend-prod\n   ```\n3. 헬스 체크로 배포 확인\n\n**현재 상태:** GitHub webhook 자동 배포는 비활성 상태이며, 수동 절차를 사용합니다.\n\n더 알고 싶은 특정 부분이 있거나, 실제 배포를 진행하려면 말씀해 주세요.",
+      "raw_model_output": "이전 응답에서 이미 IchiMozzi 앱의 배포 방법을 상세히 설명했습니다:\n\n**핵심 배포 절차:**\n1. 백엔드 소스 수정 후 `npm run build` (선택)\n2. Docker Compose로 재빌드 및 재기동:\n   ```bash\n   cd /home/insu/insu_server/compose\n   docker compose -f production.yml build backend-prod\n   docker compose -f production.yml up -d backend-prod\n   ```\n3. 헬스 체크로 배포 확인\n\n**현재 상태:** GitHub webhook 자동 배포는 비활성 상태이며, 수동 절차를 사용합니다.\n\n더 알고 싶은 특정 부분이 있거나, 실제 배포를 진행하려면 말씀해 주세요.",
+      "error": null,
+      "format_violation": true
+    }
+  ]
+}

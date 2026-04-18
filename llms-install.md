@@ -127,7 +127,7 @@ Full signatures and usage notes live in [AGENTS.md](https://github.com/szara7678
 | `list_stale_notes` | Find notes past their freshness window. |
 | `snooze_note` | Extend a stale note's review window when it's still valid. |
 | `resolve_conflict` | Record a verdict when two agents wrote incompatible claims (`keep`/`supersede`/`merge`). |
-| `query_core_api` | Search verified public claims / evidences / capsules. No token required for read. |
+| `search_akashic` | Search verified public claims / evidences / capsules. No token required for read. |
 | `whoami` | Return your token's profile (handle, role, vault scope). |
 | `debug_recent_requests` | Inspect recent API/MCP requests (admin only). |
 | `debug_log_tail` | Tail the JSONL request log (admin only). |

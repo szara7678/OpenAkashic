@@ -1,0 +1,37 @@
+[openakashic][domain_jlpt_gen] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: IchiMozzi의 JLPT N4 어휘 문제(言語知識·文字·語彙)는 두 가지 주요 유형으로 구성됩니다.  **Mondai 1: 漢字読み (한자 읽기)** — 약 9문항 - 형식: 밑줄 친 한자어의 올바른 히라가나 읽
+  tools: ['search_and_read_top']
+[openakashic][onboarding_openakashic] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: OpenAkashic은 홈서버 Docker 스택 기반의 지식 네트워크 시스템입니다. 온보딩 순서는 다음과 같습니다.  **1단계: 진입점 검색** `search_and_read_top(query=<주제>)` 한 번의
+  tools: ['search_and_read_top', 'list_folders']
+[openakashic][triage_ichimozzi_500] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: ichimozzi.com이 500 에러를 반환할 때는 홈서버 Docker 스택에서 다음 순서로 triage합니다.  **요청 흐름** 브라우저 → insu-shared-caddy (리버스 프록시, TLS) → ins
+  tools: ['search_and_read_top', 'search_and_read_top']
+[openakashic][ichimozzi_deploy] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: IchiMozzi 백엔드는 로컬 Docker 홈서버에서 배포합니다. EC2가 없습니다.  **백엔드 배포 명령어** ```bash cd /home/insu/insu_server/compose docker compos
+  tools: ['search_and_read_top']
+[openakashic][general_web_fact] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: Anthropic의 Model Context Protocol(MCP) 공식 저장소는 https://github.com/anthropics/model-context-protocol 입니다. MCP는 AI 모델이 외부 
+[openakashic][memory_roundtrip] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: 선호사항을 OpenAkashic에 저장했습니다. 경로: personal_vault/preferences/user_preferences.md. 저장된 내용은 다음과 같습니다: 1) 저녁에 커피 금지 (늦은 시간 카페인
+  tools: ['upsert_note']
+[openakashic][busagwan_sagwan_roles] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: OpenAkashic 운영에는 두 종류의 자동 에이전트가 있습니다. 사관(Sagwan)은 Claude CLI(claude-haiku/sonnet)를 사용하며 높은 품질과 느린 주기(1시간)를 가지고 승인·게이트·최종
+  tools: ['search_and_read_top']
+[openakashic][coding_python_bug] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: 주된 위험 케이스는 빈 리스트입니다. nums가 빈 리스트일 때 len(nums)가 0이 되어 ZeroDivisionError가 발생합니다. 수정된 코드는 다음과 같습니다:  def avg(nums):     if 
+[openakashic][coding_sql_index] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: 이 쿼리를 최적화하려면 (user_id, created_at DESC) 복합 인덱스를 만드는 것이 가장 효과적입니다.  CREATE INDEX idx_events_user_created DESC ON events(u
+[openakashic][daily_agenda] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: 월요일 아침 30분 팀 스탠드업 어젠다:  1. 지난주 완료 사항 공유 (10분) 목적: 팀의 진전 상황을 파악하고 성과를 인식  2. 이번주 주요 계획 및 우선순위 (12분) 목적: 팀 전체의 주간 방향성을 정렬하
+[openakashic][daily_email_rewrite] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: 안녕하세요, 지난번 요청드렸던 보고서의 전달을 기다리고 있습니다. 예정된 마감일이 이미 지났으므로, 가능하신 범위 내에서 빠른 시일 내에 해당 보고서를 전달해 주시면 감사하겠습니다. 혹시 진행 과정에서 어려움이 있거
+[openakashic][multihop_synthesis] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: IchiMozzi 백엔드 배포 시 다음 항목들을 점검해야 합니다 (출처: personal_vault/projects/personal/ichimozzi/deployment-log.md).  **배포 실행 항목** - 
+  tools: ['search_and_read_top']
+
+Saved [openakashic]: /home/insu/insu_server/apps/openakashic/closed-web/server/bench/results/run-openakashic-claude-haiku-4-5-20260418T073347Z.json
+Records: 12
+
+All outputs:
+  /home/insu/insu_server/apps/openakashic/closed-web/server/bench/results/run-openakashic-claude-haiku-4-5-20260418T073347Z.json

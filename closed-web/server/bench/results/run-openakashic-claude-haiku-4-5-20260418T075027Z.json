@@ -1,0 +1,256 @@
+{
+  "model": "claude-haiku-4-5",
+  "condition": "openakashic",
+  "timestamp": "20260418T075027Z",
+  "records": [
+    {
+      "task_id": "domain_jlpt_gen",
+      "condition": "openakashic",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-18T07:50:04+00:00",
+      "finished_at": "2026-04-18T07:50:27+00:00",
+      "plan": "IchiMozzi 프로젝트에서 JLPT N4 문제의 실제 형식과 예시를 검색한 후, 해당 형식에 맞춰 새로운 fill-in 어휘 문제를 생성합니다.",
+      "tool_calls": [
+        {
+          "tool": "search_and_read_top",
+          "arguments": {
+            "query": "IchiMozzi JLPT N4 어휘 fill-in 문제 형식 예시"
+          },
+          "result": {
+            "directive": "노트 본문의 사실을 인용해 질문에 직접 답하세요. 경로 나열·도구명 반복 금지. 부족하면 read_note 추가 호출.",
+            "note_body_preview": "## Summary\nJLPT N4 문제 유형 전체 참조 + IchiMozzi 문제 생성 가이드.\n각 유형마다 출제 형식, 생성 규칙, 실전 예시 3개 이상, IchiMozzi 3부 구조 매핑 포함.\nN4 수준: 기본 문형 전반 + て형/ない형/조건/수수/경어 초급 ~ 중급.\n\n## 시험 구성 요약\n- **言語知識 (文字·語彙)**: 30분\n- **言語知識 (文法)·読解**: 60분\n- **聴解**: 35분\n- 총 문항: 약 90~100문\n- 형식: 4지선다 객관식\n\n---\n\n# Part 1. 言語知識 (文字·語彙)\n\n## Mondai 1: 漢字読み (한자 읽기)\n\n### 형식\n- 밑줄 친 한자어의 히라가나 읽기 선택 (약 9문항)\n\n### 생성 규칙\n- N4 어휘 kanji 엔트리 타겟 (N5 기본 한자 외 항목 우선)\n- 오답: 음독/훈독 혼동, 탁음·촉음 변형, 유사자 읽기\n- 밑줄 포함 문장은 14자 이내, N4 이하 어휘만 사용\n\n### IchiMozzi 3부 구조 예시\n```\n次の文の___の言葉の読み方として最もよいものを、1・2・3・4から一つ選んでください。\n\n彼は毎日図書館で___勉強しています。\n      _______\n熱心に\n\n1. ねっしんに  2. あつしんに  3. ねつしんに  4. ねっしんく\n```\n정답: 1 | 해설: 熱心(ねっしん) = 열심, 促音便(っ)+음독\n\n### 예시 문제 3개\n\n**例1**\n```\n지시: 次の___の言葉の読み方を選んでください。\n\n彼女は先生に相談しました。\n         ______\n\n1. そうだん  2. さうだん  3. そうたん  4. さうたん\n```\n정답: 1 | 相談(そうだん)\n\n**例2**\n```\n지시: 次の___の言葉の読み方を選んでください。\n\n来週、試験があります。\n     ______\n\n1. しじゅん  2. しけん  3. じけん  4. じきん\n```\n정답: 2 | 試験(しけん) / 事件(じけん)와 혼동 주의\n\n**例3**\n```\n지시: 次の___の言葉の読み方を選んでください。\n\n道が込んでいたので、遅刻しました。\n               ____\n\n1. ちこく  2. ちごく  3. おくれ  4. じこく\n```\n정답: 1 | 遅刻(ちこく) / 地獄(じごく) 혼동 트랩\n\n---\n\n## Mondai 2: 表記 (히라가나→한자)\n\n### 형식\n- 밑줄 친 히라가나를 올바른 한자 표기로 선택 (약 6문항)\n\n### 생성 규칙\n- N4 vocab kana 엔트리 타겟\n- 오답: ",
+            "retrieval_value": {
+              "directive": "경로 나열 금지. 노트 내용을 읽어 질문에 직접 답하세요. 부족하면 read_note 추가 호출.",
+              "intent": "fact_lookup",
+              "matched_notes": [
+                "personal_vault/knowledge/japanese/n4/problem-patterns.md",
+                "personal_vault/projects/personal/ichimozzi/example-n4-vocab-001.md",
+                "personal_vault/projects/personal/ichimozzi/jlpt-exam-format-reference.md"
+              ],
+              "writeback_suggested": false,
+              "read_note_hint": "본문이 필요하면 read_note(path=<path>) 추가 호출. 쓰기는 upsert_note(path, body, title)."
+            },
+            "query": "IchiMozzi JLPT N4 어휘 fill-in 문제 형식 예시",
+            "top": {
+              "path": "personal_vault/knowledge/japanese/n4/problem-patterns.md",
+              "slug": "personal-vault-knowledge-japanese-n4-problem-patterns",
+              "title": "JLPT N4 Problem Patterns Reference",
+              "kind": "reference",
+              "project": "knowledge/japanese",
+              "owner": "sagwan",
+              "visibility": "private",
+              "publication_status": "rejected",
+              "tags": [
+                "japanese",
+                "jlpt",
+                "n4",
+                "problems",
+                "exam"
+              ],
+              "summary": "JLPT N4 문제 유형 전체 참조 + IchiMozzi 문제 생성 가이드. 각 유형마다 출제 형식, 생성 규칙, 실전 예시 3개 이상, IchiMozzi 3부 구조 매핑 포함. N4 수준: 기본 문형 전반 + て형/ない형/조건/수수/경어 초급 중급.",
+              "href": "/notes/personal-vault-knowledge-japanese-n4-problem-patterns",
+              "lexical_score": 0.0,
+              "semantic_score": 0.6851,
+              "confirm_count": 0,
+              "score": 0.016393
+            },
+            "other_results": [
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/example-n4-vocab-001.md",
+                "slug": "example-n4-vocab-001",
+                "title": "IchiMozzi N4 어휘 문제 예시",
+                "kind": "reference",
+                "project": "openakashic",
+                "owner": "admin",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [],
+                "summary": "---",
+                "href": "/notes/example-n4-vocab-001",
+                "lexical_score": 0.0,
+                "semantic_score": 0.6605,
+                "confirm_count": 0,
+                "score": 0.016129
+              },
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/jlpt-exam-format-reference.md",
+                "slug": "jlpt-exam-format-reference",
+                "title": "JLPT 실제 출제 패턴 레퍼런스",
+                "kind": "reference",
+                "project": "openakashic",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [],
+                "summary": "JLPT N1 N5 시험 구성 공식 참조. 섹션별 시간·문항수·배점, 합격 기준, IchiMozzi 구현 매핑 포함. --- title: JLPT 실제 출제 패턴 레퍼런스 kind: note tags: [jlpt, exam-format, reference, ichimozzi] owner: aaron visibility: private --- JLPT 실제 출제 패턴 레퍼런스",
+                "href": "/notes/jlpt-exam-format-reference",
+                "lexical_score": 0.0,
+                "semantic_score": 0.6041,
+                "confirm_count": 0,
+                "score": 0.015873
+              },
+              {
+                "path": "personal_vault/knowledge/japanese/n3/problem-patterns.md",
+                "slug": "personal-vault-knowledge-japanese-n3-problem-patterns",
+                "title": "JLPT N3 Problem Patterns Reference",
+                "kind": "reference",
+                "project": "knowledge/japanese",
+                "owner": "sagwan",
+                "visibility": "private",
+                "publication_status": "rejected",
+                "tags": [
+                  "japanese",
+                  "jlpt",
+                  "n3",
+                  "problems",
+                  "exam"
+                ],
+                "summary": "JLPT N3 문제 유형 전체 참조 + IchiMozzi 문제 생성 가이드. N3 수준: N4 문법 총정리 + 복합조사·복합동사·文語的表現 입문. 각 유형마다 출제 형식, 생성 규칙, 실전 예시 3개 이상, IchiMozzi 3부 구조 매핑 포함.",
+                "href": "/notes/personal-vault-knowledge-japanese-n3-problem-patterns",
+                "lexical_score": 0.0,
+                "semantic_score": 0.6011,
+                "confirm_count": 0,
+                "score": 0.015625
+              },
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/listening-generation-rules.md",
+                "slug": "listening-generation-rules",
+                "title": "listening-generation-rules",
+                "kind": "reference",
+                "project": "openakashic",
+                "owner": "admin",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [],
+                "summary": "IchiMozzi 청해(listening) 문제 생성·검수 가이드. 기존 problem taxonomy and generation guide rev4 기반, 청해 영역 전용 규칙 추가. 참조: problem taxonomy and generation guide.md / jlpt-exam-format-reference.md / n1-n5/{level}/vocab.md ---",
+                "href": "/notes/listening-generation-rules",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5925,
+                "confirm_count": 0,
+                "score": 0.015385
+              }
+            ],
+            "hints": [],
+            "count": 5,
+            "note": {
+              "path": "personal_vault/knowledge/japanese/n4/problem-patterns.md",
+              "slug": "personal-vault-knowledge-japanese-n4-problem-patterns",
+              "title": "JLPT N4 Problem Patterns Reference",
+              "kind": "reference",
+              "project": "knowledge/japanese",
+              "status": "active",
+              "owner": "sagwan",
+              "original_owner": "sagwan",
+              "created_by": "sagwan",
+              "visibility": "private",
+              "publication_status": "rejected",
+              "tags": [
+                "japanese",
+                "jlpt",
+                "n4",
+                "problems",
+                "exam"
+              ],
+              "related": [
+                "JLPT N4 Vocabulary Reference",
+                "JLPT N4 Grammar Reference",
+                "JLPT N5 Problem Patterns"
+              ],
+              "summary": "JLPT N4 문제 유형 전체 참조 + IchiMozzi 문제 생성 가이드. 각 유형마다 출제 형식, 생성 규칙, 실전 예시 3개 이상, IchiMozzi 3부 구조 매핑 포함. N4 수준: 기본 문형 전반 + て형/ない형/조건/수수/경어 초급 중급.",
+              "body": "## Summary\nJLPT N4 문제 유형 전체 참조 + IchiMozzi 문제 생성 가이드.\n각 유형마다 출제 형식, 생성 규칙, 실전 예시 3개 이상, IchiMozzi 3부 구조 매핑 포함.\nN4 수준: 기본 문형 전반 + て형/ない형/조건/수수/경어 초급 ~ 중급.\n\n## 시험 구성 요약\n- **言語知識 (文字·語彙)**: 30분\n- **言語知識 (文法)·読解**: 60분\n- **聴解**: 35분\n- 총 문항: 약 90~100문\n- 형식: 4지선다 객관식\n\n---\n\n# Part 1. 言語知識 (文字·語彙)\n\n## Mondai 1: 漢字読み (한자 읽기)\n\n### 형식\n- 밑줄 친 한자어의 히라가나 읽기 선택 (약 9문항)\n\n### 생성 규칙\n- N4 어휘 kanji 엔트리 타겟 (N5 기본 한자 외 항목 우선)\n- 오답: 음독/훈독 혼동, 탁음·촉음 변형, 유사자 읽기\n- 밑줄 포함 문장은 14자 이내, N4 이하 어휘만 사용\n\n### IchiMozzi 3부 구조 예시\n```\n次の文の___の言葉の読み方として最もよいものを、1・2・3・4から一つ選んでください。\n\n彼は毎日図書館で___勉強しています。\n      _______\n熱心に\n\n1. ねっしんに  2. あつしんに  3. ねつしんに  4. ねっしんく\n```\n정답: 1 | 해설: 熱心(ねっしん) = 열심, 促音便(っ)+음독\n\n### 예시 문제 3개\n\n**例1**\n```\n지시: 次の___の言葉の読み方を選んでください。\n\n彼女は先生に相談しました。\n         ______\n\n1. そうだん  2. さうだん  3. そうたん  4. さうたん\n```\n정답: 1 | 相談(そうだん)\n\n**例2**\n```\n지시: 次の___の言葉の読み方を選んでください。\n\n来週、試験があります。\n     ______\n\n1. しじゅん  2. しけん  3. じけん  4. じきん\n```\n정답: 2 | 試験(しけん) / 事件(じけん)와 혼동 주의\n\n**例3**\n```\n지시: 次の___の言葉の読み方を選んでください。\n\n道が込んでいたので、遅刻しました。\n               ____\n\n1. ちこく  2. ちごく  3. おくれ  4. じこく\n```\n정답: 1 | 遅刻(ちこく) / 地獄(じごく) 혼동 트랩\n\n---\n\n## Mondai 2: 表記 (히라가나→한자)\n\n### 형식\n- 밑줄 친 히라가나를 올바른 한자 표기로 선택 (약 6문항)\n\n### 생성 규칙\n- N4 vocab kana 엔트리 타겟\n- 오답: 동음이의어, 모양 유사 한자, 부수 혼동\n\n### 예시 문제 3개\n\n**例1**\n```\n지시: ___のことばはどう書きますか。最もよいものを選んでください。\n\nこのにもつはおもいです。\n     ____\n\n1. 重い  2. 軽い  3. 重い  4. 荷い\n```\n정답: 1 | 重い(おもい) = 무겁다\n\n**例2**\n```\n지시: ___のことばはどう書きますか。\n\nかれはやさしい先生です。\n     _____\n\n1. 優しい  2. 易しい  3. 安しい  4. 優い\n```\n정답: 1 | 優しい(やさしい) = 친절하다 (易しい는 쉽다 — 의미 혼동 트랩)\n\n**例3**\n```\n지시: ___のことばはどう書きますか。\n\nもっとれんしゅうしてください。\n       ______\n\n1. 練習  2. 連習  3. 練修  4. 連修\n```\n정답: 1 | 練習(れんしゅう)\n\n---\n\n## Mondai 3: 文脈規定 (문맥 정의)\n\n### 형식\n- 문장의 ( ) 안에 가장 어울리는 단어 선택 (약 8문항)\n\n### 생성 규칙\n- 정답: 문맥 의미에 맞는 N4 명사/동사/형용사/부사\n- 오답: 같은 품사지만 문맥 부적합 (의미 유사 단어 사용)\n- \"시험 트랩\": 문법상 가능하지만 의미가 어색한 선지 포함\n\n### IchiMozzi 3부 구조 예시\n```\n(  )に入れるのに最もよいものを選んでください。\n\n来年、日本語の(  )を受けるつもりです。\n\n1. 試験  2. 練習  3. 授業  4. 宿題\n```\n정답: 1 | 試験を受ける = 시험을 보다 (자연스러운 콜로케이션)\n\n### 예시 문제 3개\n\n**例1**\n```\n지시: (  )に入れるのに最もよいものを選んでください。\n\nこの映画はとても(  )です。もう一度見たいです。\n\n1. かんたん  2. かんどう  3. きれい  4. ながい\n```\n정답: 2 | 感動(かんどう) — もう一度見たい와 자연스럽게 연결\n\n**例2**\n```\n지시: (  )に入れるのに最もよいものを選んでください。\n\n電車が(  )になったので、バスで行きました。\n\n1. けが  2. じこ  3. きけん  4. きゅうこう\n```\n정답: 4 | 急行(きゅうこう) → 運休(うんきゅう)가 더 적합하나, 急行になった로 특급 전환 표현도 가능. \n> ※ 생성 시 주의: 「運休になった」쪽이 더 자연스러우므로 運休를 정답으로 설계하는 편이 낫다.\n\n**例3**\n```\n지시: (  )に入れるのに最もよいものを選んでください。\n\n彼女は病気で学校を(  )しました。\n\n1. さんか  2. けっせき  3. えんき  4. そつぎょう\n```\n정답: 2 | 欠席(けっせき) = 결석 (참석의 반대)\n\n---\n\n## Mondai 4: 言い換え類義 (유의어)\n\n### 형식\n- 밑줄 친 표현과 의미가 가장 비슷한 것 선택 (약 4문항)\n\n### 생성 규칙\n- 정답: 유의어·바꿔말하기 (긍정↔부정+반의 포함)\n- 오답: 관련 어휘지만 의미 다름, 혼동 쉬운 표현\n\n### 예시 문제 3개\n\n**例1**\n```\n지시: ___に意味が最も近いものを選んでください。\n\n彼はいつも親切にしてくれます。\n         _____\n\n1. やさしくしてくれます\n2. きびしくしてくれます\n3. いそがしくしてくれます\n4. さびしくしてくれます\n```\n정답: 1 | 親切(しんせつ) ≒ やさしい\n\n**例2**\n```\n지시: ___に意味が最も近いものを選んでください。\n\nこの問題はかんたんではありません。\n             ______\n\n1. むずかしいです\n2. おもしろいです\n3. たのしいです\n4. ながいです\n```\n정답: 1 | かんたんではない = むずかしい (반의+부정 패턴)\n\n**例3**\n```\n지시: ___に意味が最も近いものを選んでください。\n\n急いで家を出ました。\n___\n\n1. ゆっくりではなく出ました\n2. はやく出ました\n3. 遅れて出ました\n4. わすれて出ました\n```\n정답: 2 | 急いで = 急いで・はやく\n\n---\n\n## Mondai 5: 用法 (용법 — N4 신규)\n\n### 형식\n- 밑줄 친 단어가 자연스럽게 쓰인 문장 선택 (약 3문항)\n\n### 생성 규칙\n- 타겟 어휘를 4개의 문장에 각각 사용\n- 정답: 올바른 콜로케이션·문맥\n- 오답: 문법상 가능하나 의미적으로 어색한 사용\n\n### 예시 문제 2개\n\n**例1 (타겟: 用意する)**\n```\n지시: 「用意する」の使い方として最もよいものを選んでください。\n\n1. 明日のパーティーのために食べ物を用意しました。\n2. この映画はとても用意で面白かったです。\n3. 彼は毎日用意して電車に乗ります。\n4. 試験に用意してください。\n```\n정답: 1 | 용의하다 = 준비하다 (物事を用意する 형태)\n\n**例2 (타겟: 連絡する)**\n```\n지시: 「連絡する」の使い方として最もよいものを選んでください。\n\n1. 遅れる場合は必ず連絡してください。\n2. 彼女の話はとても連絡でした。\n3. この仕事は連絡がかかります。\n4. 友達に連絡を食べました。\n```\n정답: 1 | 〜に連絡する (연락하다)\n\n---\n\n# Part 2. 言語知識 (文法)\n\n## Mondai 6: 文の文法 1 (문법 형식 판단)\n\n### 형식\n- 빈칸에 들어갈 문법 표현 선택 (약 14문항)\n- **N4 핵심 문법 카테고리 전부 출제 대상**\n\n### IchiMozzi 매핑\n| 카테고리 | 대표 서브패턴 | 오답 함정 |\n|----------|--------------|-----------|\n| 동사활용 | て형, ない형, 가능형 | 활용 어미 혼동 |\n| 조건표현 | たら, ば, と | 조건 용법 혼동 |\n| 수수표현 | あげる/くれる/もらう | 주어·방향 혼동 |\n| 경어표현 | です/ます, 존경어 초급 | 존경/겸양 혼동 |\n| 접속표현 | から, ので, のに, が | 원인·역접 혼동 |\n| 추측표현 | でしょう, かもしれない, そうだ(양태) | 양태/전문 そうだ 혼동 |\n| 조사 | に/で/へ 구분, は/が 구분 | 격조사 기능 혼동 |\n\n### 예시 문제 5개\n\n**例1 (수수표현 — くれる계)**\n```\n지시: (  )に入れるのに最もよいものを選んでください。\n\n友達が駅まで送って(  )ました。\n\n1. あげ  2. くれ  3. もらい  4. いただき\n```\n정답: 2 | 友達が主語+送る+くれる (타인이 나에게 해줌)\n오답 함정: あげる (내가 상대에게), もらう (내가 받음), いただく (겸양)\n\n**例2 (조건표현 — たら)**\n```\n지시: (  )に入れるのに最もよいものを選んでください。\n\n電話し(  )、彼はもう出発したと言っていました。\n\n1. たら  2. ば  3. と  4. ながら\n```\n정답: 1 | 〜たら(조건·발견): 전화했더니 결과 발견\n오답: ば(가정조건), と(자동결과), ながら(동시동작)\n\n**例3 (て형 — てから)**\n```\n지시: (  )に入れるのに最もよいものを選んでください。\n\n宿題を(  )、ゲームをしてもいいよ。\n\n1. して  2. してから  3. するから  4. するので\n```\n정답: 2 | 〜てから = 〜한 다음에 (순서 표현)\n\n**例4 (接続 — のに)**\n```\n지시: (  )に入れるのに最もよいものを選んでください。\n\nたくさん練習した(  )、試合に負けてしまいました。\n\n1. から  2. ので  3. のに  4. と\n```\n정답: 3 | 〜のに (역접·불만): 열심히 했는데도 짐\n오답: から/ので (순접 원인), と (조건)\n\n**例5 (そうだ 양태)**\n```\n지시: (  )に入れるのに最もよいものを選んでください。\n\n空が暗くなってきました。雨が降り(  )です。\n\n1. そうな  2. そうだ  3. らしい  4. ようだ\n```\n정답: 2 | 見た目の推量: 降りそうだ\n※ 양태そうだ = 동사ます형+そうだ; 전문そうだ = 普通形+そうだ 구별 필수\n\n---\n\n## Mondai 7: 文の文法 2 (문장 완성 — 나열 순서 맞추기)\n\n### 형식\n- 뒤섞인 4개의 조각을 올바른 순서로 배열 (★가 있는 위치 선택)\n- 약 5문항\n\n### 생성 규칙\n- IchiMozzi에서는 이 유형을 **「문장 완성형」** 변형으로 구현\n- 빈칸 4개짜리 문장에서 ★ 위치의 조각 번호 선택\n- 조각 순서: 조사+활용 일관성 체크 필수\n\n### 예시 문제\n\n**例1**\n```\n지시: 次の文の★に入るものを選んでください。\n\n彼女は＿＿＿★＿＿＿ほしいです。\n          ①日本語を  ②が  ③話せる  ④ようになって\n\n選択肢:\n1. ①  2. ②  3. ③  4. ④\n```\n정렬: 彼女は **日本語を** 話せる **ようになって** **が** ほしいです。\n→ 올바른 순서: ①日本語を — ③話せる — ④ようになって — ②が\n정답: 3 (★=③)\n\n---\n\n## Mondai 8: 文章の文法 (텍스트 내 문법)\n\n### 형식\n- 100~150자 단문 지문에 빈칸 3~5개, 각각 문법 선택 (약 5문항)\n- N4에서는 메일/일기/짧은 설명문 형식 多\n\n### 생성 규칙\n- 지문: N4 어휘·문법만 사용, 일상 화제 (생활/여행/학교)\n- 빈칸: 연결표현, 조사, 활용 끝부분 위주\n- IchiMozzi 독해 문제의 지문 길이 참고: 3~5문장\n\n### 예시 (메일 형식)\n```\n지시문: 次の文を読んで、(1)〜(3)の問いに答えてください。\n\n田中さんへ\n\n先日は手伝って(1)、ありがとうございました。\nおかげで仕事が早く終わり(2)、夕食に間に合いました。\nまた何か(3)、ぜひ声をかけてください。\n\n山田より\n\n(1) 1. いただき   2. あげ   3. くれ   4. もらい\n(2) 1. ましたので  2. ましたのに  3. ましたから  4. ましたが\n(3) 1. あったら   2. あれば   3. あると   4. あって\n```\n(1)정답: 1 (겸양: いただく)\n(2)정답: 1 (순접 결과: ましたので)\n(3)정답: 1 (발견·가정: たら)\n\n---\n\n# Part 3. 読解 (독해)\n\n## N4 독해 특징\n- 지문 길이: 100~300자 (단문), 350~500자 (중문)\n- 화제: 일상 생활, 짧은 설명문, 안내문, 편지\n- 질문 유형: 내용 일치, 요지 파악, 지시어 해석\n\n## IchiMozzi 독해 문제 3부 구조\n```\n次の文章を読んで、質問に答えてください。\n\n{지문 150~300자, N4 어휘, 1~3문단}\n\nこの文章のテーマとして最もよいものを選んでください。\n```\n\n### 독해 생성 체크리스트\n- [ ] 지문 내 N4 이하 어휘만 사용 (vocab_validator 필수)\n- [ ] 질문의 정답 근거가 지문에 명시되어 있어야 함\n- [ ] 오답은 지문의 일부 내용을 비틀거나 반대로 표현\n- [ ] 지시어(これ/それ/あれ)가 있으면 지시 대상 명확히\n\n---\n\n# IchiMozzi 전용 생성 가이드\n\n## N4 문법 문제 3부 구조 템플릿\n```\n{문법 포인트}の使い方として正しいものを選んでください。\n[または]\n(  )に入れるのに最もよいものを、1・2・3・4から一つ選んでください。\n\n{문제문 — 빈칸 1개, 14~20자, N4 이하 어휘}\n\n{질문 (위 지시문 반복 또는 \"上の文の(  )に入る言葉はどれですか。\")}\n```\n\n## N4 카테고리별 오답 설계 원칙\n| 타겟 문법 | 오답 설계 방법 |\n|-----------|---------------|\n| て형 활용 | 같은 행의 다른 활용형 (て/た/ない) 사용 |\n| あげる/くれる/もらう | 수수 방향 반대인 것, 겸양/존경 버전 |\n| たら/ば/と조건 | 조건 뉘앙스 다른 3개 나열 |\n| から/ので/のに | 순접·역접 혼용 오답 |\n| そうだ양태/らしい | 전문そうだ(보통형+そうだ) 오답으로 포함 |\n\n## 자주 나오는 N4 함정 표현\n- `〜てあげる` vs `〜てくれる`: 주어가 \"나\"냐 \"상대\"냐\n- `〜たら` vs `〜ば`: たら는 완료 후 결과, ば는 가정\n- `〜から` vs `〜ので`: から는 주관적, ので는 객관적 이유\n- `〜そうだ(様態)` vs `〜そうだ(伝聞)`: ます형+そうだ vs 普通形+そうだ\n- `〜かもしれない` vs `〜でしょう`: 개인 추측 vs 청자 동의 구하기\n- `〜なければならない` vs `〜なくてもいい`: 의무 vs 불필요\n\n## related\n- [[personal_vault/knowledge/japanese/n4/grammar.md]]\n- [[personal_vault/knowledge/japanese/n4/vocab.md]]\n- [[personal_vault/projects/personal/ichimozzi/grammar-category-subpattern-map.md]]\n- [[personal_vault/projects/personal/ichimozzi/problem_taxonomy_and_generation_guide.md]]\n- [[personal_vault/knowledge/japanese/n5/problem-patterns.md]]\n- [[personal_vault/knowledge/japanese/n3/problem-patterns.md]]",
+              "body_html": "<h2 id=\"summary\">Summary<a class=\"heading-anchor\" href=\"#summary\">#</a></h2>\n<p>JLPT N4 문제 유형 전체 참조 + IchiMozzi 문제 생성 가이드.\n각 유형마다 출제 형식, 생성 규칙, 실전 예시 3개 이상, IchiMozzi 3부 구조 매핑 포함.\nN4 수준: 기본 문형 전반 + て형/ない형/조건/수수/경어 초급 ~ 중급.</p>\n<h2 id=\"시험-구성-요약\">시험 구성 요약<a class=\"heading-anchor\" href=\"#시험-구성-요약\">#</a></h2>\n<ul>\n<li><strong>言語知識 (文字·語彙)</strong>: 30분</li>\n<li><strong>言語知識 (文法)·読解</strong>: 60분</li>\n<li><strong>聴解</strong>: 35분</li>\n<li>총 문항: 약 90~100문</li>\n<li>형식: 4지선다 객관식</li>\n</ul>\n<hr>\n<h1>Part 1. 言語知識 (文字·語彙)</h1>\n<h2 id=\"mondai-1-漢字読み-한자-읽기\">Mondai 1: 漢字読み (한자 읽기)<a class=\"heading-anchor\" href=\"#mondai-1-漢字読み-한자-읽기\">#</a></h2>\n<h3 id=\"형식\">형식<a class=\"heading-anchor\" href=\"#형식\">#</a></h3>\n<ul>\n<li>밑줄 친 한자어의 히라가나 읽기 선택 (약 9문항)</li>\n</ul>\n<h3 id=\"생성-규칙\">생성 규칙<a class=\"heading-anchor\" href=\"#생성-규칙\">#</a></h3>\n<ul>\n<li>N4 어휘 kanji 엔트리 타겟 (N5 기본 한자 외 항목 우선)</li>\n<li>오답: 음독/훈독 혼동, 탁음·촉음 변형, 유사자 읽기</li>\n<li>밑줄 포함 문장은 14자 이내, N4 이하 어휘만 사용</li>\n</ul>\n<h3 id=\"ichimozzi-3부-구조-예시\">IchiMozzi 3부 구조 예시<a class=\"heading-anchor\" href=\"#ichimozzi-3부-구조-예시\">#</a></h3>\n<pre><code>次の文の___の言葉の読み方として最もよいものを、1・2・3・4から一つ選んでください。\n\n彼は毎日図書館で___勉強しています。\n      _______\n熱心に\n\n1. ねっしんに  2. あつしんに  3. ねつしんに  4. ねっしんく\n</code></pre>\n<p>정답: 1 | 해설: 熱心(ねっしん) = 열심, 促音便(っ)+음독</p>\n<h3 id=\"예시-문제-3개\">예시 문제 3개<a class=\"heading-anchor\" href=\"#예시-문제-3개\">#</a></h3>\n<p><strong>例1</strong></p>\n<pre><code>지시: 次の___の言葉の読み方を選んでください。\n\n彼女は先生に相談しました。\n         ______\n\n1. そうだん  2. さうだん  3. そうたん  4. さうたん\n</code></pre>\n<p>정답: 1 | 相談(そうだん)</p>\n<p><strong>例2</strong></p>\n<pre><code>지시: 次の___の言葉の読み方を選んでください。\n\n来週、試験があります。\n     ______\n\n1. しじゅん  2. しけん  3. じけん  4. じきん\n</code></pre>\n<p>정답: 2 | 試験(しけん) / 事件(じけん)와 혼동 주의</p>\n<p><strong>例3</strong></p>\n<pre><code>지시: 次の___の言葉の読み方を選んでください。\n\n道が込んでいたので、遅刻しました。\n               ____\n\n1. ちこく  2. ちごく  3. おくれ  4. じこく\n</code></pre>\n<p>정답: 1 | 遅刻(ちこく) / 地獄(じごく) 혼동 트랩</p>\n<hr>\n<h2 id=\"mondai-2-表記-히라가나-한자\">Mondai 2: 表記 (히라가나→한자)<a class=\"heading-anchor\" href=\"#mondai-2-表記-히라가나-한자\">#</a></h2>\n<h3 id=\"형식-2\">형식<a class=\"heading-anchor\" href=\"#형식-2\">#</a></h3>\n<ul>\n<li>밑줄 친 히라가나를 올바른 한자 표기로 선택 (약 6문항)</li>\n</ul>\n<h3 id=\"생성-규칙-2\">생성 규칙<a class=\"heading-anchor\" href=\"#생성-규칙-2\">#</a></h3>\n<ul>\n<li>N4 vocab kana 엔트리 타겟</li>\n<li>오답: 동음이의어, 모양 유사 한자, 부수 혼동</li>\n</ul>\n<h3 id=\"예시-문제-3개-2\">예시 문제 3개<a class=\"heading-anchor\" href=\"#예시-문제-3개-2\">#</a></h3>\n<p><strong>例1</strong></p>\n<pre><code>지시: ___のことばはどう書きますか。最もよいものを選んでください。\n\nこのにもつはおもいです。\n     ____\n\n1. 重い  2. 軽い  3. 重い  4. 荷い\n</code></pre>\n<p>정답: 1 | 重い(おもい) = 무겁다</p>\n<p><strong>例2</strong></p>\n<pre><code>지시: ___のことばはどう書きますか。\n\nかれはやさしい先生です。\n     _____\n\n1. 優しい  2. 易しい  3. 安しい  4. 優い\n</code></pre>\n<p>정답: 1 | 優しい(やさしい) = 친절하다 (易しい는 쉽다 — 의미 혼동 트랩)</p>\n<p><strong>例3</strong></p>\n<pre><code>지시: ___のことばはどう書きますか。\n\nもっとれんしゅうしてください。\n       ______\n\n1. 練習  2. 連習  3. 練修  4. 連修\n</code></pre>\n<p>정답: 1 | 練習(れんしゅう)</p>\n<hr>\n<h2 id=\"mondai-3-文脈規定-문맥-정의\">Mondai 3: 文脈規定 (문맥 정의)<a class=\"heading-anchor\" href=\"#mondai-3-文脈規定-문맥-정의\">#</a></h2>\n<h3 id=\"형식-3\">형식<a class=\"heading-anchor\" href=\"#형식-3\">#</a></h3>\n<ul>\n<li>문장의 ( ) 안에 가장 어울리는 단어 선택 (약 8문항)</li>\n</ul>\n<h3 id=\"생성-규칙-3\">생성 규칙<a class=\"heading-anchor\" href=\"#생성-규칙-3\">#</a></h3>\n<ul>\n<li>정답: 문맥 의미에 맞는 N4 명사/동사/형용사/부사</li>\n<li>오답: 같은 품사지만 문맥 부적합 (의미 유사 단어 사용)</li>\n<li>\"시험 트랩\": 문법상 가능하지만 의미가 어색한 선지 포함</li>\n</ul>\n<h3 id=\"ichimozzi-3부-구조-예시-2\">IchiMozzi 3부 구조 예시<a class=\"heading-anchor\" href=\"#ichimozzi-3부-구조-예시-2\">#</a></h3>\n<pre><code>(  )に入れるのに最もよいものを選んでください。\n\n来年、日本語の(  )を受けるつもりです。\n\n1. 試験  2. 練習  3. 授業  4. 宿題\n</code></pre>\n<p>정답: 1 | 試験を受ける = 시험을 보다 (자연스러운 콜로케이션)</p>\n<h3 id=\"예시-문제-3개-3\">예시 문제 3개<a class=\"heading-anchor\" href=\"#예시-문제-3개-3\">#</a></h3>\n<p><strong>例1</strong></p>\n<pre><code>지시: (  )に入れるのに最もよいものを選んでください。\n\nこの映画はとても(  )です。もう一度見たいです。\n\n1. かんたん  2. かんどう  3. きれい  4. ながい\n</code></pre>\n<p>정답: 2 | 感動(かんどう) — もう一度見たい와 자연스럽게 연결</p>\n<p><strong>例2</strong></p>\n<pre><code>지시: (  )に入れるのに最もよいものを選んでください。\n\n電車が(  )になったので、バスで行きました。\n\n1. けが  2. じこ  3. きけん  4. きゅうこう\n</code></pre>\n<p>정답: 4 | 急行(きゅうこう) → 運休(うんきゅう)가 더 적합하나, 急行になった로 특급 전환 표현도 가능. </p>\n<blockquote>\n<p>※ 생성 시 주의: 「運休になった」쪽이 더 자연스러우므로 運休를 정답으로 설계하는 편이 낫다.</p>\n</blockquote>\n<p><strong>例3</strong></p>\n<pre><code>지시: (  )に入れるのに最もよいものを選んでください。\n\n彼女は病気で学校を(  )しました。\n\n1. さんか  2. けっせき  3. えんき  4. そつぎょう\n</code></pre>\n<p>정답: 2 | 欠席(けっせき) = 결석 (참석의 반대)</p>\n<hr>\n<h2 id=\"mondai-4-言い換え類義-유의어\">Mondai 4: 言い換え類義 (유의어)<a class=\"heading-anchor\" href=\"#mondai-4-言い換え類義-유의어\">#</a></h2>\n<h3 id=\"형식-4\">형식<a class=\"heading-anchor\" href=\"#형식-4\">#</a></h3>\n<ul>\n<li>밑줄 친 표현과 의미가 가장 비슷한 것 선택 (약 4문항)</li>\n</ul>\n<h3 id=\"생성-규칙-4\">생성 규칙<a class=\"heading-anchor\" href=\"#생성-규칙-4\">#</a></h3>\n<ul>\n<li>정답: 유의어·바꿔말하기 (긍정↔부정+반의 포함)</li>\n<li>오답: 관련 어휘지만 의미 다름, 혼동 쉬운 표현</li>\n</ul>\n<h3 id=\"예시-문제-3개-4\">예시 문제 3개<a class=\"heading-anchor\" href=\"#예시-문제-3개-4\">#</a></h3>\n<p><strong>例1</strong></p>\n<pre><code>지시: ___に意味が最も近いものを選んでください。\n\n彼はいつも親切にしてくれます。\n         _____\n\n1. やさしくしてくれます\n2. きびしくしてくれます\n3. いそがしくしてくれます\n4. さびしくしてくれます\n</code></pre>\n<p>정답: 1 | 親切(しんせつ) ≒ やさしい</p>\n<p><strong>例2</strong></p>\n<pre><code>지시: ___に意味が最も近いものを選んでください。\n\nこの問題はかんたんではありません。\n             ______\n\n1. むずかしいです\n2. おもしろいです\n3. たのしいです\n4. ながいです\n</code></pre>\n<p>정답: 1 | かんたんではない = むずかしい (반의+부정 패턴)</p>\n<p><strong>例3</strong></p>\n<pre><code>지시: ___に意味が最も近いものを選んでください。\n\n急いで家を出ました。\n___\n\n1. ゆっくりではなく出ました\n2. はやく出ました\n3. 遅れて出ました\n4. わすれて出ました\n</code></pre>\n<p>정답: 2 | 急いで = 急いで・はやく</p>\n<hr>\n<h2 id=\"mondai-5-用法-용법-n4-신규\">Mondai 5: 用法 (용법 — N4 신규)<a class=\"heading-anchor\" href=\"#mondai-5-用法-용법-n4-신규\">#</a></h2>\n<h3 id=\"형식-5\">형식<a class=\"heading-anchor\" href=\"#형식-5\">#</a></h3>\n<ul>\n<li>밑줄 친 단어가 자연스럽게 쓰인 문장 선택 (약 3문항)</li>\n</ul>\n<h3 id=\"생성-규칙-5\">생성 규칙<a class=\"heading-anchor\" href=\"#생성-규칙-5\">#</a></h3>\n<ul>\n<li>타겟 어휘를 4개의 문장에 각각 사용</li>\n<li>정답: 올바른 콜로케이션·문맥</li>\n<li>오답: 문법상 가능하나 의미적으로 어색한 사용</li>\n</ul>\n<h3 id=\"예시-문제-2개\">예시 문제 2개<a class=\"heading-anchor\" href=\"#예시-문제-2개\">#</a></h3>\n<p><strong>例1 (타겟: 用意する)</strong></p>\n<pre><code>지시: 「用意する」の使い方として最もよいものを選んでください。\n\n1. 明日のパーティーのために食べ物を用意しました。\n2. この映画はとても用意で面白かったです。\n3. 彼は毎日用意して電車に乗ります。\n4. 試験に用意してください。\n</code></pre>\n<p>정답: 1 | 용의하다 = 준비하다 (物事を用意する 형태)</p>\n<p><strong>例2 (타겟: 連絡する)</strong></p>\n<pre><code>지시: 「連絡する」の使い方として最もよいものを選んでください。\n\n1. 遅れる場合は必ず連絡してください。\n2. 彼女の話はとても連絡でした。\n3. この仕事は連絡がかかります。\n4. 友達に連絡を食べました。\n</code></pre>\n<p>정답: 1 | 〜に連絡する (연락하다)</p>\n<hr>\n<h1>Part 2. 言語知識 (文法)</h1>\n<h2 id=\"mondai-6-文の文法-1-문법-형식-판단\">Mondai 6: 文の文法 1 (문법 형식 판단)<a class=\"heading-anchor\" href=\"#mondai-6-文の文法-1-문법-형식-판단\">#</a></h2>\n<h3 id=\"형식-6\">형식<a class=\"heading-anchor\" href=\"#형식-6\">#</a></h3>\n<ul>\n<li>빈칸에 들어갈 문법 표현 선택 (약 14문항)</li>\n<li><strong>N4 핵심 문법 카테고리 전부 출제 대상</strong></li>\n</ul>\n<h3 id=\"ichimozzi-매핑\">IchiMozzi 매핑<a class=\"heading-anchor\" href=\"#ichimozzi-매핑\">#</a></h3>\n<table>\n<thead>\n<tr>\n<th>카테고리</th>\n<th>대표 서브패턴</th>\n<th>오답 함정</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>동사활용</td>\n<td>て형, ない형, 가능형</td>\n<td>활용 어미 혼동</td>\n</tr>\n<tr>\n<td>조건표현</td>\n<td>たら, ば, と</td>\n<td>조건 용법 혼동</td>\n</tr>\n<tr>\n<td>수수표현</td>\n<td>あげる/くれる/もらう</td>\n<td>주어·방향 혼동</td>\n</tr>\n<tr>\n<td>경어표현</td>\n<td>です/ます, 존경어 초급</td>\n<td>존경/겸양 혼동</td>\n</tr>\n<tr>\n<td>접속표현</td>\n<td>から, ので, のに, が</td>\n<td>원인·역접 혼동</td>\n</tr>\n<tr>\n<td>추측표현</td>\n<td>でしょう, かもしれない, そうだ(양태)</td>\n<td>양태/전문 そうだ 혼동</td>\n</tr>\n<tr>\n<td>조사</td>\n<td>に/で/へ 구분, は/が 구분</td>\n<td>격조사 기능 혼동</td>\n</tr>\n</tbody>\n</table>\n<h3 id=\"예시-문제-5개\">예시 문제 5개<a class=\"heading-anchor\" href=\"#예시-문제-5개\">#</a></h3>\n<p><strong>例1 (수수표현 — くれる계)</strong></p>\n<pre><code>지시: (  )に入れるのに最もよいものを選んでください。\n\n友達が駅まで送って(  )ました。\n\n1. あげ  2. くれ  3. もらい  4. いただき\n</code></pre>\n<p>정답: 2 | 友達が主語+送る+くれる (타인이 나에게 해줌)\n오답 함정: あげる (내가 상대에게), もらう (내가 받음), いただく (겸양)</p>\n<p><strong>例2 (조건표현 — たら)</strong></p>\n<pre><code>지시: (  )に入れるのに最もよいものを選んでください。\n\n電話し(  )、彼はもう出発したと言っていました。\n\n1. たら  2. ば  3. と  4. ながら\n</code></pre>\n<p>정답: 1 | 〜たら(조건·발견): 전화했더니 결과 발견\n오답: ば(가정조건), と(자동결과), ながら(동시동작)</p>\n<p><strong>例3 (て형 — てから)</strong></p>\n<pre><code>지시: (  )に入れるのに最もよいものを選んでください。\n\n宿題を(  )、ゲームをしてもいいよ。\n\n1. して  2. してから  3. するから  4. するので\n</code></pre>\n<p>정답: 2 | 〜てから = 〜한 다음에 (순서 표현)</p>\n<p><strong>例4 (接続 — のに)</strong></p>\n<pre><code>지시: (  )に入れるのに最もよいものを選んでください。\n\nたくさん練習した(  )、試合に負けてしまいました。\n\n1. から  2. ので  3. のに  4. と\n</code></pre>\n<p>정답: 3 | 〜のに (역접·불만): 열심히 했는데도 짐\n오답: から/ので (순접 원인), と (조건)</p>\n<p><strong>例5 (そうだ 양태)</strong></p>\n<pre><code>지시: (  )に入れるのに最もよいものを選んでください。\n\n空が暗くなってきました。雨が降り(  )です。\n\n1. そうな  2. そうだ  3. らしい  4. ようだ\n</code></pre>\n<p>정답: 2 | 見た目の推量: 降りそうだ\n※ 양태そうだ = 동사ます형+そうだ; 전문そうだ = 普通形+そうだ 구별 필수</p>\n<hr>\n<h2 id=\"mondai-7-文の文法-2-문장-완성-나열-순서-맞추기\">Mondai 7: 文の文法 2 (문장 완성 — 나열 순서 맞추기)<a class=\"heading-anchor\" href=\"#mondai-7-文の文法-2-문장-완성-나열-순서-맞추기\">#</a></h2>\n<h3 id=\"형식-7\">형식<a class=\"heading-anchor\" href=\"#형식-7\">#</a></h3>\n<ul>\n<li>뒤섞인 4개의 조각을 올바른 순서로 배열 (★가 있는 위치 선택)</li>\n<li>약 5문항</li>\n</ul>\n<h3 id=\"생성-규칙-6\">생성 규칙<a class=\"heading-anchor\" href=\"#생성-규칙-6\">#</a></h3>\n<ul>\n<li>IchiMozzi에서는 이 유형을 <strong>「문장 완성형」</strong> 변형으로 구현</li>\n<li>빈칸 4개짜리 문장에서 ★ 위치의 조각 번호 선택</li>\n<li>조각 순서: 조사+활용 일관성 체크 필수</li>\n</ul>\n<h3 id=\"예시-문제\">예시 문제<a class=\"heading-anchor\" href=\"#예시-문제\">#</a></h3>\n<p><strong>例1</strong></p>\n<pre><code>지시: 次の文の★に入るものを選んでください。\n\n彼女は＿＿＿★＿＿＿ほしいです。\n          ①日本語を  ②が  ③話せる  ④ようになって\n\n選択肢:\n1. ①  2. ②  3. ③  4. ④\n</code></pre>\n<p>정렬: 彼女は <strong>日本語を</strong> 話せる <strong>ようになって</strong> <strong>が</strong> ほしいです。\n→ 올바른 순서: ①日本語を — ③話せる — ④ようになって — ②が\n정답: 3 (★=③)</p>\n<hr>\n<h2 id=\"mondai-8-文章の文法-텍스트-내-문법\">Mondai 8: 文章の文法 (텍스트 내 문법)<a class=\"heading-anchor\" href=\"#mondai-8-文章の文法-텍스트-내-문법\">#</a></h2>\n<h3 id=\"형식-8\">형식<a class=\"heading-anchor\" href=\"#형식-8\">#</a></h3>\n<ul>\n<li>100~150자 단문 지문에 빈칸 3~5개, 각각 문법 선택 (약 5문항)</li>\n<li>N4에서는 메일/일기/짧은 설명문 형식 多</li>\n</ul>\n<h3 id=\"생성-규칙-7\">생성 규칙<a class=\"heading-anchor\" href=\"#생성-규칙-7\">#</a></h3>\n<ul>\n<li>지문: N4 어휘·문법만 사용, 일상 화제 (생활/여행/학교)</li>\n<li>빈칸: 연결표현, 조사, 활용 끝부분 위주</li>\n<li>IchiMozzi 독해 문제의 지문 길이 참고: 3~5문장</li>\n</ul>\n<h3 id=\"예시-메일-형식\">예시 (메일 형식)<a class=\"heading-anchor\" href=\"#예시-메일-형식\">#</a></h3>\n<pre><code>지시문: 次の文を読んで、(1)〜(3)の問いに答えてください。\n\n田中さんへ\n\n先日は手伝って(1)、ありがとうございました。\nおかげで仕事が早く終わり(2)、夕食に間に合いました。\nまた何か(3)、ぜひ声をかけてください。\n\n山田より\n\n(1) 1. いただき   2. あげ   3. くれ   4. もらい\n(2) 1. ましたので  2. ましたのに  3. ましたから  4. ましたが\n(3) 1. あったら   2. あれば   3. あると   4. あって\n</code></pre>\n<p>(1)정답: 1 (겸양: いただく)\n(2)정답: 1 (순접 결과: ましたので)\n(3)정답: 1 (발견·가정: たら)</p>\n<hr>\n<h1>Part 3. 読解 (독해)</h1>\n<h2 id=\"n4-독해-특징\">N4 독해 특징<a class=\"heading-anchor\" href=\"#n4-독해-특징\">#</a></h2>\n<ul>\n<li>지문 길이: 100~300자 (단문), 350~500자 (중문)</li>\n<li>화제: 일상 생활, 짧은 설명문, 안내문, 편지</li>\n<li>질문 유형: 내용 일치, 요지 파악, 지시어 해석</li>\n</ul>\n<h2 id=\"ichimozzi-독해-문제-3부-구조\">IchiMozzi 독해 문제 3부 구조<a class=\"heading-anchor\" href=\"#ichimozzi-독해-문제-3부-구조\">#</a></h2>\n<pre><code>次の文章を読んで、質問に答えてください。\n\n{지문 150~300자, N4 어휘, 1~3문단}\n\nこの文章のテーマとして最もよいものを選んでください。\n</code></pre>\n<h3 id=\"독해-생성-체크리스트\">독해 생성 체크리스트<a class=\"heading-anchor\" href=\"#독해-생성-체크리스트\">#</a></h3>\n<ul>\n<li>[ ] 지문 내 N4 이하 어휘만 사용 (vocab_validator 필수)</li>\n<li>[ ] 질문의 정답 근거가 지문에 명시되어 있어야 함</li>\n<li>[ ] 오답은 지문의 일부 내용을 비틀거나 반대로 표현</li>\n<li>[ ] 지시어(これ/それ/あれ)가 있으면 지시 대상 명확히</li>\n</ul>\n<hr>\n<h1>IchiMozzi 전용 생성 가이드</h1>\n<h2 id=\"n4-문법-문제-3부-구조-템플릿\">N4 문법 문제 3부 구조 템플릿<a class=\"heading-anchor\" href=\"#n4-문법-문제-3부-구조-템플릿\">#</a></h2>\n<pre><code>{문법 포인트}の使い方として正しいものを選んでください。\n[または]\n(  )に入れるのに最もよいものを、1・2・3・4から一つ選んでください。\n\n{문제문 — 빈칸 1개, 14~20자, N4 이하 어휘}\n\n{질문 (위 지시문 반복 또는 \"上の文の(  )に入る言葉はどれですか。\")}\n</code></pre>\n<h2 id=\"n4-카테고리별-오답-설계-원칙\">N4 카테고리별 오답 설계 원칙<a class=\"heading-anchor\" href=\"#n4-카테고리별-오답-설계-원칙\">#</a></h2>\n<table>\n<thead>\n<tr>\n<th>타겟 문법</th>\n<th>오답 설계 방법</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>て형 활용</td>\n<td>같은 행의 다른 활용형 (て/た/ない) 사용</td>\n</tr>\n<tr>\n<td>あげる/くれる/もらう</td>\n<td>수수 방향 반대인 것, 겸양/존경 버전</td>\n</tr>\n<tr>\n<td>たら/ば/と조건</td>\n<td>조건 뉘앙스 다른 3개 나열</td>\n</tr>\n<tr>\n<td>から/ので/のに</td>\n<td>순접·역접 혼용 오답</td>\n</tr>\n<tr>\n<td>そうだ양태/らしい</td>\n<td>전문そうだ(보통형+そうだ) 오답으로 포함</td>\n</tr>\n</tbody>\n</table>\n<h2 id=\"자주-나오는-n4-함정-표현\">자주 나오는 N4 함정 표현<a class=\"heading-anchor\" href=\"#자주-나오는-n4-함정-표현\">#</a></h2>\n<ul>\n<li><code>〜てあげる</code> vs <code>〜てくれる</code>: 주어가 \"나\"냐 \"상대\"냐</li>\n<li><code>〜たら</code> vs <code>〜ば</code>: たら는 완료 후 결과, ば는 가정</li>\n<li><code>〜から</code> vs <code>〜ので</code>: から는 주관적, ので는 객관적 이유</li>\n<li><code>〜そうだ(様態)</code> vs <code>〜そうだ(伝聞)</code>: ます형+そうだ vs 普通形+そうだ</li>\n<li><code>〜かもしれない</code> vs <code>〜でしょう</code>: 개인 추측 vs 청자 동의 구하기</li>\n<li><code>〜なければならない</code> vs <code>〜なくてもいい</code>: 의무 vs 불필요</li>\n</ul>\n<h2 id=\"related\">related<a class=\"heading-anchor\" href=\"#related\">#</a></h2>\n<ul>\n<li><a class=\"wiki-link\" data-note-slug=\"personal-vault-knowledge-japanese-n4-grammar\" href=\"/notes/personal-vault-knowledge-japanese-n4-grammar\" rel=\"noopener noreferrer\">personal_vault/knowledge/japanese/n4/grammar.md</a></li>\n<li><a class=\"wiki-link\" data-note-slug=\"personal-vault-knowledge-japanese-n4-vocab\" href=\"/notes/personal-vault-knowledge-japanese-n4-vocab\" rel=\"noopener noreferrer\">personal_vault/knowledge/japanese/n4/vocab.md</a></li>\n<li><a class=\"wiki-link\" data-note-slug=\"grammar-category-subpattern-map\" href=\"/notes/grammar-category-subpattern-map\" rel=\"noopener noreferrer\">personal_vault/projects/personal/ichimozzi/grammar-category-subpattern-map.md</a></li>\n<li><a class=\"wiki-link\" data-note-slug=\"problem-taxonomy-and-generation-guide\" href=\"/notes/problem-taxonomy-and-generation-guide\" rel=\"noopener noreferrer\">personal_vault/projects/personal/ichimozzi/problem_taxonomy_and_generation_guide.md</a></li>\n<li><a class=\"wiki-link\" data-note-slug=\"personal-vault-knowledge-japanese-n5-problem-patterns\" href=\"/notes/personal-vault-knowledge-japanese-n5-problem-patterns\" rel=\"noopener noreferrer\">personal_vault/knowledge/japanese/n5/problem-patterns.md</a></li>\n<li><a class=\"wiki-link\" data-note-slug=\"personal-vault-knowledge-japanese-n3-problem-patterns\" href=\"/notes/personal-vault-knowledge-japanese-n3-problem-patterns\" rel=\"noopener noreferrer\">personal_vault/knowledge/japanese/n3/problem-patterns.md</a></li>\n</ul>",
+              "links": [
+                "personal_vault/knowledge/japanese/n3/problem-patterns.md",
+                "personal_vault/knowledge/japanese/n4/grammar.md",
+                "personal_vault/knowledge/japanese/n4/vocab.md",
+                "personal_vault/knowledge/japanese/n5/problem-patterns.md",
+                "personal_vault/projects/personal/ichimozzi/grammar-category-subpattern-map.md",
+                "personal_vault/projects/personal/ichimozzi/problem_taxonomy_and_generation_guide.md"
+              ],
+              "related_notes": [
+                {
+                  "slug": "personal-vault-knowledge-japanese-n4-vocab",
+                  "title": "JLPT N4 Vocabulary Reference",
+                  "summary": "JLPT N4 핵심 어휘 레퍼런스. N5 어휘에 추가되는 N4 신규 빈출·핵심어 약 500개를 카테고리별로 정리. N5 vocab.md의 어휘는 이미 알고 있다는 전제로 N4 신규어만 수록.",
+                  "href": "/notes/personal-vault-knowledge-japanese-n4-vocab"
+                },
+                {
+                  "slug": "personal-vault-knowledge-japanese-n4-grammar",
+                  "title": "JLPT N4 Grammar Reference",
+                  "summary": "JLPT N4 수준 핵심 문법 약 80문형. N5 기반에서 보통체, 가능형, 수동/사역, 수수동사, 조건문(と・ば・たら・なら), 인용/전문, 명사 수식절 등이 본격 등장. 각 문형은 의미·접속·예문 3개 이상.",
+                  "href": "/notes/personal-vault-knowledge-japanese-n4-grammar"
+                },
+                {
+                  "slug": "personal-vault-knowledge-japanese-n5-problem-patterns",
+                  "title": "JLPT N5 Problem Patterns",
+                  "summary": "JLPT N5 시험의 모든 문제 유형(大問/Mondai)을 구조와 예시로 정리한다. 각 유형마다 출제 형식, 지시문(일/한), 선지 구성 규칙, 생성 템플릿, 실제 예문 3개 이상을 포함한다. 이 문서를 기반으로 자동 문제 생성기가 vocab.md / grammar.md의 entry를 랜덤 샘플링해 시험 문제를 만들 수 있다.",
+                  "href": "/notes/personal-vault-knowledge-japanese-n5-problem-patterns"
+                }
+              ],
+              "backlinks": [
+                {
+                  "slug": "problem-taxonomy-and-generation-guide",
+                  "title": "IchiMozzi 문제 태그 체계 및 생성·검수 가이드 (2026-04-17)",
+                  "summary": "IchiMozzi JLPT 문제 생성 전체 가이드. 3부 구조, 4부 태그 체계, 레벨별 어휘·후리가나 정책, 검증 도구 사용법 수록. --- title: IchiMozzi 문제 생성·검수 가이드 (rev4) kind: note tags: [ichimozzi, jlpt, problem-generation, taxonomy, guide] owner: aaron visibility: private --- IchiMozzi 문제 생성·검수 가이드 (rev4) rev4",
+                  "href": "/notes/problem-taxonomy-and-generation-guide"
+                },
+                {
+                  "slug": "personal-vault-knowledge-japanese-n3-problem-patterns",
+                  "title": "JLPT N3 Problem Patterns Reference",
+                  "summary": "JLPT N3 문제 유형 전체 참조 + IchiMozzi 문제 생성 가이드. N3 수준: N4 문법 총정리 + 복합조사·복합동사·文語的表現 입문. 각 유형마다 출제 형식, 생성 규칙, 실전 예시 3개 이상, IchiMozzi 3부 구조 매핑 포함.",
+                  "href": "/notes/personal-vault-knowledge-japanese-n3-problem-patterns"
+                },
+                {
+                  "slug": "personal-vault-knowledge-japanese-n4-grammar",
+                  "title": "JLPT N4 Grammar Reference",
+                  "summary": "JLPT N4 수준 핵심 문법 약 80문형. N5 기반에서 보통체, 가능형, 수동/사역, 수수동사, 조건문(と・ば・たら・なら), 인용/전문, 명사 수식절 등이 본격 등장. 각 문형은 의미·접속·예문 3개 이상.",
+                  "href": "/notes/personal-vault-knowledge-japanese-n4-grammar"
+                },
+                {
+                  "slug": "personal-vault-knowledge-japanese-n4-vocab",
+                  "title": "JLPT N4 Vocabulary Reference",
+                  "summary": "JLPT N4 핵심 어휘 레퍼런스. N5 어휘에 추가되는 N4 신규 빈출·핵심어 약 500개를 카테고리별로 정리. N5 vocab.md의 어휘는 이미 알고 있다는 전제로 N4 신규어만 수록.",
+                  "href": "/notes/personal-vault-knowledge-japanese-n4-vocab"
+                },
+                {
+                  "slug": "personal-vault-knowledge-japanese-n5-problem-patterns",
+                  "title": "JLPT N5 Problem Patterns",
+                  "summary": "JLPT N5 시험의 모든 문제 유형(大問/Mondai)을 구조와 예시로 정리한다. 각 유형마다 출제 형식, 지시문(일/한), 선지 구성 규칙, 생성 템플릿, 실제 예문 3개 이상을 포함한다. 이 문서를 기반으로 자동 문제 생성기가 vocab.md / grammar.md의 entry를 랜덤 샘플링해 시험 문제를 만들 수 있다.",
+                  "href": "/notes/personal-vault-knowledge-japanese-n5-problem-patterns"
+                },
+                {
+                  "slug": "personal-vault-knowledge-japanese-n1-n5-n4-grammar",
+                  "title": "N4 문법 패턴 정리",
+                  "summary": "| 표현 | 의미 | 방향 |",
+                  "href": "/notes/personal-vault-knowledge-japanese-n1-n5-n4-grammar"
+                },
+                {
+                  "slug": "n4-문법-패턴-정리-capsule",
+                  "title": "N4 문법 패턴 정리 Capsule",
+                  "summary": "JLPT N4 수준의 핵심 일본어 문법 표현 약 30개를 분류별로 정리한 학습 가이드. 수수동사, 가능형, 이유·원인, 변화, 목적, 조건, 비교 표현과 빈출 패턴( てしまう, ておく, てみる)을 표 형식과 예문으로 제시하여 문형별 접속·의미·용법 차이를 한눈에 파악할 수 있도록 구성. N5를 기반으로 보통체, 중급 수수·경어, 자연스러운 조건 표현이 본격 등장하는 N4 단계의 필수 항목.",
+                  "href": "/notes/n4-문법-패턴-정리-capsule"
+                },
+                {
+                  "slug": "n4-어휘-학습-가이드-capsule",
+                  "title": "N4 어휘 학습 가이드 Capsule",
+                  "summary": "JLPT N4 단계의 필수 어휘를 동사·형용사·부사·명사 카테고리별로 정리한 학습 가이드. N5 기초를 넘어 N4 신규 빈출 표현 약 300–350개를 표 형식(한자/히라가나/의미/예문)으로 수록하여 문제풀이 및 청해·읽기에서 즉시 활용 가능하도록 구성. 일본어 학습자가 N4 합격을 위해 우선 확보해야 할 핵심 어휘의 범위와 용법을 제시. ---",
+                  "href": "/notes/n4-어휘-학습-가이드-capsule"
+                }
+              ],
+              "outbound": 9,
+              "href": "/notes/personal-vault-knowledge-japanese-n4-problem-patterns"
+            }
+          },
+          "error": null,
+          "duration_ms": 541.2
+        }
+      ],
+      "answer": "JLPT N4 言語知識(文字·語彙) 섹션은 30분간 두 가지 유형으로 구성됩니다:\n\n**Mondai 1: 漢字読み (한자 읽기) — 약 9문항**\n- 형식: 문장 내 밑줄 친 한자어의 올바른 히라가나 읽기를 4지선다에서 선택\n- 예시:\n  - 彼女は先生に相談しました。(相談 = そうだん)\n  - 来週、試験があります。(試験 = しけん / 사건 じけん과 혼동 주의)\n  - 道が込んでいたので、遅刻しました。(遅刻 = ちこく / 지옥 じごく 혼동 트랩)\n- 생성 시 주의: N4 어휘 한자만 타겟, 오답은 음독·훈독 혼동나 촉음·탁음 변형으로 설정\n\n**Mondai 2: 表記 (히라가나→한자) — 약 6문항**\n- 형식: 문장 내 밑줄 친 히라가나를 올바른 한자 표기로 선택\n- N4 수준 어휘를 한자로 변환하는 능력 평가\n\nIchiMozzi 3부 구조는 선택지 위에 지시 문(次の___の言葉の読み方として最もよいものを、1·2·3·4から一つ選んでください)를 배치하고, 4개 선택지를 제시합니다.",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"IchiMozzi 프로젝트에서 JLPT N4 문제의 실제 형식과 예시를 검색한 후, 해당 형식에 맞춰 새로운 fill-in 어휘 문제를 생성합니다.\",\n  \"tool_calls\": [\n    {\n      \"tool\": \"search_and_read_top\",\n      \"arguments\": {\n        \"query\": \"IchiMozzi JLPT N4 어휘 fill-in 문제 형식 예시\"\n      }\n    }\n  ]\n}\n```",
+      "raw_model_output_turn2": "```json\n{\n  \"answer\": \"JLPT N4 言語知識(文字·語彙) 섹션은 30분간 두 가지 유형으로 구성됩니다:\\n\\n**Mondai 1: 漢字読み (한자 읽기) — 약 9문항**\\n- 형식: 문장 내 밑줄 친 한자어의 올바른 히라가나 읽기를 4지선다에서 선택\\n- 예시:\\n  - 彼女は先生に相談しました。(相談 = そうだん)\\n  - 来週、試験があります。(試験 = しけん / 사건 じけん과 혼동 주의)\\n  - 道が込んでいたので、遅刻しました。(遅刻 = ちこく / 지옥 じごく 혼동 트랩)\\n- 생성 시 주의: N4 어휘 한자만 타겟, 오답은 음독·훈독 혼동나 촉음·탁음 변형으로 설정\\n\\n**Mondai 2: 表記 (히라가나→한자) — 약 6문항**\\n- 형식: 문장 내 밑줄 친 히라가나를 올바른 한자 표기로 선택\\n- N4 수준 어휘를 한자로 변환하는 능력 평가\\n\\nIchiMozzi 3부 구조는 선택지 위에 지시 문(次の___の言葉の読み方として最もよいものを、1·2·3·4から一つ選んでください)를 배치하고, 4개 선택지를 제시합니다.\"\n}\n```",
+      "error": null,
+      "format_violation": false
+    }
+  ]
+}

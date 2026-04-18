@@ -1,0 +1,429 @@
+{
+  "model": "claude-haiku-4-5",
+  "condition": "standard",
+  "timestamp": "20260418T011425Z",
+  "records": [
+    {
+      "task_id": "domain_jlpt_gen",
+      "condition": "standard",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-18T01:13:21+00:00",
+      "finished_at": "2026-04-18T01:13:30+00:00",
+      "plan": "notes에서 IchiMozzi의 fill-in 문제 형식과 JLPT N4 어휘 예시를 확인한 후 형식에 맞는 문제를 생성합니다.",
+      "tool_calls": [
+        {
+          "tool": "notes_read",
+          "arguments": {
+            "key": "ichimozzi_fill_in_format"
+          },
+          "result": {
+            "error": "no note at key 'ichimozzi_fill_in_format'",
+            "available_keys": []
+          },
+          "error": null,
+          "duration_ms": 0.1
+        },
+        {
+          "tool": "notes_read",
+          "arguments": {
+            "key": "jlpt_n4_vocabulary_examples"
+          },
+          "result": {
+            "error": "no note at key 'jlpt_n4_vocabulary_examples'",
+            "available_keys": []
+          },
+          "error": null,
+          "duration_ms": 0.0
+        },
+        {
+          "tool": "web_search",
+          "arguments": {
+            "query": "JLPT N4 fill in the blank vocabulary exercise example",
+            "max_results": 3
+          },
+          "result": {
+            "results": [
+              {
+                "title": "日语JLPT考试全攻略",
+                "url": "https://www.zhihu.com/tardis/zm/art/577436694",
+                "snippet": "Oct 27, 2022 · 学日语的人都听说过JLPT， JLPT叫做日本语能力测试，这个考试 是针对母语为非日本语的人员进行日本语能力的测试。但是还有很多小伙伴搞不清JLPT具体考什么内容？考多久？怎么报 …"
+              },
+              {
+                "title": "第一次考JLPT，需要带什么东西，听力耳机之类的？",
+                "url": "https://www.zhihu.com/question/467028315",
+                "snippet": "第一次参加JLPT考试需要准备哪些物品？本文为您解答，包括听力耳机等相关事项。"
+              },
+              {
+                "title": "自学日语，从零基础到 JLPT N2 水平需要多久？",
+                "url": "https://www.zhihu.com/question/19793912",
+                "snippet": "本人主要动力为日本动漫以及小说。请问： 需要哪些教材或者字典？有什么需要特别注意的地方？ 从五十音开始到 JLPT N2 的水平大概需要多久？ 显示全部"
+              }
+            ],
+            "adapter": "ddg"
+          },
+          "error": null,
+          "duration_ms": 192.9
+        }
+      ],
+      "answer": "JLPT N4 빈칸 채우기 예시를 찾기 어렵습니다.\n\n• 로컬 노트: ichimozzi_fill_in_format, jlpt_n4_vocabulary_examples 모두 저장되어 있지 않습니다.\n• 웹 검색: \"JLPT N4 fill in the blank vocabulary exercise example\" 검색 결과는 JLPT 일반 정보만 반환되었습니다.\n  - https://www.zhihu.com/tardis/zm/art/577436694 - JLPT 시험 개요 (2022년 10월 27일)\n  - https://www.zhihu.com/question/467028315 - JLPT 시험 준비물\n  - https://www.zhihu.com/question/19793912 - JLPT N2까지 소요 시간\n\nJLPT N4 빈칸 채우기 문제의 구체적인 예시가 필요하신 경우 공식 JLPT 샘플 문제나 N4 전문 교재를 확인해 주세요.",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"notes에서 IchiMozzi의 fill-in 문제 형식과 JLPT N4 어휘 예시를 확인한 후 형식에 맞는 문제를 생성합니다.\",\n  \"tool_calls\": [\n    {\"tool\": \"notes_read\", \"arguments\": {\"key\": \"ichimozzi_fill_in_format\"}},\n    {\"tool\": \"notes_read\", \"arguments\": {\"key\": \"jlpt_n4_vocabulary_examples\"}},\n    {\"tool\": \"web_search\", \"arguments\": {\"query\": \"JLPT N4 fill in the blank vocabulary exercise example\", \"max_results\": 3}}\n  ]\n}\n```",
+      "raw_model_output_turn2": "```json\n{\"answer\": \"JLPT N4 빈칸 채우기 예시를 찾기 어렵습니다.\\n\\n• 로컬 노트: ichimozzi_fill_in_format, jlpt_n4_vocabulary_examples 모두 저장되어 있지 않습니다.\\n• 웹 검색: \\\"JLPT N4 fill in the blank vocabulary exercise example\\\" 검색 결과는 JLPT 일반 정보만 반환되었습니다.\\n  - https://www.zhihu.com/tardis/zm/art/577436694 - JLPT 시험 개요 (2022년 10월 27일)\\n  - https://www.zhihu.com/question/467028315 - JLPT 시험 준비물\\n  - https://www.zhihu.com/question/19793912 - JLPT N2까지 소요 시간\\n\\nJLPT N4 빈칸 채우기 문제의 구체적인 예시가 필요하신 경우 공식 JLPT 샘플 문제나 N4 전문 교재를 확인해 주세요.\"}\n```",
+      "error": null,
+      "format_violation": false
+    },
+    {
+      "task_id": "onboarding_openakashic",
+      "condition": "standard",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-18T01:13:30+00:00",
+      "finished_at": "2026-04-18T01:13:39+00:00",
+      "plan": "notes에서 OpenAkashic 온보딩 정보와 시작 가이드를 확인하고, 없으면 web_search로 공식 저장소와 문서를 검색합니다.",
+      "tool_calls": [
+        {
+          "tool": "notes_list",
+          "arguments": {},
+          "result": {
+            "keys": []
+          },
+          "error": null,
+          "duration_ms": 0.1
+        },
+        {
+          "tool": "notes_read",
+          "arguments": {
+            "key": "openakashic_onboarding"
+          },
+          "result": {
+            "error": "no note at key 'openakashic_onboarding'",
+            "available_keys": []
+          },
+          "error": null,
+          "duration_ms": 0.0
+        },
+        {
+          "tool": "notes_read",
+          "arguments": {
+            "key": "openakashic_project_setup"
+          },
+          "result": {
+            "error": "no note at key 'openakashic_project_setup'",
+            "available_keys": []
+          },
+          "error": null,
+          "duration_ms": 0.0
+        }
+      ],
+      "answer": "저장된 노트가 없습니다. openakashic_onboarding과 openakashic_project_setup 노트를 찾을 수 없습니다. OpenAkashic 온보딩 및 프로젝트 설정 정보를 저장하거나 필요한 정보를 알려주세요.",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"notes에서 OpenAkashic 온보딩 정보와 시작 가이드를 확인하고, 없으면 web_search로 공식 저장소와 문서를 검색합니다.\",\n  \"tool_calls\": [\n    {\"tool\": \"notes_list\", \"arguments\": {}},\n    {\"tool\": \"notes_read\", \"arguments\": {\"key\": \"openakashic_onboarding\"}},\n    {\"tool\": \"notes_read\", \"arguments\": {\"key\": \"openakashic_project_setup\"}}\n  ]\n}\n```",
+      "raw_model_output_turn2": "```json\n{\"answer\": \"저장된 노트가 없습니다. openakashic_onboarding과 openakashic_project_setup 노트를 찾을 수 없습니다. OpenAkashic 온보딩 및 프로젝트 설정 정보를 저장하거나 필요한 정보를 알려주세요.\"}\n```",
+      "error": null,
+      "format_violation": false
+    },
+    {
+      "task_id": "triage_ichimozzi_500",
+      "condition": "standard",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-18T01:13:39+00:00",
+      "finished_at": "2026-04-18T01:13:49+00:00",
+      "plan": "notes에서 insu-server Docker 스택의 컨테이너 구성과 ichimozzi 500 에러 triage 순서를 확인합니다.",
+      "tool_calls": [
+        {
+          "tool": "notes_read",
+          "arguments": {
+            "key": "insu_server_containers_list"
+          },
+          "result": {
+            "error": "no note at key 'insu_server_containers_list'",
+            "available_keys": []
+          },
+          "error": null,
+          "duration_ms": 0.1
+        },
+        {
+          "tool": "notes_read",
+          "arguments": {
+            "key": "ichimozzi_error_troubleshooting"
+          },
+          "result": {
+            "error": "no note at key 'ichimozzi_error_troubleshooting'",
+            "available_keys": []
+          },
+          "error": null,
+          "duration_ms": 0.0
+        },
+        {
+          "tool": "web_search",
+          "arguments": {
+            "query": "Docker container 500 error troubleshooting checklist order",
+            "max_results": 3
+          },
+          "result": {
+            "results": [
+              {
+                "title": "Complete Docker Troubleshooting Guide - Demon Warrior Tech Docs",
+                "url": "https://docs.demonwarriortech.com/Documented+Tutorials/Docker/Troubleshooting/",
+                "snippet": "Comprehensive professional guide to diagnosing and resolving Docker issues including container problems, networking, storage, performance, and security troubleshooting across Windows and Linux"
+              },
+              {
+                "title": "3 steps to fix docker 500 server error",
+                "url": "https://bluewindlab.net/knowledgebase/general/docker/3-steps-to-fix-docker-500-server-error/",
+                "snippet": "Feb 26, 2025 · By following these three simple steps, you can easily troubleshoot and fix the Docker 500 Server Error caused by port conflicts. To prevent this issue in the future, consider assigning …"
+              },
+              {
+                "title": "containers - Docker Windows Local Registry: received unexpected …",
+                "url": "https://stackoverflow.com/questions/56636181/docker-windows-local-registry-received-unexpected-http-status-500-internal-ser",
+                "snippet": "Jun 17, 2019 · It could be because of an error on the remote server (or local server) where you want to push your image. In my case it was a disk space issue which was thrown as a 500 Server Error. The …"
+              }
+            ],
+            "adapter": "ddg"
+          },
+          "error": null,
+          "duration_ms": 442.0
+        }
+      ],
+      "answer": "Docker 500 에러 트러블슈팅 정보를 찾았습니다.\n\n• 로컬 노트: insu_server_containers_list, ichimozzi_error_troubleshooting 모두 저장되어 있지 않습니다.\n• 웹 검색: Docker 500 에러 트러블슈팅 관련 자료를 찾았습니다:\n  - https://docs.demonwarriortech.com/Documented+Tutorials/Docker/Troubleshooting/ - Docker 트러블슈팅 종합 가이드 (컨테이너, 네트워킹, 저장소, 성능, 보안 문제)\n  - https://bluewindlab.net/knowledgebase/general/docker/3-steps-to-fix-docker-500-server-error/ - Docker 500 서버 에러 수정 3단계 (2025년 2월 26일)\n  - https://stackoverflow.com/questions/56636181/docker-windows-local-registry-received-unexpected-http-status-500-internal-ser - Docker Windows 로컬 레지스트리 500 에러 (디스크 공간 문제 포함)\n\n이 자료들에서 Docker 500 에러 진단 및 해결 방법을 확인할 수 있습니다.",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"notes에서 insu-server Docker 스택의 컨테이너 구성과 ichimozzi 500 에러 triage 순서를 확인합니다.\",\n  \"tool_calls\": [\n    {\"tool\": \"notes_read\", \"arguments\": {\"key\": \"insu_server_containers_list\"}},\n    {\"tool\": \"notes_read\", \"arguments\": {\"key\": \"ichimozzi_error_troubleshooting\"}},\n    {\"tool\": \"web_search\", \"arguments\": {\"query\": \"Docker container 500 error troubleshooting checklist order\", \"max_results\": 3}}\n  ]\n}\n```",
+      "raw_model_output_turn2": "```json\n{\"answer\": \"Docker 500 에러 트러블슈팅 정보를 찾았습니다.\\n\\n• 로컬 노트: insu_server_containers_list, ichimozzi_error_troubleshooting 모두 저장되어 있지 않습니다.\\n• 웹 검색: Docker 500 에러 트러블슈팅 관련 자료를 찾았습니다:\\n  - https://docs.demonwarriortech.com/Documented+Tutorials/Docker/Troubleshooting/ - Docker 트러블슈팅 종합 가이드 (컨테이너, 네트워킹, 저장소, 성능, 보안 문제)\\n  - https://bluewindlab.net/knowledgebase/general/docker/3-steps-to-fix-docker-500-server-error/ - Docker 500 서버 에러 수정 3단계 (2025년 2월 26일)\\n  - https://stackoverflow.com/questions/56636181/docker-windows-local-registry-received-unexpected-http-status-500-internal-ser - Docker Windows 로컬 레지스트리 500 에러 (디스크 공간 문제 포함)\\n\\n이 자료들에서 Docker 500 에러 진단 및 해결 방법을 확인할 수 있습니다.\"}\n```",
+      "error": null,
+      "format_violation": false
+    },
+    {
+      "task_id": "ichimozzi_deploy",
+      "condition": "standard",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-18T01:13:49+00:00",
+      "finished_at": "2026-04-18T01:13:58+00:00",
+      "plan": "notes에서 IchiMozzi 백엔드 배포 절차와 구체적인 명령어를 확인하고, 필요하면 일반 배포 가이드를 검색합니다.",
+      "tool_calls": [
+        {
+          "tool": "notes_read",
+          "arguments": {
+            "key": "ichimozzi_backend_deploy"
+          },
+          "result": {
+            "error": "no note at key 'ichimozzi_backend_deploy'",
+            "available_keys": []
+          },
+          "error": null,
+          "duration_ms": 0.1
+        },
+        {
+          "tool": "notes_read",
+          "arguments": {
+            "key": "ichimozzi_deploy_commands"
+          },
+          "result": {
+            "error": "no note at key 'ichimozzi_deploy_commands'",
+            "available_keys": []
+          },
+          "error": null,
+          "duration_ms": 0.0
+        },
+        {
+          "tool": "web_search",
+          "arguments": {
+            "query": "docker backend deployment commands production",
+            "max_results": 3
+          },
+          "result": {
+            "results": [
+              {
+                "title": "Deployment | backstage/backstage | DeepWiki",
+                "url": "https://deepwiki.com/backstage/backstage/7.5-deployment",
+                "snippet": "Apr 7, 2026 · This page provides a comprehensive guide to deploying Backstage in production …"
+              },
+              {
+                "title": "Modern Docker Deployment Strategies for Production",
+                "url": "https://dev.to/padawanabhi/modern-docker-deployment-strategies-for-production-58a4",
+                "snippet": "Mar 24, 2026 · After architecting containerized deployments for everything from high-frequency …"
+              },
+              {
+                "title": "Docker for Backend Developers: Part 5 - Production Deployment …",
+                "url": "https://blogs.iamdhakrey.dev/blog/docker-part-5-production-deployment",
+                "snippet": "Aug 19, 2025 · Master production Docker deployments with zero-downtime strategies, …"
+              }
+            ],
+            "adapter": "ddg"
+          },
+          "error": null,
+          "duration_ms": 448.8
+        }
+      ],
+      "answer": "Docker 백엔드 배포 관련 정보를 찾았습니다.\n\n• 로컬 노트: ichimozzi_backend_deploy, ichimozzi_deploy_commands 모두 저장되어 있지 않습니다.\n• 웹 검색: Docker 백엔드 프로덕션 배포 관련 자료를 찾았습니다:\n  - https://deepwiki.com/backstage/backstage/7.5-deployment - Backstage 프로덕션 배포 가이드 (2026년 4월 7일)\n  - https://dev.to/padawanabhi/modern-docker-deployment-strategies-for-production-58a4 - 현대적 Docker 배포 전략 (2026년 3월 24일)\n  - https://blogs.iamdhakrey.dev/blog/docker-part-5-production-deployment - 백엔드 개발자를 위한 Docker: 프로덕션 배포 (2025년 8월 19일, Zero-downtime 전략 포함)\n\n이 자료들에서 Docker 백엔드 프로덕션 배포 명령어 및 전략을 확인할 수 있습니다.",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"notes에서 IchiMozzi 백엔드 배포 절차와 구체적인 명령어를 확인하고, 필요하면 일반 배포 가이드를 검색합니다.\",\n  \"tool_calls\": [\n    {\"tool\": \"notes_read\", \"arguments\": {\"key\": \"ichimozzi_backend_deploy\"}},\n    {\"tool\": \"notes_read\", \"arguments\": {\"key\": \"ichimozzi_deploy_commands\"}},\n    {\"tool\": \"web_search\", \"arguments\": {\"query\": \"docker backend deployment commands production\", \"max_results\": 3}}\n  ]\n}\n```",
+      "raw_model_output_turn2": "```json\n{\"answer\": \"Docker 백엔드 배포 관련 정보를 찾았습니다.\\n\\n• 로컬 노트: ichimozzi_backend_deploy, ichimozzi_deploy_commands 모두 저장되어 있지 않습니다.\\n• 웹 검색: Docker 백엔드 프로덕션 배포 관련 자료를 찾았습니다:\\n  - https://deepwiki.com/backstage/backstage/7.5-deployment - Backstage 프로덕션 배포 가이드 (2026년 4월 7일)\\n  - https://dev.to/padawanabhi/modern-docker-deployment-strategies-for-production-58a4 - 현대적 Docker 배포 전략 (2026년 3월 24일)\\n  - https://blogs.iamdhakrey.dev/blog/docker-part-5-production-deployment - 백엔드 개발자를 위한 Docker: 프로덕션 배포 (2025년 8월 19일, Zero-downtime 전략 포함)\\n\\n이 자료들에서 Docker 백엔드 프로덕션 배포 명령어 및 전략을 확인할 수 있습니다.\"}\n```",
+      "error": null,
+      "format_violation": false
+    },
+    {
+      "task_id": "general_web_fact",
+      "condition": "standard",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-18T01:13:58+00:00",
+      "finished_at": "2026-04-18T01:14:08+00:00",
+      "plan": "web_search로 Anthropic의 Model Context Protocol 공식 저장소 URL과 프로토콜의 목적을 찾습니다.",
+      "tool_calls": [
+        {
+          "tool": "web_search",
+          "arguments": {
+            "query": "Anthropic Model Context Protocol MCP github official repository what is",
+            "max_results": 5
+          },
+          "result": {
+            "results": [
+              {
+                "title": "如何评价 Anthropic 这个据称强到不敢直接发布的大模型 Mythos …",
+                "url": "https://www.zhihu.com/question/2025124518817973047",
+                "snippet": "Apr 8, 2026 · 发现大家的答案里没人聊Anthropic新模型Claude Mythos那份244页的System Card。 那么我来盘一盘吧。 简单地说，Anthropic开创了一种新的很叼的写法，把模型的技术报告写成了一篇田 …"
+              },
+              {
+                "title": "美国政府「首次封杀」全球头部大模型企业，美联邦机构停用 ...",
+                "url": "https://www.zhihu.com/question/2011015637259028204",
+                "snippet": "Feb 28, 2026 · 美国政府「首次封杀」全球头部大模型企业，美联邦机构停用Anthropic产品，会对市场造成何种影响？ 突发！ 特朗普下令禁用Anthropic AI，系美国政府首次“封杀”头部大模型公司_腾讯新闻 …"
+              },
+              {
+                "title": "如何评价Anthropic的下一个模型Claude Mythos？ - 知乎",
+                "url": "https://www.zhihu.com/question/2020874143453725371",
+                "snippet": "对于一些关键的架构设计,Anthropic的claude opus 4.6在项目迭代设计中能力退化的极其严重 (codex更可以用惨不忍睹来形容,codex找bug挺厉害,写代码和opus能力差了一个次元),特别是当我们对一个框架 …"
+              },
+              {
+                "title": "如何看待2026年2月24日Anthropic公司声称中国实验室对Claude模型大 ...",
+                "url": "https://www.zhihu.com/question/2009482926241382805",
+                "snippet": "没有任何公开和内部资料表明Anthropic在2025年一月之前曾经大范围使用过这个技巧。 Anthropic基于此技术之上的agentic RL做出的产品让它成为Deeepseek公布此技术最大受益者之一。 而今 …"
+              },
+              {
+                "title": "怎么看 Anthropic 刚发的《Building effective agents》这篇文章？",
+                "url": "https://www.zhihu.com/question/7370549265",
+                "snippet": "Anthropic这篇文章对Agent这个概念做了非常精确（仅指语言意义上的“精确”）的定义。 在Anthropic的定义之下，我们实际面临的大部分工作都应该是Workflow，而不是Agent！ 而为了完成某 …"
+              }
+            ],
+            "adapter": "ddg"
+          },
+          "error": null,
+          "duration_ms": 128.6
+        }
+      ],
+      "answer": "웹 검색 결과가 MCP와 관련이 없습니다. \"Anthropic Model Context Protocol MCP github official repository what is\" 검색이 실행되었지만, 반환된 결과는 모두 중국어(Zhihu)이며 Claude Mythos 모델, Anthropic 제품 정부 금지, Claude Opus 4.6, 그리고 Building effective agents 등 다른 주제들만 포함되어 있습니다. MCP(Model Context Protocol) 자체에 대한 설명이나 공식 저장소 정보는 포함되지 않았습니다.",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"web_search로 Anthropic의 Model Context Protocol 공식 저장소 URL과 프로토콜의 목적을 찾습니다.\",\n  \"tool_calls\": [\n    {\"tool\": \"web_search\", \"arguments\": {\"query\": \"Anthropic Model Context Protocol MCP github official repository what is\", \"max_results\": 5}}\n  ]\n}\n```",
+      "raw_model_output_turn2": "```json\n{\"answer\": \"웹 검색 결과가 MCP와 관련이 없습니다. \\\"Anthropic Model Context Protocol MCP github official repository what is\\\" 검색이 실행되었지만, 반환된 결과는 모두 중국어(Zhihu)이며 Claude Mythos 모델, Anthropic 제품 정부 금지, Claude Opus 4.6, 그리고 Building effective agents 등 다른 주제들만 포함되어 있습니다. MCP(Model Context Protocol) 자체에 대한 설명이나 공식 저장소 정보는 포함되지 않았습니다.\"}\n```",
+      "error": null,
+      "format_violation": false
+    },
+    {
+      "task_id": "memory_roundtrip",
+      "condition": "standard",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-18T01:14:08+00:00",
+      "finished_at": "2026-04-18T01:14:14+00:00",
+      "plan": "user_preferences 키에 3가지 선호사항을 저장한 후 즉시 읽어서 정확하게 저장되었는지 확인합니다.",
+      "tool_calls": [
+        {
+          "tool": "notes_write",
+          "arguments": {
+            "key": "user_preferences",
+            "body": "(1) 저녁에 커피 금지\n(2) 주말에는 이메일 확인 안 함\n(3) 운동은 아침 6시 30분에"
+          },
+          "result": {
+            "key": "user_preferences",
+            "updated": false,
+            "bytes": 104
+          },
+          "error": null,
+          "duration_ms": 0.2
+        },
+        {
+          "tool": "notes_read",
+          "arguments": {
+            "key": "user_preferences"
+          },
+          "result": {
+            "key": "user_preferences",
+            "body": "(1) 저녁에 커피 금지\n(2) 주말에는 이메일 확인 안 함\n(3) 운동은 아침 6시 30분에"
+          },
+          "error": null,
+          "duration_ms": 0.0
+        }
+      ],
+      "answer": "사용자 선호 사항이 저장되었습니다. 저장된 내용:\n\n(1) 저녁에 커피 금지\n(2) 주말에는 이메일 확인 안 함\n(3) 운동은 아침 6시 30분에\n\n저장된 데이터를 확인했습니다 (104 바이트).",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"user_preferences 키에 3가지 선호사항을 저장한 후 즉시 읽어서 정확하게 저장되었는지 확인합니다.\",\n  \"tool_calls\": [\n    {\"tool\": \"notes_write\", \"arguments\": {\"key\": \"user_preferences\", \"body\": \"(1) 저녁에 커피 금지\\n(2) 주말에는 이메일 확인 안 함\\n(3) 운동은 아침 6시 30분에\"}},\n    {\"tool\": \"notes_read\", \"arguments\": {\"key\": \"user_preferences\"}}\n  ]\n}\n```",
+      "raw_model_output_turn2": "```json\n{\"answer\": \"사용자 선호 사항이 저장되었습니다. 저장된 내용:\\n\\n(1) 저녁에 커피 금지\\n(2) 주말에는 이메일 확인 안 함\\n(3) 운동은 아침 6시 30분에\\n\\n저장된 데이터를 확인했습니다 (104 바이트).\"}\n```",
+      "error": null,
+      "format_violation": false
+    },
+    {
+      "task_id": "busagwan_sagwan_roles",
+      "condition": "standard",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-18T01:14:14+00:00",
+      "finished_at": "2026-04-18T01:14:25+00:00",
+      "plan": "notes에서 Busagwan과 Sagwan의 역할과 차이를 확인하고, 없으면 OpenAkashic 문서에서 이 두 컴포넌트의 정의를 검색합니다.",
+      "tool_calls": [
+        {
+          "tool": "notes_read",
+          "arguments": {
+            "key": "openakashic_busagwan_sagwan"
+          },
+          "result": {
+            "error": "no note at key 'openakashic_busagwan_sagwan'",
+            "available_keys": []
+          },
+          "error": null,
+          "duration_ms": 0.1
+        },
+        {
+          "tool": "notes_read",
+          "arguments": {
+            "key": "openakashic_architecture_components"
+          },
+          "result": {
+            "error": "no note at key 'openakashic_architecture_components'",
+            "available_keys": []
+          },
+          "error": null,
+          "duration_ms": 0.0
+        },
+        {
+          "tool": "web_search",
+          "arguments": {
+            "query": "OpenAkashic Busagwan Sagwan roles what is difference",
+            "max_results": 3
+          },
+          "result": {
+            "results": [
+              {
+                "title": "Hidden Roles | Board Game Mechanic | BoardGameGeek",
+                "url": "https://boardgamegeek.com/boardgamemechanic/2891/hidden-roles",
+                "snippet": "3 days ago · In games with hidden roles, one or more players are assigned differing roles that are not publicly revealed."
+              },
+              {
+                "title": "Reddit",
+                "url": "https://www.reddit.com/r/RuleTheWaves/comments/1qvzan3/what_is_the_difference_between_some_of_the_roles/",
+                "snippet": "방문 중인 사이트에서 설명을 제공하지 않습니다."
+              },
+              {
+                "title": "Sagwan | Beastars Wiki | Fandom",
+                "url": "https://beastars.fandom.com/wiki/Sagwan",
+                "snippet": "2 days ago · Sagwan (サグワーン, Saguwān?) is a secondary character in Beastars. He lives in room 302 of Beast Apartments. He was found out by Legoshi while doing udon delivery. He is a tall, …"
+              }
+            ],
+            "adapter": "ddg"
+          },
+          "error": null,
+          "duration_ms": 1256.2
+        }
+      ],
+      "answer": "OpenAkashic Busagwan과 Sagwan 정보를 찾을 수 없습니다.\n\n• 로컬 노트: openakashic_busagwan_sagwan, openakashic_architecture_components 모두 저장되어 있지 않습니다.\n• 웹 검색: \"OpenAkashic Busagwan Sagwan roles what is difference\" 검색 결과는 OpenAkashic과 관련 없는 내용만 반환되었습니다.\n  - https://boardgamegeek.com/boardgamemechanic/2891/hidden-roles - 보드게임의 숨겨진 역할 메커니즘\n  - https://www.reddit.com/r/RuleTheWaves/comments/1qvzan3/what_is_the_difference_between_some_of_the_roles/ - 게임 역할 차이 토론\n  - https://beastars.fandom.com/wiki/Sagwan - Beastars 애니메이션 캐릭터\n\nOpenAkashic의 Busagwan과 Sagwan 역할에 대한 정보는 공식 OpenAkashic 문서를 참고해 주세요.",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"notes에서 Busagwan과 Sagwan의 역할과 차이를 확인하고, 없으면 OpenAkashic 문서에서 이 두 컴포넌트의 정의를 검색합니다.\",\n  \"tool_calls\": [\n    {\"tool\": \"notes_read\", \"arguments\": {\"key\": \"openakashic_busagwan_sagwan\"}},\n    {\"tool\": \"notes_read\", \"arguments\": {\"key\": \"openakashic_architecture_components\"}},\n    {\"tool\": \"web_search\", \"arguments\": {\"query\": \"OpenAkashic Busagwan Sagwan roles what is difference\", \"max_results\": 3}}\n  ]\n}\n```",
+      "raw_model_output_turn2": "```json\n{\"answer\": \"OpenAkashic Busagwan과 Sagwan 정보를 찾을 수 없습니다.\\n\\n• 로컬 노트: openakashic_busagwan_sagwan, openakashic_architecture_components 모두 저장되어 있지 않습니다.\\n• 웹 검색: \\\"OpenAkashic Busagwan Sagwan roles what is difference\\\" 검색 결과는 OpenAkashic과 관련 없는 내용만 반환되었습니다.\\n  - https://boardgamegeek.com/boardgamemechanic/2891/hidden-roles - 보드게임의 숨겨진 역할 메커니즘\\n  - https://www.reddit.com/r/RuleTheWaves/comments/1qvzan3/what_is_the_difference_between_some_of_the_roles/ - 게임 역할 차이 토론\\n  - https://beastars.fandom.com/wiki/Sagwan - Beastars 애니메이션 캐릭터\\n\\nOpenAkashic의 Busagwan과 Sagwan 역할에 대한 정보는 공식 OpenAkashic 문서를 참고해 주세요.\"}\n```",
+      "error": null,
+      "format_violation": false
+    }
+  ]
+}

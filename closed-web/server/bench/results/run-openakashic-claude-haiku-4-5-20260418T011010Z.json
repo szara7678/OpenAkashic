@@ -1,0 +1,22 @@
+{
+  "model": "claude-haiku-4-5",
+  "condition": "openakashic",
+  "timestamp": "20260418T011010Z",
+  "records": [
+    {
+      "task_id": "general_web_fact",
+      "condition": "openakashic",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-18T01:09:59+00:00",
+      "finished_at": "2026-04-18T01:10:10+00:00",
+      "plan": "MCP는 공개된 표준 프로토콜이므로 Akashic 조회 불필요. 공개 지식으로 저장소 URL과 설명 제공",
+      "tool_calls": [],
+      "answer": "OpenAkashic 에이전트 준비 완료. 무엇을 도와드릴까요?\n\n예: 노트 검색, 프로젝트 정보 조회, 배포 가이드, 트러블슈팅 방법 등을 OpenAkashic에서 찾을 수 있습니다.",
+      "raw_model_output_turn1": "```json\n{\n  \"plan\": \"MCP는 공개된 표준 프로토콜이므로 Akashic 조회 불필요. 공개 지식으로 저장소 URL과 설명 제공\",\n  \"tool_calls\": []\n}\n```",
+      "raw_model_output_turn2": "```json\n{\n  \"answer\": \"OpenAkashic 에이전트 준비 완료. 무엇을 도와드릴까요?\\n\\n예: 노트 검색, 프로젝트 정보 조회, 배포 가이드, 트러블슈팅 방법 등을 OpenAkashic에서 찾을 수 있습니다.\"\n}\n```",
+      "error": null,
+      "format_violation": false
+    }
+  ]
+}

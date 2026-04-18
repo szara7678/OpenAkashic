@@ -1,0 +1,78 @@
+/home/insu/insu_server/apps/openakashic/closed-web/server/bench/standard_tools.py:25: RuntimeWarning: This package (`duckduckgo_search`) has been renamed to `ddgs`! Use `pip install ddgs` instead.
+  hits = list(DDGS().text(query, max_results=max_results))
+/home/insu/insu_server/apps/openakashic/closed-web/server/bench/standard_tools.py:25: RuntimeWarning: This package (`duckduckgo_search`) has been renamed to `ddgs`! Use `pip install ddgs` instead.
+  hits = list(DDGS().text(query, max_results=max_results))
+[baseline][domain_jlpt_gen] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: 실제 IchiMozzi 데이터베이스 형식을 확인하겠습니다.완벽합니다! 실제 IchiMozzi 데이터베이스 형식을 확인했습니다. **정확한 JSON 구조로 N4 어휘 문제를 만들겠습니다:**  ```json {   "
+[baseline][onboarding_openakashic] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: **OpenAkashic 신규 에이전트 온보딩 체크리스트**  ---  ## **Day 1: 시스템 이해 (30분)**  ### 📖 필[baseline][domain_jlpt_gen] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: ```json {   "examType": "JLPT",   "type": "vocabulary",   "questionText": "次の文の（　）に入る最も適当なものを一つ選んでください。\n\nこの会社は環境保全に力を入
+[baseline][onboarding_openakashic] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: **OpenAkashic 신규 에이전트 온보딩**  ### **필독 (20분)** ``` doc/general/plan.md          ← 아키텍처 doc/general/roadmap.md       ← 현황 
+[baseline][triage_ichimozzi_500] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: **Triage 순서 (프록시 → 앱 → DB)**  ### **1️⃣ Caddy** (`insu-shared-caddy`) ```bash docker logs --tail 100 insu-shared-caddy d
+[baseline][ichimozzi_deploy] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: **IchiMozzi 백엔드 배포**  ### **한 줄 배포** ```bash cd /home/insu/insu_server/compose && docker compose -f production.yml up -d
+[baseline][general_web_fact] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: **공식 저장소:** - https://github.com/modelcontextprotocol/modelcontextprotocol (spec & SDK) - https://github.com/modelcontex
+[baseline][memory_roundtrip] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: 이미 저장 완료! ✅ 즉시 회수:  **당신의 선호사항 3가지:**  1. **저녁에 커피 금지** — 저녁 시간대에는 카페인 섭취 피함 2. **주말에는 이메일 확인 안 함** — 금요일 저녁부터 월요일까지 업무 
+[baseline][busagwan_sagwan_roles] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: **Busagwan — 1차 리뷰** - 크롤링, capsule 초안 작성 - 형식, 구조, 기술 검증 - publication 1차 리뷰 - Core API 동기화  **Sagwan — 2차 리뷰 & 최종 결정**
+
+Saved [baseline]: /home/insu/insu_server/apps/openakashic/closed-web/server/bench/results/run-baseline-claude-haiku-4-5-20260418T005031Z.json
+Records: 7
+
+[standard][domain_jlpt_gen] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: 요청하신 노트들을 찾을 수 없습니다:  • ichimozzi_question_format - 없음 • jlpt_n4_vocab_examples - 없음  저장된 노트가 없습니다. JLPT N4 문제 형식이나 어휘 예
+  tools: ['notes_read', 'notes_read']
+[standard][onboarding_openakashic] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: 저장된 노트가 없습니다. openakashic_onboarding과 openakashic_getting_started 노트를 찾을 수 없습니다. OpenAkashic 온보딩 정보를 저장하거나 필요한 정보를 알려주세요
+  tools: ['notes_list', 'notes_read', 'notes_read']
+[standard][triage_ichimozzi_500] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: Docker 500 에러 트러블슈팅 정보를 찾기 어렵습니다.  • 로컬 노트: insu_server_docker_containers, ichimozzi_troubleshooting_steps 모두 저장되어 있지 않습
+  tools: ['notes_read', 'notes_read', 'web_search']
+[standard][ichimozzi_deploy] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: Docker Compose 배포 관련 정보를 찾기 어렵습니다.  • 로컬 노트: ichimozzi_backend_deploy_commands, ichimozzi_deployment_checklist 모두 저장되어 있
+  tools: ['notes_read', 'notes_read', 'web_search']
+[standard][general_web_fact] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: Anthropic Model Context Protocol (MCP) 공식 리소스를 찾았습니다:  • 공식 GitHub 조직: https://github.com/modelcontextprotocol - MCP 멀티언
+  tools: ['web_search']
+[standard][memory_roundtrip] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: 사용자 선호 사항이 저장되었습니다. 저장된 내용:  (1) 저녁에 커피 금지 (2) 주말에는 이메일 확인 안 함 (3) 운동은 아침 6시 30분에  저장된 데이터를 확인했습니다 (104 바이트).
+  tools: ['notes_write', 'notes_read']
+[standard][busagwan_sagwan_roles] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: OpenAkashic Busagwan과 Sagwan 정보를 찾을 수 없습니다.  • 로컬 노트: openakashic_busagwan_sagwan, openakashic_components_architecture 모
+  tools: ['notes_read', 'notes_read', 'web_search']
+
+Saved [standard]: /home/insu/insu_server/apps/openakashic/closed-web/server/bench/results/run-standard-claude-haiku-4-5-20260418T005147Z.json
+Records: 7
+
+[openakashic][domain_jlpt_gen] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: IchiMozzi의 JLPT N4 vocabulary fill-in 문제는 두 가지 형식으로 구성됩니다. 첫 번째는 '漢字読み'(한자 읽기)로, 밑줄 친 한자어의 히라가나 읽기를 4지선다 객관식으로 선택하는 9문항입
+  tools: ['search_and_read_top', 'search_and_read_top']
+[openakashic][onboarding_openakashic] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: openakashic 프로젝트 부트스트랩 실패: 'project' 파라미터가 필요합니다.
+  tools: ['bootstrap_project']
+[openakashic][triage_ichimozzi_500] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: insu-server Docker 환경의 ichimozzi 관련 컨테이너는 insu-server-backend-prod-1(IchiMozzi NestJS 백엔드)와 insu-server-ichimozzi-db-1(I
+  tools: ['search_and_read_top', 'search_and_read_top']
+[openakashic][ichimozzi_deploy] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: IchiMozzi 백엔드 배포는 홈서버 Docker에서 실행되며, `/home/insu/insu_server/compose` 디렉토리에서 `docker compose -f production.yml up -d --b
+  tools: ['search_and_read_top', 'search_and_read_top']
+[openakashic][general_web_fact] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: 1단계에서 실행된 도구 호출이 없습니다.
+[openakashic][memory_roundtrip] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: 개인 선호사항(저녁 커피 금지, 주말 이메일 확인 안 함, 아침 6시 30분 운동)이 personal_vault/preferences/user_preferences.md에 저장되었습니다. 다만 저장된 노트를 읽으려는
+  tools: ['upsert_note', 'read_note']
+[openakashic][busagwan_sagwan_roles] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: OpenAkashic의 사관(Sagwan)과 부사관(Busagwan)은 모델, 품질, 주기, 역할이 다릅니다. 사관은 Claude CLI를 사용하여 높은 품질의 승인·게이트·최종 판정을 1시간 주기로 담당하며 공개 
+  tools: ['search_and_read_top']
+
+Saved [openakashic]: /home/insu/insu_server/apps/openakashic/closed-web/server/bench/results/run-openakashic-claude-haiku-4-5-20260418T005400Z.json
+Records: 7
+
+All outputs:
+  /home/insu/insu_server/apps/openakashic/closed-web/server/bench/results/run-baseline-claude-haiku-4-5-20260418T005031Z.json
+  /home/insu/insu_server/apps/openakashic/closed-web/server/bench/results/run-standard-claude-haiku-4-5-20260418T005147Z.json
+  /home/insu/insu_server/apps/openakashic/closed-web/server/bench/results/run-openakashic-claude-haiku-4-5-20260418T005400Z.json

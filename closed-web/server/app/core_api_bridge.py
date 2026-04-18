@@ -53,18 +53,65 @@ def _coerce_confidence(value: Any, default: float = 0.75) -> float:
 
 
 # ─── 섹션 파서 ────────────────────────────────────────────────────────────────
+# 영어/한국어 혼용 heading을 폭넓게 수용한다. 섹션 후보는 우선순위 순.
+
+_SUMMARY_HEADINGS = (
+    "Summary", "요약", "개요", "TL;DR", "Overview", "Abstract", "Brief",
+)
+_KEY_POINT_HEADINGS = (
+    "Key Points", "key_points", "Key Takeaways", "Outcome", "Practical Use",
+    "Findings", "핵심", "핵심 포인트", "요점", "포인트", "결론", "Conclusion",
+    "What We Learned", "Learnings", "Insights",
+)
+_CAUTION_HEADINGS = (
+    "Caveats", "cautions", "Cautions", "Limitations", "Warnings",
+    "주의", "주의사항", "한계", "제약", "Risks", "Risk",
+)
+
 
 def _extract_section(body: str, *headings: str) -> str:
-    """마크다운 body에서 ## Heading 아래 내용을 추출한다. 여러 heading 후보를 순서대로 시도."""
+    """마크다운 body에서 ## Heading 아래 내용을 추출한다. 여러 heading 후보를 순서대로 시도.
+    ##, ###, #### 모두 매칭 (depth 무관)."""
     for heading in headings:
         pattern = re.compile(
-            r"^##\s+" + re.escape(heading) + r"\s*\n(.*?)(?=\n##\s|\Z)",
+            r"^#{2,4}\s+" + re.escape(heading) + r"\s*\n(.*?)(?=\n#{2,4}\s|\Z)",
             re.MULTILINE | re.DOTALL | re.IGNORECASE,
         )
         match = pattern.search(body)
         if match:
             return match.group(1).strip()
     return ""
+
+
+def _extract_summary_text(body: str) -> str:
+    text = _extract_section(body, *_SUMMARY_HEADINGS)
+    if text:
+        return text
+    # 첫 번째 의미있는 단락 (# 제외, 코드블록 제외)
+    in_code = False
+    for block in body.split("\n\n"):
+        stripped = block.strip()
+        if not stripped:
+            continue
+        if stripped.startswith("```") or stripped.startswith("~~~"):
+            in_code = not in_code
+            continue
+        if in_code:
+            continue
+        if stripped.startswith("#"):
+            continue
+        if stripped.startswith("---"):
+            continue
+        return stripped
+    return ""
+
+
+def _extract_key_points_text(body: str) -> str:
+    return _extract_section(body, *_KEY_POINT_HEADINGS)
+
+
+def _extract_cautions_text(body: str) -> str:
+    return _extract_section(body, *_CAUTION_HEADINGS)
 
 
 def _extract_bullets(text: str) -> list[str]:
@@ -142,10 +189,79 @@ def _patch_claim_status(claim_id: str, write_key: str, base_url: str) -> None:
         resp.read()
 
 
+# ─── claim 자동 생성 헬퍼 ─────────────────────────────────────────────────────
+
+def _note_evidence_uri(note_path: str, settings: Any) -> str:
+    closed_public_base = (settings.public_base_url or "").rstrip("/")
+    if closed_public_base:
+        return f"{closed_public_base}/closed/note?path={urlparse.quote(note_path)}"
+    return f"closed-akashic://{note_path}"
+
+
+def _create_derived_claim(
+    text: str,
+    claim_role: str,
+    confidence: float,
+    tags: list[str],
+    note_path: str,
+    settings: Any,
+) -> str | None:
+    """캡슐에서 도출된 claim을 생성·accept 상태로 승격. evidence는 원본 노트 링크 1개."""
+    try:
+        claim_result = _core_api_post(
+            "/claims",
+            {
+                "text": text,
+                "status": "pending",
+                "confidence": confidence,
+                "source_weight": 0.8,
+                "claim_role": claim_role,
+                "metadata": {
+                    "tags": tags,
+                    "source_note": note_path,
+                    "source": "closed_akashic_capsule_derived",
+                },
+            },
+            settings.core_api_write_key,
+            settings.core_api_url,
+        )
+        cid = str(claim_result.get("id") or "")
+        if not cid:
+            return None
+
+        _core_api_post(
+            "/evidences",
+            {
+                "claim_id": cid,
+                "source_type": "closed_akashic_note",
+                "source_uri": _note_evidence_uri(note_path, settings),
+                "note": f"Derived from capsule {note_path}",
+            },
+            settings.core_api_write_key,
+            settings.core_api_url,
+        )
+
+        _patch_claim_status(cid, settings.core_api_write_key, settings.core_api_url)
+        return cid
+    except Exception as exc:
+        logger.warning("core_api_bridge: derived claim create failed (%s): %s", text[:60], exc)
+        return None
+
+
 # ─── kind=capsule 동기화 ──────────────────────────────────────────────────────
 
 def _sync_capsule(frontmatter: dict[str, Any], body: str, note_path: str) -> str | None:
-    """Core API에 capsule 레코드를 생성하고 ID를 반환한다."""
+    """
+    Core API에 capsule 레코드를 생성하고 ID를 반환한다.
+
+    규칙:
+    1. Summary / 요약 / 개요 / TL;DR 섹션(또는 첫 단락)을 summary[]로.
+    2. Key Points / 핵심 / 요점 / Outcome / 결론 섹션의 bullet을 key_points[]로.
+    3. Cautions / 주의 / 한계 / Limitations 섹션의 bullet을 cautions[]로.
+    4. summary 첫 문장은 core claim, 나머지는 support claim으로 자동 생성.
+    5. 각 key_point는 support claim, 각 caution은 caution claim으로 자동 생성.
+    6. 생성된 claim ID들을 source_claim_ids + key_points[].claim_id / cautions[].claim_id에 채운다.
+    """
     settings = get_settings()
     if not settings.core_api_write_key:
         logger.warning("core_api_bridge: OPENAKASHIC_CORE_WRITE_KEY not set, skipping capsule sync")
@@ -155,32 +271,64 @@ def _sync_capsule(frontmatter: dict[str, Any], body: str, note_path: str) -> str
     confidence = _coerce_confidence(frontmatter.get("confidence"))
     tags = list(frontmatter.get("tags") or [])
 
-    summary_text = _extract_section(body, "Summary")
-    summary = _extract_sentences(summary_text) if summary_text else [title]
+    summary_text = _extract_summary_text(body)
+    summary_sentences = _extract_sentences(summary_text) if summary_text else []
+    if not summary_sentences:
+        summary_sentences = [title]
+    summary = summary_sentences[:5]
 
-    outcome_text = _extract_section(body, "Outcome", "key_points", "Key Points", "Practical Use")
-    key_points = [{"text": t} for t in _extract_bullets(outcome_text)] if outcome_text else []
+    key_points_raw = _extract_bullets(_extract_key_points_text(body))
+    cautions_raw = _extract_bullets(_extract_cautions_text(body))
 
-    caveats_text = _extract_section(body, "Caveats", "cautions", "Cautions")
-    cautions = [{"text": t} for t in _extract_bullets(caveats_text)] if caveats_text else []
+    # 1) Summary → claims (first=core, rest=support)
+    source_claim_ids: list[str] = []
+    for idx, text in enumerate(summary):
+        role = "core" if idx == 0 else "support"
+        cid = _create_derived_claim(text, role, confidence, tags, note_path, settings)
+        if cid:
+            source_claim_ids.append(cid)
+
+    # 2) Key points → support claims (link back via claim_id)
+    key_points: list[dict[str, Any]] = []
+    for text in key_points_raw[:10]:
+        cid = _create_derived_claim(text, "support", confidence, tags, note_path, settings)
+        if cid:
+            source_claim_ids.append(cid)
+            key_points.append({"text": text, "claim_id": cid})
+        else:
+            key_points.append({"text": text})
+
+    # 3) Cautions → caution claims
+    cautions: list[dict[str, Any]] = []
+    for text in cautions_raw[:10]:
+        cid = _create_derived_claim(text, "caution", confidence, tags, note_path, settings)
+        if cid:
+            source_claim_ids.append(cid)
+            cautions.append({"text": text, "claim_id": cid})
+        else:
+            cautions.append({"text": text})
 
     payload = {
         "title": title,
         "summary": summary,
         "key_points": key_points,
         "cautions": cautions,
-        "source_claim_ids": [],
+        "source_claim_ids": source_claim_ids,
         "confidence": confidence,
         "metadata": {
             "tags": tags,
             "source_note": note_path,
             "source": "closed_akashic_publication",
+            "parser_version": "2026-04-19",
         },
     }
 
     result = _core_api_post("/capsules", payload, settings.core_api_write_key, settings.core_api_url)
     capsule_id = str(result.get("id") or "")
-    logger.info("core_api_bridge: synced capsule %s → Core API %s", note_path, capsule_id)
+    logger.info(
+        "core_api_bridge: synced capsule %s → Core API %s (claims=%d key_points=%d cautions=%d)",
+        note_path, capsule_id, len(source_claim_ids), len(key_points), len(cautions),
+    )
     return capsule_id or None
 
 
@@ -193,11 +341,9 @@ def _sync_claim(frontmatter: dict[str, Any], body: str, note_path: str) -> str |
         logger.warning("core_api_bridge: OPENAKASHIC_CORE_WRITE_KEY not set, skipping claim sync")
         return None
 
-    claim_text = _extract_section(body, "Claim", "Summary")
+    claim_text = _extract_section(body, "Claim", "주장", *_SUMMARY_HEADINGS)
     if not claim_text:
-        # body 전체 첫 문단을 claim text로 사용
-        paragraphs = [p.strip() for p in body.split("\n\n") if p.strip() and not p.startswith("#")]
-        claim_text = paragraphs[0] if paragraphs else str(frontmatter.get("title") or note_path)
+        claim_text = _extract_summary_text(body) or str(frontmatter.get("title") or note_path)
 
     # bullet list라면 첫 항목을 사용
     bullets = _extract_bullets(claim_text)
@@ -230,16 +376,11 @@ def _sync_claim(frontmatter: dict[str, Any], body: str, note_path: str) -> str |
         return None
 
     # Evidence Links 섹션에서 증거 첨부
-    evidence_text = _extract_section(body, "Evidence Links", "Evidence", "Sources")
+    evidence_text = _extract_section(body, "Evidence Links", "Evidence", "Sources", "근거", "출처")
     evidence_uris = _extract_evidence_links(evidence_text)
     if not evidence_uris:
         # Evidence Links 섹션이 없으면 원본 노트의 closed_note_uri를 붙여둔다.
-        # Core API는 이 URI를 참조만 하고 fetch하지 않으므로 공개 열람 경로가 맞다.
-        closed_public_base = (settings.public_base_url or "").rstrip("/")
-        if closed_public_base:
-            evidence_uris = [f"{closed_public_base}/closed/note?path={urlparse.quote(note_path)}"]
-        else:
-            evidence_uris = [f"closed-akashic://{note_path}"]
+        evidence_uris = [_note_evidence_uri(note_path, settings)]
 
     for uri in evidence_uris[:5]:  # 최대 5개
         try:

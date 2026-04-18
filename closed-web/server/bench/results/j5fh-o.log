@@ -1,0 +1,16 @@
+[1/7] judging domain_jlpt_gen (attempt 1, openakashic)
+  ✓ pass — hits 4/4, traps 0
+[2/7] judging onboarding_openakashic (attempt 1, openakashic)
+  ✓ pass — hits 4/4, traps 0
+[3/7] judging triage_ichimozzi_500 (attempt 1, openakashic)
+  ✓ pass — hits 4/4, traps 0
+[4/7] judging ichimozzi_deploy (attempt 1, openakashic)
+  ✓ pass — hits 3/3, traps 0
+[5/7] judging general_web_fact (attempt 1, openakashic)
+  ✓ pass — hits 3/3, traps 0
+[6/7] judging memory_roundtrip (attempt 1, openakashic)
+  ✓ pass — hits 3/3, traps 0
+[7/7] judging busagwan_sagwan_roles (attempt 1, openakashic)
+  ✓ pass — hits 4/4, traps 0
+
+Saved: results/run-openakashic-claude-haiku-4-5-20260418T011558Z-judged.json

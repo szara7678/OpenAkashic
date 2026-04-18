@@ -71,11 +71,16 @@ class QueryOptions(BaseModel):
     expand_related_claims: bool = True
 
 
+QueryMode = Literal["compact", "standard", "full"]
+
+
 class QueryRequest(BaseModel):
     query: str = Field(min_length=1)
     top_k: int = Field(default=8, ge=1, le=50)
     include: list[Literal["claims", "evidences", "evidence", "capsules"]] = Field(
-        default_factory=lambda: ["claims", "evidences", "capsules"]
+        default_factory=lambda: ["capsules", "claims"]
     )
+    mode: QueryMode = "standard"
+    fields: list[str] = Field(default_factory=list)
     filters: QueryFilters = Field(default_factory=QueryFilters)
     options: QueryOptions = Field(default_factory=QueryOptions)

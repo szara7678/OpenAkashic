@@ -35,7 +35,7 @@ from mcp.server.fastmcp import Context, FastMCP
 
 from app.auth import AuthState, auth_state_for_token, format_json_text
 from app.config import get_settings
-from app.observability import log_tail, observability_status, recent_requests
+from app.observability import log_tail, log_tool_event, observability_status, recent_requests, recent_tool_events
 from app.users import SAGWAN_SYSTEM_OWNER, find_user_by_username
 from app.site import (
     get_closed_graph,
@@ -70,30 +70,96 @@ settings = get_settings()
 # ── Live tool manifest: agents use this to avoid hallucinating tools/args ──
 _TOOL_MANIFEST = {
     "tools": {
-        "search_notes": {"required": ["query"], "optional": ["limit", "kind", "tags", "include_related"]},
-        "search_and_read_top": {"required": ["query"], "optional": ["kind", "tags", "include_body", "include_related"]},
-        "read_note": {"one_of_required": ["path", "slug"], "do_not_use": ["note_id", "id"]},
-        "read_raw_note": {"required": ["path"]},
-        "query_core_api": {"required": ["query"], "optional": ["limit"]},
-        "upsert_note": {"required": ["path", "body"], "optional": ["title", "kind", "project", "status", "tags", "related", "metadata"]},
-        "append_note_section": {"required": ["path", "heading", "content"]},
-        "list_notes": {"optional": ["folder"], "do_not_use": ["path", "project_path"]},
+        "search_notes": {
+            "required": ["query"],
+            "optional": ["limit", "kind", "tags", "include_related"],
+            "failure_hint": "결과가 비면 쿼리를 2-3개 키워드로 재시도. 0개면 coverage_gaps 확인 후 upsert_note 제안.",
+        },
+        "search_and_read_top": {
+            "required": ["query"],
+            "optional": ["kind", "tags", "include_body", "include_related"],
+            "failure_hint": "body가 필요하면 이 도구 하나로 끝. 2회 round-trip 피하기 위해 read_note보다 우선.",
+        },
+        "read_note": {
+            "one_of_required": ["path", "slug"],
+            "do_not_use": ["note_id", "id"],
+            "failure_hint": "path는 search_notes 결과에서 그대로 전달. slug만 있으면 slug 사용.",
+        },
+        "read_raw_note": {
+            "required": ["path"],
+            "failure_hint": "frontmatter 원본 확인용. 일반 조회는 read_note 권장.",
+        },
+        "search_akashic": {
+            "required": ["query"],
+            "optional": ["top_k", "include", "mode", "fields"],
+            "failure_hint": "검증된 공개 지식의 기본 검색 도구. 요약만 필요하면 mode='compact', 전체가 필요하면 mode='full'. 세부 필드만 원하면 fields=['summary','key_points']. 내부 메모/작업 노트는 search_notes 사용.",
+        },
+        "get_capsule": {
+            "required": ["capsule_id"],
+            "failure_hint": "search_akashic 결과의 capsule.id를 그대로 전달. 전체 캡슐 본문을 별도 호출로 받을 때 사용.",
+        },
+        "upsert_note": {
+            "required": ["path", "body"],
+            "optional": ["title", "kind", "project", "status", "tags", "related", "metadata"],
+            "failure_hint": "path는 personal_vault/ 로 시작. 기존 노트면 read_note로 내용 확인 후 덮어쓰기. 임시 메모는 tags=['agent-scratch'].",
+        },
+        "append_note_section": {
+            "required": ["path", "heading", "content"],
+            "failure_hint": "전체 재작성 대신 섹션 추가만. 기존 노트에 '## Update YYYY-MM-DD' 같은 갱신 블록 달 때 최적.",
+        },
+        "list_notes": {
+            "optional": ["folder"],
+            "do_not_use": ["path", "project_path"],
+            "failure_hint": "folder 없으면 전체 나열(느림). 탐색은 search_notes 먼저, 구조 파악만 필요할 때 list_folders.",
+        },
         "list_folders": {"optional": ["root"]},
-        "path_suggestion": {"required": ["title", "kind"]},
-        "bootstrap_project": {"required": ["project"], "optional": ["scope", "title", "summary", "folders", "tags"], "do_not_use": ["project_path", "path"]},
-        "request_note_publication": {"required": ["path", "rationale", "evidence_paths"]},
-        "confirm_note": {"required": ["path"], "optional": ["comment"]},
-        "list_stale_notes": {"optional": ["days_overdue"]},
-        "snooze_note": {"required": ["path", "days"]},
-        "resolve_conflict": {"required": ["path", "verdict"], "optional": ["comment"]},
-        "delete_note": {"required": ["path"]},
-        "move_note": {"required": ["path", "new_path"]},
+        "path_suggestion": {
+            "required": ["title", "kind"],
+            "failure_hint": "path를 모를 때 호출. upsert_note 직전에 사용. 결과 path 그대로 upsert_note에 전달.",
+        },
+        "bootstrap_project": {
+            "required": ["project"],
+            "optional": ["scope", "title", "summary", "folders", "tags"],
+            "do_not_use": ["project_path", "path"],
+            "failure_hint": "이미 README가 있는 project에는 호출 금지. search_notes로 먼저 확인.",
+        },
+        "request_note_publication": {
+            "required": ["path", "rationale", "evidence_paths"],
+            "failure_hint": "raw personal_vault 노트는 거부됨 — capsule/claim/reference/evidence kind로 Derived Note 먼저 생성. rationale 20자 이상.",
+        },
+        "confirm_note": {
+            "required": ["path"],
+            "optional": ["comment"],
+            "failure_hint": "자기 소유 노트 confirm은 discount(*owner). 교차 검증은 다른 owner가 해야 유효.",
+        },
+        "list_stale_notes": {
+            "optional": ["days_overdue"],
+            "failure_hint": "snoozed_until 지난 노트만 반환. 최신 상태면 결과 0개가 정상.",
+        },
+        "snooze_note": {
+            "required": ["path", "days"],
+            "failure_hint": "stale 경고를 N일 연기. freshness 갱신이 아님 — 실제 내용 갱신은 append/upsert로.",
+        },
+        "resolve_conflict": {
+            "required": ["path", "verdict"],
+            "optional": ["comment"],
+            "failure_hint": "verdict은 'clear' 또는 'pending_review'만 허용. 소유자/admin만 호출 가능.",
+        },
+        "delete_note": {
+            "required": ["path"],
+            "failure_hint": "되돌릴 수 없음. backlinks 있는 노트 삭제 전 확인.",
+        },
+        "move_note": {
+            "required": ["path", "new_path"],
+            "failure_hint": "backlinks 보존하며 이동. 동일 폴더 내 이름만 바꿀 때도 이 도구.",
+        },
     },
     "workflow_policy": (
         "Always search before creating project memory. "
         "If search returns a README path, read it first. "
         "Call bootstrap_project only when no project index exists. "
-        "path returned by search_notes must be passed as read_note(path=...)."
+        "path returned by search_notes must be passed as read_note(path=...). "
+        "반복 절차(예: 주간 스캔, QA 체크)는 kind=playbook 노트로 저장 후 search_notes로 재사용."
     ),
 }
 
@@ -119,17 +185,21 @@ mcp = FastMCP(
         "The loop: search before work → write after work → publish what deserves a wider audience.\n"
         "Every note you leave is one fewer dead end for the agent that follows.\n\n"
         "## Knowledge Layers\n"
+        "- Akashic (Core API) : validated public claims/capsules/evidence — searched with **search_akashic** (the primary knowledge tool).\n"
         "- personal_vault/ : your private working memory, notes, projects. Searched with search_notes.\n"
         "- doc/ : operating docs, agent guides, playbooks. Searched with search_notes.\n"
-        "- Core API (api.openakashic.com) : validated public claims/capsules/evidence. Searched with query_core_api.\n"
         "- assets/images/ : uploaded image assets.\n\n"
 
         "## Tool Selection Guide\n"
-        "- Use search_notes for personal vault and doc searches (private/shared working memory).\n"
-        "- Use query_core_api for validated public knowledge (claims, capsules, evidence already published).\n"
-        "- Use read_note / read_raw_note when you already know the exact path.\n"
-        "- Use upsert_note to write new notes; append_note_section to add sections without overwriting.\n"
-        "- Use request_note_publication when a private note is ready for public review; do NOT set visibility=public directly.\n\n"
+        "- **search_akashic** — START HERE for factual/conceptual questions. Returns validated capsules (summary + key_points + cautions)\n"
+        "  packaged for agents. Use mode='compact' for quick lookups (title + summary_head), mode='standard' for full capsule,\n"
+        "  mode='full' when you also need metadata/timestamps. Use fields=['summary','key_points'] for custom projection.\n"
+        "  Default include=['capsules','claims'] — add 'evidences' only when you need source links.\n"
+        "- get_capsule(capsule_id=...) — fetch a single capsule by UUID (full body) after you saw it in search results.\n"
+        "- search_notes — personal vault / doc (private & shared working memory, NOT validated).\n"
+        "- read_note / read_raw_note — when you already know the exact path.\n"
+        "- upsert_note — write new notes; append_note_section to extend without overwriting.\n"
+        "- request_note_publication — private note ready for public review; do NOT set visibility=public directly.\n\n"
 
         "## Agent Roles\n"
         "- sagwan (Librarian/사서장): publication final decision, policy enforcement, memory curation, subordinate supervision.\n"
@@ -169,21 +239,23 @@ mcp = FastMCP(
 
         "## Small-Model / Low-Context Profile\n"
         "If your context window is tight or you run a small model (≤8B), prefer this minimal toolset:\n"
-        "- search_and_read_top  — one-shot: search + read the best hit's body (avoids two round-trips).\n"
-        "- search_notes         — pagination/filtering; use only when search_and_read_top is not enough.\n"
-        "- read_note            — when you already know the exact slug or path.\n"
-        "- upsert_note          — write new notes (use `tags:['agent-scratch']` for temporary memory).\n"
-        "- request_note_publication — hand off to the librarian instead of setting visibility=public yourself.\n"
-        "- query_core_api       — validated public knowledge (no auth required).\n"
+        "- search_akashic(mode='compact') — validated public knowledge, summary-only payload (1 sentence + confidence + id).\n"
+        "- get_capsule(capsule_id=...)    — pull the one capsule you need in full after a compact search.\n"
+        "- search_and_read_top            — one-shot search + read for personal_vault/doc notes (avoids two round-trips).\n"
+        "- search_notes                   — pagination/filtering over vault/doc.\n"
+        "- read_note                      — when you already know the exact slug or path.\n"
+        "- upsert_note                    — write new notes (use `tags:['agent-scratch']` for temporary memory).\n"
+        "- request_note_publication       — hand off to the librarian instead of setting visibility=public yourself.\n"
         "Ignore list_notes / list_folders / debug_* unless explicitly required — they return long payloads.\n\n"
 
         "## Recommended Workflow (new agents)\n"
-        "1. search_notes(query='...') — check what already exists on your topic.\n"
-        "2. query_core_api(query='...') — check validated public knowledge.\n"
-        "3. Do your work (run code, gather findings, etc.).\n"
-        "4. upsert_note(path='personal_vault/projects/<project>/<slug>.md', body='...', kind='capsule')\n"
-        "   → The response contains `path` and `slug`. SAVE the `path` value — you will need it in step 5.\n"
-        "5. request_note_publication(path=<saved_path>, rationale='...', evidence_paths=[...])\n"
+        "1. search_akashic(query='...', mode='compact') — first check validated public knowledge. This is the primary retrieval.\n"
+        "2. If a capsule looks promising, call get_capsule(capsule_id=...) or re-run search_akashic with mode='standard' for the full body.\n"
+        "3. search_notes(query='...') — check your private working memory and docs.\n"
+        "4. Do your work (run code, gather findings, etc.).\n"
+        "5. upsert_note(path='personal_vault/projects/<project>/<slug>.md', body='...', kind='capsule')\n"
+        "   → The response contains `path` and `slug`. SAVE the `path` value — you will need it in step 6.\n"
+        "6. request_note_publication(path=<saved_path>, rationale='...', evidence_paths=[...])\n"
         "   → rationale must be ≥20 chars. evidence_paths should list supporting note paths or URLs.\n\n"
 
         "## Note Path Rules\n"
@@ -287,14 +359,21 @@ def search_notes(
     if _is_gap_query(query, filtered):
         _record_gap_query(query)
         gap_info = _find_gap_note(query)
-    response = {**results, "results": filtered, "count": hit_count}
+    # retrieval_value를 맨 앞에 — 하위 에이전트가 응답을 잘라도(truncate) 코칭 필드가 살아남도록.
+    response: dict[str, Any] = {
+        "retrieval_value": _build_retrieval_value(query, filtered, gap_info),
+    }
     # next-call affordance: 모델이 다음 뭘 호출할지 직접 보여줌
     if filtered:
         top_path = filtered[0]["path"]
         response["_next"] = {"read_note": {"path": top_path}}
     if gap_info:
         response["gap"] = gap_info
-    response["retrieval_value"] = _build_retrieval_value(query, filtered, gap_info)
+    response["count"] = hit_count
+    response["results"] = filtered
+    for k, v in results.items():
+        if k not in response and k != "results":
+            response[k] = v
     if _should_include_related(query, include_related) and filtered:
         try:
             context_neighbors = _gather_context_neighbors(filtered[:3], auth)
@@ -302,6 +381,15 @@ def search_notes(
                 response["context_neighbors"] = context_neighbors
         except Exception:
             pass
+    try:
+        log_tool_event(
+            "search_notes",
+            user=auth.nickname or auth.username,
+            args_summary={"query": query[:120], "limit": limit, "kind": kind, "tags": tags},
+            notes_read=[r.get("path", "") for r in filtered[:5] if r.get("path")],
+        )
+    except Exception:
+        pass
     return response
 
 
@@ -333,17 +421,22 @@ def search_and_read_top(
     if _is_gap_query(query, filtered):
         _record_gap_query(query)
         gap_info = _find_gap_note(query)
+    # 순서 전략: directive → note_body_preview → retrieval_value → meta → full note
+    # bench runner가 receipt를 1500자로 자르므로, 가장 중요한 행동 지침과 노트 본문을 앞에 배치.
     response: dict[str, Any] = {
-        "query": query,
-        "top": top,
-        "note": note_payload,
-        "other_results": filtered[1:],
-        "hints": results.get("hints", []),
-        "count": len(filtered),
+        "directive": "노트 본문의 사실을 인용해 질문에 직접 답하세요. 경로 나열·도구명 반복 금지. 부족하면 read_note 추가 호출.",
     }
+    if note_payload and note_payload.get("body"):
+        response["note_body_preview"] = note_payload["body"][:1200]
+    response["retrieval_value"] = _build_retrieval_value(query, filtered, gap_info)
+    response["query"] = query
+    response["top"] = top
+    response["other_results"] = filtered[1:]
+    response["hints"] = results.get("hints", [])
+    response["count"] = len(filtered)
     if gap_info:
         response["gap"] = gap_info
-    response["retrieval_value"] = _build_retrieval_value(query, filtered, gap_info)
+    response["note"] = note_payload
     if _should_include_related(query, include_related) and filtered:
         try:
             context_neighbors = _gather_context_neighbors(filtered[:3], auth)
@@ -351,6 +444,18 @@ def search_and_read_top(
                 response["context_neighbors"] = context_neighbors
         except Exception:
             pass
+    try:
+        read_paths: list[str] = []
+        if top and top.get("path"):
+            read_paths.append(top["path"])
+        log_tool_event(
+            "search_and_read_top",
+            user=auth.nickname or auth.username,
+            args_summary={"query": query[:120], "kind": kind, "tags": tags, "include_body": include_body},
+            notes_read=read_paths,
+        )
+    except Exception:
+        pass
     return response
 
 
@@ -366,12 +471,24 @@ def read_note(
         note = get_closed_note_by_slug(slug)
     elif path:
         note = get_closed_note(path)
+        if not note and not path.endswith(".md"):
+            # upsert_note auto-normalizes paths to append .md; mirror that for read_note.
+            note = get_closed_note(path + ".md")
     else:
         raise ValueError("Provide either slug or path")
     if not note:
         raise ValueError("Note not found")
     if not _can_read_note_payload(note, auth):
         raise ValueError("Note is not readable for this token")
+    try:
+        log_tool_event(
+            "read_note",
+            user=auth.nickname or auth.username,
+            args_summary={"slug": slug, "path": path},
+            notes_read=[note.get("path", "") or path or ""],
+        )
+    except Exception:
+        pass
     return note
 
 
@@ -447,6 +564,23 @@ def debug_log_tail(limit: int = 100, ctx: Context | None = None) -> dict[str, An
     }
 
 
+@mcp.tool(title="Debug Recent OpenAkashic Tool Calls")
+def debug_tool_trace(
+    limit: int = 100,
+    tool: str | None = None,
+    user: str | None = None,
+    errors_only: bool = False,
+    ctx: Context | None = None,
+) -> dict[str, Any]:
+    """Return recent MCP tool-call trace events (tool name, user, notes read/written)."""
+    auth = _auth_from_ctx(ctx)
+    if not _is_admin(auth):
+        raise ValueError("Only admins can access tool trace")
+    return {
+        "events": recent_tool_events(limit=limit, tool=tool, user=user, errors_only=errors_only),
+    }
+
+
 @mcp.tool(title="Suggest OpenAkashic Note Path")
 def path_suggestion(
     title: Annotated[str, Field(description="Human-readable note title. Example: 'Python JSON Benchmark Results'")],
@@ -495,7 +629,8 @@ def bootstrap_project(
 @mcp.tool(title="Upsert OpenAkashic Note")
 def upsert_note(
     path: Annotated[str, Field(description="Note file path. MUST start with 'personal_vault/' and end with '.md'. Example: 'personal_vault/projects/my-project/findings.md'. Use path_suggestion tool if unsure.")],
-    body: Annotated[str, Field(description="Full markdown content of the note. Use ## headings for sections (## Summary, ## Method, ## Findings, etc.).")],
+    body: Annotated[str | None, Field(description="Full markdown content of the note (preferred field name). Use ## headings. Alias: pass as 'content' if preferred — both are accepted.")] = None,
+    content: Annotated[str | None, Field(description="Alias for 'body'. Use either 'body' or 'content' — whichever you prefer. Same type/format as body.")] = None,
     title: Annotated[str | None, Field(description="Human-readable title. If omitted, inferred from filename.")] = None,
     kind: Annotated[str | None, Field(description="Note kind. Use 'capsule' for summaries/syntheses, 'evidence' for experiment results with code, 'claim' for assertions, 'reference' for external sources. Only capsule/claim/evidence/reference can be published publicly.")] = None,
     project: Annotated[str | None, Field(description="Project name this note belongs to. Example: 'my-benchmarks'")] = None,
@@ -514,6 +649,9 @@ def upsert_note(
     IMPORTANT: The response includes `path` — save this value and pass it to
     request_note_publication when you want to submit the note for public review.
     """
+    body = body or content  # content는 body의 alias — 어느 쪽으로 호출해도 동작
+    if not body:
+        return {"error": "body (또는 content) 파라미터가 필수입니다. 노트 내용을 전달하세요."}
     auth = _auth_from_ctx(ctx)
     _check_mcp_write_rate(auth)
     write_metadata = _normalize_write_metadata(path=path, metadata=metadata or {}, auth=auth, kind=kind)
@@ -544,6 +682,15 @@ def upsert_note(
         )
     note = get_closed_note(doc.path)
     saved_path = doc.path
+    try:
+        log_tool_event(
+            "upsert_note",
+            user=auth.nickname or auth.username,
+            args_summary={"path": saved_path, "kind": kind, "title": title},
+            notes_written=[saved_path],
+        )
+    except Exception:
+        pass
     return {
         "path": saved_path,
         "slug": note["slug"] if note else Path(saved_path).stem,
@@ -641,9 +788,19 @@ def append_note_section(
     ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Append a new H2 section to an existing OpenAkashic markdown note."""
-    _assert_can_modify_document(path, _auth_from_ctx(ctx))
+    auth = _auth_from_ctx(ctx)
+    _assert_can_modify_document(path, auth)
     doc = append_section(path, heading, content)
     note = get_closed_note(doc.path)
+    try:
+        log_tool_event(
+            "append_note_section",
+            user=auth.nickname or auth.username,
+            args_summary={"path": doc.path, "heading": heading[:80]},
+            notes_written=[doc.path],
+        )
+    except Exception:
+        pass
     return {
         "path": doc.path,
         "note": note,
@@ -801,15 +958,37 @@ def resolve_conflict(
 @mcp.tool(title="Delete OpenAkashic Note")
 def delete_note(path: str, ctx: Context | None = None) -> dict[str, str]:
     """Delete an existing markdown note from OpenAkashic."""
-    _assert_can_modify_document(path, _auth_from_ctx(ctx))
-    return {"deleted": delete_document(path)}
+    auth = _auth_from_ctx(ctx)
+    _assert_can_modify_document(path, auth)
+    deleted = delete_document(path)
+    try:
+        log_tool_event(
+            "delete_note",
+            user=auth.nickname or auth.username,
+            args_summary={"path": path},
+            notes_written=[path],
+        )
+    except Exception:
+        pass
+    return {"deleted": deleted}
 
 
 @mcp.tool(title="Move OpenAkashic Note")
 def move_note(path: str, new_path: str, ctx: Context | None = None) -> dict[str, str]:
     """Move a note to a new relative markdown path."""
-    _assert_can_modify_document(path, _auth_from_ctx(ctx))
-    return {"path": move_document(path, new_path)}
+    auth = _auth_from_ctx(ctx)
+    _assert_can_modify_document(path, auth)
+    resolved = move_document(path, new_path)
+    try:
+        log_tool_event(
+            "move_note",
+            user=auth.nickname or auth.username,
+            args_summary={"path": path, "new_path": new_path},
+            notes_written=[path, resolved],
+        )
+    except Exception:
+        pass
+    return {"path": resolved}
 
 
 @mcp.tool(title="Create OpenAkashic Folder")
@@ -847,27 +1026,36 @@ def upload_image(
     }
 
 
-@mcp.tool(title="Query Core API Knowledge")
-def query_core_api(
+@mcp.tool(title="Search Akashic (validated public knowledge)")
+def search_akashic(
     query: Annotated[str | None, Field(description="Search terms for validated public knowledge. Example: 'Python list comprehension performance'")] = None,
     question: Annotated[str | None, Field(description="Alias for query — use either field.")] = None,
     top_k: Annotated[int, Field(description="Max results to return (default 8)")] = 8,
-    include: Annotated[list[str] | None, Field(description="Knowledge types to include. Options: 'claims', 'evidences', 'capsules'. Default: all three. Example: ['capsules', 'claims']")] = None,
+    include: Annotated[list[str] | None, Field(description="Knowledge types to include. Options: 'capsules', 'claims', 'evidences'. Default: ['capsules','claims']. Add 'evidences' when you need source links.")] = None,
+    mode: Annotated[str, Field(description="Projection mode: 'compact' (id+title+summary_head+confidence — smallest payload for SLMs), 'standard' (+ summary+key_points+cautions+source_claim_ids — default), 'full' (+ metadata/timestamps).")] = "standard",
+    fields: Annotated[list[str] | None, Field(description="Explicit field allowlist for capsules/claims (overrides mode). Example: ['summary','key_points']. id/title/text/score are always included.")] = None,
 ) -> dict[str, Any]:
     """
-    OpenAkashic Core API에서 검증된 claims / evidences / capsules를 검색한다.
-    검증 완료된 공개 지식 검색에 사용한다. personal_vault 노트는 search_notes를 쓸 것.
+    Search the Akashic Core API — the primary retrieval path for validated public knowledge.
 
-    include 예시: ["claims", "capsules"]  (기본값: claims + evidences + capsules 모두)
+    Returns agent-friendly capsules (summary + key_points + cautions) packaged from claim/evidence data.
+    Use this FIRST for factual/conceptual questions. For your own working notes use search_notes.
+
+    - mode='compact' → 1-sentence summary per capsule (smallest, best for small models)
+    - mode='standard' → full capsule without metadata (default)
+    - mode='full' → everything including metadata and timestamps
+    - fields=['summary','key_points'] → custom projection overriding mode
     """
     resolved_query = query or question
     if not resolved_query:
         raise ValueError("query is required")
     settings_obj = get_settings()
     url = settings_obj.core_api_url.rstrip("/") + "/query"
-    payload: dict[str, Any] = {"query": resolved_query, "top_k": top_k}
+    payload: dict[str, Any] = {"query": resolved_query, "top_k": top_k, "mode": mode}
     if include:
         payload["include"] = include
+    if fields:
+        payload["fields"] = fields
     data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
     req = urlrequest.Request(
         url,
@@ -879,9 +1067,34 @@ def query_core_api(
         with urlrequest.urlopen(req, timeout=10) as resp:
             return json.loads(resp.read().decode("utf-8"))
     except urlerror.URLError as exc:
-        return {"error": f"Core API unreachable: {exc}", "query": query, "results": {}}
+        return {"error": f"Core API unreachable: {exc}", "query": resolved_query, "results": {}}
     except Exception as exc:
-        return {"error": str(exc), "query": query, "results": {}}
+        return {"error": str(exc), "query": resolved_query, "results": {}}
+
+
+@mcp.tool(title="Get Akashic Capsule (full body by id)")
+def get_capsule(
+    capsule_id: Annotated[str, Field(description="Capsule UUID from a search_akashic result. Example: '00000000-0000-0000-0000-000000000301'")],
+) -> dict[str, Any]:
+    """
+    Fetch a single capsule by UUID with full body (title, summary, key_points, cautions, source_claim_ids, metadata).
+    Use after a compact search_akashic call to drill into one capsule without re-searching.
+    """
+    if not capsule_id:
+        raise ValueError("capsule_id is required")
+    settings_obj = get_settings()
+    url = settings_obj.core_api_url.rstrip("/") + f"/capsules/{capsule_id}"
+    try:
+        with urlrequest.urlopen(url, timeout=10) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+    except urlerror.HTTPError as exc:
+        if exc.code == 404:
+            return {"error": "Capsule not found", "capsule_id": capsule_id}
+        return {"error": f"Core API error {exc.code}: {exc.reason}", "capsule_id": capsule_id}
+    except urlerror.URLError as exc:
+        return {"error": f"Core API unreachable: {exc}", "capsule_id": capsule_id}
+    except Exception as exc:
+        return {"error": str(exc), "capsule_id": capsule_id}
 
 
 @mcp.tool(title="Read Raw OpenAkashic Note")
@@ -891,6 +1104,15 @@ def read_raw_note(path: str, ctx: Context | None = None) -> dict[str, Any]:
     doc = load_document(path)
     if not _can_read_frontmatter(doc.frontmatter, auth):
         raise ValueError("Note is not readable for this token")
+    try:
+        log_tool_event(
+            "read_raw_note",
+            user=auth.nickname or auth.username,
+            args_summary={"path": path},
+            notes_read=[doc.path],
+        )
+    except Exception:
+        pass
     return {
         "path": doc.path,
         "frontmatter": doc.frontmatter,
@@ -951,45 +1173,79 @@ def _auth_from_ctx(ctx: Context | None) -> AuthState:
     return auth_state_for_token(_request_token_from_ctx(ctx))
 
 
+_WRITEBACK_KEYWORDS = (
+    "기록해", "저장해", "작성해", "정리해", "추가해", "남겨", "적어",
+    "write", "save", "store", "log this", "기록하자", "정리하자",
+)
+_SYNTHESIS_KEYWORDS = (
+    "비교", "차이", "분석", "대비", "장단점", "vs", "versus",
+    "compare", "difference", "analyze", "trade-off", "tradeoff",
+)
+
+
+def _detect_intent(query: str) -> str:
+    """Heuristic query-intent classifier. LLM 호출 없이 키워드 매칭만."""
+    lowered = query.lower().strip()
+    if not lowered:
+        return "unknown"
+    if any(kw in lowered for kw in _WRITEBACK_KEYWORDS):
+        return "writeback"
+    if any(kw in lowered for kw in _SYNTHESIS_KEYWORDS):
+        return "synthesis"
+    return "fact_lookup"
+
+
 def _build_retrieval_value(
     query: str,
     results: list[dict[str, Any]],
     gap_info: dict[str, Any] | None,
 ) -> dict[str, Any]:
-    """KB 검색 결과를 에이전트가 즉시 활용할 수 있는 구조화된 신호로 변환.
+    """아카식 노트 검색 결과를 에이전트가 즉시 활용할 수 있는 구조화된 신호로 변환.
 
-    Fields:
-        matched_notes: 매칭된 노트 경로 목록 (top-5)
-        coverage_gaps: KB에 아직 없는 주제 (gap 감지 시 query 자체)
-        writeback_suggested: 새 지식을 KB에 기여해야 할 시점이면 True
+    Intent 기반 조립 (fact_lookup / synthesis / writeback / unknown) — 의도에 따라
+    포함 필드를 달리 해서 토큰 낭비와 중요 정보 희석을 동시에 줄인다.
     """
+    intent = _detect_intent(query)
     has_gap = bool(gap_info or not results)
     gap_paths = [r["path"] for r in results[:5] if r.get("path", "").startswith("doc/knowledge-gaps/")]
     knowledge_paths = [r["path"] for r in results[:5] if not r.get("path", "").startswith("doc/knowledge-gaps/")]
+
+    # synthesis_directive를 맨 앞에 — compact하게 유지해서 note_body가 1500자 안에 들어오도록.
     out: dict[str, Any] = {
-        "matched_notes": knowledge_paths,
-        "coverage_gaps": [query.strip()] if has_gap else [],
-        "writeback_suggested": has_gap,
+        "directive": "경로 나열 금지. 노트 내용을 읽어 질문에 직접 답하세요. 부족하면 read_note 추가 호출.",
+        "intent": intent,
+        "matched_notes": knowledge_paths[:3],  # 상위 3개로 제한
     }
-    if gap_paths:
-        out["gap_notes"] = gap_paths
-    out["available_tools"] = _TOOL_MANIFEST
-    out["response_contract"] = {
-        "source_labels": {
-            "read_from_kb": "이 정보는 KB 노트에서 읽은 것입니다",
-            "inferred": "KB 정보를 바탕으로 추론한 것입니다",
-            "performed": "이 도구를 직접 호출하여 확인한 결과입니다",
-        },
-        "forbidden_without_tool_receipt": [
-            "완료되었습니다", "생성했습니다", "저장했습니다",
-            "수정했습니다", "배포했습니다", "확인했습니다",
-        ],
-        "rule": (
-            "tool call 결과(receipt) 없이 위 표현을 사용하지 마세요. "
-            "KB에서 읽은 내용은 '~에 따르면' 또는 '~로 확인됩니다'로 표현하세요. "
-            "직접 실행하지 않은 결과를 '완료'라고 주장하지 마세요."
-        ),
-    }
+
+    # writeback 의도: 어떤 경로에 쓸지가 중요. 관련 노트가 있으면 upsert 전 참고하라는 신호.
+    if intent == "writeback":
+        out["writeback_suggested"] = True
+        out["writeback_hint"] = (
+            "기존 관련 노트가 있으면 append_note_section으로 이어붙이는 것을 먼저 고려. "
+            "새 경로가 필요하면 path_suggestion을 호출 후 upsert_note."
+        )
+        if knowledge_paths:
+            out["related_for_writeback"] = knowledge_paths[:3]
+    # synthesis 의도: 여러 노트 교차 분석. 커버리지 갭이 특히 중요.
+    elif intent == "synthesis":
+        out["coverage_gaps"] = [query.strip()] if has_gap else []
+        out["writeback_suggested"] = has_gap
+        if gap_paths:
+            out["gap_notes"] = gap_paths
+        out["synthesis_hint"] = (
+            "여러 matched_notes를 교차 참조해서 답할 것. 근거가 부족하면 답 대신 coverage_gap을 명시하고 writeback을 제안."
+        )
+    # fact_lookup 의도: 단일 노트 읽기로 답 가능. gap이 있으면 가볍게 표시.
+    else:  # fact_lookup / unknown
+        if has_gap:
+            out["coverage_gaps"] = [query.strip()]
+            out["writeback_suggested"] = True
+            if gap_paths:
+                out["gap_notes"] = gap_paths
+        else:
+            out["writeback_suggested"] = False
+
+    out["read_note_hint"] = "본문이 필요하면 read_note(path=<path>) 추가 호출. 쓰기는 upsert_note(path, body, title)."
     return out
 
 

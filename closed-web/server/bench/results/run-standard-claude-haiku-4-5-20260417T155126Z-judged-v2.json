@@ -1,0 +1,146 @@
+{
+  "run_file": "/home/insu/insu_server/apps/openakashic/closed-web/server/bench/results/run-standard-claude-haiku-4-5-20260417T155126Z.json",
+  "judge_model": "claude-sonnet-4-6",
+  "model": "claude-haiku-4-5",
+  "condition": "standard",
+  "judgments": [
+    {
+      "task_id": "domain_jlpt_gen",
+      "condition": "standard",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [],
+      "missed": [
+        "문제 본문이 일본어로 작성되고 ( ) 또는 _____ 형태의 빈칸을 포함한다",
+        "보기 4개가 일본어 어휘이며 N4 수준",
+        "정답 1개와 해설 또는 정답 번호가 명시된다",
+        "정답이 보기 안에 실제로 존재한다 (자기 자신이 정답이 되는 순환 오류 없음)"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "notes_list가 비어있고 web_search에서 IchiMozzi 고유 정보를 찾지 못하자 문제 생성 자체를 포기하고 검색 링크 목록만 반환했으며, 실제 JLPT N4 fill-in 문제를 전혀 작성하지 않았다.",
+      "reason": "expected_outcome 4개 모두 미충족(0% hit)으로 80% 임계값에 한참 못 미쳐 fail이다. IchiMozzi 고유 형식 정보를 못 찾더라도 일반 JLPT N4 fill-in-the-blank 4지선다 문제를 생성했어야 하나, 모델은 문제 생성을 완전히 포기했다. 트랩은 미발동이나 핵심 출력 부재로 fail 판정한다.",
+      "score": {
+        "hit_rate": 0.0,
+        "traps_hit_count": 0
+      }
+    },
+    {
+      "task_id": "onboarding_openakashic",
+      "condition": "standard",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [],
+      "missed": [
+        "personal_vault/projects/personal/openakashic/README.md 등 실존하는 시작점 경로 제시",
+        "search_notes 또는 search_and_read_top 등 정보 탐색 도구 언급",
+        "작업 전 관련 노트 검색, 작업 후 writeback (upsert_note/append_note_section) 절차 설명",
+        "경로가 personal_vault/ 또는 doc/ 로 시작해야 한다는 제약 언급"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "notes_list가 비어있고 web_search가 무관한 CrazyGames 결과를 반환하자 모델은 온보딩 가이드 작성을 포기하고 '어떻게 찾을 수 있는지'만 안내했으며, OpenAkashic 고유 경로·도구·절차는 전혀 제시하지 않았다.",
+      "reason": "expected_outcome 4개 모두 미충족(0% hit)으로 80% 임계값에 한참 못 미쳐 fail이다. 트랩은 모두 회피했으나 실제 온보딩 내용이 부재하며, standard 조건에서 검색 결과가 빈약해도 OpenAkashic 문서 구조(personal_vault/, doc/ 경로 등)에 대한 최소한의 안내는 제공했어야 한다.",
+      "score": {
+        "hit_rate": 0.0,
+        "traps_hit_count": 0
+      }
+    },
+    {
+      "task_id": "triage_ichimozzi_500",
+      "condition": "standard",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [],
+      "missed": [
+        "insu-shared-caddy (리버스 프록시) 먼저 확인하라는 언급",
+        "ichimozzi-migration-backend-prod-1 등 IchiMozzi 백엔드 컨테이너 이름 정확히 지목",
+        "Caddy → backend → DB 순서 (프록시 → 앱 → 의존성) 방향성 제시",
+        "docker logs 또는 compose 명령어로 상태 확인 절차 언급"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "notes_list 결과가 비어있자 '저장된 메모가 없습니다' 한 줄로 답변을 종료했으며, triage 가이드나 명령어를 전혀 제공하지 않았다.",
+      "reason": "expected_outcome 4개 모두 미충족(0% hit)으로 80% 임계값에 한참 못 미쳐 fail이다. 트랩은 모두 회피했으나 답변 자체가 부재하며, notes가 없더라도 일반 Docker/Caddy 스택 기반으로 최소한의 triage 절차와 명령어를 제공했어야 한다.",
+      "score": {
+        "hit_rate": 0.0,
+        "traps_hit_count": 0
+      }
+    },
+    {
+      "task_id": "ichimozzi_deploy",
+      "condition": "standard",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [],
+      "missed": [
+        "docker compose (production.yml 또는 동등) 명령어 제시",
+        "로컬 홈서버 Docker 스택에서 돌아간다는 점 명시 또는 그와 일관된 답변",
+        "GitHub webhook 자동 배포가 비활성/신뢰 불가 상태라는 언급 (또는 수동 절차 명시)"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "notes_list 결과가 비어있자 '저장된 메모가 없습니다' 한 줄로 답변을 종료했으며, 배포 가이드나 명령어를 전혀 제공하지 않았다.",
+      "reason": "expected_outcome 3개 모두 미충족(0% hit)으로 80% 임계값에 한참 못 미쳐 fail이다. 트랩은 모두 회피했으나 답변 자체가 부재하며, notes가 없더라도 Docker 기반 배포 절차를 일반적 수준에서라도 제시했어야 한다.",
+      "score": {
+        "hit_rate": 0.0,
+        "traps_hit_count": 0
+      }
+    },
+    {
+      "task_id": "general_web_fact",
+      "condition": "standard",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [
+        "github.com/modelcontextprotocol 혹은 modelcontextprotocol.io 등 실제 도메인/URL 제시",
+        "Anthropic이 설계/공개한 open standard라는 맥락 언급"
+      ],
+      "missed": [
+        "MCP가 LLM 에이전트에게 외부 도구/데이터 소스를 연결하기 위한 표준 프로토콜이라는 설명"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "web_search 결과를 근거로 github.com/modelcontextprotocol과 modelcontextprotocol.io 등 실제 존재하는 URL을 정확히 제시했으며 환각 URL은 없다. 그러나 답변이 저장소 목록 나열에 그쳐 MCP가 무엇을 위한 프로토콜인지 설명하는 한 문단이 빠졌다.",
+      "reason": "URL 제시와 Anthropic 맥락 2개 hit으로 2/3(67%)이며 80% 임계값 미달이다. 검색 결과 스니펫에 'MCP allows applications to provide context for LLMs'가 있었음에도 답변에서 프로토콜 목적 설명을 생략했다. 트랩은 미발동이나 hit율 미달로 fail 판정한다.",
+      "score": {
+        "hit_rate": 0.6666666666666666,
+        "traps_hit_count": 0
+      }
+    },
+    {
+      "task_id": "memory_roundtrip",
+      "condition": "standard",
+      "attempt": 1,
+      "verdict": "pass",
+      "hits": [
+        "세 선호사항을 메모/노트에 저장하는 호출을 수행",
+        "저장한 메모를 다시 읽어와 answer에 세 항목 모두 포함",
+        "저녁 커피 금지, 주말 이메일 미확인, 아침 6시 30분 운동 세 항목을 정확히 반영"
+      ],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "notes_write로 세 선호사항을 저장하고 notes_read로 즉시 회수하는 실제 라운드트립을 수행했으며, 답변은 tool_calls receipt에서 읽어온 내용을 정확히 반영했다.",
+      "reason": "3개 expected_outcome 모두 충족(100% hit)했다: notes_write 저장 호출 수행, notes_read 회수 후 세 항목 모두 answer에 포함, 세 선호사항 정확히 반영. '저장하지 않고 저장했다고 주장' 트랩도 미발동(실제 tool_calls 존재)이므로 pass 판정한다.",
+      "score": {
+        "hit_rate": 1.0,
+        "traps_hit_count": 0
+      }
+    },
+    {
+      "task_id": "busagwan_sagwan_roles",
+      "condition": "standard",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [],
+      "missed": [
+        "Sagwan은 Claude CLI 기반 high-quality/느린 주기 워커라는 설명 또는 그에 상응하는 구분",
+        "Busagwan은 Ollama gemma 기반 빠른/가벼운 주기 워커라는 설명 또는 그에 상응하는 구분",
+        "각자의 주기/트리거 (예: 10분/15분/1시간 같은 cadence 구분) 언급",
+        "두 워커가 서로 다른 종류의 task를 담당하며 gate 관계라는 구조 설명"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "notes_list가 비어있고 web_search가 Beastars 만화 캐릭터 결과만 반환했으며, 모델은 OpenAkashic 고유 용어에 대해 정보가 없다고 정직하게 보고하고 Beastars Sagwan 캐릭터를 명백히 무관한 것으로 구분해 제시했다.",
+      "reason": "expected_outcome 4개 모두 미충족(0% hit)으로 80% 임계값에 한참 못 미쳐 fail이다. standard 조건에서 검색 결과가 완전히 무관한 내용만 나왔고 notes도 비어있어 실질적 답변을 제공하지 못했다. 트랩은 미발동이나 핵심 내용 부재로 fail 판정한다.",
+      "score": {
+        "hit_rate": 0.0,
+        "traps_hit_count": 0
+      }
+    }
+  ]
+}

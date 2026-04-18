@@ -37,13 +37,13 @@ seed_path: "doc/agents/Codex AGENTS Template.md"
 ## Evidence Links
 *   **메인 지식 허브:** `https://knowledge.openakashic.com`
 *   **MCP 엔드포인트:** `https://knowledge.openakashic.com/mcp/`
-*   **주요 도구 목록 (MCP Tools):** `search_notes`, `query_core_api`, `upsert_note`, `append_note_section` 등 (전체 목록은 MCP API 참조)
+*   **주요 도구 목록 (MCP Tools):** `search_notes`, `search_akashic`, `upsert_note`, `append_note_section` 등 (전체 목록은 MCP API 참조)
 *   **프로젝트 구조:** `personal_vault/projects/<scope>/<project>/README.md`
 
 ## Practical Use (운영 행동 지침)
 에이전트는 다음의 6가지 핵심 원칙을 **반드시** 준수해야 합니다.
 
-1.  **작업 시작 전:** 관련 Closed Akashic 노트를 `search_notes`로 검색하고, 검증된 지식은 `query_core_api`를 통해 조회합니다.
+1.  **작업 시작 전:** 관련 Closed Akashic 노트를 `search_notes`로 검색하고, 검증된 지식은 `search_akashic`를 통해 조회합니다.
 2.  **프로젝트 관리:** 프로젝트가 발생하면, 반드시 `personal_vault/projects/<scope>/<project>/README.md` 경로를 통해 접근합니다.
 3.  **기존 노트 우선:** 새로운 노트를 생성하기보다, 기존의 적절한 컨테이너 노트를 찾아 업데이트하는 것을 최우선으로 합니다.
 4.  **작업 완료 후:** 작업 결과를 원시 로그(raw logs)로 붙여넣지 않고, 반드시 간결하고, 다른 노트와 연결된(linked) 형태로 요약하여 기록합니다.

@@ -1,0 +1,19 @@
+{
+  "model": "claude-haiku-4-5",
+  "timestamp": "20260417T135358Z",
+  "records": [
+    {
+      "task_id": "ts_001",
+      "axis": "tool_selection",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-17T13:53:14+00:00",
+      "finished_at": "2026-04-17T13:53:58+00:00",
+      "plan": "",
+      "tool_calls": [],
+      "final_response": "",
+      "raw_model_output": "이 정보는 아카식 노트에서 읽은 것입니다: **IchiMozzi Update & Deploy Playbook (post-migration)**\n\n## 배포 방법\n\n### 현재 배포 절차 (수동)\n\nIchiMozzi 백엔드 소스(`/home/insu/insu_server/apps/ichimozzi/backend`)를 수정한 후:\n\n```bash\n# 1) 빌드 사전 확인 (선택사항)\ncd /home/insu/insu_server/apps/ichimozzi/backend\nnpm run build   # dist/ 확인\n\n# 2) 프로덕션 스택 재빌드 & 재기동\ncd /home/insu/insu_server/compose\ndocker compose -f production.yml build backend-prod\ndocker compose -f production.yml up -d backend-prod\n\n# 3) 헬스 체크\ncurl -s -I https://ichimozzi.com/health   # 200 OK 기대\ndocker logs -f ichimozzi-migration-backend-prod-1 --tail 100\n```\n\n전체 스택을 재기동해야 하면 다음 스크립트 사용:\n```bash\n/home/insu/insu_server/scripts/start-all.sh\n```\n\n### DB 마이그레이션/시드\n- 초기 생성: `infra/db-init/ichimozzi.sql.gz` 자동 로드\n- 스키마 변경: TypeORM의 `synchronize` 플래그 확인 후 필요 시 `psql`로 ALTER 적용\n- 백업 복원: `/home/insu/insu_server/archive/ichimozzi-migration-20260414-020020/momhome/db-init/ichimozzi.sql.gz`\n\n### ⚠️ 자동 배포 (GitHub Webhook) — 현재 비활성\n\nGitHub webhook은 여러 이유로 작동하지 않음:\n1. 경로가 AWS EC2 기준 (`/home/ec2-user/IchiMozzi/deploy.sh`)\n2. 컨테이너 내에서 호스트의 docker compose 호출 불가\n3. 시크릿 하드코딩 (env 값 미적용)\n4. `master` 브랜치 고정 (현재는 `main` 사용)\n\n현재는 위의 **수동 절차를 사용**해야 합니다.\n\n출처: [IchiMozzi Update & Deploy Playbook](personal_vault/projects/personal/ichimozzi/playbooks/update-and-deploy.md)",
+      "error": "ValueError: No JSON object found in model output: 이 정보는 아카식 노트에서 읽은 것입니다: **IchiMozzi Update & Deploy Playbook (post-migration)**\n\n## 배포 방법\n\n### 현재 배포 절차 (수동)\n\nIchiMozzi 백엔드 소스(`/home/insu/insu_server/apps/ichimozzi/backend`)를 수정한 후:\n\n```bash\n# 1) 빌드\nTraceback (most recent call last):\n  File \"/home/insu/insu_server/apps/openakashic/closed-web/server/bench/runner.py\", line 207, in run_task\n    parsed = extract_json(raw)\n             ^^^^^^^^^^^^^^^^^\n  File \"/home/insu/insu_server/apps/openakashic/closed-web/server/bench/runner.py\", line 188, in extract_json\n    raise ValueError(f\"No JSON object found in model output: {text[:200]}\")\nValueError: No JSON object found in model output: 이 정보는 아카식 노트에서 읽은 것입니다: **IchiMozzi Update & Deploy Playbook "
+    }
+  ]
+}

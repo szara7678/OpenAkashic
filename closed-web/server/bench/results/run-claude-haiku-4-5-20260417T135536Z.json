@@ -1,0 +1,431 @@
+{
+  "model": "claude-haiku-4-5",
+  "timestamp": "20260417T135536Z",
+  "records": [
+    {
+      "task_id": "ts_001",
+      "axis": "tool_selection",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-17T13:55:28+00:00",
+      "finished_at": "2026-04-17T13:55:36+00:00",
+      "plan": "search_notes로 IchiMozzi 배포 관련 노트를 검색한 후 read_note로 배포 playbook을 읽어서 사용자에게 제공합니다.",
+      "tool_calls": [
+        {
+          "tool": "search_notes",
+          "arguments": {
+            "query": "ichimozzi deploy deployment"
+          },
+          "result": {
+            "query": "ichimozzi deploy deployment",
+            "results": [
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/playbooks/update-and-deploy.md",
+                "slug": "update-and-deploy",
+                "title": "IchiMozzi Update & Deploy Playbook (post-migration)",
+                "kind": "playbook",
+                "project": "personal/ichimozzi",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "ichimozzi",
+                  "playbook",
+                  "deploy",
+                  "webhook",
+                  "ops"
+                ],
+                "summary": "백엔드 소스(/home/insu/insu server/apps/ichimozzi/backend)를 수정한 뒤 다음 절차로 재배포한다.",
+                "href": "/notes/update-and-deploy",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5813,
+                "confirm_count": 0,
+                "score": 0.016393
+              },
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/architecture/system-snapshot-2026-04-15.md",
+                "slug": "system-snapshot-2026-04-15",
+                "title": "IchiMozzi System Snapshot 2026-04-15",
+                "kind": "architecture",
+                "project": "personal/ichimozzi",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "ichimozzi",
+                  "architecture",
+                  "backend",
+                  "jlpt",
+                  "snapshot"
+                ],
+                "summary": "IchiMozzi는 JLPT(일본어능력시험) 학습용 모바일 앱이다. 객관식 문제 풀이 + SRS(간격 반복) + 태그 기반 취약점 분석 + 개인별 난이도 브릿징 추천이 중심 기능이다.",
+                "href": "/notes/system-snapshot-2026-04-15",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5708,
+                "confirm_count": 0,
+                "score": 0.016129
+              },
+              {
+                "path": "personal_vault/projects/ops/librarian/knowledge-gaps/ichimozzi-ota-eas-build-play-store-deploy.md",
+                "slug": "ichimozzi-ota-eas-build-play-store-deploy",
+                "title": "[Gap] ichimozzi OTA EAS build Play Store deploy",
+                "kind": "reference",
+                "project": "ops/librarian",
+                "owner": "sagwan",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "gap",
+                  "knowledge-gap",
+                  "subordinate"
+                ],
+                "summary": "에이전트가 ichimozzi OTA EAS build Play Store deploy 쿼리로 검색했으나 관련 노트가 없었습니다.",
+                "href": "/notes/ichimozzi-ota-eas-build-play-store-deploy",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5615,
+                "confirm_count": 0,
+                "score": 0.015873
+              },
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/deployment-log.md",
+                "slug": "deployment-log",
+                "title": "IchiMozzi 배포 로그",
+                "kind": "reference",
+                "project": "ichimozzi",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "ichimozzi",
+                  "deployment",
+                  "backend",
+                  "frontend"
+                ],
+                "summary": "- auth: forgotPassword(6자리 코드 이메일), resetPassword, refreshToken, guestLogin(deviceId 중복방지)",
+                "href": "/notes/deployment-log",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5541,
+                "confirm_count": 0,
+                "score": 0.015625
+              },
+              {
+                "path": "personal_vault/IchiMozzi AWS Cleanup 2026-04-14.md",
+                "slug": "ichimozzi-aws-cleanup-2026-04-14",
+                "title": "IchiMozzi AWS Cleanup 2026-04-14",
+                "kind": "reference",
+                "project": "ops/infra-ops",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "ops",
+                  "aws",
+                  "ichimozzi",
+                  "migration",
+                  "backup",
+                  "cost-control"
+                ],
+                "summary": "AWS resources previously used by IchiMozzi were cleaned up after migration to /home/insu/insu server on the desktop server. Live compute/network/database resources were removed, while minimal recovery artifacts were intentionally preserved.",
+                "href": "/notes/ichimozzi-aws-cleanup-2026-04-14",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5508,
+                "confirm_count": 0,
+                "score": 0.015385
+              },
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/impl-direction-2026-04-17.md",
+                "slug": "impl-direction-2026-04-17",
+                "title": "IchiMozzi 구현 방향 확정 (2026-04-17)",
+                "kind": "reference",
+                "project": "personal/ichimozzi",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "ichimozzi",
+                  "direction",
+                  "duolingo",
+                  "listening",
+                  "fsrs",
+                  "tts",
+                  "planner",
+                  "mock-exam"
+                ],
+                "summary": "QA 결과를 Codex GPT-5.4와 토론 후, insu가 확정한 구현 방향 가이드.",
+                "href": "/notes/impl-direction-2026-04-17",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5495,
+                "confirm_count": 0,
+                "score": 0.015152
+              },
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/contact_reply_system_2026-04-17.md",
+                "slug": "contact-reply-system-2026-04-17",
+                "title": "IchiMozzi 문의 응답 시스템 및 synchronize 활성화 (2026-04-17)",
+                "kind": "reference",
+                "project": "personal/ichimozzi",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "ichimozzi",
+                  "admin",
+                  "contact",
+                  "synchronize",
+                  "ota"
+                ],
+                "summary": "OTA daa952de. DB SYNCHRONIZE=true 활성화(env 파일 변경). contact reports에 adminReply/status/updatedAt 컬럼, problem reports에 status/adminNote/updatedAt 컬럼 자동 추가됨. ContactScreen: 탭 UI(문의하기/내 문의 내역), 답변 확인 가능. AdminContactReportsSc",
+                "href": "/notes/contact-reply-system-2026-04-17",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5494,
+                "confirm_count": 0,
+                "score": 0.014925
+              },
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/reference/evaluation-2026-04-15.md",
+                "slug": "evaluation-2026-04-15",
+                "title": "IchiMozzi 전면 평가 및 수정 작업 기록 2026-04-15",
+                "kind": "reference",
+                "project": "personal/ichimozzi",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "ichimozzi",
+                  "evaluation",
+                  "bugfix",
+                  "jlpt",
+                  "quality",
+                  "expo-web"
+                ],
+                "summary": "szara7678/IchiMozzi GitHub 레포 frontend/eas.json 분석 결과:",
+                "href": "/notes/evaluation-2026-04-15",
+                "lexical_score": 0.0,
+                "semantic_score": 0.5441,
+                "confirm_count": 0,
+                "score": 0.014706
+              }
+            ],
+            "hints": [],
+            "meta": {
+              "retrieval": "lexical+semantic+rrf",
+              "rrf_k": 60,
+              "semantic_model": "bge-m3",
+              "semantic_provider": "ollama"
+            },
+            "count": 8,
+            "_next": {
+              "read_note": {
+                "path": "personal_vault/projects/personal/ichimozzi/playbooks/update-and-deploy.md"
+              }
+            },
+            "retrieval_value": {
+              "intent": "fact_lookup",
+              "matched_notes": [
+                "personal_vault/projects/personal/ichimozzi/playbooks/update-and-deploy.md",
+                "personal_vault/projects/personal/ichimozzi/architecture/system-snapshot-2026-04-15.md",
+                "personal_vault/projects/ops/librarian/knowledge-gaps/ichimozzi-ota-eas-build-play-store-deploy.md",
+                "personal_vault/projects/personal/ichimozzi/deployment-log.md",
+                "personal_vault/IchiMozzi AWS Cleanup 2026-04-14.md"
+              ],
+              "writeback_suggested": false,
+              "available_tools": {
+                "tools": {
+                  "search_notes": {
+                    "required": [
+                      "query"
+                    ],
+                    "optional": [
+                      "limit",
+                      "kind",
+                      "tags",
+                      "include_related"
+                    ],
+                    "failure_hint": "결과가 비면 쿼리를 2-3개 키워드로 재시도. 0개면 coverage_gaps 확인 후 upsert_note 제안."
+                  },
+                  "search_and_read_top": {
+                    "required": [
+                      "query"
+                    ],
+                    "optional": [
+                      "kind",
+                      "tags",
+                      "include_body",
+                      "include_related"
+                    ],
+                    "failure_hint": "body가 필요하면 이 도구 하나로 끝. 2회 round-trip 피하기 위해 read_note보다 우선."
+                  },
+                  "read_note": {
+                    "one_of_required": [
+                      "path",
+                      "slug"
+                    ],
+                    "do_not_use": [
+                      "note_id",
+                      "id"
+                    ],
+                    "failure_hint": "path는 search_notes 결과에서 그대로 전달. slug만 있으면 slug 사용."
+                  },
+                  "read_raw_note": {
+                    "required": [
+                      "path"
+                    ],
+                    "failure_hint": "frontmatter 원본 확인용. 일반 조회는 read_note 권장."
+                  },
+                  "query_core_api": {
+                    "required": [
+                      "query"
+                    ],
+                    "optional": [
+                      "limit"
+                    ],
+                    "failure_hint": "Core API는 '이미 공개 검증된 지식'만. 내부 메모/작업 노트는 search_notes 사용."
+                  },
+                  "upsert_note": {
+                    "required": [
+                      "path",
+                      "body"
+                    ],
+                    "optional": [
+                      "title",
+                      "kind",
+                      "project",
+                      "status",
+                      "tags",
+                      "related",
+                      "metadata"
+                    ],
+                    "failure_hint": "path는 personal_vault/ 로 시작. 기존 노트면 read_note로 내용 확인 후 덮어쓰기. 임시 메모는 tags=['agent-scratch']."
+                  },
+                  "append_note_section": {
+                    "required": [
+                      "path",
+                      "heading",
+                      "content"
+                    ],
+                    "failure_hint": "전체 재작성 대신 섹션 추가만. 기존 노트에 '## Update YYYY-MM-DD' 같은 갱신 블록 달 때 최적."
+                  },
+                  "list_notes": {
+                    "optional": [
+                      "folder"
+                    ],
+                    "do_not_use": [
+                      "path",
+                      "project_path"
+                    ],
+                    "failure_hint": "folder 없으면 전체 나열(느림). 탐색은 search_notes 먼저, 구조 파악만 필요할 때 list_folders."
+                  },
+                  "list_folders": {
+                    "optional": [
+                      "root"
+                    ]
+                  },
+                  "path_suggestion": {
+                    "required": [
+                      "title",
+                      "kind"
+                    ],
+                    "failure_hint": "path를 모를 때 호출. upsert_note 직전에 사용. 결과 path 그대로 upsert_note에 전달."
+                  },
+                  "bootstrap_project": {
+                    "required": [
+                      "project"
+                    ],
+                    "optional": [
+                      "scope",
+                      "title",
+                      "summary",
+                      "folders",
+                      "tags"
+                    ],
+                    "do_not_use": [
+                      "project_path",
+                      "path"
+                    ],
+                    "failure_hint": "이미 README가 있는 project에는 호출 금지. search_notes로 먼저 확인."
+                  },
+                  "request_note_publication": {
+                    "required": [
+                      "path",
+                      "rationale",
+                      "evidence_paths"
+                    ],
+                    "failure_hint": "raw personal_vault 노트는 거부됨 — capsule/claim/reference/evidence kind로 Derived Note 먼저 생성. rationale 20자 이상."
+                  },
+                  "confirm_note": {
+                    "required": [
+                      "path"
+                    ],
+                    "optional": [
+                      "comment"
+                    ],
+                    "failure_hint": "자기 소유 노트 confirm은 discount(*owner). 교차 검증은 다른 owner가 해야 유효."
+                  },
+                  "list_stale_notes": {
+                    "optional": [
+                      "days_overdue"
+                    ],
+                    "failure_hint": "snoozed_until 지난 노트만 반환. 최신 상태면 결과 0개가 정상."
+                  },
+                  "snooze_note": {
+                    "required": [
+                      "path",
+                      "days"
+                    ],
+                    "failure_hint": "stale 경고를 N일 연기. freshness 갱신이 아님 — 실제 내용 갱신은 append/upsert로."
+                  },
+                  "resolve_conflict": {
+                    "required": [
+                      "path",
+                      "verdict"
+                    ],
+                    "optional": [
+                      "comment"
+                    ],
+                    "failure_hint": "verdict은 'clear' 또는 'pending_review'만 허용. 소유자/admin만 호출 가능."
+                  },
+                  "delete_note": {
+                    "required": [
+                      "path"
+                    ],
+                    "failure_hint": "되돌릴 수 없음. backlinks 있는 노트 삭제 전 확인."
+                  },
+                  "move_note": {
+                    "required": [
+                      "path",
+                      "new_path"
+                    ],
+                    "failure_hint": "backlinks 보존하며 이동. 동일 폴더 내 이름만 바꿀 때도 이 도구."
+                  }
+                },
+                "workflow_policy": "Always search before creating project memory. If search returns a README path, read it first. Call bootstrap_project only when no project index exists. path returned by search_notes must be passed as read_note(path=...). 반복 절차(예: 주간 스캔, QA 체크)는 kind=playbook 노트로 저장 후 search_notes로 재사용."
+              },
+              "response_contract": {
+                "source_labels": {
+                  "read_from_vault": "이 정보는 아카식 노트에서 읽은 것입니다",
+                  "inferred": "아카식 노트 정보를 바탕으로 추론한 것입니다",
+                  "performed": "이 도구를 직접 호출하여 확인한 결과입니다"
+                },
+                "forbidden_without_tool_receipt": [
+                  "완료되었습니다",
+                  "생성했습니다",
+                  "저장했습니다",
+                  "수정했습니다",
+                  "배포했습니다",
+                  "확인했습니다"
+                ],
+                "rule": "tool call 결과(receipt) 없이 위 표현을 사용하지 마세요. 아카식 노트에서 읽은 내용은 '~에 따르면' 또는 '~로 확인됩니다'로 표현하세요. 직접 실행하지 않은 결과를 '완료'라고 주장하지 마세요."
+              }
+            }
+          },
+          "error": null,
+          "duration_ms": 760.6
+        }
+      ],
+      "final_response": "IchiMozzi 앱의 배포 방법에 대해 검색하고 있습니다. search_notes 결과를 바탕으로 playbook을 읽겠습니다.",
+      "raw_model_output": "```json\n{\n  \"plan\": \"search_notes로 IchiMozzi 배포 관련 노트를 검색한 후 read_note로 배포 playbook을 읽어서 사용자에게 제공합니다.\",\n  \"tool_calls\": [\n    {\n      \"tool\": \"search_notes\",\n      \"arguments\": {\n        \"query\": \"ichimozzi deploy deployment\"\n      }\n    }\n  ],\n  \"final_response\": \"IchiMozzi 앱의 배포 방법에 대해 검색하고 있습니다. search_notes 결과를 바탕으로 playbook을 읽겠습니다.\"\n}\n```",
+      "error": null,
+      "format_violation": false
+    }
+  ]
+}

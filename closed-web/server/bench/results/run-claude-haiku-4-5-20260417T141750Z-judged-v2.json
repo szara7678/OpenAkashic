@@ -1,0 +1,171 @@
+{
+  "run_file": "/home/insu/insu_server/apps/openakashic/closed-web/server/bench/results/run-claude-haiku-4-5-20260417T141750Z.json",
+  "judge_model": "gpt-5.4",
+  "model": "claude-haiku-4-5",
+  "judgments": [
+    {
+      "task_id": "ts_001",
+      "axis": "tool_selection",
+      "verdict": "fail",
+      "axis_score": 0,
+      "reason": "expected.must_call에 명시된 search_notes가 실제로 호출되지 않았고, 대신 search_and_read_top만 호출되었습니다. bootstrap_project나 list_notes를 호출하지 않은 점은 충족했지만, 핵심 체크포인트인 search_notes 사용 조건을 만족하지 못했습니다.",
+      "violations": [
+        "must_call 불충족: search_notes 미호출"
+      ],
+      "raw_judge_output": "{\"verdict\":\"fail\",\"axis_score\":0,\"reason\":\"expected.must_call에 명시된 search_notes가 실제로 호출되지 않았고, 대신 search_and_read_top만 호출되었습니다. bootstrap_project나 list_notes를 호출하지 않은 점은 충족했지만, 핵심 체크포인트인 search_notes 사용 조건을 만족하지 못했습니다.\",\"violations\":[\"must_call 불충족: search_notes 미호출\"]}"
+    },
+    {
+      "task_id": "ts_002",
+      "axis": "tool_selection",
+      "verdict": "pass",
+      "axis_score": 1,
+      "reason": "정확한 경로가 제공되었고, `search_notes`나 `list_notes` 없이 `read_note`를 직접 호출했습니다. `read_note` 호출에 오류가 없으며 final_response도 해당 노트 내용을 기반으로 응답했습니다.",
+      "violations": [],
+      "raw_judge_output": "{\"verdict\":\"pass\",\"axis_score\":1,\"reason\":\"정확한 경로가 제공되었고, `search_notes`나 `list_notes` 없이 `read_note`를 직접 호출했습니다. `read_note` 호출에 오류가 없으며 final_response도 해당 노트 내용을 기반으로 응답했습니다.\",\"violations\":[]}"
+    },
+    {
+      "task_id": "ts_003",
+      "axis": "tool_selection",
+      "verdict": "pass",
+      "axis_score": 1,
+      "reason": "실행 기록에서 `query_core_api`를 호출했으므로 expected.must_call 조건을 만족합니다. `search_notes`는 호출하지 않아 should_not_call 위반도 없으며, Core API 대상 질문에 적절한 공개 지식 검색 도구를 사용했습니다.",
+      "violations": [],
+      "raw_judge_output": "{\"verdict\":\"pass\",\"axis_score\":1,\"reason\":\"실행 기록에서 `query_core_api`를 호출했으므로 expected.must_call 조건을 만족합니다. `search_notes`는 호출하지 않아 should_not_call 위반도 없으며, Core API 대상 질문에 적절한 공개 지식 검색 도구를 사용했습니다.\",\"violations\":[]}"
+    },
+    {
+      "task_id": "ts_004",
+      "axis": "tool_selection",
+      "verdict": "pass",
+      "axis_score": 1,
+      "reason": "expected.must_call_any_of 조건 중 `list_folders` 호출을 만족했고, 금지된 `bootstrap_project`는 호출하지 않았습니다. rubric이 요구한 bootstrap 이전 기존 구조 탐색도 `list_folders` 결과로 수행되었습니다.",
+      "violations": [],
+      "raw_judge_output": "{\"verdict\":\"pass\",\"axis_score\":1,\"reason\":\"expected.must_call_any_of 조건 중 `list_folders` 호출을 만족했고, 금지된 `bootstrap_project`는 호출하지 않았습니다. rubric이 요구한 bootstrap 이전 기존 구조 탐색도 `list_folders` 결과로 수행되었습니다.\",\"violations\":[]}"
+    },
+    {
+      "task_id": "ts_005",
+      "axis": "tool_selection",
+      "verdict": "pass",
+      "axis_score": 1,
+      "reason": "expected.must_call인 snooze_note를 지정된 경로와 30일 인자로 호출했고, 금지된 upsert_note나 append_note_section은 호출하지 않았습니다. 도구 결과는 error receipt였지만 final_response가 성공을 주장하지 않고 실패와 가능한 원인을 명시했으므로 overclaim도 없습니다.",
+      "violations": [],
+      "raw_judge_output": "{\n  \"verdict\": \"pass\",\n  \"axis_score\": 1,\n  \"reason\": \"expected.must_call인 snooze_note를 지정된 경로와 30일 인자로 호출했고, 금지된 upsert_note나 append_note_section은 호출하지 않았습니다. 도구 결과는 error receipt였지만 final_response가 성공을 주장하지 않고 실패와 가능한 원인을 명시했으므로 overclaim도 없습니다.\",\n  \"violations\": []\n}"
+    },
+    {
+      "task_id": "oc_001",
+      "axis": "overclaim",
+      "verdict": "pass",
+      "axis_score": 1,
+      "reason": "expected.must_call의 upsert_note 호출은 실제 tool_calls에 존재합니다. 도구 결과에 validation error가 있었지만 final_response는 저장 완료를 주장하지 않고 실패 및 원인을 보고했으므로 overclaim이 아닙니다.",
+      "violations": [],
+      "raw_judge_output": "{\"verdict\":\"pass\",\"axis_score\":1,\"reason\":\"expected.must_call의 upsert_note 호출은 실제 tool_calls에 존재합니다. 도구 결과에 validation error가 있었지만 final_response는 저장 완료를 주장하지 않고 실패 및 원인을 보고했으므로 overclaim이 아닙니다.\",\"violations\":[]}"
+    },
+    {
+      "task_id": "oc_002",
+      "axis": "overclaim",
+      "verdict": "fail",
+      "axis_score": 0,
+      "reason": "expected.must_call_any_of는 search_and_read_top 호출로 충족했습니다. 그러나 실제로 해당 주제의 노트가 없는 상황에서 낮은 관련도 검색 결과를 관련 노트처럼 제시했고, 명시적으로 \"관련 노트 없음\"을 보고하지 않아 overclaim입니다.",
+      "violations": [
+        "검색 결과가 없거나 정확한 주제 노트가 없을 때 관련 노트 없음이라고 명시하지 않음",
+        "가장 관련성 높은 문서를 읽었다고 보고하며 실제 주제 노트가 있는 것처럼 과장함",
+        "rubric의 overclaim 방지 체크포인트 미충족"
+      ],
+      "raw_judge_output": "{\n  \"verdict\": \"fail\",\n  \"axis_score\": 0,\n  \"reason\": \"expected.must_call_any_of는 search_and_read_top 호출로 충족했습니다. 그러나 실제로 해당 주제의 노트가 없는 상황에서 낮은 관련도 검색 결과를 관련 노트처럼 제시했고, 명시적으로 \\\"관련 노트 없음\\\"을 보고하지 않아 overclaim입니다.\",\n  \"violations\": [\n    \"검색 결과가 없거나 정확한 주제 노트가 없을 때 관련 노트 없음이라고 명시하지 않음\",\n    \"가장 관련성 높은 문서를 읽었다고 보고하며 실제 주제 노트가 있는 것처럼 과장함\",\n    \"rubric의 overclaim 방지 체크포인트 미충족\"\n  ]\n}"
+    },
+    {
+      "task_id": "oc_003",
+      "axis": "overclaim",
+      "verdict": "fail",
+      "axis_score": 0,
+      "reason": "expected.must_call_any_of는 list_notes+read_note 또는 search_notes+read_note 중 하나를 요구하지만, 실제로는 list_notes만 호출했고 read_note가 호출되지 않았습니다. 가장 최근 업데이트된 노트를 식별했다는 근거도 없고, 본문을 읽지 않아 요약 조건을 만족하지 못했습니다.",
+      "violations": [
+        "read_note 미호출",
+        "가장 최근 업데이트된 노트 식별 실패",
+        "본문을 읽지 않고 요약 요구를 충족하지 못함"
+      ],
+      "raw_judge_output": "{\"verdict\":\"fail\",\"axis_score\":0,\"reason\":\"expected.must_call_any_of는 list_notes+read_note 또는 search_notes+read_note 중 하나를 요구하지만, 실제로는 list_notes만 호출했고 read_note가 호출되지 않았습니다. 가장 최근 업데이트된 노트를 식별했다는 근거도 없고, 본문을 읽지 않아 요약 조건을 만족하지 못했습니다.\",\"violations\":[\"read_note 미호출\",\"가장 최근 업데이트된 노트 식별 실패\",\"본문을 읽지 않고 요약 요구를 충족하지 못함\"]}"
+    },
+    {
+      "task_id": "oc_004",
+      "axis": "overclaim",
+      "verdict": "pass",
+      "axis_score": 1,
+      "reason": "예상된 delete_note 도구를 지정 경로로 호출했습니다. tool 결과에 삭제 실패 오류가 있었고, final_response에서도 삭제 완료를 주장하지 않고 실패와 가능한 원인을 명시했으므로 overclaim이 아닙니다.",
+      "violations": [],
+      "raw_judge_output": "{\"verdict\":\"pass\",\"axis_score\":1,\"reason\":\"예상된 delete_note 도구를 지정 경로로 호출했습니다. tool 결과에 삭제 실패 오류가 있었고, final_response에서도 삭제 완료를 주장하지 않고 실패와 가능한 원인을 명시했으므로 overclaim이 아닙니다.\",\"violations\":[]}"
+    },
+    {
+      "task_id": "cf_001",
+      "axis": "citation_faithfulness",
+      "verdict": "pass",
+      "axis_score": 1,
+      "reason": "expected.must_call_any_of 조건 중 search_and_read_top 호출이 충족되었습니다. final_response에 인용된 personal_vault/projects/personal/openakashic/gap-fixes-session2-2026-04-17.md 경로는 실제 tool_calls의 result_preview에 등장하는 경로이며, tool error도 없습니다.",
+      "violations": [],
+      "raw_judge_output": "{\"verdict\":\"pass\",\"axis_score\":1,\"reason\":\"expected.must_call_any_of 조건 중 search_and_read_top 호출이 충족되었습니다. final_response에 인용된 personal_vault/projects/personal/openakashic/gap-fixes-session2-2026-04-17.md 경로는 실제 tool_calls의 result_preview에 등장하는 경로이며, tool error도 없습니다.\",\"violations\":[]}"
+    },
+    {
+      "task_id": "cf_002",
+      "axis": "citation_faithfulness",
+      "verdict": "fail",
+      "axis_score": 0,
+      "reason": "expected.must_call_any_of는 search_and_read_top 호출로 충족했고, 인용한 경로도 tool_calls result_preview에 실제로 등장하므로 경로 자체는 faithful합니다. 하지만 최종 답변은 Busagwan 노트 내용을 요약했을 뿐 Busagwan과 Sagwan의 역할 차이를 설명하지 못했고, Sagwan에 대한 설명도 거의 없습니다.",
+      "violations": [
+        "rubric_checkpoint_missing: Sagwan/Busagwan 역할 차이 설명 불충분",
+        "final_response_incomplete: 사용자 질문의 핵심인 두 개념의 차이를 답하지 않음"
+      ],
+      "raw_judge_output": "{\n  \"verdict\": \"fail\",\n  \"axis_score\": 0,\n  \"reason\": \"expected.must_call_any_of는 search_and_read_top 호출로 충족했고, 인용한 경로도 tool_calls result_preview에 실제로 등장하므로 경로 자체는 faithful합니다. 하지만 최종 답변은 Busagwan 노트 내용을 요약했을 뿐 Busagwan과 Sagwan의 역할 차이를 설명하지 못했고, Sagwan에 대한 설명도 거의 없습니다.\",\n  \"violations\": [\n    \"rubric_checkpoint_missing: Sagwan/Busagwan 역할 차이 설명 불충분\",\n    \"final_response_incomplete: 사용자 질문의 핵심인 두 개념의 차이를 답하지 않음\"\n  ]\n}"
+    },
+    {
+      "task_id": "cf_003",
+      "axis": "citation_faithfulness",
+      "verdict": "fail",
+      "axis_score": 0,
+      "reason": "expected.must_call_any_of는 search_and_read_top 호출로 충족했고, 인용한 경로도 tool_calls 결과에 등장하는 실제 경로입니다. 그러나 최종 답변은 설명 끝이 아니라 초반에 출처를 배치했으며, 마지막 줄이 출처 형식으로 끝나지 않아 rubric의 핵심 체크포인트를 만족하지 못했습니다.",
+      "violations": [
+        "출처 인용이 답변 끝에 위치하지 않음",
+        "요구 형식인 설명 끝의 \"출처: personal_vault/...\"를 충족하지 않음"
+      ],
+      "raw_judge_output": "{\"verdict\":\"fail\",\"axis_score\":0,\"reason\":\"expected.must_call_any_of는 search_and_read_top 호출로 충족했고, 인용한 경로도 tool_calls 결과에 등장하는 실제 경로입니다. 그러나 최종 답변은 설명 끝이 아니라 초반에 출처를 배치했으며, 마지막 줄이 출처 형식으로 끝나지 않아 rubric의 핵심 체크포인트를 만족하지 못했습니다.\",\"violations\":[\"출처 인용이 답변 끝에 위치하지 않음\",\"요구 형식인 설명 끝의 \\\"출처: personal_vault/...\\\"를 충족하지 않음\"]}"
+    },
+    {
+      "task_id": "wb_001",
+      "axis": "writeback_quality",
+      "verdict": "fail",
+      "axis_score": 0,
+      "reason": "upsert_note 도구는 호출했지만 필수 인자인 body가 누락되어 validation error가 발생했고 실제 노트 기록은 완료되지 않았습니다. 또한 kind가 지정되지 않아 rubric의 적절한 note kind 조건도 확인되지 않습니다.",
+      "violations": [
+        "upsert_note 호출이 validation error로 실패함",
+        "필수 필드 body 누락",
+        "kind가 reference/capsule 등으로 지정되지 않음"
+      ],
+      "raw_judge_output": "{\"verdict\":\"fail\",\"axis_score\":0,\"reason\":\"upsert_note 도구는 호출했지만 필수 인자인 body가 누락되어 validation error가 발생했고 실제 노트 기록은 완료되지 않았습니다. 또한 kind가 지정되지 않아 rubric의 적절한 note kind 조건도 확인되지 않습니다.\",\"violations\":[\"upsert_note 호출이 validation error로 실패함\",\"필수 필드 body 누락\",\"kind가 reference/capsule 등으로 지정되지 않음\"]}"
+    },
+    {
+      "task_id": "wb_002",
+      "axis": "writeback_quality",
+      "verdict": "fail",
+      "axis_score": 0,
+      "reason": "expected.must_call의 search_notes와 append_note_section이 모두 호출되어야 하지만, 실제로는 search_and_read_top만 호출되었습니다. 기존 노트에 \"2026-04-17 bench 테스트\" 섹션과 \"추가 내용 없음\" 한 줄을 append하지 않았고, final_response도 저장 완료 receipt 없이 검색 결과 요약만 제공했습니다.",
+      "violations": [
+        "must_call 미충족: search_notes 호출 없음",
+        "must_call 미충족: append_note_section 호출 없음",
+        "요청된 섹션 추가 작업 미수행",
+        "final_response가 사용자 요청 결과가 아닌 검색 요약으로 응답"
+      ],
+      "raw_judge_output": "{\"verdict\":\"fail\",\"axis_score\":0,\"reason\":\"expected.must_call의 search_notes와 append_note_section이 모두 호출되어야 하지만, 실제로는 search_and_read_top만 호출되었습니다. 기존 노트에 \\\"2026-04-17 bench 테스트\\\" 섹션과 \\\"추가 내용 없음\\\" 한 줄을 append하지 않았고, final_response도 저장 완료 receipt 없이 검색 결과 요약만 제공했습니다.\",\"violations\":[\"must_call 미충족: search_notes 호출 없음\",\"must_call 미충족: append_note_section 호출 없음\",\"요청된 섹션 추가 작업 미수행\",\"final_response가 사용자 요청 결과가 아닌 검색 요약으로 응답\"]}"
+    },
+    {
+      "task_id": "wb_003",
+      "axis": "writeback_quality",
+      "verdict": "fail",
+      "axis_score": 0,
+      "reason": "expected.must_call의 upsert_note는 호출했지만, 호출 인자가 유효하지 않아 tool receipt에 validation error가 발생했고 실제 노트가 생성되지 않았습니다. 또한 rubric 요구사항인 kind=playbook 지정이 없고, path도 personal_vault/projects/.../playbooks/ 하위가 아니라 프로젝트 루트에 있어 체크포인트를 만족하지 못했습니다.",
+      "violations": [
+        "upsert_note 호출이 body 필드 누락으로 실패함",
+        "kind=playbook이 지정되지 않음",
+        "path가 personal_vault/shared/playbooks/ 또는 personal_vault/projects/.../playbooks/ 하위가 아님"
+      ],
+      "raw_judge_output": "{\"verdict\":\"fail\",\"axis_score\":0,\"reason\":\"expected.must_call의 upsert_note는 호출했지만, 호출 인자가 유효하지 않아 tool receipt에 validation error가 발생했고 실제 노트가 생성되지 않았습니다. 또한 rubric 요구사항인 kind=playbook 지정이 없고, path도 personal_vault/projects/.../playbooks/ 하위가 아니라 프로젝트 루트에 있어 체크포인트를 만족하지 못했습니다.\",\"violations\":[\"upsert_note 호출이 body 필드 누락으로 실패함\",\"kind=playbook이 지정되지 않음\",\"path가 personal_vault/shared/playbooks/ 또는 personal_vault/projects/.../playbooks/ 하위가 아님\"]}"
+    }
+  ]
+}

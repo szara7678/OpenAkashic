@@ -1,0 +1,130 @@
+{
+  "run_file": "/home/insu/insu_server/apps/openakashic/closed-web/server/bench/results/run-openakashic-claude-haiku-4-5-20260417T174355Z.json",
+  "judge_model": "claude-sonnet-4-6",
+  "model": "claude-haiku-4-5",
+  "condition": "openakashic",
+  "judgments": [
+    {
+      "task_id": "domain_jlpt_gen",
+      "condition": "openakashic",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [],
+      "missed": [
+        "문제 본문이 일본어로 작성되고 ( ) 또는 _____ 형태의 빈칸을 포함한다",
+        "보기 4개가 일본어 어휘이며 N4 수준",
+        "정답 1개와 해설 또는 정답 번호가 명시된다",
+        "정답이 보기 안에 실제로 존재한다 (자기 자신이 정답이 되는 순환 오류 없음)"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "receipt에 problem-patterns.md와 example-n4-vocab-001.md가 실재 경로로 확인되며 경로 인용 자체는 근거 있다. 그러나 synthesis_directive를 무시하고 경로만 나열했으며 실제 문제를 전혀 생성하지 않았다.",
+      "reason": "search_and_read_top이 N4 패턴 파일과 예시 파일을 반환했음에도 모델은 문서 내용을 합성하지 않고 경로 나열에 그쳤다. N4 fill-in 문제 자체가 answer에 없어 4개 expected_outcome을 모두 누락했고 0/4 hit(0%)으로 FAIL.",
+      "score": {
+        "hit_rate": 0.0,
+        "traps_hit_count": 0
+      }
+    },
+    {
+      "task_id": "onboarding_openakashic",
+      "condition": "openakashic",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [
+        "personal_vault/projects/personal/openakashic/README.md 등 실존하는 시작점 경로 제시"
+      ],
+      "missed": [
+        "search_notes 또는 search_and_read_top 등 정보 탐색 도구 언급",
+        "작업 전 관련 노트 검색, 작업 후 writeback (upsert_note/append_note_section) 절차 설명",
+        "경로가 personal_vault/ 또는 doc/ 로 시작해야 한다는 제약 언급"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "answer에 인용된 4개 경로(README.md, Remote Agent Enrollment.md, Agent Setup Snippets Capsule.md, design-exploration-2026-04-17.md) 모두 receipt에서 확인되므로 근거 기반이다. 그러나 synthesis_directive를 무시하고 경로 나열에 그쳐 실제 온보딩 내용이 전혀 추출되지 않았다.",
+      "reason": "README.md 경로 제시 1개만 hit하고, 탐색 도구 언급·writeback 절차·경로 제약 설명 3개가 모두 누락됐다. list_notes와 search_and_read_top을 사용해 정확한 문서를 찾았음에도 read_note 없이 경로만 나열한 패턴이 반복되어 1/4 hit(25%) FAIL.",
+      "score": {
+        "hit_rate": 0.25,
+        "traps_hit_count": 0
+      }
+    },
+    {
+      "task_id": "triage_ichimozzi_500",
+      "condition": "openakashic",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [],
+      "missed": [
+        "insu-shared-caddy (리버스 프록시) 먼저 확인하라는 언급",
+        "ichimozzi-migration-backend-prod-1 등 IchiMozzi 백엔드 컨테이너 이름 정확히 지목",
+        "Caddy → backend → DB 순서 (프록시 → 앱 → 의존성) 방향성 제시",
+        "docker logs 또는 compose 명령어로 상태 확인 절차 언급"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "triage-500-runbook.md, deployment-log.md, audit-2026-04-17.md 모두 receipt에서 확인된 실재 경로다. 그러나 synthesis_directive 지시에도 불구하고 read_note 없이 경로만 나열했고 실제 트리아지 내용은 전혀 추출되지 않았다.",
+      "reason": "list_notes와 search_and_read_top으로 triage-500-runbook.md를 두 번 확인했음에도 read_note 호출 없이 경로 안내에 그쳤다. insu-shared-caddy, 컨테이너 이름, 체크 순서, docker logs 절차 4개 expected_outcome 모두 누락되어 0/4 hit(0%) FAIL.",
+      "score": {
+        "hit_rate": 0.0,
+        "traps_hit_count": 0
+      }
+    },
+    {
+      "task_id": "ichimozzi_deploy",
+      "condition": "openakashic",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [],
+      "missed": [
+        "docker compose (production.yml 또는 동등) 명령어 제시",
+        "로컬 홈서버 Docker 스택에서 돌아간다는 점 명시 또는 그와 일관된 답변",
+        "GitHub webhook 자동 배포가 비활성/신뢰 불가 상태라는 언급 (또는 수동 절차 명시)"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "answer에 인용된 3개 경로(update-and-deploy.md, deployment.md, deployment-log.md) 모두 receipt에서 확인된 실재 경로다. 그러나 synthesis_directive를 무시하고 read_note 없이 경로만 나열했다.",
+      "reason": "search_and_read_top이 핵심 배포 플레이북(playbooks/update-and-deploy.md)을 반환했음에도 read_note 호출 없이 경로만 안내했다. docker compose 명령어, 로컬 홈서버 언급, webhook 상태 등 3개 expected_outcome이 모두 누락되어 0/3 hit(0%) FAIL.",
+      "score": {
+        "hit_rate": 0.0,
+        "traps_hit_count": 0
+      }
+    },
+    {
+      "task_id": "general_web_fact",
+      "condition": "openakashic",
+      "attempt": 1,
+      "verdict": "error",
+      "hits": [],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "",
+      "reason": "judge error: RuntimeError: proxy returned empty stream for model=claude-sonnet-4-6"
+    },
+    {
+      "task_id": "memory_roundtrip",
+      "condition": "openakashic",
+      "attempt": 1,
+      "verdict": "error",
+      "hits": [],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "",
+      "reason": "judge error: RuntimeError: proxy returned empty stream for model=claude-sonnet-4-6"
+    },
+    {
+      "task_id": "busagwan_sagwan_roles",
+      "condition": "openakashic",
+      "attempt": 1,
+      "verdict": "pass",
+      "hits": [
+        "Sagwan은 Claude CLI 기반 high-quality/느린 주기 워커라는 설명 또는 그에 상응하는 구분",
+        "Busagwan은 Ollama gemma 기반 빠른/가벼운 주기 워커라는 설명 또는 그에 상응하는 구분",
+        "각자의 주기/트리거 (예: 10분/15분/1시간 같은 cadence 구분) 언급",
+        "두 워커가 서로 다른 종류의 task를 담당하며 gate 관계라는 구조 설명"
+      ],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "baseline 조건에서 tool_calls가 비어있음에도 '아까 검색한 OpenAkashic 설계 브리핑에 따르면'이라는 허위 출처를 인용했다. 내용이 expected_outcome과 일치하는 것은 컨텍스트 누출 또는 파라메트릭 지식으로 보이며, 명시된 hallucination_trap 항목은 하나도 발동되지 않았다.",
+      "reason": "Sagwan=Claude CLI/느린 주기, Busagwan=gemma/빠른 주기, cadence 수치(15분/1시간), Busagwan→Sagwan 2단계 gate 구조까지 4/4 expected_outcome 전부 충족했고 명시된 3개 트랩(도구·DB 오인, 동일 모델, Sagwan=gemma 역전)은 미발동이다. 허위 출처 인용('아까 검색한 브리핑')은 groundedness 오염이지만 현재 trap 목록에 해당 항목이 없으므로 기술적 verdict는 pass.",
+      "score": {
+        "hit_rate": 1.0,
+        "traps_hit_count": 0
+      }
+    }
+  ]
+}

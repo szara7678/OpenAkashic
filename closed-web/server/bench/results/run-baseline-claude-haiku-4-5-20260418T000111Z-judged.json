@@ -1,0 +1,149 @@
+{
+  "run_file": "/home/insu/insu_server/apps/openakashic/closed-web/server/bench/results/run-baseline-claude-haiku-4-5-20260418T000111Z.json",
+  "judge_model": "claude-sonnet-4-6",
+  "model": "claude-haiku-4-5",
+  "condition": "baseline",
+  "judgments": [
+    {
+      "task_id": "domain_jlpt_gen",
+      "condition": "baseline",
+      "attempt": 1,
+      "verdict": "pass",
+      "hits": [
+        "문제 본문이 일본어로 작성되고 ( ) 또는 _____ 형태의 빈칸을 포함한다",
+        "보기 4개가 일본어 어휘이며 N4 수준",
+        "정답 1개와 해설 또는 정답 번호가 명시된다",
+        "정답이 보기 안에 실제로 존재한다 (자기 자신이 정답이 되는 순환 오류 없음)"
+      ],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "baseline 조건으로 도구 호출 없이 생성된 답변이며, IchiMozzi 문서 없이 파라메트릭 지식으로 작성했다. 문제 본문(私は毎日朝早く（　）ので)은 일본어이고 정답(起きる)이 보기 안에 실제 존재하며 N1/N2 어휘는 사용되지 않았다.",
+      "reason": "（　）형 일본어 빈칸 본문, 起きる/立つ/起こす/開く 4개의 N4 이하 어휘 보기, correctAnswer 및 해설 명시, 정답의 보기 내 실존 — 4개 expected_outcome 모두 충족(100%)했다. 한국어 본문·동의어 선택·N1/N2 어휘 트랩은 발동하지 않아 pass로 판정한다.",
+      "score": {
+        "hit_rate": 1.0,
+        "traps_hit_count": 0
+      }
+    },
+    {
+      "task_id": "onboarding_openakashic",
+      "condition": "baseline",
+      "attempt": 1,
+      "verdict": "pass",
+      "hits": [
+        "personal_vault/projects/personal/openakashic/README.md 등 실존하는 시작점 경로 제시",
+        "search_notes 또는 search_and_read_top 등 정보 탐색 도구 언급",
+        "작업 전 관련 노트 검색, 작업 후 writeback (upsert_note/append_note_section) 절차 설명",
+        "경로가 personal_vault/ 또는 doc/ 로 시작해야 한다는 제약 언급"
+      ],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "baseline 조건으로 도구 호출 없이 파라메트릭 지식만으로 생성했으며, doc/general/plan.md 등 일부 경로는 실존 여부가 검증되지 않은 상태다. 그러나 /vault/closed/, /kb/ 같은 잘못된 경로 형식은 사용하지 않았고 personal_vault/ 및 doc/ 프리픽스를 올바르게 사용했다.",
+      "reason": "personal_vault/projects/personal/openakashic/README.md 시작점 제시, search_notes/read_note/upsert_note 도구 명시, 'search → read → upsert' 워크플로우 설명, doc/ 및 personal_vault/ 폴더 구조 제시로 4개 expected_outcome 모두 충족(100%)했다. 존재하지 않는 경로 형식(/vault/closed/, /kb/)·list_notes(path=...)·bootstrap_project 무조건 호출 트랩은 발동하지 않아 pass로 판정한다.",
+      "score": {
+        "hit_rate": 1.0,
+        "traps_hit_count": 0
+      }
+    },
+    {
+      "task_id": "triage_ichimozzi_500",
+      "condition": "baseline",
+      "attempt": 1,
+      "verdict": "pass",
+      "hits": [
+        "insu-shared-caddy (리버스 프록시) 먼저 확인하라는 언급",
+        "insu-server-backend-prod-1 등 IchiMozzi 백엔드 컨테이너 이름 정확히 지목",
+        "Caddy → backend → DB 순서 (프록시 → 앱 → 의존성) 방향성 제시",
+        "docker logs 또는 compose 명령어로 상태 확인 절차 언급"
+      ],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "baseline 조건으로 도구 호출 없이 파라메트릭 지식만으로 생성했으며, insu-shared-caddy·insu-server-backend-prod-1·insu-server-ichimozzi-db-1 컨테이너 이름이 정확히 일치한다. ichimozzi-api-1은 '과거 이름이므로 쓰지 말 것'이라는 경고 문맥으로만 등장했고 정답으로 제시하지 않았다.",
+      "reason": "4개 expected_outcome(Caddy 우선 확인, 정확한 백엔드 컨테이너 이름, Caddy→backend→DB 순서, docker logs/compose 명령어) 모두 충족(100%)했다. EC2·nginx·DB 역순·가상 컨테이너 이름 트랩은 발동하지 않았으며(ichimozzi-api-1은 명시적 경고 문맥으로만 언급) pass로 판정한다.",
+      "score": {
+        "hit_rate": 1.0,
+        "traps_hit_count": 0
+      }
+    },
+    {
+      "task_id": "ichimozzi_deploy",
+      "condition": "baseline",
+      "attempt": 1,
+      "verdict": "pass",
+      "hits": [
+        "docker compose (production.yml 또는 동등) 명령어 제시",
+        "로컬 홈서버 Docker 스택에서 돌아간다는 점 명시 또는 그와 일관된 답변",
+        "GitHub webhook 자동 배포가 비활성/신뢰 불가 상태라는 언급 (또는 수동 절차 명시)"
+      ],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "baseline 조건으로 도구 호출 없이 파라메트릭 지식만으로 생성했으며, docker compose -f production.yml 명령어와 /home/insu/insu_server/compose/ 경로가 다른 run의 노트 내용과 일치한다. '구 EC2용 deploy.sh'는 경고 문맥으로만 등장하고 EC2 SSH 접속을 안내하지 않았다.",
+      "reason": "production.yml 기반 docker compose 명령어 제시, 로컬 Docker 스택 명시(제목: '로컬 Docker'), 단계별 수동 배포 절차 제공으로 3개 expected_outcome 모두 충족(100%)했다. EC2·PM2·systemd·/home/ec2-user/ 트랩은 발동하지 않았으며(EC2는 '사용하지 말 것' 경고 문맥), pass로 판정한다.",
+      "score": {
+        "hit_rate": 1.0,
+        "traps_hit_count": 0
+      }
+    },
+    {
+      "task_id": "general_web_fact",
+      "condition": "baseline",
+      "attempt": 1,
+      "verdict": "pass",
+      "hits": [
+        "github.com/modelcontextprotocol 혹은 modelcontextprotocol.io 등 실제 도메인/URL 제시",
+        "MCP가 LLM 에이전트에게 외부 도구/데이터 소스를 연결하기 위한 표준 프로토콜이라는 설명",
+        "Anthropic이 설계/공개한 open standard라는 맥락 언급"
+      ],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "baseline 조건으로 도구 호출 없이 파라메트릭 지식에서 생성했으며, github.com/modelcontextprotocol/{modelcontextprotocol,servers} 및 anthropic.com/news/model-context-protocol URL은 실제 존재한다. 'Linux Foundation 지원' 언급은 검증 불가이나 정의된 트랩에 해당하지 않는다.",
+      "reason": "공식 GitHub URL 제시, 'LLM 애플리케이션이 외부 데이터 소스와 도구에 표준화된 방식으로 접근하게 하는 프로토콜' 설명, 'Anthropic이 2024년 11월에 발표한 개방형 표준 프로토콜' 언급으로 3개 expected_outcome 모두 충족(100%)했다. OpenAI 귀속·환각 URL 트랩은 발동하지 않아 pass로 판정한다.",
+      "score": {
+        "hit_rate": 1.0,
+        "traps_hit_count": 0
+      }
+    },
+    {
+      "task_id": "memory_roundtrip",
+      "condition": "baseline",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [
+        "저녁 커피 금지, 주말 이메일 미확인, 아침 6시 30분 운동 세 항목을 정확히 반영"
+      ],
+      "missed": [
+        "세 선호사항을 메모/노트에 저장하는 호출을 수행",
+        "저장한 메모를 다시 읽어와 answer에 세 항목 모두 포함"
+      ],
+      "traps_hit": [
+        "저장하지 않고 '저장했습니다'만 주장"
+      ],
+      "groundedness_note": "tool_calls가 비어 있어 실제 저장 도구 호출이 없었음에도 '메모리에 저장하겠습니다', '완료했습니다'라고 선언했다. 세 항목을 나열한 것은 현재 컨텍스트의 파라메트릭 회상이지 실제 저장-회수 라운드트립이 아니다.",
+      "reason": "baseline 조건에서 rubric은 '저장 불가를 정직하게 답하거나 파라메트릭 회상 인정'을 요구하는데, 모델이 도구 호출 없이 '완료했습니다'라고 선언해 '저장하지 않고 저장했습니다만 주장' 트랩이 발동했다. 세 항목 나열은 충족했으나 저장 호출·read 회수 2개 outcome 미충족(33%)에 트랩 발동까지 겹쳐 fail이다.",
+      "score": {
+        "hit_rate": 0.3333333333333333,
+        "traps_hit_count": 1
+      }
+    },
+    {
+      "task_id": "busagwan_sagwan_roles",
+      "condition": "baseline",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [
+        "Sagwan은 Claude CLI 기반 high-quality/느린 주기 워커라는 설명 또는 그에 상응하는 구분",
+        "Busagwan은 Ollama gemma 기반 빠른/가벼운 주기 워커라는 설명 또는 그에 상응하는 구분",
+        "두 워커가 서로 다른 종류의 task를 담당하며 gate 관계라는 구조 설명"
+      ],
+      "missed": [
+        "각자의 주기/트리거 (예: 10분/15분/1시간 같은 cadence 구분) 언급"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "baseline 조건으로 도구 호출 없이 파라메트릭 지식에서 생성했으며, 'doc/general/plan.md를 참조했다'는 주장은 검증 불가한 허위 출처 표기다. 1차/2차 리뷰 구조와 게이트 관계는 다른 run의 노트 내용과 부합하지만 Claude CLI·Ollama gemma·cadence 숫자는 누락되었다.",
+      "reason": "Busagwan=1차 자동화, Sagwan=2차 고품질 최종 결정이라는 상응하는 구분과 Busagwan→Sagwan 게이트 구조는 충족(3/4=75%)했으나, 10분/15분/1시간 같은 구체적 cadence 언급이 없어 80% 기준에 미달한다. 할루시네이션 트랩(동일 모델, Sagwan=gemma, 도구/DB 이름)은 발동하지 않았으나 hit률 75%로 fail이다.",
+      "score": {
+        "hit_rate": 0.75,
+        "traps_hit_count": 0
+      }
+    }
+  ]
+}

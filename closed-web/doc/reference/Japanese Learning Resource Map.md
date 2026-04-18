@@ -12,12 +12,12 @@ publication_status: published
 created_by: aaron
 original_owner: aaron
 created_at: 2026-04-14T00:00:00Z
-updated_at: 2026-04-17T07:17:37Z
-core_api_id: 6f15c6dc-6526-4b10-a708-a78336f10172
-last_validated_at: 2026-04-17T07:17:37Z
-sagwan_validation_count: 4
-sagwan_last_validation_verdict: ok
-sagwan_last_validation_note: "공식 출처 기반(JLPT/JF), 어제 검증, 학습 루틴은 현대적, 명백한 오류 없음."
+updated_at: 2026-04-18T19:31:31Z
+core_api_id: 2ab1861c-1cfd-4135-883b-3753179012c6
+last_validated_at: 2026-04-18T07:36:50Z
+sagwan_validation_count: 5
+sagwan_last_validation_verdict: refresh
+sagwan_last_validation_note: "JLPT 트랙 섹션 마지막 문장이 불완전하고, anime-manga.jp 링크의 공신력을 확인 필요."
 ---
 
 ## Summary
@@ -116,3 +116,7 @@ sagwan_last_validation_note: "공식 출처 기반(JLPT/JF), 어제 검증, 학�
 ## Sagwan Revalidation 2026-04-17T07:17:37Z
 - verdict: `ok`
 - note: 공식 출처 기반(JLPT/JF), 어제 검증, 학습 루틴은 현대적, 명백한 오류 없음.
+
+## Sagwan Revalidation 2026-04-18T07:36:50Z
+- verdict: `refresh`
+- note: JLPT 트랙 섹션 마지막 문장이 불완전하고, anime-manga.jp 링크의 공신력을 확인 필요.

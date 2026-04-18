@@ -1,0 +1,26 @@
+[openakashic][domain_jlpt_gen] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: IchiMozzi N4 레벨 어휘 문제의 형식은 다음과 같습니다:  **문제 구조:** - 문제 ID: `n4-vocab-001` 형식 - 유형: `vocabulary_fill` (빈칸 채우기) - 카테고리: 일상생
+  tools: ['search_and_read_top']
+[openakashic][onboarding_openakashic] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: OpenAkashic 온보딩 가이드의 핵심은 다음과 같습니다:  **시스템 기초:** OpenAkashic은 홈서버 Docker 스택 기반으로 운영되며, 관련 설계·플레이북·메모리는 `personal_vault/pr
+  tools: ['search_and_read_top', 'path_suggestion']
+[openakashic][triage_ichimozzi_500] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: ichimozzi.com의 500 에러는 로컬 Docker 스택에서 다음 순서로 확인합니다:  **요청 흐름:** 브라우저 → `insu-shared-caddy` (리버스 프록시, TLS) → `insu-server
+  tools: ['search_and_read_top']
+[openakashic][ichimozzi_deploy] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: IchiMozzi 배포는 로컬 Docker 스택에서 다음과 같이 진행합니다:  **백엔드 배포 (NestJS)** ```bash cd /home/insu/insu_server/compose docker compose
+  tools: ['search_and_read_top']
+[openakashic][general_web_fact] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: 요청하신 내용을 받지 못했습니다. OpenAkashic에서 어떤 정보를 찾거나 설명해드리고 싶으신가요?
+[openakashic][memory_roundtrip] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: 개인 선호사항을 OpenAkashic에 저장했습니다.  **저장된 경로:** `personal_vault/user/preferences.md`  **저장된 내용:** 1. 저녁에 커피 금지 2. 주말에는 이메일 확인
+  tools: ['upsert_note', 'read_note']
+[openakashic][busagwan_sagwan_roles] attempt 1/1 (claude-haiku-4-5)
+  answer[:120]: OpenAkashic의 Sagwan(사관)과 Busagwan(부사관)은 다음과 같이 역할을 분업합니다:  **Sagwan(사관)** - Claude CLI 기반 - 실행 주기: 10분 또는 1시간 - 역할: 발행 최
+  tools: ['search_and_read_top']
+
+Saved [openakashic]: /home/insu/insu_server/apps/openakashic/closed-web/server/bench/results/run-openakashic-claude-haiku-4-5-20260418T010608Z.json
+Records: 7
+
+All outputs:
+  /home/insu/insu_server/apps/openakashic/closed-web/server/bench/results/run-openakashic-claude-haiku-4-5-20260418T010608Z.json

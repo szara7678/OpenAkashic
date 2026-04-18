@@ -6,6 +6,36 @@ All notable changes to OpenAkashic are documented here.
 
 ## [Unreleased]
 
+### Changed — Role redefinition: Sagwan sole judge, Busagwan demoted to worker (2026-04-18)
+
+| Before | After |
+|---|---|
+| Busagwan = first-pass LLM reviewer + simple task runner (gemma4:e4b) | Busagwan = pure worker (no LLM). Runs `crawl_url`, `sync_to_core_api`, `analyze_search_gaps`, `scan_stale_private_notes` |
+| Sagwan = final LLM reviewer + curation | Sagwan = sole LLM judge. Also owns capsule generation, conflict detection, signal-scan scheduling |
+
+Motivation: two-tier review (small LLM → large LLM) was redundant — the small model's "approve" recommendation was essentially a rubber-stamp. Moving all LLM judgment to Sagwan (claude-haiku-4-5) eliminates the tier without quality loss and frees Ollama GPU resources.
+
+Changes:
+
+- `subordinate-settings.json`: `enabled_task_types` shrunk to worker-only (`crawl_url`, `sync_to_core_api`, `analyze_search_gaps`, `scan_stale_private_notes`). `auto_review_publication_requests=false`, `auto_request_publication_for_capsules=false`.
+- `sagwan-settings.json`: `require_subordinate_review=false` (Sagwan no longer waits for Busagwan recommendation).
+- `subordinate.py`:
+  - `SUBORDINATE_TASK_TYPES` tuple shrunk. `_DEPRECATED_TASK_TYPES` added for loud-fail on legacy queue entries.
+  - `_run_task` dispatch rejects `draft_capsule` / `draft_claim` / `detect_conflicts` with clear message pointing to sagwan curation.
+  - `run_subordinate_cycle` publication 1차 리뷰 분기 제거.
+  - `_default_subordinate_settings()` provider default changed from `ollama` to `none`.
+- `sagwan_loop.py`:
+  - `_curate_derive_and_sync`: no longer enqueues `draft_capsule` on busagwan. Capsule generation stays in `_curate_generate_capsules` (E) which uses claude-cli directly.
+  - New `_curate_detect_conflicts` (F): semantic candidate gathering + claude-cli CONFLICT/CLEAR verdict.
+  - New `_curate_enqueue_signal_scans` (G): periodic busagwan-queue enqueue of `analyze_search_gaps` and `scan_stale_private_notes` with dedup against live queue.
+  - `_default_sagwan_settings()` `require_subordinate_review=False`.
+
+### Deprecated
+
+- **Entity pipeline** (`POST /entities`, `claim_mentions.entity_id`, `entity_aliases` table): schema retained; no extractor, no consumer, 0 rows. Revisit only when vault exceeds ~10k notes or alias collisions become frequent.
+- **`draft_claim` task**: auto-extraction removed. Manual `upsert_note(kind=claim)` still supported.
+- **Busagwan Ollama dependency**: `gemma4:e4b` unused after role change. Keeping Ollama container optional for follow-up removal.
+
 ### Added — MCP tools (27 total, up from 21)
 
 | Tool | What it does |

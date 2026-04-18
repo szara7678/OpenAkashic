@@ -1,0 +1,137 @@
+{
+  "run_file": "/home/insu/insu_server/apps/openakashic/closed-web/server/bench/results/run-openakashic-claude-haiku-4-5-20260417T173140Z.json",
+  "judge_model": "claude-sonnet-4-6",
+  "model": "claude-haiku-4-5",
+  "condition": "openakashic",
+  "judgments": [
+    {
+      "task_id": "domain_jlpt_gen",
+      "condition": "openakashic",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [],
+      "missed": [
+        "문제 본문이 일본어로 작성되고 ( ) 또는 _____ 형태의 빈칸을 포함한다",
+        "보기 4개가 일본어 어휘이며 N4 수준",
+        "정답 1개와 해설 또는 정답 번호가 명시된다",
+        "정답이 보기 안에 실제로 존재한다 (자기 자신이 정답이 되는 순환 오류 없음)"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "search_and_read_top으로 관련 문서를 찾았으나 '본문 내용이 포함되지 않아 제공 불가'라고 답했으며, synthesis_directive가 'read_note로 본문을 읽어서 추출하라'고 명시했음에도 후속 read_note 호출 없이 작업을 종료했다.",
+      "reason": "expected_outcome 4개 모두 미충족(0% hit)으로 fail이다. 문서 발견 후 read_note를 호출해 내용을 읽거나, N4 어휘 fill-in 문제를 일반 지식으로라도 생성했어야 하나 모델은 이유를 설명하고 작업을 포기했다. 트랩은 미발동이나 핵심 출력물 부재로 fail 판정한다.",
+      "score": {
+        "hit_rate": 0.0,
+        "traps_hit_count": 0
+      }
+    },
+    {
+      "task_id": "onboarding_openakashic",
+      "condition": "openakashic",
+      "attempt": 1,
+      "verdict": "error",
+      "hits": [],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "",
+      "reason": "judge error: ValueError: No JSON object found: Ready."
+    },
+    {
+      "task_id": "triage_ichimozzi_500",
+      "condition": "openakashic",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [],
+      "missed": [
+        "insu-shared-caddy (리버스 프록시) 먼저 확인하라는 언급",
+        "ichimozzi-migration-backend-prod-1 등 IchiMozzi 백엔드 컨테이너 이름 정확히 지목",
+        "Caddy → backend → DB 순서 (프록시 → 앱 → 의존성) 방향성 제시",
+        "docker logs 또는 compose 명령어로 상태 확인 절차 언급"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "list_notes receipt에 triage-500-runbook.md와 container-naming.md가 실제 존재함을 확인했으나, read_note를 호출하지 않아 문서 내용을 전혀 추출하지 못했다. 경로 포인팅에 그쳐 실질적 트리아지 정보가 없다.",
+      "reason": "모델이 list_notes로 핵심 문서(triage-500-runbook.md)를 발견했음에도 read_note 호출을 생략하고 경로만 나열했다. 결과적으로 컨테이너 이름, Caddy 우선 확인, 트리아지 순서, docker logs 절차 등 4개 expected_outcome이 모두 누락되었다. 할루시네이션 트랩은 하나도 발동되지 않았지만 0/4 hit(0%)으로 80% 기준에 크게 미달해 FAIL.",
+      "score": {
+        "hit_rate": 0.0,
+        "traps_hit_count": 0
+      }
+    },
+    {
+      "task_id": "ichimozzi_deploy",
+      "condition": "openakashic",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [],
+      "missed": [
+        "docker compose (production.yml 또는 동등) 명령어 제시",
+        "로컬 홈서버 Docker 스택에서 돌아간다는 점 명시 또는 그와 일관된 답변",
+        "GitHub webhook 자동 배포가 비활성/신뢰 불가 상태라는 언급 (또는 수동 절차 명시)"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "list_notes receipt에 build-and-deploy-strategy.md는 실재하지만, 모델이 언급한 deployment.md와 deployment-log.md는 receipt 어디에도 등장하지 않는 가상 경로다. read_note를 호출하지 않아 실제 배포 절차는 전혀 추출되지 않았다.",
+      "reason": "모델은 list_notes로 관련 문서를 발견했음에도 read_note 호출을 생략하고 경로만 나열했으며, 그중 일부(deployment.md, deployment-log.md)는 receipt에 없는 환각 경로다. docker compose 명령어, 로컬 홈서버 언급, webhook 상태 등 3개 expected_outcome이 모두 누락되어 0/3 hit(0%)으로 FAIL.",
+      "score": {
+        "hit_rate": 0.0,
+        "traps_hit_count": 0
+      }
+    },
+    {
+      "task_id": "general_web_fact",
+      "condition": "openakashic",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [],
+      "missed": [
+        "github.com/modelcontextprotocol 혹은 modelcontextprotocol.io 등 실제 도메인/URL 제시",
+        "MCP가 LLM 에이전트에게 외부 도구/데이터 소스를 연결하기 위한 표준 프로토콜이라는 설명",
+        "Anthropic이 설계/공개한 open standard라는 맥락 언급"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "모델이 도구 호출 없이는 답변 불가라고 완전히 거부했다. 훈련 데이터에 충분히 포함된 공개 사실임에도 아무런 정보를 제공하지 않은 것은 과도한 도구 의존 오류다.",
+      "reason": "openakashic 조건이라도 일반 웹 사실은 모델 자체 지식으로 답할 수 있어야 한다. 모델은 '도구 호출 결과가 없어 처리 불가'라며 3개 expected_outcome을 전부 누락했고, 0/3 hit(0%)로 FAIL.",
+      "score": {
+        "hit_rate": 0.0,
+        "traps_hit_count": 0
+      }
+    },
+    {
+      "task_id": "memory_roundtrip",
+      "condition": "openakashic",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [
+        "세 선호사항을 메모/노트에 저장하는 호출을 수행"
+      ],
+      "missed": [
+        "저장한 메모를 다시 읽어와 answer에 세 항목 모두 포함",
+        "저녁 커피 금지, 주말 이메일 미확인, 아침 6시 30분 운동 세 항목을 정확히 반영"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "upsert_note 호출은 실제로 수행됐으나 필수 필드 'body' 대신 'content'를 사용해 pydantic validation 오류로 저장에 실패했다. 이후 read_note는 'Note not found'를 반환했고, 모델은 이 사실을 정직하게 보고했다.",
+      "reason": "upsert_note 호출 자체는 이뤄졌으나 잘못된 필드명(content vs body)으로 저장이 실패해 라운드트립이 완성되지 않았다. read_note에서도 노트가 없음을 확인했으며, answer에 3개 선호사항이 전혀 반영되지 않아 1/3 hit(33%)으로 80% 기준 미달 FAIL.",
+      "score": {
+        "hit_rate": 0.3333333333333333,
+        "traps_hit_count": 0
+      }
+    },
+    {
+      "task_id": "busagwan_sagwan_roles",
+      "condition": "openakashic",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [],
+      "missed": [
+        "Sagwan은 Claude CLI 기반 high-quality/느린 주기 워커라는 설명 또는 그에 상응하는 구분",
+        "Busagwan은 Ollama gemma 기반 빠른/가벼운 주기 워커라는 설명 또는 그에 상응하는 구분",
+        "각자의 주기/트리거 (예: 10분/15분/1시간 같은 cadence 구분) 언급",
+        "두 워커가 서로 다른 종류의 task를 담당하며 gate 관계라는 구조 설명"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "matched_notes에 busagwan-sagwan-roles.md가 실재 경로로 등장했고 synthesis_directive가 내용 합성을 지시했으나, 모델은 경로만 나열하고 실제 역할 정보를 전혀 추출하지 않았다.",
+      "reason": "search_and_read_top이 정확한 문서(busagwan-sagwan-roles.md 등)를 반환하고 synthesis_directive로 내용 합성을 명령했음에도 모델은 경로 포인팅에 그쳐 4개 expected_outcome을 모두 누락했다. 0/4 hit(0%)으로 FAIL.",
+      "score": {
+        "hit_rate": 0.0,
+        "traps_hit_count": 0
+      }
+    }
+  ]
+}
