@@ -36,6 +36,14 @@ class Settings(BaseSettings):
         alias="CLOSED_AKASHIC_DEFAULT_NOTE_OWNER",
         description="Fallback owner for notes without explicit owner. Set to a real username on single-user instances.",
     )
+    admin_username: str = Field(
+        default="admin",
+        alias="CLOSED_AKASHIC_ADMIN_USERNAME",
+    )
+    admin_nickname: str = Field(
+        default="admin",
+        alias="CLOSED_AKASHIC_ADMIN_NICKNAME",
+    )
     default_note_visibility: str = Field(
         default="private",
         alias="CLOSED_AKASHIC_DEFAULT_NOTE_VISIBILITY",
@@ -57,7 +65,7 @@ class Settings(BaseSettings):
         alias="CLOSED_AKASHIC_LIBRARIAN_BASE_URL",
     )
     librarian_model: str = Field(
-        default="claude-haiku-4-5-20251001",
+        default="claude-sonnet-4-6",
         alias="CLOSED_AKASHIC_LIBRARIAN_MODEL",
     )
     librarian_reasoning_effort: str = Field(

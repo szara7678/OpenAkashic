@@ -1617,13 +1617,26 @@ mcp_mount = BearerTokenASGI(
 
 @asynccontextmanager
 async def lifespan(_: Starlette):
+    # 부사관 이벤트 드리븐 워커: enqueue 시 즉시 깨어나고, heartbeat 로 간격 재확인.
+    from app.subordinate import register_wake_event
+    wake_event = asyncio.Event()
+    register_wake_event(wake_event, asyncio.get_running_loop())
+
     async def subordinate_loop() -> None:
         while True:
             try:
                 settings_doc = load_subordinate_settings()
                 if settings_doc.get("enabled"):
-                    await asyncio.to_thread(run_subordinate_cycle, reason="interval")
-                await asyncio.sleep(max(60, int(settings_doc.get("interval_sec") or 900)))
+                    reason = "wake" if wake_event.is_set() else "interval"
+                    wake_event.clear()
+                    await asyncio.to_thread(run_subordinate_cycle, reason=reason)
+                else:
+                    wake_event.clear()
+                heartbeat = max(60, int(settings_doc.get("interval_sec") or 900))
+                try:
+                    await asyncio.wait_for(wake_event.wait(), timeout=heartbeat)
+                except asyncio.TimeoutError:
+                    pass  # heartbeat 도달 — 정상 재확인
             except asyncio.CancelledError:
                 raise
             except Exception:

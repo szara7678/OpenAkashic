@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from datetime import UTC, datetime, timedelta
 import fcntl
 import json
@@ -21,6 +22,31 @@ _QUEUE_LOCK = threading.Lock()
 _QUEUE_PENDING_LIMIT = 150
 # done/failed 태스크 보존 기간 (일)
 _QUEUE_PRUNE_DAYS = 7
+
+# 이벤트 드리븐 워커 깨우기 — main.py lifespan 에서 등록.
+# enqueue_subordinate_task() 가 새 태스크를 넣으면 loop.call_soon_threadsafe 로 Event.set() 호출.
+_WAKE_EVENT: asyncio.Event | None = None
+_WAKE_LOOP: asyncio.AbstractEventLoop | None = None
+
+
+def register_wake_event(event: asyncio.Event, loop: asyncio.AbstractEventLoop) -> None:
+    """lifespan 시작 시 호출. subordinate_loop 의 깨우기 이벤트와 소속 루프를 등록."""
+    global _WAKE_EVENT, _WAKE_LOOP
+    _WAKE_EVENT = event
+    _WAKE_LOOP = loop
+
+
+def _trigger_wake() -> None:
+    """스레드에서 안전하게 워커를 깨운다. 등록 안 됐으면 no-op (heartbeat 로 자연 기동)."""
+    ev = _WAKE_EVENT
+    loop = _WAKE_LOOP
+    if ev is None or loop is None:
+        return
+    try:
+        loop.call_soon_threadsafe(ev.set)
+    except RuntimeError:
+        # 루프가 이미 종료된 경우 — 무시
+        pass
 
 from app.config import get_settings
 from app.core_api_bridge import sync_published_note
@@ -51,15 +77,21 @@ SUBORDINATE_PLAYBOOK_PATH = "personal_vault/projects/ops/librarian/playbooks/Sub
 SUBORDINATE_MEMORY_PATH = "personal_vault/projects/ops/librarian/memory/Subordinate Working Memory.md"
 # 사서장 메모리 — 부사관이 사서장 판단 이력을 참조하기 위해 읽는다
 LIBRARIAN_MEMORY_PATH = "personal_vault/projects/ops/librarian/memory/Working Memory.md"
+# 부사관은 더 이상 LLM 에이전트가 아니다 — 판단 없는 워커(큐 실행기)다.
+# LLM 판단이 필요한 task(draft_capsule, draft_claim, detect_conflicts, publication review)는
+# 사관(sagwan)의 curation cycle 로 이관되었다. 아래 목록은 순수 HTTP/파일/집계 작업만 남긴다.
 SUBORDINATE_TASK_TYPES = (
     "crawl_url",
-    "draft_capsule",
-    "draft_claim",
     "sync_to_core_api",
     "analyze_search_gaps",
-    "detect_conflicts",
     "scan_stale_private_notes",
 )
+# 폐기된 태스크 — 큐에 잔존 시 loud-fail 시키기 위해 보존
+_DEPRECATED_TASK_TYPES = frozenset({
+    "draft_capsule",
+    "draft_claim",
+    "detect_conflicts",
+})
 
 
 def subordinate_settings_path() -> Path:
@@ -77,15 +109,15 @@ def _now_iso() -> str:
 def _default_subordinate_settings() -> dict[str, Any]:
     settings = get_settings()
     return {
-        "provider": "ollama",
+        # 부사관은 워커 전용 — LLM 사용하지 않는다. provider/model 은 레거시 필드로만 보존.
+        "provider": "none",
         "base_url": settings.ollama_base_url,
-        # 부사관 기본 모델은 gemma4:e4b로 고정한다. 특별한 사유(장애/tool 지원 이슈) 없이
-        # 바꾸지 말 것 — 운영상 합의된 디폴트다.
-        "model": "gemma4:e4b",
+        "model": "",
         "enabled": True,
         "interval_sec": 900,
         "max_tasks_per_run": 3,
-        "auto_review_publication_requests": True,
+        # publication 1차 리뷰는 폐지 — 사관이 단독 판정한다.
+        "auto_review_publication_requests": False,
         "auto_request_publication_for_capsules": False,
         "enabled_task_types": list(SUBORDINATE_TASK_TYPES),
     }
@@ -297,6 +329,7 @@ def enqueue_subordinate_task(
         }
         queue["tasks"].append(task)
         _save_queue(queue)
+    _trigger_wake()
     return task
 
 
@@ -316,10 +349,9 @@ def run_subordinate_cycle(*, reason: str = "manual") -> dict[str, Any]:
         return {"status": "disabled", "reason": "Subordinate worker is disabled", "processed": []}
 
     processed: list[dict[str, Any]] = []
-    if settings["auto_review_publication_requests"]:
-        # publication review 는 최대 2개로 제한 — 큐 작업 슬롯 항상 최소 1개 확보
-        pub_limit = min(2, settings["max_tasks_per_run"])
-        processed.extend(_run_publication_first_reviews(limit=pub_limit))
+    # publication 1차 리뷰는 폐지되었다 — 사관이 단독 판정한다.
+    # auto_review_publication_requests 는 기본 False 지만, 과거 설정 파일이 남아 있어도
+    # 여기서 무시되도록 분기 자체를 제거한다.
 
     if len(processed) >= settings["max_tasks_per_run"]:
         return {"status": "ok", "reason": reason, "processed": processed}
@@ -370,16 +402,7 @@ def run_subordinate_cycle(*, reason: str = "manual") -> dict[str, Any]:
 
         processed.append({**claimed, "status": final_status, "last_error": final_error})
 
-        # 태스크 완료마다 장기 기억 정제 시도 (임계치 미달이면 자동 skip)
-        try:
-            from app.agent_memory import after_task as _after_task
-
-            def _ollama_invoke(prompt: str, *, model: str | None = None) -> str:
-                return _ollama_generate(prompt)
-
-            _after_task("busagwan", llm_invoke=_ollama_invoke)
-        except Exception:
-            pass  # distill 실패는 치명적이지 않음
+        # 부사관은 워커(LLM 없음) — 에피소드 기억/증류 없음 (2026-04-18 role redefinition)
 
     return {"status": "ok", "reason": reason, "processed": processed}
 
@@ -417,20 +440,17 @@ def _run_publication_first_reviews(*, limit: int) -> list[dict[str, Any]]:
 def _run_task(task: dict[str, Any], settings: dict[str, Any]) -> str:
     kind = str(task.get("kind") or "")
     payload = dict(task.get("payload") or {})
+    if kind in _DEPRECATED_TASK_TYPES:
+        # 사관으로 이관된 작업 — 큐에 남아 있으면 loud-fail.
+        raise ValueError(
+            f"task '{kind}' is deprecated on busagwan; ownership moved to sagwan curation cycle"
+        )
     if kind == "crawl_url":
         return _crawl_url_to_note(payload.get("url") or "", folder=payload.get("folder"), project=payload.get("project"))
-    if kind == "draft_capsule":
-        result = _draft_capsule(payload.get("source_path") or "", auto_request=settings["auto_request_publication_for_capsules"])
-        return str(result.get("path") or "")
-    if kind == "draft_claim":
-        results = _draft_claim(payload.get("source_path") or "", auto_request=settings.get("auto_request_publication_for_capsules", False))
-        return str([r.get("path") for r in results])
     if kind == "sync_to_core_api":
         return _sync_published_notes_to_core_api(limit=int(payload.get("limit") or 10))
     if kind == "analyze_search_gaps":
         return _analyze_search_gaps(max_new=int(payload.get("max_new") or 10))
-    if kind == "detect_conflicts":
-        return _detect_conflicts(payload.get("path") or "")
     if kind == "scan_stale_private_notes":
         return _scan_stale_private_notes(
             owner=str(payload.get("owner") or ""),

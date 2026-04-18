@@ -15,7 +15,7 @@ sagwan_loop.py
 """
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 import json
 import logging
 from pathlib import Path
@@ -35,6 +35,7 @@ from app.librarian import _invoke_claude_cli, load_librarian_settings
 from app.vault import (
     PUBLICATION_REQUEST_FOLDER,
     append_section,
+    list_note_paths,
     list_publication_requests,
     load_document,
     set_publication_status,
@@ -64,7 +65,9 @@ def _default_sagwan_settings() -> dict[str, Any]:
         "enabled": True,
         "interval_sec": 600,       # 10분 주기
         "batch_trigger": 3,        # 대기 요청이 N건 이상이면 즉시 실행
-        "require_subordinate_review": True,
+        "approval_max_per_cycle": 10,  # 한 사이클에서 처리할 승인 요청 상한 (컨텍스트 보호)
+        # 사관이 단독 LLM 판정자 — 부사관 1차 리뷰는 폐지되었다.
+        "require_subordinate_review": False,
         "use_llm": True,           # LLM 최종 판단 사용
         "curation_interval_sec": 3600,  # 1시간마다 정제 루틴
     }
@@ -85,6 +88,9 @@ def load_sagwan_settings() -> dict[str, Any]:
         "enabled": bool(raw.get("enabled", defaults["enabled"])),
         "interval_sec": max(60, int(raw.get("interval_sec") or defaults["interval_sec"])),
         "batch_trigger": max(1, int(raw.get("batch_trigger") or defaults["batch_trigger"])),
+        "approval_max_per_cycle": max(
+            1, int(raw.get("approval_max_per_cycle") or defaults["approval_max_per_cycle"])
+        ),
         "require_subordinate_review": bool(
             raw.get("require_subordinate_review", defaults["require_subordinate_review"])
         ),
@@ -101,6 +107,10 @@ def save_sagwan_settings(payload: dict[str, Any]) -> dict[str, Any]:
         "enabled": bool(payload.get("enabled", current["enabled"])),
         "interval_sec": max(60, int(payload.get("interval_sec") or current["interval_sec"])),
         "batch_trigger": max(1, int(payload.get("batch_trigger") or current["batch_trigger"])),
+        "approval_max_per_cycle": max(
+            1,
+            int(payload.get("approval_max_per_cycle") or current["approval_max_per_cycle"]),
+        ),
         "require_subordinate_review": bool(
             payload.get("require_subordinate_review", current["require_subordinate_review"])
         ),
@@ -318,8 +328,11 @@ def run_sagwan_approval_cycle(*, reason: str = "manual") -> dict[str, Any]:
             continue
         pending.append(candidate)
 
+    max_per_cycle = int(settings.get("approval_max_per_cycle") or 10)
+    batch = pending[:max_per_cycle]
+    deferred_for_next_cycle = max(0, len(pending) - len(batch))
     processed: list[dict[str, Any]] = []
-    for item in pending:
+    for item in batch:
         try:
             request_doc = load_document(item.path)
             source_path = str(request_doc.frontmatter.get("source_path") or "")
@@ -404,20 +417,23 @@ def run_sagwan_approval_cycle(*, reason: str = "manual") -> dict[str, Any]:
             logger.error("sagwan_loop: error on %s: %s", item.path, exc)
             processed.append({"path": item.path, "decision": "error", "error": str(exc)})
 
-    published = sum(1 for p in processed if p.get("decision") == "published")
-    return {
-        "status": "ok",
-        "reason": reason,
-        "pending_count": len(pending),
-        "published_count": published,
-        "deferred_count": sum(1 for p in processed if p.get("decision") == "deferred"),
-        "processed": processed,
-    }
     # 매 배치 종료 후 장기 기억 정제 시도 (임계치 미달이면 자동 skip)
     try:
         after_task("sagwan", llm_invoke=_invoke_claude_cli)
     except Exception as exc:
         logger.debug("sagwan after_task distill skipped: %s", exc)
+
+    published = sum(1 for p in processed if p.get("decision") == "published")
+    return {
+        "status": "ok",
+        "reason": reason,
+        "pending_count": len(pending),
+        "batch_size": len(batch),
+        "deferred_for_next_cycle": deferred_for_next_cycle,
+        "published_count": published,
+        "deferred_count": sum(1 for p in processed if p.get("decision") == "deferred"),
+        "processed": processed,
+    }
 
 
 def _record_defer(request_doc: Any, path: str, failures: list[str], *, llm_reason: str | None) -> None:
@@ -499,32 +515,58 @@ def run_sagwan_curation_cycle(*, reason: str = "scheduled") -> dict[str, Any]:
         e = {"error": str(exc)}
 
     try:
-        f = distill_memory("sagwan", llm_invoke=_invoke_claude_cli)
+        f_conflict = _curate_detect_conflicts()
+    except Exception as exc:
+        logger.error("sagwan curation F (conflict detect) failed: %s", exc)
+        f_conflict = {"error": str(exc)}
+
+    try:
+        g_signals = _curate_enqueue_signal_scans()
+    except Exception as exc:
+        logger.error("sagwan curation G (signal scans) failed: %s", exc)
+        g_signals = {"error": str(exc)}
+
+    try:
+        h_topics = _curate_propose_topics()
+    except Exception as exc:
+        logger.error("sagwan curation H (topic proposals) failed: %s", exc)
+        h_topics = {"error": str(exc)}
+
+    try:
+        i_meta = _curate_system_health()
+    except Exception as exc:
+        logger.error("sagwan curation I (meta) failed: %s", exc)
+        i_meta = {"error": str(exc)}
+
+    try:
+        distill = distill_memory("sagwan", llm_invoke=_invoke_claude_cli)
     except Exception as exc:
         logger.error("sagwan distill failed: %s", exc)
-        f = {"error": str(exc)}
-    try:
-        g = distill_memory("busagwan", llm_invoke=_invoke_claude_cli)
-    except Exception as exc:
-        logger.error("busagwan distill failed: %s", exc)
-        g = {"error": str(exc)}
+        distill = {"error": str(exc)}
 
     summary = {
         "status": "ok", "reason": reason,
         "derive_sync": a, "revalidate": c, "feeds": d,
-        "capsule_gen": e, "distill_sagwan": f, "distill_busagwan": g,
+        "capsule_gen": e, "conflict_detect": f_conflict, "signal_scans": g_signals,
+        "topic_proposals": h_topics,
+        "meta_curation": i_meta,
+        "distill_sagwan": distill,
     }
     try:
         remember(
             "sagwan",
             subject=f"curation cycle ({reason})",
             outcome=(
-                f"drafts={a.get('drafts_enqueued', 0)} "
                 f"sync={a.get('sync_enqueued', False)} "
                 f"revalidated={c.get('revalidated', 0)}/{c.get('checked', 0)} "
                 f"feeds_enqueued={d.get('enqueued', 0)} "
                 f"capsules_generated={e.get('generated', 0)} "
-                f"distill_sagwan={f.get('status')} distill_busagwan={g.get('status')}"
+                f"conflicts_checked={f_conflict.get('checked', 0)} "
+                f"conflicts_flagged={f_conflict.get('flagged', 0)} "
+                f"signals_enqueued={g_signals.get('enqueued', 0)} "
+                f"topics_status={h_topics.get('status', '?')} "
+                f"meta_status={i_meta.get('status', '?')} "
+                f"distill_sagwan={distill.get('status')}"
             ),
             kind="curation",
         )
@@ -535,14 +577,16 @@ def run_sagwan_curation_cycle(*, reason: str = "scheduled") -> dict[str, Any]:
 
 
 def _curate_derive_and_sync() -> dict[str, Any]:
-    """(A) knowledge/** raw 노트 → draft_capsule, (B) stale published → sync_to_core_api."""
-    from app.vault import list_note_paths, write_document
+    """(B) stale published → sync_to_core_api 워커 태스크 큐잉.
+
+    과거에는 (A) raw note → draft_capsule 를 부사관에게 enqueue 했으나,
+    캡슐 생성은 사관이 직접 수행(_curate_generate_capsules, E 단계)으로 이관되어
+    이 함수에서는 core_api 동기화 큐잉만 담당한다.
+    """
     from app.subordinate import enqueue_subordinate_task
 
-    drafts_enqueued = 0
     stale_published_count = 0
     scanned = 0
-    max_drafts = 3
 
     for path in list_note_paths():
         scanned += 1
@@ -556,27 +600,6 @@ def _curate_derive_and_sync() -> dict[str, Any]:
 
         if pub_status == "published" and not fm.get("core_api_id") and kind in {"capsule", "claim", "reference"}:
             stale_published_count += 1
-
-        if (
-            path.startswith("personal_vault/knowledge/")
-            and kind != "capsule"
-            and drafts_enqueued < max_drafts
-            and not fm.get("sagwan_capsule_draft_requested_at")
-        ):
-            body = getattr(doc, "body", "") or ""
-            if len(body) >= 200:
-                try:
-                    enqueue_subordinate_task(
-                        kind="draft_capsule",
-                        payload={"source_path": path},
-                        created_by="sagwan",
-                    )
-                    drafts_enqueued += 1
-                    next_fm = dict(fm)
-                    next_fm["sagwan_capsule_draft_requested_at"] = _now_iso()
-                    write_document(path=path, body=body, metadata=next_fm, allow_owner_change=True)
-                except Exception as exc:
-                    logger.warning("sagwan curation: draft enqueue failed for %s: %s", path, exc)
 
     sync_enqueued = False
     if stale_published_count > 0:
@@ -592,7 +615,7 @@ def _curate_derive_and_sync() -> dict[str, Any]:
 
     return {
         "scanned": scanned,
-        "drafts_enqueued": drafts_enqueued,
+        "drafts_enqueued": 0,  # 사관이 _curate_generate_capsules 에서 직접 생성
         "stale_published": stale_published_count,
         "sync_enqueued": sync_enqueued,
     }
@@ -1017,6 +1040,585 @@ def _curate_generate_capsules() -> dict[str, Any]:
     logger.info("sagwan capsule gen: wrote %s from seed=%s (related=%d)",
                 doc.path, seed_path, len(related_paths))
     return {"generated": 1, "path": doc.path, "seed": seed_path, "related": len(related_paths)}
+
+
+def _curate_detect_conflicts(*, max_per_cycle: int = 3) -> dict[str, Any]:
+    """(F) 최근 갱신된 public-bound 캡슐에 대해 의미 중복 후보를 찾고 사관 LLM 으로
+    실제 충돌 여부를 판정한다.  부사관에서 이관된 기능이다.
+
+    정책:
+    - 대상: kind ∈ {capsule, claim} 이고 publication_status != "rejected" 인 노트 중
+      conflict_status 가 비어있거나 "pending_review" 인 것 top-N (updated desc).
+    - 후보 수집: semantic_rank 상위 5개 중 score ≥ 0.86 (또는 ≥ 0.74 + 같은 project/tag).
+    - 판정: claude-cli 가 CONFLICT | CLEAR 결정.  실패 시 pending_review 로 남김.
+    """
+    from app.site import SemanticDocument, semantic_rank
+
+    scanned = 0
+    checked = 0
+    flagged = 0
+    errors = 0
+
+    # 대상 노트 수집
+    candidates: list[tuple[str, Any]] = []
+    for path in list_note_paths():
+        try:
+            doc = load_document(path)
+        except Exception:
+            continue
+        fm = doc.frontmatter or {}
+        kind = str(fm.get("kind") or "").lower()
+        if kind not in {"capsule", "claim"}:
+            continue
+        pub_status = str(fm.get("publication_status") or "").lower()
+        if pub_status == "rejected":
+            continue
+        conflict_status = str(fm.get("conflict_status") or "").lower()
+        if conflict_status in {"clear", "flagged"}:
+            continue  # 이미 판정됨 (재판정은 별도 trigger)
+        candidates.append((path, doc))
+
+    scanned = len(candidates)
+    # updated desc 정렬
+    def _updated_key(item: tuple[str, Any]) -> str:
+        fm = item[1].frontmatter or {}
+        return str(fm.get("updated_at") or fm.get("updated") or fm.get("created") or "")
+    candidates.sort(key=_updated_key, reverse=True)
+
+    # 전체 vault 로 SemanticDocument 한번만 구성 (비용 절감)
+    all_documents: list[SemanticDocument] = []
+    doc_by_path: dict[str, Any] = {}
+    for p in list_note_paths():
+        try:
+            d = load_document(p)
+        except Exception:
+            continue
+        fm = d.frontmatter or {}
+        all_documents.append(SemanticDocument(
+            key=d.path, path=d.path,
+            title=str(fm.get("title") or d.path),
+            kind=str(fm.get("kind") or "reference"),
+            project=str(fm.get("project") or "openakashic"),
+            status=str(fm.get("status") or "active"),
+            summary=str(fm.get("summary") or ""),
+            body=d.body,
+        ))
+        doc_by_path[d.path] = d
+
+    for source_path, source in candidates[:max_per_cycle]:
+        checked += 1
+        source_fm = source.frontmatter or {}
+        query = "\n".join([
+            str(source_fm.get("title") or source_path),
+            str(source_fm.get("kind") or ""),
+            " ".join(str(t) for t in (source_fm.get("tags") or [])),
+            source.body,
+        ])
+        source_tags = set(str(t) for t in (source_fm.get("tags") or []))
+        source_project = str(source_fm.get("project") or "")
+
+        conflict_candidates: list[dict[str, Any]] = []
+        for cand_key, score in semantic_rank(query, all_documents, limit=8)[:5]:
+            if cand_key == source_path:
+                continue
+            cand = doc_by_path.get(cand_key)
+            if not cand:
+                continue
+            if score >= 0.86:
+                conflict_candidates.append({"path": cand_key, "score": round(float(score), 4)})
+            elif score >= 0.74:
+                cand_fm = cand.frontmatter or {}
+                cand_tags = set(str(t) for t in (cand_fm.get("tags") or []))
+                cand_project = str(cand_fm.get("project") or "")
+                if (source_tags & cand_tags) or (source_project and source_project == cand_project):
+                    conflict_candidates.append({"path": cand_key, "score": round(float(score), 4)})
+
+        next_fm = dict(source_fm)
+        if not conflict_candidates:
+            next_fm["conflict_candidates"] = []
+            next_fm["conflict_status"] = "clear"
+            try:
+                from app.vault import write_document as _wd
+                _wd(path=source_path, body=source.body, metadata=next_fm, allow_owner_change=True)
+            except Exception as exc:
+                logger.warning("conflict detect: write clear failed for %s: %s", source_path, exc)
+                errors += 1
+            continue
+
+        # LLM 판정
+        snippet_block = "\n---\n".join(
+            f"Path: {cc['path']} (score={cc['score']})\n{doc_by_path[cc['path']].body[:600]}"
+            for cc in conflict_candidates[:3] if cc['path'] in doc_by_path
+        )
+        prompt = "\n\n".join([
+            "너는 OpenAkashic 사관이다. 소스 노트와 후보들이 실제로 모순되는지 판정한다.",
+            f"소스 ({source_path}):\n{source.body[:1500]}",
+            f"후보:\n{snippet_block}",
+            "같은 주제라는 이유만으로 충돌이 아니다. 서로 다른 주장이어야 충돌이다.",
+            "출력:\nVerdict: <CONFLICT|CLEAR>\nReason:\n- ...",
+        ])
+        model = (load_librarian_settings() or {}).get("model") or None
+        reply = _invoke_claude_cli(prompt, model=model)
+        import re as _re
+        # Verdict 라인은 **bold** 마크업이 섞일 수 있으므로 별표/공백을 관대하게 처리
+        # 허용 예: "Verdict: CLEAR", "**Verdict: CLEAR**", "**Verdict:** CLEAR", "Verdict: **CLEAR**"
+        m = _re.search(
+            r"^[\s\*#>\-]*Verdict:[\s\*`_]*(CONFLICT|CLEAR)\b",
+            reply,
+            _re.MULTILINE | _re.IGNORECASE,
+        )
+        if not m or reply.startswith("[CLI 오류"):
+            logger.warning(
+                "conflict detect: verdict parse failed for %s. reply[:400]=%r",
+                source_path,
+                (reply or "")[:400],
+            )
+            next_fm["conflict_candidates"] = conflict_candidates
+            next_fm["conflict_status"] = "pending_review"
+            errors += 1
+        elif m.group(1).upper() == "CONFLICT":
+            next_fm["conflict_candidates"] = conflict_candidates
+            next_fm["conflict_status"] = "flagged"
+            flagged += 1
+        else:
+            next_fm["conflict_candidates"] = conflict_candidates
+            next_fm["conflict_status"] = "clear"
+
+        try:
+            from app.vault import write_document as _wd
+            _wd(path=source_path, body=source.body, metadata=next_fm, allow_owner_change=True)
+        except Exception as exc:
+            logger.warning("conflict detect: write verdict failed for %s: %s", source_path, exc)
+            errors += 1
+
+    return {"scanned": scanned, "checked": checked, "flagged": flagged, "errors": errors}
+
+
+def _curate_enqueue_signal_scans() -> dict[str, Any]:
+    """(G) 순수-코드 신호 감지 태스크들을 주기적으로 워커(부사관) 큐에 넣는다.
+    이 태스크들은 LLM 을 쓰지 않는 집계/시간 산술이므로 워커 실행이 적합하다.
+    """
+    from app.subordinate import enqueue_subordinate_task, list_subordinate_tasks
+
+    # 동일 태스크가 pending/running 상태로 이미 있으면 중복 큐잉 방지
+    live_kinds = {
+        str(t.get("kind") or "")
+        for t in list_subordinate_tasks()
+        if str(t.get("status") or "") in {"pending", "running"}
+    }
+
+    enqueued: list[str] = []
+
+    if "analyze_search_gaps" not in live_kinds:
+        try:
+            enqueue_subordinate_task(
+                kind="analyze_search_gaps",
+                payload={"max_new": 10},
+                created_by="sagwan",
+            )
+            enqueued.append("analyze_search_gaps")
+        except Exception as exc:
+            logger.warning("signal scan: gap enqueue failed: %s", exc)
+
+    if "scan_stale_private_notes" not in live_kinds:
+        # owner=aaron 기본 — 필요 시 known owners 확장
+        try:
+            enqueue_subordinate_task(
+                kind="scan_stale_private_notes",
+                payload={"owner": "aaron", "dry_run": False},
+                created_by="sagwan",
+            )
+            enqueued.append("scan_stale_private_notes:aaron")
+        except Exception as exc:
+            logger.warning("signal scan: stale enqueue failed: %s", exc)
+
+    return {"enqueued": len(enqueued), "kinds": enqueued}
+
+
+# ─── (H) 사관 주제 자율 선정 ─────────────────────────────────────────────────
+# 설계: 고정 피드(arxiv cs.CL, HN)만으로는 관심 영역 확장 불가. 사관이 직접 관심 주제
+# 3개를 제안하고, 각 주제를 arxiv/Google News 검색 URL 로 변환해 피드 수급과 동일한
+# 방식으로 크롤을 enqueue 한다. 24시간에 한 번만 실행 (claude-cli 비용 절약).
+
+_TOPIC_STATE_PATH = "personal_vault/projects/ops/librarian/activity/topic-proposals.md"
+_TOPIC_MIN_INTERVAL_HOURS = 24
+
+
+def _curate_propose_topics() -> dict[str, Any]:
+    """(H) 사관이 직접 관심 주제를 선정하고 arxiv/Google News 검색 피드로 크롤 enqueue."""
+    from app.vault import write_document, load_document as _ld
+
+    # 1) 쿨다운 확인
+    state_fm: dict[str, Any] = {}
+    state_body = ""
+    try:
+        state_doc = _ld(_TOPIC_STATE_PATH)
+        state_fm = dict(state_doc.frontmatter or {})
+        state_body = state_doc.body or ""
+    except Exception:
+        pass
+
+    last_run = str(state_fm.get("last_run_at") or "").strip()
+    if last_run:
+        try:
+            last_dt = datetime.fromisoformat(last_run.replace("Z", "+00:00"))
+            if datetime.now(UTC) - last_dt < timedelta(hours=_TOPIC_MIN_INTERVAL_HOURS):
+                return {"status": "cooldown", "next_run_after": last_run}
+        except Exception:
+            pass
+
+    # 2) 컨텍스트 수집: 최근 gap 쿼리 + distilled 메모리
+    gap_summary = ""
+    try:
+        from app.vault import list_note_paths
+        for p in list_note_paths():
+            if p.startswith("doc/knowledge-gaps/") and p.endswith(".md"):
+                try:
+                    d = _ld(p)
+                    gap_summary += f"- {d.frontmatter.get('title','?')}\n"
+                except Exception:
+                    continue
+                if gap_summary.count("\n") >= 10:
+                    break
+    except Exception:
+        pass
+
+    ctx = before_task_context("sagwan", "research topic proposal", current_note_path=None)
+
+    # 3) LLM 에게 주제 제안 요청
+    prompt = "\n\n".join([
+        "너는 OpenAkashic 사관이다. 다음 24시간 동안 수집할 연구 주제 3개를 제안한다.",
+        "선정 기준:",
+        "- 최근 gap queries 와 사관 기억(특히 반복적으로 언급된 영역)에 닿을 것",
+        "- 너무 광범위하지 말 것 (예: 'AI' X, 'retrieval-augmented generation for code X')",
+        "- 서로 겹치지 않을 것",
+        "",
+        f"## 최근 gap queries\n{gap_summary or '(없음)'}",
+        "",
+        ctx["combined"] or "",
+        "",
+        "출력 형식 (엄격):",
+        "TOPIC 1: <5-12 단어의 영어 검색 쿼리>",
+        "TOPIC 2: <...>",
+        "TOPIC 3: <...>",
+    ])
+
+    model = (load_librarian_settings() or {}).get("model") or None
+    reply = _invoke_claude_cli(prompt, model=model)
+    if not reply or reply.startswith("[CLI 오류"):
+        return {"status": "llm_error", "detail": (reply or "")[:200]}
+
+    import re as _re
+    topics: list[str] = []
+    for m in _re.finditer(r"^\s*TOPIC\s*\d+\s*:\s*(.+?)\s*$", reply, _re.MULTILINE | _re.IGNORECASE):
+        q = m.group(1).strip().strip("`*_\"'")
+        if 3 <= len(q) <= 200:
+            topics.append(q)
+    topics = topics[:3]
+    if not topics:
+        return {"status": "parse_error", "detail": reply[:200]}
+
+    # 4) 각 주제를 arxiv 검색 피드로 변환 → 아이템 파싱 → crawl_url enqueue
+    from urllib import error as urlerror
+    from urllib import parse as urlparse_
+    from urllib import request as urlrequest
+    from app.site import search_closed_notes
+    from app.subordinate import enqueue_subordinate_task
+
+    total_enqueued = 0
+    per_topic: list[dict[str, Any]] = []
+    for q in topics:
+        qs = urlparse_.quote_plus(q)
+        feed_url = (
+            f"http://export.arxiv.org/api/query?search_query=all:{qs}"
+            "&sortBy=submittedDate&sortOrder=descending&max_results=3"
+        )
+        items: list[tuple[str, str]] = []
+        try:
+            req = urlrequest.Request(feed_url, headers={"User-Agent": "OpenAkashic-Sagwan/1.0"})
+            with urlrequest.urlopen(req, timeout=15) as resp:
+                raw_xml = resp.read().decode("utf-8", errors="replace")
+            items = _parse_feed_items(raw_xml, max_items=3)
+        except (urlerror.URLError, TimeoutError, OSError) as exc:
+            per_topic.append({"topic": q, "error": str(exc), "enqueued": 0})
+            continue
+        except Exception as exc:
+            per_topic.append({"topic": q, "error": str(exc), "enqueued": 0})
+            continue
+
+        enq = 0
+        for title, link in items:
+            try:
+                hits = search_closed_notes(title, limit=3).get("results", [])
+                t_low = title.lower()
+                if hits and any(
+                    t_low in (h.get("title") or "").lower()
+                    or (h.get("title") or "").lower() in t_low
+                    for h in hits
+                ):
+                    continue
+            except Exception:
+                pass
+            try:
+                enqueue_subordinate_task(
+                    kind="crawl_url",
+                    payload={
+                        "url": link,
+                        "folder": "personal_vault/feeds",
+                        "tags": ["sagwan-topic-proposal"],
+                        "title_hint": title,
+                    },
+                    created_by="sagwan",
+                )
+                enq += 1
+                total_enqueued += 1
+            except Exception as exc:
+                per_topic.append({"topic": q, "error": f"enqueue {link}: {exc}", "enqueued": enq})
+                break
+        per_topic.append({"topic": q, "enqueued": enq})
+
+    # 5) state 업데이트
+    now_iso = _now_iso()
+    state_fm_next = {
+        **state_fm,
+        "title": "Sagwan Topic Proposals (Activity Log)",
+        "kind": "activity",
+        "project": "ops/librarian",
+        "status": "active",
+        "tags": ["sagwan", "activity", "topic-proposal"],
+        "visibility": "private",
+        "owner": "sagwan",
+        "last_run_at": now_iso,
+    }
+    new_body = (state_body or "## 최근 주제 제안\n\n").rstrip() + "\n\n"
+    new_body += f"### {now_iso}\n"
+    for item in per_topic:
+        mark = item.get("error") or f"enqueued={item.get('enqueued', 0)}"
+        new_body += f"- **{item['topic']}** — {mark}\n"
+    try:
+        write_document(path=_TOPIC_STATE_PATH, body=new_body, metadata=state_fm_next, allow_owner_change=True)
+    except Exception as exc:
+        logger.warning("topic proposals: state write failed: %s", exc)
+
+    return {
+        "status": "ok",
+        "topics": topics,
+        "enqueued": total_enqueued,
+        "per_topic": per_topic,
+    }
+
+
+# ─── (I) 사관 메타 큐레이션 + 자율 개선 요청 ────────────────────────────────
+# 설계: 매 24시간마다 운영 데이터(실패한 busagwan 태스크, 반복 gap, 충돌 pending_review,
+# 최근 distilled 메모리)를 분석해 시스템/지식 개선점을 claude-cli 로 도출한다.
+# 산출물은 2종류:
+#   1) 시스템 헬스 리포트: personal_vault/meta/system-health/YYYY-MM-DD.md
+#   2) 개선 요청 노트:    personal_vault/meta/improvement-requests/<slug>.md
+#      - status=proposed. 실제 코드 수정은 사람(insu)이 리뷰 후 적용.
+#      - 사관은 직접 코드 파일을 수정하지 않는다 (안전 경계).
+
+_META_STATE_PATH = "personal_vault/projects/ops/librarian/activity/meta-curation.md"
+_META_MIN_INTERVAL_HOURS = 24
+_SYSTEM_HEALTH_FOLDER = "personal_vault/meta/system-health"
+_IMPROVEMENT_REQUEST_FOLDER = "personal_vault/meta/improvement-requests"
+
+
+def _curate_system_health() -> dict[str, Any]:
+    """(I) 24시간 1회. 운영 데이터 분석 → 헬스 리포트 + 개선 요청 노트 작성."""
+    from app.vault import write_document, load_document as _ld
+    from app.subordinate import list_subordinate_tasks
+
+    # 1) 쿨다운
+    state_fm: dict[str, Any] = {}
+    try:
+        state_doc = _ld(_META_STATE_PATH)
+        state_fm = dict(state_doc.frontmatter or {})
+    except Exception:
+        pass
+    last_run = str(state_fm.get("last_run_at") or "").strip()
+    if last_run:
+        try:
+            last_dt = datetime.fromisoformat(last_run.replace("Z", "+00:00"))
+            if datetime.now(UTC) - last_dt < timedelta(hours=_META_MIN_INTERVAL_HOURS):
+                return {"status": "cooldown", "next_run_after": last_run}
+        except Exception:
+            pass
+
+    # 2) 운영 시그널 수집
+    tasks = list_subordinate_tasks()
+    failed_recent = [t for t in tasks if t.get("status") == "failed"][-20:]
+    failure_sample = "\n".join(
+        f"- {t.get('kind')} @ {t.get('finished_at') or t.get('created_at')}: {(t.get('last_error') or '')[:150]}"
+        for t in failed_recent[-10:]
+    ) or "(없음)"
+
+    pending_conflicts: list[str] = []
+    try:
+        from app.vault import list_note_paths
+        for p in list_note_paths():
+            try:
+                d = _ld(p)
+            except Exception:
+                continue
+            fm = d.frontmatter or {}
+            if fm.get("conflict_status") in {"pending_review", "flagged"}:
+                pending_conflicts.append(f"- {p} [{fm.get('conflict_status')}]")
+            if len(pending_conflicts) >= 10:
+                break
+    except Exception:
+        pass
+    conflicts_sample = "\n".join(pending_conflicts) or "(없음)"
+
+    gap_sample: list[str] = []
+    try:
+        from app.vault import list_note_paths as _lnp
+        for p in _lnp():
+            if p.startswith("doc/knowledge-gaps/") and p.endswith(".md"):
+                try:
+                    d = _ld(p)
+                    gap_sample.append(f"- {d.frontmatter.get('title','?')}")
+                except Exception:
+                    continue
+                if len(gap_sample) >= 10:
+                    break
+    except Exception:
+        pass
+    gap_block = "\n".join(gap_sample) or "(없음)"
+
+    ctx = before_task_context("sagwan", "system health meta-curation", current_note_path=None)
+
+    # 3) LLM 분석
+    today = datetime.now(UTC).strftime("%Y-%m-%d")
+    prompt = "\n\n".join([
+        "너는 OpenAkashic 사관이다. 지난 24시간 운영 데이터를 보고 시스템/지식 개선점을 도출한다.",
+        "결과는 두 부분:",
+        "A) 한 줄 헬스 요약 (## HEALTH 섹션)",
+        "B) 0~3개의 개선 요청 (## IMPROVEMENTS 섹션, 각 항목은 다음 형식):",
+        "",
+        "### <짧은 영문 slug (파일명용, 3-6 단어 kebab-case)>",
+        "- kind: `code` | `knowledge` | `policy` | `data`",
+        "- priority: `low` | `medium` | `high`",
+        "- summary: <한 문장 한국어>",
+        "- rationale: <2-4 문장. 위 운영 데이터의 어떤 패턴을 근거로 제안하는지 명시>",
+        "- proposal: <구체적 변경안. code 면 수정 대상 파일/함수까지. 직접 코드는 쓰지 말 것.>",
+        "- risk: <적용 시 예상 위험 1-2 문장>",
+        "",
+        f"## 최근 실패 태스크 샘플\n{failure_sample}",
+        "",
+        f"## 미해결 충돌 샘플\n{conflicts_sample}",
+        "",
+        f"## 최근 gap queries\n{gap_block}",
+        "",
+        ctx["combined"] or "",
+        "",
+        "형식을 반드시 지켜라. 불필요한 서두 금지.",
+    ])
+
+    model = (load_librarian_settings() or {}).get("model") or None
+    reply = _invoke_claude_cli(prompt, model=model)
+    if not reply or reply.startswith("[CLI 오류"):
+        return {"status": "llm_error", "detail": (reply or "")[:200]}
+
+    # 4) 헬스 리포트 저장
+    health_path = f"{_SYSTEM_HEALTH_FOLDER}/{today}.md"
+    try:
+        write_document(
+            path=health_path,
+            body=reply,
+            metadata={
+                "title": f"System Health {today}",
+                "kind": "activity",
+                "project": "ops/librarian",
+                "status": "active",
+                "tags": ["meta", "system-health", "sagwan-generated"],
+                "visibility": "private",
+                "owner": "sagwan",
+                "created_at": _now_iso(),
+            },
+            allow_owner_change=True,
+        )
+    except Exception as exc:
+        logger.warning("meta curation: health write failed: %s", exc)
+
+    # 5) 개선 요청 파싱 후 각각 별도 노트로 저장
+    import re as _re
+    section_match = _re.search(r"##\s*IMPROVEMENTS\s*\n(.*)", reply, _re.DOTALL | _re.IGNORECASE)
+    requests_created: list[str] = []
+    if section_match:
+        body_section = section_match.group(1)
+        # 각 ### <slug> 블록 추출
+        for m in _re.finditer(
+            r"^###\s+([a-z0-9][a-z0-9\-]{2,80})\s*\n(.*?)(?=^###\s+|\Z)",
+            body_section,
+            _re.MULTILINE | _re.DOTALL | _re.IGNORECASE,
+        ):
+            slug = m.group(1).strip().lower()
+            block = m.group(2).strip()
+            # 중복 slug 방지: 이미 존재하면 skip
+            req_path = f"{_IMPROVEMENT_REQUEST_FOLDER}/{slug}.md"
+            try:
+                _ld(req_path)
+                continue  # 이미 있음
+            except Exception:
+                pass
+            # priority/kind 추출 (간단 파싱)
+            kind_m = _re.search(r"kind:\s*`?(\w+)`?", block)
+            prio_m = _re.search(r"priority:\s*`?(\w+)`?", block)
+            try:
+                write_document(
+                    path=req_path,
+                    body=block,
+                    metadata={
+                        "title": f"Improvement Request: {slug}",
+                        "kind": "improvement-request",
+                        "project": "ops/librarian",
+                        "status": "proposed",
+                        "tags": [
+                            "meta",
+                            "improvement-request",
+                            "sagwan-generated",
+                            (kind_m.group(1) if kind_m else "unknown"),
+                            (prio_m.group(1) if prio_m else "unknown"),
+                        ],
+                        "visibility": "private",
+                        "owner": "sagwan",
+                        "created_at": _now_iso(),
+                        "review_status": "pending_human_review",
+                    },
+                    allow_owner_change=True,
+                )
+                requests_created.append(slug)
+            except Exception as exc:
+                logger.warning("meta curation: request write failed for %s: %s", slug, exc)
+
+    # 6) state 업데이트
+    now_iso = _now_iso()
+    try:
+        write_document(
+            path=_META_STATE_PATH,
+            body=f"최근 실행: {now_iso}\n생성된 개선 요청: {len(requests_created)}건\n"
+            + ("- " + "\n- ".join(requests_created) if requests_created else "(없음)"),
+            metadata={
+                **state_fm,
+                "title": "Meta Curation Activity Log",
+                "kind": "activity",
+                "project": "ops/librarian",
+                "status": "active",
+                "tags": ["sagwan", "activity", "meta-curation"],
+                "visibility": "private",
+                "owner": "sagwan",
+                "last_run_at": now_iso,
+            },
+            allow_owner_change=True,
+        )
+    except Exception as exc:
+        logger.warning("meta curation: state write failed: %s", exc)
+
+    return {
+        "status": "ok",
+        "health_path": health_path,
+        "requests_created": requests_created,
+    }
 
 
 def _find_capsule_seed() -> tuple[str, Any] | None:
