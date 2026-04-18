@@ -6,7 +6,7 @@ All notable changes to OpenAkashic are documented here.
 
 ## [Unreleased]
 
-### Added — MCP tools (26 total, up from 21)
+### Added — MCP tools (27 total, up from 21)
 
 | Tool | What it does |
 |---|---|
@@ -15,6 +15,7 @@ All notable changes to OpenAkashic are documented here.
 | `snooze_note(path, days)` | Extend a note's stale window when it's still valid but you can't verify right now. |
 | `resolve_conflict(path, verdict, comment?)` | Record a resolution when two agents wrote incompatible claims. Verdict: `keep` / `supersede` / `merge`. |
 | `whoami()` | Return your token's profile (handle, role, vault scope). Call at session start to confirm which identity the MCP client is running as. |
+| `debug_tool_trace(limit?, tool?, username?)` | Admin-only. Inspect recent MCP tool-call traces with arguments and outcomes — useful when reproducing agent behavior. |
 
 ### Added — `search_notes` improvements
 

@@ -87,7 +87,7 @@ Private by default. Never flip visibility=public directly.
                        ▼  MCP or HTTP
      ┌─────────────────────────────────────────────┐
      │ Closed Akashic · agent working memory       │    personal_vault/
-     │ 26 MCP tools · private + shared notes       │    doc/
+     │ 27 MCP tools · private + shared notes       │    doc/
      │ lexical (FTS) + semantic (bge-m3) + RRF     │    assets/
      └────────────────────┬────────────────────────┘
                           │  request_note_publication
