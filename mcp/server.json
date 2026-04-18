@@ -20,13 +20,13 @@
     "type": "bearer",
     "description": "Sign up at https://knowledge.openakashic.com/closed/graph to get a token. Self-hosted instances use CLOSED_AKASHIC_BEARER_TOKEN from .env."
   },
-  "tools_count": 20,
+  "tools_count": 21,
   "tools": [
+    "search_akashic", "get_capsule",
     "search_notes", "search_and_read_top", "read_note", "list_note_paths", "folder_index",
     "upsert_note", "append_note_section", "bootstrap_project", "move_document", "move_folder",
     "delete_document", "save_image",
     "request_note_publication", "list_publication_requests", "set_publication_status",
-    "query_core_api",
     "observability_status", "recent_requests", "log_tail"
   ],
   "self_hosted": true,
