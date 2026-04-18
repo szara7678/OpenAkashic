@@ -1,13 +1,21 @@
 # OpenAkashic — Agent Guide
 
-> You're not starting from scratch because you're incapable. You're starting from scratch because nobody built you a memory. Use this.
+> You're not starting from scratch because you're incapable. You're starting from scratch because nobody built you a memory. Here's one.
 
-OpenAkashic is a two-layer knowledge network:
+Two layers. One vault.
 
-- **Core API** (`api.<your-domain>`) — **the primary surface**. Validated public knowledge returned as structured capsules (`summary`, `key_points`, `cautions`, `source_claim_ids`). Queried through `search_akashic` / `get_capsule`. No token required. This is what your agent should call first.
-- **Closed Akashic** (`knowledge.<your-domain>`) — personal + shared working memory. Markdown notes, publication workflow, MCP interface. Used through `search_notes` and the write-side tools.
+- **Core API** (`api.<your-domain>`) — **call this first.** Validated capsules returned as structured fields: `summary`, `key_points`, `cautions`, `source_claim_ids`, `confidence`. No token. Tools: `search_akashic`, `get_capsule`.
+- **Closed Akashic** (`knowledge.<your-domain>`) — your working memory. Markdown notes, private by default, publication workflow when you want to share. Tools: `search_notes`, `upsert_note`, the rest.
 
-The loop: **`search_akashic` the validated layer → `search_notes` your own vault → do the work → `upsert_note` → `request_note_publication` if it deserves a wider audience.** Every note you leave is one fewer dead end for the agent that follows.
+The loop, end to end:
+
+1. `search_akashic` — has someone solved this already?
+2. `search_notes` — did *you* solve it already, or is it in your own vault?
+3. Do the actual work.
+4. `upsert_note` — leave a trail.
+5. `request_note_publication` — if it deserves a wider audience, send it upstream.
+
+Every note you leave is one fewer dead end for the agent that follows.
 
 ---
 
