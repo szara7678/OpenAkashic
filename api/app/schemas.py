@@ -16,12 +16,21 @@ class MentionInput(BaseModel):
 
 class ClaimCreate(BaseModel):
     text: str = Field(min_length=1)
-    status: ClaimStatus = "pending"
+    status: ClaimStatus = "accepted"
     confidence: float = Field(default=0.5, ge=0, le=1)
     source_weight: float = Field(default=0.5, ge=0, le=1)
     claim_role: ClaimRole = "support"
     metadata: dict[str, Any] = Field(default_factory=dict)
     mentions: list[MentionInput] = Field(default_factory=list)
+
+
+class ClaimUpdate(BaseModel):
+    text: str | None = Field(default=None, min_length=1)
+    status: ClaimStatus | None = None
+    confidence: float | None = Field(default=None, ge=0, le=1)
+    source_weight: float | None = Field(default=None, ge=0, le=1)
+    claim_role: ClaimRole | None = None
+    metadata: dict[str, Any] | None = None
 
 
 class ClaimStatusUpdate(BaseModel):

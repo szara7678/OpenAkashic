@@ -21,7 +21,7 @@ _CAPSULE_MODE_FIELDS = {
 }
 
 _CLAIM_MODE_FIELDS = {
-    "compact": {"id", "text", "claim_role", "confidence", "score"},
+    "compact": {"id", "text", "claim_role", "confidence", "score", "claim_review_status"},
     "standard": {
         "id",
         "text",
@@ -29,6 +29,9 @@ _CLAIM_MODE_FIELDS = {
         "status",
         "confidence",
         "source_weight",
+        "claim_review_status",
+        "confirm_count",
+        "dispute_count",
         "mentions",
         "score",
     },
@@ -136,14 +139,17 @@ def _search_claims(conn, payload: QueryRequest, normalized_query: str) -> list[d
                 c.text,
                 c.status,
                 c.confidence::float AS confidence,
-                c.source_weight::float AS source_weight,
-                c.claim_role,
-                c.metadata,
-                c.created_at,
-                c.updated_at,
-                (
-                    ts_rank_cd(c.search_vector, q.tsq) * 0.55
-                    + greatest(similarity(lower(c.text), q.nq), 0) * 0.35
+                    c.source_weight::float AS source_weight,
+                    c.claim_role,
+                    c.metadata,
+                    coalesce(c.metadata->>'claim_review_status', 'unreviewed') AS claim_review_status,
+                    greatest(coalesce((c.metadata->>'confirm_count')::int, 0), 0) AS confirm_count,
+                    greatest(coalesce((c.metadata->>'dispute_count')::int, 0), 0) AS dispute_count,
+                    c.created_at,
+                    c.updated_at,
+                    (
+                        ts_rank_cd(c.search_vector, q.tsq) * 0.55
+                        + greatest(similarity(lower(c.text), q.nq), 0) * 0.35
                     + CASE WHEN lower(c.text) ILIKE '%%' || q.nq || '%%' THEN 0.25 ELSE 0 END
                     + coalesce(mh.mention_boost, 0)
                     + c.confidence * 0.08
@@ -154,6 +160,15 @@ def _search_claims(conn, payload: QueryRequest, normalized_query: str) -> list[d
                         WHEN 'caution' THEN 0.02
                         ELSE 0
                       END
+                    + CASE coalesce(c.metadata->>'claim_review_status', 'unreviewed')
+                        WHEN 'confirmed' THEN 0.14
+                        WHEN 'disputed' THEN -0.18
+                        WHEN 'superseded' THEN -0.42
+                        WHEN 'merged' THEN -0.30
+                        ELSE 0
+                      END
+                    + LEAST(greatest(coalesce((c.metadata->>'confirm_count')::int, 0), 0), 12) * 0.015
+                    - LEAST(greatest(coalesce((c.metadata->>'dispute_count')::int, 0), 0), 12) * 0.035
                 )::float AS score
             FROM claims c
             CROSS JOIN q

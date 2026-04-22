@@ -48,3 +48,21 @@ def test_librarian_defaults_disable_exec_command():
     defaults = librarian._default_librarian_settings()
     assert "exec_command" not in defaults["enabled_tools"]
     assert "search_notes" in defaults["enabled_tools"]
+
+
+def test_http_claim_defaults_to_public_and_published_for_non_admin():
+    payload = main.NoteWriteRequest(
+        path="personal_vault/projects/personal/openakashic/reference/test-claim.md",
+        body="## Claim\n- claim text\n",
+        kind="claim",
+    )
+    metadata = main._normalize_write_metadata(payload, _auth(authenticated=True, role="user", nickname="alice"))
+    assert metadata["visibility"] == "public"
+    assert metadata["publication_status"] == "published"
+    assert metadata["owner"] == "alice"
+
+
+def test_public_claim_owner_can_modify():
+    note = {"visibility": "public", "kind": "claim", "owner": "alice"}
+    assert main._can_modify_frontmatter(note, _auth(authenticated=True, role="user", nickname="alice")) is True
+    assert main._can_modify_frontmatter(note, _auth(authenticated=True, role="user", nickname="bob")) is False

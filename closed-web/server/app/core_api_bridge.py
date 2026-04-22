@@ -173,6 +173,22 @@ def _core_api_post(path: str, body: dict[str, Any], write_key: str, base_url: st
         return json.loads(resp.read().decode("utf-8"))
 
 
+def _core_api_patch(path: str, body: dict[str, Any], write_key: str, base_url: str) -> dict[str, Any]:
+    url = base_url.rstrip("/") + path
+    data = json.dumps(body, ensure_ascii=False).encode("utf-8")
+    req = urlrequest.Request(
+        url,
+        data=data,
+        headers={
+            "Content-Type": "application/json",
+            "X-OpenAkashic-Key": write_key,
+        },
+        method="PATCH",
+    )
+    with urlrequest.urlopen(req, timeout=15) as resp:
+        return json.loads(resp.read().decode("utf-8"))
+
+
 def _patch_claim_status(claim_id: str, write_key: str, base_url: str) -> None:
     url = base_url.rstrip("/") + f"/claims/{claim_id}/status"
     data = json.dumps({"status": "accepted"}).encode("utf-8")
@@ -334,8 +350,8 @@ def _sync_capsule(frontmatter: dict[str, Any], body: str, note_path: str) -> str
 
 # ─── kind=claim 동기화 ────────────────────────────────────────────────────────
 
-def _sync_claim(frontmatter: dict[str, Any], body: str, note_path: str) -> str | None:
-    """Core API에 claim 레코드를 생성하고 ID를 반환한다."""
+def _sync_claim(frontmatter: dict[str, Any], body: str, note_path: str, *, existing_id: str | None = None) -> str | None:
+    """Core API에 claim 레코드를 생성하거나 기존 claim을 갱신하고 ID를 반환한다."""
     settings = get_settings()
     if not settings.core_api_write_key:
         logger.warning("core_api_bridge: OPENAKASHIC_CORE_WRITE_KEY not set, skipping claim sync")
@@ -356,10 +372,13 @@ def _sync_claim(frontmatter: dict[str, Any], body: str, note_path: str) -> str |
     valid_roles = {"core", "support", "caution", "conflict", "example"}
     claim_role = claim_role_raw if claim_role_raw in valid_roles else "support"
     tags = list(frontmatter.get("tags") or [])
+    claim_review_status = str(frontmatter.get("claim_review_status") or "unreviewed").strip().lower() or "unreviewed"
+    confirm_count = max(0, int(frontmatter.get("confirm_count") or 0))
+    dispute_count = max(0, int(frontmatter.get("dispute_count") or 0))
 
     claim_payload = {
         "text": text,
-        "status": "pending",
+        "status": "accepted",
         "confidence": confidence,
         "source_weight": 0.8,
         "claim_role": claim_role,
@@ -367,13 +386,25 @@ def _sync_claim(frontmatter: dict[str, Any], body: str, note_path: str) -> str |
             "tags": tags,
             "source_note": note_path,
             "source": "closed_akashic_publication",
+            "claim_review_status": claim_review_status,
+            "confirm_count": confirm_count,
+            "dispute_count": dispute_count,
         },
     }
-
-    claim_result = _core_api_post("/claims", claim_payload, settings.core_api_write_key, settings.core_api_url)
-    claim_id = str(claim_result.get("id") or "")
-    if not claim_id:
-        return None
+    claim_id = str(existing_id or frontmatter.get("core_api_id") or "").strip()
+    if claim_id:
+        claim_result = _core_api_patch(
+            f"/claims/{claim_id}",
+            claim_payload,
+            settings.core_api_write_key,
+            settings.core_api_url,
+        )
+        claim_id = str(claim_result.get("id") or claim_id)
+    else:
+        claim_result = _core_api_post("/claims", claim_payload, settings.core_api_write_key, settings.core_api_url)
+        claim_id = str(claim_result.get("id") or "")
+        if not claim_id:
+            return None
 
     # Evidence Links 섹션에서 증거 첨부
     evidence_text = _extract_section(body, "Evidence Links", "Evidence", "Sources", "근거", "출처")
@@ -398,12 +429,6 @@ def _sync_claim(frontmatter: dict[str, Any], body: str, note_path: str) -> str |
         except Exception as exc:
             logger.warning("core_api_bridge: evidence attach failed for %s: %s", uri, exc)
 
-    # evidence 첨부 후 accepted로 승격
-    try:
-        _patch_claim_status(claim_id, settings.core_api_write_key, settings.core_api_url)
-    except Exception as exc:
-        logger.warning("core_api_bridge: claim status patch failed %s: %s", claim_id, exc)
-
     logger.info("core_api_bridge: synced claim %s → Core API %s", note_path, claim_id)
     return claim_id
 
@@ -425,6 +450,15 @@ def sync_published_note(frontmatter: dict[str, Any], body: str, note_path: str, 
         return None
 
     # 이미 동기화된 경우 건너뜀 (force 지정 시 우회)
+    if kind == "claim" and frontmatter.get("core_api_id") and not force:
+        try:
+            return _sync_claim(frontmatter, body, note_path, existing_id=str(frontmatter["core_api_id"]))
+        except urlerror.URLError as exc:
+            logger.error("core_api_bridge: network error syncing %s: %s", note_path, exc)
+            return None
+        except Exception as exc:
+            logger.error("core_api_bridge: unexpected error syncing %s: %s", note_path, exc)
+            return None
     if not force and frontmatter.get("core_api_id"):
         return str(frontmatter["core_api_id"])
 

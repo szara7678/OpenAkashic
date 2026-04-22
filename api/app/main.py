@@ -12,6 +12,7 @@ from app.retrieval import query_memory
 from app.schemas import (
     CapsuleCreate,
     ClaimCreate,
+    ClaimUpdate,
     ClaimStatusUpdate,
     EntityCreate,
     EvidenceCreate,
@@ -74,11 +75,6 @@ def query(payload: QueryRequest) -> dict[str, Any]:
 
 @app.post("/claims", dependencies=[Depends(require_write_key)])
 def create_claim(payload: ClaimCreate) -> dict[str, Any]:
-    if payload.status == "accepted":
-        raise HTTPException(
-            status_code=409,
-            detail="Create claims as pending, attach evidence, then PATCH /claims/{id}/status to accepted",
-        )
     data = payload.model_dump(exclude={"mentions"})
     data["metadata"] = Jsonb(data["metadata"])
     with get_conn() as conn:
@@ -159,14 +155,54 @@ def get_claim(claim_id: UUID) -> dict[str, Any]:
     return json_ready(claim)
 
 
+@app.patch("/claims/{claim_id}", dependencies=[Depends(require_write_key)])
+def update_claim(claim_id: UUID, payload: ClaimUpdate) -> dict[str, Any]:
+    patch = payload.model_dump(exclude_unset=True)
+    if not patch:
+        raise HTTPException(status_code=400, detail="No claim fields provided")
+    assignments: list[str] = []
+    values: dict[str, Any] = {"id": claim_id}
+    if "text" in patch:
+        assignments.append("text = %(text)s")
+        values["text"] = patch["text"]
+    if "status" in patch:
+        assignments.append("status = %(status)s")
+        values["status"] = patch["status"]
+    if "confidence" in patch:
+        assignments.append("confidence = %(confidence)s")
+        values["confidence"] = patch["confidence"]
+    if "source_weight" in patch:
+        assignments.append("source_weight = %(source_weight)s")
+        values["source_weight"] = patch["source_weight"]
+    if "claim_role" in patch:
+        assignments.append("claim_role = %(claim_role)s")
+        values["claim_role"] = patch["claim_role"]
+    if "metadata" in patch:
+        assignments.append("metadata = %(metadata)s")
+        values["metadata"] = Jsonb(patch["metadata"] or {})
+    with get_conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                f"""
+                UPDATE claims
+                SET {", ".join(assignments)}
+                WHERE id = %(id)s
+                RETURNING id, text, status, confidence::float AS confidence, source_weight::float AS source_weight,
+                          claim_role, metadata, created_at, updated_at
+                """,
+                values,
+            )
+            claim = cur.fetchone()
+            if not claim:
+                raise HTTPException(status_code=404, detail="Claim not found")
+        conn.commit()
+    return json_ready(dict(claim))
+
+
 @app.patch("/claims/{claim_id}/status", dependencies=[Depends(require_write_key)])
 def update_claim_status(claim_id: UUID, payload: ClaimStatusUpdate) -> dict[str, Any]:
     with get_conn() as conn:
         with conn.cursor() as cur:
-            if payload.status == "accepted":
-                cur.execute("SELECT count(*) AS count FROM evidences WHERE claim_id = %(id)s", {"id": claim_id})
-                if cur.fetchone()["count"] < 1:
-                    raise HTTPException(status_code=409, detail="Accepted claims require at least one evidence")
             cur.execute(
                 """
                 UPDATE claims

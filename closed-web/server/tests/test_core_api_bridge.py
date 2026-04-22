@@ -160,7 +160,6 @@ def test_sync_claim_without_evidence_uses_public_fallback(fake_settings, monkeyp
         return {"id": "ev-1"}
 
     monkeypatch.setattr(bridge, "_core_api_post", _fake_post)
-    monkeypatch.setattr(bridge, "_patch_claim_status", lambda *a, **k: None)
 
     result = bridge.sync_published_note(
         frontmatter={
@@ -177,6 +176,7 @@ def test_sync_claim_without_evidence_uses_public_fallback(fake_settings, monkeyp
     assert claim_post[1]["claim_role"] == "core"
     assert claim_post[1]["confidence"] == pytest.approx(0.7)
     assert claim_post[1]["text"] == "이 시스템은 X를 보장한다."
+    assert claim_post[1]["status"] == "accepted"
 
     evidence_posts = [c for c in calls if c[0] == "/evidences"]
     assert evidence_posts, "fallback evidence가 반드시 붙어야 한다"
@@ -195,7 +195,6 @@ def test_sync_claim_invalid_role_defaults_to_support(fake_settings, monkeypatch)
         return {"id": "e-1"}
 
     monkeypatch.setattr(bridge, "_core_api_post", _fake_post)
-    monkeypatch.setattr(bridge, "_patch_claim_status", lambda *a, **k: None)
     bridge.sync_published_note(
         frontmatter={
             "kind": "claim",
@@ -205,6 +204,41 @@ def test_sync_claim_invalid_role_defaults_to_support(fake_settings, monkeypatch)
         note_path="personal_vault/c.md",
     )
     assert captured["claim_role"] == "support"
+
+
+def test_sync_claim_updates_existing_core_api_record(fake_settings, monkeypatch):
+    patched: list[tuple[str, dict]] = []
+    evidences: list[tuple[str, dict]] = []
+
+    def _fake_patch(path, payload, write_key, base_url):
+        patched.append((path, payload))
+        return {"id": "claim-existing"}
+
+    def _fake_post(path, payload, write_key, base_url):
+        evidences.append((path, payload))
+        return {"id": "ev-1"}
+
+    monkeypatch.setattr(bridge, "_core_api_patch", _fake_patch)
+    monkeypatch.setattr(bridge, "_core_api_post", _fake_post)
+    result = bridge.sync_published_note(
+        frontmatter={
+            "kind": "claim",
+            "core_api_id": "claim-existing",
+            "claim_review_status": "disputed",
+            "confirm_count": 2,
+            "dispute_count": 1,
+        },
+        body="## Claim\n기존 Core claim 업데이트 테스트.\n",
+        note_path="personal_vault/existing-claim.md",
+    )
+    assert result == "claim-existing"
+    assert patched
+    path, payload = patched[0]
+    assert path == "/claims/claim-existing"
+    assert payload["metadata"]["claim_review_status"] == "disputed"
+    assert payload["metadata"]["confirm_count"] == 2
+    assert payload["metadata"]["dispute_count"] == 1
+    assert any(call[0] == "/evidences" for call in evidences)
 
 
 def test_sync_swallows_network_errors(fake_settings, monkeypatch, caplog):

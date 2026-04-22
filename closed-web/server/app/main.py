@@ -432,6 +432,8 @@ def _can_read_frontmatter(frontmatter: dict[str, Any], auth: AuthState) -> bool:
 
 def _can_modify_frontmatter(frontmatter: dict[str, Any], auth: AuthState) -> bool:
     if _note_visibility(frontmatter) == "public":
+        if str(frontmatter.get("kind") or "").strip().lower() == "claim":
+            return auth.authenticated and (_is_admin(auth) or _note_owner(frontmatter) == auth.nickname)
         return _is_admin(auth)
     return auth.authenticated and (_is_admin(auth) or _note_owner(frontmatter) == auth.nickname)
 
@@ -485,13 +487,20 @@ def _normalize_write_metadata(payload: NoteWriteRequest, auth: AuthState) -> dic
         is_existing = True
     except (FileNotFoundError, ValueError):
         existing_frontmatter = {}
+    resolved_kind = str(
+        payload.kind or metadata.get("kind") or existing_frontmatter.get("kind") or "reference"
+    ).strip().lower()
+    explicit_visibility = "visibility" in metadata and str(metadata.get("visibility") or "").strip() != ""
 
     requested_visibility = str(
         metadata.get("visibility") or existing_frontmatter.get("visibility") or settings.default_note_visibility
     ).strip().lower().replace("-", "_")
+    if resolved_kind == "claim" and not is_existing and not explicit_visibility:
+        requested_visibility = "public"
     if requested_visibility not in {"private", "public", "shared"}:
         requested_visibility = "private"
-    if not _is_admin(auth) and requested_visibility == "public":
+    direct_public_claim = resolved_kind == "claim" and requested_visibility == "public"
+    if not _is_admin(auth) and requested_visibility == "public" and not direct_public_claim:
         metadata["publication_target_visibility"] = "public"
         requested_visibility = "private"
     metadata["visibility"] = requested_visibility
@@ -500,10 +509,10 @@ def _normalize_write_metadata(payload: NoteWriteRequest, auth: AuthState) -> dic
         if not _can_modify_frontmatter(existing_frontmatter, auth):
             raise HTTPException(status_code=403, detail="Notes can only be modified by their owner or an admin")
         owner = _note_owner(existing_frontmatter)
-        if requested_visibility == "public" and _is_admin(auth):
+        if requested_visibility == "public" and _is_admin(auth) and not direct_public_claim:
             metadata.setdefault("original_owner", existing_frontmatter.get("original_owner") or owner)
             owner = SAGWAN_SYSTEM_OWNER
-        elif requested_visibility == "public":
+        elif requested_visibility == "public" and not direct_public_claim:
             # non-admin: force private + publication request
             requested_visibility = "private"
             metadata["visibility"] = "private"
@@ -511,11 +520,11 @@ def _normalize_write_metadata(payload: NoteWriteRequest, auth: AuthState) -> dic
         metadata["owner"] = owner
     else:
         metadata["created_by"] = metadata.get("created_by") or auth.nickname
-        if requested_visibility == "public" and _is_admin(auth):
+        if requested_visibility == "public" and _is_admin(auth) and not direct_public_claim:
             metadata["owner"] = SAGWAN_SYSTEM_OWNER
         else:
             metadata["owner"] = auth.nickname
-            if requested_visibility == "public":
+            if requested_visibility == "public" and not direct_public_claim:
                 # non-admin: force private + publication request
                 requested_visibility = "private"
                 metadata["visibility"] = "private"
@@ -524,9 +533,12 @@ def _normalize_write_metadata(payload: NoteWriteRequest, auth: AuthState) -> dic
     publication_status = str(
         metadata.get("publication_status") or existing_frontmatter.get("publication_status") or "none"
     ).strip().lower().replace("-", "_")
-    if not _is_admin(auth) and metadata.get("publication_target_visibility") == "public":
+    if direct_public_claim:
+        publication_status = "published"
+        metadata.pop("publication_target_visibility", None)
+    elif not _is_admin(auth) and metadata.get("publication_target_visibility") == "public":
         publication_status = "requested"
-    if not _is_admin(auth) and publication_status not in {"none", "requested"}:
+    if not _is_admin(auth) and not direct_public_claim and publication_status not in {"none", "requested"}:
         raise HTTPException(status_code=403, detail="Users can only set publication status to none or requested")
     metadata["publication_status"] = publication_status or "none"
     return metadata
@@ -1439,11 +1451,31 @@ def api_upsert_note(
             allow_owner_change=metadata.get("owner") == "sagwan" and metadata.get("visibility") == "public",
         )
         publication_request_data: dict[str, Any] | None = None
+        core_api_id: str | None = None
+        direct_public_claim = (
+            str(document.frontmatter.get("kind") or "").strip().lower() == "claim"
+            and str(document.frontmatter.get("visibility") or "").strip().lower() == "public"
+        )
         wants_publication = not _is_admin(auth) and (
             str((payload.metadata or {}).get("visibility") or "").strip().lower() == "public"
             or str(metadata.get("publication_status") or "").strip().lower() == "requested"
         )
-        if wants_publication:
+        if direct_public_claim:
+            core_api_id = sync_published_note(
+                frontmatter=document.frontmatter,
+                body=document.body,
+                note_path=document.path,
+            )
+            if core_api_id and str(document.frontmatter.get("core_api_id") or "") != core_api_id:
+                fm = dict(document.frontmatter)
+                fm["core_api_id"] = core_api_id
+                document = write_document(
+                    path=document.path,
+                    body=document.body,
+                    metadata=fm,
+                    allow_owner_change=True,
+                )
+        elif wants_publication:
             request = request_publication(
                 path=document.path,
                 requester=auth.nickname,
@@ -1464,6 +1496,7 @@ def api_upsert_note(
         "path": document.path,
         "note": result,
         "publication_request": publication_request_data,
+        "core_api_id": core_api_id,
         "warnings": warnings,
     }
 

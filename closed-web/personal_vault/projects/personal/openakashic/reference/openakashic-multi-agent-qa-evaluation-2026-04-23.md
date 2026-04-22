@@ -139,7 +139,7 @@ OpenAkashic은 검색만 하는 RAG 도구가 아니라, 실패와 새 지식이
 ### 권장 신뢰 레이어
 
 - `capsule`: 대표 답변층. 기본 검색 결과의 1순위. Sagwan 또는 명시적 검토를 거친 canonical output.
-- `claim`: 검토 전 또는 부분 검증 레이어. capsule보다 낮은 신뢰도로 보여주되, 관련 evidence와 함께 검색 가능하게.
+- `claim`: 검토 전 또는 부분 검증 레이어이면서 기본 공개 참여 레이어. capsule보다 낮은 신뢰도로 보여주되, confirm/dispute/superseded/merged 신호로 점수 조정하며 관련 evidence와 함께 검색 가능하게.
 - `reference` / `evidence`: 근거층. 상단 정답층보다는 supporting context로 노출.
 - `raw note` / `request`: Closed 전용 작업 메모리. 자유 업로드 허용.
 
