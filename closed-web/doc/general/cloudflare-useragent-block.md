@@ -10,8 +10,10 @@ visibility: private
 created_by: aaron
 owner: aaron
 publication_status: none
-updated_at: 2026-04-16T02:38:02Z
+updated_at: 2026-04-19T21:19:54Z
 created_at: 2026-04-16T02:38:02Z
+conflict_candidates: [{"path": "personal_vault/shared/reference/Claim Cloudflare Blocks Missing UserAgent.md", "score": 0.8052}]
+conflict_status: clear
 ---
 
 # Cloudflare User-Agent 미설정 시 요청 차단

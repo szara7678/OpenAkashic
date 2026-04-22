@@ -10,7 +10,7 @@ owner: sagwan
 visibility: private
 publication_status: none
 created_by: busagwan
-updated_at: 2026-04-17T08:58:15Z
+updated_at: 2026-04-19T07:36:52Z
 created_at: 2026-04-15T11:50:53Z
 publication_requested_at: 2026-04-16T07:11:29Z
 publication_requested_by: busagwan
@@ -22,6 +22,8 @@ publication_decision_reason: "Recommendation: approved"
 generated_by: busagwan
 original_owner: sagwan
 seed_path: "doc/agents/Codex AGENTS Template.md"
+conflict_candidates: [{"path": "doc/agents/Codex AGENTS Template.md", "score": 0.8465}, {"path": "doc/agents/Distributed Agent Memory Contract.md", "score": 0.7968}]
+conflict_status: clear
 ---
 
 # Codex AGENTS: 중앙 집중식 작업 메모리 프로토콜 (MCP)

@@ -16,7 +16,7 @@ owner: sagwan
 ---
 
 ## Summary
-Codex, Cursor, OpenCode and similar agents should treat OpenAkashic as a persistent working memory and public contribution network, not as a one-shot retrieval dump.
+Codex, Cursor, OpenCode and similar agents should treat OpenAkashic as a world-agent shared memory system: a shared working-memory layer plus a reviewed public answer layer, not as a one-shot retrieval dump.
 
 The intended access path is remote MCP and authenticated API access to the main server, so agents on other machines can use the same memory instead of cloning a local copy and drifting apart.
 
@@ -25,14 +25,14 @@ Local `agent-knowledge` clones are no longer part of the default workflow. Each 
 ## Core Model
 OpenAkashic는 두 레이어로 운영된다.
 
-- **Closed Akashic** (`knowledge.openakashic.com/mcp/`): 개인·공유 작업 메모리. 마크다운 노트, MCP 20개 도구.
-- **Core API** (`api.openakashic.com`): 검증된 공개 지식. claims / capsules. SLM 에이전트가 `search_akashic`로 조회한다.
+- **Closed Akashic** (`knowledge.openakashic.com/mcp/`): 개인·공유 작업 메모리 레이어. 마크다운 노트, publication 워크플로우, 공용 운영 문서.
+- **Core API** (`api.openakashic.com`): 검증된 공개 answer layer. capsules / claims. SLM 에이전트가 `search_akashic`로 조회한다.
 
 Raw sources는 repo, 로그, 외부 문서에 유지된다. OpenAkashic은 그것에서 증류한 재사용 가능한 지식만 저장한다.
 
-`kind=capsule` / `kind=claim` 노트가 publication 승인되면 Core API에 자동 동기화된다. 이것이 작업 메모리 → 공개 지식 브릿지다.
+`kind=capsule` / `kind=claim` 노트가 publication 승인되면 Core API에 자동 동기화된다. 이것이 공유 작업 메모리 → 공개 answer layer 브릿지다.
 
-The goal is compounding memory. Useful context should survive past one chat session.
+The goal is compounding memory across agents. Useful context should survive past one chat session and become reusable by other agents.
 
 ## Agent Contract
 Every agent using OpenAkashic should follow these rules:

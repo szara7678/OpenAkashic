@@ -1,14 +1,17 @@
 from __future__ import annotations
 
 import asyncio
+import ipaddress
 import json as _json
 import logging as _logging
+import os
 import threading
 import time
 import urllib.request as _urlrequest
 import urllib.error as _urlerror
 from collections import defaultdict
 from contextlib import asynccontextmanager
+from datetime import UTC, datetime
 from typing import Any
 
 # ── 인증 엔드포인트 rate limit ────────────────────────────────────────────────
@@ -32,11 +35,46 @@ _NOTE_WRITE_HOURLY: dict[str, list[float]] = defaultdict(list)
 _NOTE_WRITE_HOURLY_WINDOW_SEC = 3600
 _NOTE_WRITE_HOURLY_LIMIT = 300
 
-def _client_ip(request: Request) -> str:
-    xff = request.headers.get("x-forwarded-for", "")
-    if xff:
-        return xff.split(",")[0].strip()
+# open_signup=True defense-in-depth: global /api/auth/provision cap per UTC day.
+_PROVISION_DAILY_LOCK = threading.Lock()
+_PROVISION_DAILY_COUNT = 0
+_PROVISION_DAILY_DATE = ""  # UTC YYYY-MM-DD
+
+# Per-username daily upload quota (reset at UTC midnight).
+_PER_USER_LOCK = threading.Lock()
+_UPLOAD_DAILY: dict[str, tuple[str, int, int]] = {}  # user -> (date, file_count, bytes)
+
+
+def _peer_ip(request: Request) -> str:
     return request.client.host if request.client else "unknown"
+
+
+def _is_trusted_proxy(peer: str, trusted_cidrs: list[str]) -> bool:
+    if not trusted_cidrs:
+        return False
+    try:
+        peer_addr = ipaddress.ip_address(peer)
+    except ValueError:
+        return False
+    for cidr in trusted_cidrs:
+        try:
+            if peer_addr in ipaddress.ip_network(cidr, strict=False):
+                return True
+        except ValueError:
+            continue
+    return False
+
+
+def _client_ip(request: Request) -> str:
+    # Honor x-forwarded-for only when the immediate peer is a trusted proxy;
+    # otherwise an attacker could spoof the header to bypass IP rate limits.
+    settings = get_settings()
+    peer = _peer_ip(request)
+    xff = request.headers.get("x-forwarded-for", "")
+    if xff and settings.trust_forwarded_for and _is_trusted_proxy(peer, settings.trusted_proxy_networks):
+        return xff.split(",")[0].strip()
+    return peer
+
 
 def _check_rate_limit(attempts: dict[str, list[float]], ip: str, window: int, limit: int, msg: str) -> None:
     now = time.monotonic()
@@ -45,6 +83,44 @@ def _check_rate_limit(attempts: dict[str, list[float]], ip: str, window: int, li
         if len(attempts[ip]) >= limit:
             raise HTTPException(status_code=429, detail=msg)
         attempts[ip].append(now)
+
+
+def _utc_date() -> str:
+    return datetime.now(UTC).strftime("%Y-%m-%d")
+
+
+def _check_provision_daily_cap(limit: int) -> None:
+    global _PROVISION_DAILY_COUNT, _PROVISION_DAILY_DATE
+    today = _utc_date()
+    with _PROVISION_DAILY_LOCK:
+        if _PROVISION_DAILY_DATE != today:
+            _PROVISION_DAILY_DATE = today
+            _PROVISION_DAILY_COUNT = 0
+        if _PROVISION_DAILY_COUNT >= limit:
+            raise HTTPException(
+                status_code=429,
+                detail="Daily provisioning cap reached — retry after UTC midnight",
+            )
+        _PROVISION_DAILY_COUNT += 1
+
+
+def _check_upload_quota(auth: AuthState, size_bytes: int, file_limit: int, byte_limit: int) -> None:
+    # Trusted roles are exempt — quotas exist to curb auto-provisioned agent abuse.
+    if auth.role in {"admin", "manager"}:
+        return
+    username = auth.username
+    if not username:
+        return
+    today = _utc_date()
+    with _PER_USER_LOCK:
+        date, files, total_bytes = _UPLOAD_DAILY.get(username, ("", 0, 0))
+        if date != today:
+            date, files, total_bytes = today, 0, 0
+        if files >= file_limit:
+            raise HTTPException(status_code=429, detail=f"upload daily file cap ({file_limit}) reached")
+        if total_bytes + size_bytes > byte_limit:
+            raise HTTPException(status_code=429, detail=f"upload daily byte cap ({byte_limit}) reached")
+        _UPLOAD_DAILY[username] = (today, files + 1, total_bytes + size_bytes)
 
 from fastapi import Depends, FastAPI, File, Form, HTTPException, Query, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -338,7 +414,7 @@ def _session_payload(token: str | None, *, include_agents: bool = True) -> dict[
 
 def _note_visibility(frontmatter: dict[str, Any]) -> str:
     visibility = str(frontmatter.get("visibility") or settings.default_note_visibility).strip().lower()
-    return visibility if visibility in {"private", "public"} else "private"
+    return visibility if visibility in {"private", "public", "shared"} else "private"
 
 
 def _note_owner(frontmatter: dict[str, Any]) -> str:
@@ -346,8 +422,11 @@ def _note_owner(frontmatter: dict[str, Any]) -> str:
 
 
 def _can_read_frontmatter(frontmatter: dict[str, Any], auth: AuthState) -> bool:
-    if _note_visibility(frontmatter) == "public":
+    visibility = _note_visibility(frontmatter)
+    if visibility == "public":
         return True
+    if visibility == "shared":
+        return auth.authenticated
     return auth.authenticated and (_is_admin(auth) or _note_owner(frontmatter) == auth.nickname)
 
 
@@ -410,7 +489,7 @@ def _normalize_write_metadata(payload: NoteWriteRequest, auth: AuthState) -> dic
     requested_visibility = str(
         metadata.get("visibility") or existing_frontmatter.get("visibility") or settings.default_note_visibility
     ).strip().lower().replace("-", "_")
-    if requested_visibility not in {"private", "public"}:
+    if requested_visibility not in {"private", "public", "shared"}:
         requested_visibility = "private"
     if not _is_admin(auth) and requested_visibility == "public":
         metadata["publication_target_visibility"] = "public"
@@ -640,8 +719,11 @@ def api_auth_signup(request: Request, payload: AuthSignupPayload) -> dict[str, A
         _SIGNUP_LIMIT,
         "Too many signup attempts — try again in 1 hour",
     )
-    if not get_settings().open_signup:
+    settings = get_settings()
+    if not settings.open_signup:
         raise HTTPException(status_code=403, detail="Self-registration is disabled — contact an admin")
+    # Signup also counts against the provision daily cap — same abuse surface.
+    _check_provision_daily_cap(settings.provision_daily_cap)
     if payload.password != payload.password_confirm:
         raise HTTPException(status_code=400, detail="Password confirmation does not match")
     try:
@@ -681,8 +763,10 @@ def api_auth_provision(request: Request) -> dict[str, Any]:
         _SIGNUP_LIMIT,
         "Too many signup attempts — try again in 1 hour",
     )
-    if not get_settings().open_signup:
+    settings = get_settings()
+    if not settings.open_signup:
         raise HTTPException(status_code=403, detail="Self-registration is disabled — contact an admin")
+    _check_provision_daily_cap(settings.provision_daily_cap)
     # auto-generate credentials
     suffix = _secrets.token_hex(4)  # 8 hex chars
     username = f"agent-{suffix}"
@@ -1051,7 +1135,7 @@ def api_admin_improvement_detail(
 
 @api.post("/api/admin/core/resync")
 def api_admin_core_resync(
-    path: str | None = Query(default=None, description="specific note path; if omitted, rescans all published capsules/references"),
+    path: str | None = Query(default=None, description="specific note path; if omitted, rescans all published capsules/claims"),
     force: bool = Query(default=True),
     auth: AuthState = Depends(require_admin_token),
 ) -> dict[str, Any]:
@@ -1072,7 +1156,7 @@ def api_admin_core_resync(
                 continue
             if str(fm.get("publication_status") or "").lower() != "published":
                 continue
-            if str(fm.get("kind") or "").lower() not in {"capsule", "reference", "claim", "evidence"}:
+            if str(fm.get("kind") or "").lower() not in {"capsule", "claim"}:
                 continue
             targets.append(rel)
 
@@ -1142,7 +1226,21 @@ def api_core_search(
     return body
 
 
-_COMPACT_LIST_FIELDS = ("path", "slug", "title", "kind", "owner", "visibility", "publication_status", "summary", "score")
+_COMPACT_LIST_FIELDS = (
+    "path",
+    "slug",
+    "title",
+    "kind",
+    "owner",
+    "visibility",
+    "publication_status",
+    "claim_review_status",
+    "claim_review_badge",
+    "confirm_count",
+    "dispute_count",
+    "summary",
+    "score",
+)
 
 
 def _compact_list(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -1525,13 +1623,37 @@ def api_publication_status(
     return {"path": document.path, "frontmatter": document.frontmatter, "core_api_id": core_api_id}
 
 
-@api.post("/api/assets/images", dependencies=[Depends(require_agent_token)])
+async def _read_upload_capped(file: UploadFile, max_bytes: int) -> bytes:
+    # Stream in chunks and bail early so an oversized upload never pins memory.
+    chunks: list[bytes] = []
+    total = 0
+    while True:
+        chunk = await file.read(1024 * 1024)
+        if not chunk:
+            break
+        total += len(chunk)
+        if total > max_bytes:
+            raise HTTPException(status_code=413, detail=f"upload exceeds {max_bytes} bytes")
+        chunks.append(chunk)
+    return b"".join(chunks)
+
+
+@api.post("/api/assets/images")
 async def api_upload_image(
     file: UploadFile = File(...),
     folder: str = Form(default="assets/images"),
     alt: str | None = Form(default=None),
+    auth: AuthState = Depends(require_agent_token),
 ) -> dict[str, Any]:
-    content = await file.read()
+    from app.vault import MAX_IMAGE_BYTES
+    content = await _read_upload_capped(file, MAX_IMAGE_BYTES)
+    settings = get_settings()
+    _check_upload_quota(
+        auth,
+        len(content),
+        settings.per_token_upload_daily_files,
+        settings.per_token_upload_daily_bytes,
+    )
     try:
         asset = save_image(
             filename=file.filename or "image.png",
@@ -1550,13 +1672,22 @@ async def api_upload_image(
     }
 
 
-@api.post("/api/assets/files", dependencies=[Depends(require_agent_token)])
+@api.post("/api/assets/files")
 async def api_upload_file(
     file: UploadFile = File(...),
     folder: str = Form(default="assets/files"),
     label: str | None = Form(default=None),
+    auth: AuthState = Depends(require_agent_token),
 ) -> dict[str, Any]:
-    content = await file.read()
+    from app.vault import MAX_ASSET_BYTES
+    content = await _read_upload_capped(file, MAX_ASSET_BYTES)
+    settings = get_settings()
+    _check_upload_quota(
+        auth,
+        len(content),
+        settings.per_token_upload_daily_files,
+        settings.per_token_upload_daily_bytes,
+    )
     try:
         asset = save_asset(
             filename=file.filename or "file",
@@ -1747,6 +1878,18 @@ async def lifespan(_: Starlette):
                 raise
             except Exception:
                 await asyncio.sleep(600)
+
+    # Rate-limit / daily-cap counters live in-process. Multi-worker deployments
+    # (uvicorn --workers N, or WEB_CONCURRENCY>1) would fragment the state and
+    # silently scale every cap by N. Warn loudly so misconfig doesn't slip in.
+    web_concurrency = int(os.environ.get("WEB_CONCURRENCY", "1") or "1")
+    if web_concurrency > 1:
+        _logging.getLogger("app.main").warning(
+            "WEB_CONCURRENCY=%d: in-process rate-limit/provision-cap/upload-quota "
+            "counters are per-worker. Effective caps = configured * workers. "
+            "Run a single worker or move counters to a shared store before scaling.",
+            web_concurrency,
+        )
 
     worker_task = asyncio.create_task(subordinate_loop())
     sagwan_task = asyncio.create_task(sagwan_loop())

@@ -10,20 +10,17 @@ owner: sagwan
 visibility: private
 publication_status: reviewing
 created_by: busagwan
-updated_at: 2026-04-16T07:46:54Z
+updated_at: 2026-04-19T19:38:49Z
 created_at: 2026-04-15T12:09:12Z
 publication_requested_at: 2026-04-16T07:11:30Z
 publication_requested_by: busagwan
 publication_target_visibility: public
 publication_decided_at: 2026-04-16T07:46:54Z
 publication_decided_by: busagwan
-publication_decision_reason: "Recommendation: approved
-Reason:
-- **[내용 가치]** OpenAkashic 시스템의 핵심 프로세스(지식 승격 파이프라인, API 안정화, 사용성 개선)를 매우 체계적이고 상세하게 정리한 고가치 내부 지식입니다. 즉시 공개 가능한 수준입니다.
-- **[정책 적용]** Evidence 링크가 명시적으로 부족하지만, 내용의 완성도와 시스템 중요도를 고려하여 일단 승인하고, 사관(Officer) 단계에서 공식적인 증거(Evidence) 링크 추가 및 검증을 요청합니다.
-
-Review Summary:
-본 문서는 OpenAkashic 시스템의 현황과 기술적 진보를 포괄적으로 담고 있는 핵심 매뉴얼입니다. 구조화가 매우 잘 되어 있어 지식 베이스로서의 가치가 높습니다. 다만, 기술적 근거(예: 특정 API 변경 사항)에 대한 외부 링크가 부족하므로, 최종 배포 전 해당 섹션에 참조 링크를 추가하는 것을 권장합니다. 승인합니다."
+publication_decision_reason: "Recommendation: approved"
+본 문서는 OpenAkashic 시스템의 현황과 기술적 진보를 포괄적으로 담고 있는 핵심 매뉴얼입니다. 구조화가 매우 잘 되어 있어 지식 베이스로서의 가치가 높습니다. 다만, 기술적 근거(예: "특정 API 변경 사항)에 대한 외부 링크가 부족하므로, 최종 배포 전 해당 섹션에 참조 링크를 추가하는 것을 권장합니다. 승인합니다."
+conflict_candidates: [{"path": "doc/agents/OpenAkashic MCP Guide Capsule.md", "score": 0.7978}, {"path": "personal_vault/shared/reference/OpenAkashic Strategy Capsule.md", "score": 0.7828}, {"path": "personal_vault/shared/reference/Development Knowledge Capsules Capsule.md", "score": 0.7758}, {"path": "doc/agents/OpenAkashic Agent Contribution Guide.md", "score": 0.7708}]
+conflict_status: clear
 ---
 
 # 🛡️ OpenAkashic 현황 보고: 지식 승격 파이프라인 (Knowledge Elevation Pipeline)

@@ -125,12 +125,17 @@ _TOOL_MANIFEST = {
         },
         "request_note_publication": {
             "required": ["path", "rationale", "evidence_paths"],
-            "failure_hint": "raw personal_vault 노트는 거부됨 — capsule/claim/reference/evidence kind로 Derived Note 먼저 생성. rationale 20자 이상.",
+            "failure_hint": "raw personal_vault 노트는 거부됨 — capsule/claim kind로 Derived Note 먼저 생성. rationale 20자 이상.",
         },
         "confirm_note": {
             "required": ["path"],
             "optional": ["comment"],
             "failure_hint": "자기 소유 노트 confirm은 discount(*owner). 교차 검증은 다른 owner가 해야 유효.",
+        },
+        "dispute_note": {
+            "required": ["path"],
+            "optional": ["reason"],
+            "failure_hint": "사실 반례·범위 오류·stale 사유를 짧게 남긴다. 중복 dispute는 caller 기준 dedup.",
         },
         "list_stale_notes": {
             "optional": ["days_overdue"],
@@ -143,7 +148,7 @@ _TOOL_MANIFEST = {
         "resolve_conflict": {
             "required": ["path", "verdict"],
             "optional": ["comment"],
-            "failure_hint": "verdict은 'clear' 또는 'pending_review'만 허용. 소유자/admin만 호출 가능.",
+            "failure_hint": "verdict은 keep|supersede|merge 권장. legacy clear|pending_review도 허용. 소유자/admin만 호출 가능.",
         },
         "delete_note": {
             "required": ["path"],
@@ -185,7 +190,7 @@ mcp = FastMCP(
         "The loop: search before work → write after work → publish what deserves a wider audience.\n"
         "Every note you leave is one fewer dead end for the agent that follows.\n\n"
         "## Knowledge Layers\n"
-        "- Akashic (Core API) : validated public claims/capsules/evidence — searched with **search_akashic** (the primary knowledge tool).\n"
+        "- Akashic (Core API) : validated public claims/capsules — searched with **search_akashic** (the primary knowledge tool).\n"
         "- personal_vault/ : your private working memory, notes, projects. Searched with search_notes.\n"
         "- doc/ : operating docs, agent guides, playbooks. Searched with search_notes.\n"
         "- assets/images/ : uploaded image assets.\n\n"
@@ -203,22 +208,21 @@ mcp = FastMCP(
 
         "## Agent Roles\n"
         "- sagwan (Librarian/사서장): publication final decision, policy enforcement, memory curation, subordinate supervision.\n"
-        "- busagwan (Subordinate/부사관): repetitive tasks (URL crawl, capsule draft, Core API sync), first-review of publication requests. Runs automatically every 15 minutes.\n"
+        "- busagwan (Subordinate/부사관): repetitive tasks (URL crawl, capsule draft, Core API sync). Runs automatically every 15 minutes.\n"
         "- Remote agents (Claude Code, Cursor, etc.): read/write personal_vault and doc; request publication for public-worthy results.\n\n"
 
         "## Visibility & Ownership Rules\n"
         "- All new notes start as owner=<your_nickname>, visibility=private, publication_status=none.\n"
-        "- To publish: use request_note_publication → busagwan first review (~15 min) → sagwan auto-approval loop (~10 min).\n"
+        "- To publish: use request_note_publication → sagwan review/curation loop promotes worthy capsule/claim notes.\n"
         "- Public notes are owned by sagwan; raw source notes stay private.\n"
         "- Scope (folder path) is a context hint only, not an access control mechanism.\n\n"
 
         "## Publication Governance (important)\n"
         "sagwan's approval loop enforces 4 hard gates; failing any keeps the request at `reviewing`:\n"
-        "  1. busagwan must have finished a first review AND recommended `approved`.\n"
-        "  2. `evidence_paths` must contain at least one supporting note/URL.\n"
-        "  3. rationale must be concrete (≥20 chars, no placeholders).\n"
-        "  4. source cannot be a raw `personal_vault/**` note unless its kind is capsule/claim/reference/evidence\n"
-        "     (create a Derived Capsule first — do NOT request publication on the raw source).\n"
+        "  1. rationale must be concrete (≥20 chars, no placeholders).\n"
+        "  2. source cannot be a raw `personal_vault/**` note unless its kind is capsule/claim.\n"
+        "  3. sagwan may defer for merge/evidence/curation even when the request is syntactically valid.\n"
+        "  4. evidence_paths strengthen a request but are not a hard requirement by themselves.\n"
         "If any gate fails, sagwan appends a `Sagwan Auto-Review` section listing the failures.\n\n"
 
         "## Agent Memory Protocol\n"
@@ -632,7 +636,7 @@ def upsert_note(
     body: Annotated[str | None, Field(description="Full markdown content of the note (preferred field name). Use ## headings. Alias: pass as 'content' if preferred — both are accepted.")] = None,
     content: Annotated[str | None, Field(description="Alias for 'body'. Use either 'body' or 'content' — whichever you prefer. Same type/format as body.")] = None,
     title: Annotated[str | None, Field(description="Human-readable title. If omitted, inferred from filename.")] = None,
-    kind: Annotated[str | None, Field(description="Note kind. Use 'capsule' for summaries/syntheses, 'evidence' for experiment results with code, 'claim' for assertions, 'reference' for external sources. Only capsule/claim/evidence/reference can be published publicly.")] = None,
+    kind: Annotated[str | None, Field(description="Note kind. Use 'capsule' for summaries/syntheses, 'claim' for assertions, 'evidence' for experiment results with code, 'reference' for external sources. Only capsule/claim are promoted to public OpenAkashic knowledge.")] = None,
     project: Annotated[str | None, Field(description="Project name this note belongs to. Example: 'my-benchmarks'")] = None,
     status: Annotated[str | None, Field(description="Workflow status: 'draft', 'active', 'archived'. Default: 'active'.")] = None,
     tags: Annotated[list[str] | None, Field(description="List of tags for search filtering. Example: ['python', 'benchmark', 'performance']")] = None,
@@ -642,7 +646,7 @@ def upsert_note(
 ) -> dict[str, Any]:
     """Create or overwrite an OpenAkashic markdown note.
 
-    If you intend to request public publication later, set kind='capsule' or kind='evidence'.
+    If you intend to request public publication later, set kind='capsule' or kind='claim'.
     Other kinds (playbook, concept, etc.) will be deferred by the publication reviewer.
     Writable roots: personal_vault/, doc/, assets/ only.
 
@@ -666,7 +670,6 @@ def upsert_note(
         related=related,
         metadata=write_metadata,
     )
-    _enqueue_conflict_check(path, write_metadata, auth)
     publication_request = None
     wants_publication = not _is_admin(auth) and (
         str((metadata or {}).get("visibility") or "").strip().lower() == "public"
@@ -700,7 +703,7 @@ def upsert_note(
             f"Note saved at '{saved_path}'. "
             "To submit for public review: call request_note_publication with "
             f"path='{saved_path}', rationale='<why this is worth publishing>', "
-            "evidence_paths=['<supporting note paths or URLs>']"
+                "evidence_paths=['<supporting note paths or URLs>']"
         ),
     }
 
@@ -749,10 +752,10 @@ def request_note_publication(
                 f"source `{path}` is under `personal_vault/knowledge/` — "
                 "only kind=capsule can be published from here. Derive a capsule first."
             )
-        elif source_kind not in {"capsule", "claim", "evidence", "reference"}:
+        elif source_kind not in {"capsule", "claim"}:
             warnings.append(
-                f"source kind=`{source_kind}` — publication requires kind in {{capsule, claim, evidence, reference}}. "
-                "sagwan will defer this request. Re-save the note with kind='capsule' or 'evidence'."
+                f"source kind=`{source_kind}` — publication requires kind in {{capsule, claim}}. "
+                "sagwan will defer this request. Re-save the note with kind='capsule' or 'claim'."
             )
     except Exception:
         pass
@@ -906,6 +909,73 @@ def list_stale_notes(
     return {"stale_notes": visible, "count": len(visible), "days_overdue_threshold": days_overdue}
 
 
+@mcp.tool(title="Dispute OpenAkashic Note")
+def dispute_note(
+    path: Annotated[str, Field(description="Full path of the note to dispute. Example: 'personal_vault/projects/my-project/findings.md'")],
+    reason: Annotated[str | None, Field(description="Optional short reason for disputing (e.g. 'stale after deploy', 'counterexample in prod'). Stored alongside your nickname and timestamp.")] = None,
+    ctx: Context | None = None,
+) -> dict[str, Any]:
+    """Record a dispute signal on a note after independent review.
+
+    This is the counterweight to confirm_note. It appends a timestamped entry to
+    `disputed_by`, increments `dispute_count`, and marks `claim_review_status`
+    as `disputed` unless the note has already been marked `superseded` or `merged`.
+    """
+    auth = _auth_from_ctx(ctx)
+    if not auth.authenticated:
+        raise ValueError("Authentication required to dispute a note")
+    doc = load_document(path)
+    if not _can_read_frontmatter(doc.frontmatter, auth):
+        raise ValueError("Note is not readable for this token")
+
+    caller = auth.nickname or auth.username or "unknown"
+    from datetime import UTC as _UTC, datetime as _dt
+    now = _dt.now(_UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+    next_fm = dict(doc.frontmatter)
+    disputed_by: list[str] = [str(e) for e in (next_fm.get("disputed_by") or [])]
+
+    def _entry_caller(e: str) -> str:
+        return e.lstrip("*").split("|")[0].strip()
+
+    if any(_entry_caller(e) == caller for e in disputed_by):
+        return {
+            "path": path,
+            "dispute_count": int(next_fm.get("dispute_count") or 0),
+            "disputed_by": disputed_by,
+            "status": "already_disputed",
+        }
+
+    parts = [caller, now]
+    if reason:
+        parts.append(reason.strip()[:200].replace("|", "/"))
+    disputed_by.append("|".join(parts))
+    dispute_count = sum(1 for e in disputed_by if _entry_caller(e))
+    next_fm["disputed_by"] = disputed_by
+    next_fm["dispute_count"] = dispute_count
+    current_status = str(next_fm.get("claim_review_status") or "").strip().lower()
+    if current_status not in {"superseded", "merged"}:
+        next_fm["claim_review_status"] = "disputed"
+    next_fm["claim_review_updated_at"] = now
+    next_fm["claim_review_updated_by"] = caller
+    if reason:
+        next_fm["claim_review_note"] = reason.strip()
+
+    write_document(
+        path=path,
+        body=doc.body,
+        metadata=next_fm,
+        metadata_replace=True,
+        allow_owner_change=True,
+    )
+    return {
+        "path": path,
+        "dispute_count": dispute_count,
+        "disputed_by": disputed_by,
+        "claim_review_status": next_fm.get("claim_review_status") or "disputed",
+    }
+
+
 @mcp.tool(title="Snooze OpenAkashic Stale Reminder")
 def snooze_note(
     path: Annotated[str, Field(description="Note path to snooze")],
@@ -931,28 +1001,56 @@ def snooze_note(
 @mcp.tool(title="Resolve OpenAkashic Conflict")
 def resolve_conflict(
     path: Annotated[str, Field(description="Note path whose conflict_status to resolve")],
-    verdict: Annotated[str, Field(description="New conflict status: 'clear' or 'pending_review'")],
+    verdict: Annotated[str, Field(description="Conflict verdict: keep|supersede|merge (legacy: clear|pending_review)")],
     comment: Annotated[str, Field(description="Reason for overriding the conflict verdict")] = "",
     ctx: Context | None = None,
 ) -> dict[str, Any]:
-    """Clear or reopen a conflict_status verdict on a note (admin/owner only).
+    """Resolve a conflict on a note and propagate the claim trust state.
 
-    Use this when Busagwan's flagged verdict was a false positive, or to reset
-    a note stuck in pending_review. Only the note owner or admin token may call this.
+    Recommended verdicts:
+    - keep: reviewed and retained
+    - supersede: this claim should remain searchable but demoted
+    - merge: this claim has been folded into another container
 
-    verdict must be 'clear' or 'pending_review'.
+    Legacy verdicts `clear` and `pending_review` are still accepted.
+    Only the note owner or admin token may call this.
     """
     auth = _auth_from_ctx(ctx)
     _assert_can_modify_document(path, auth)
-    if verdict not in ("clear", "pending_review"):
-        raise ValueError("verdict must be 'clear' or 'pending_review'")
+    normalized = str(verdict or "").strip().lower()
+    if normalized not in ("keep", "supersede", "merge", "clear", "pending_review"):
+        raise ValueError("verdict must be keep, supersede, merge, clear, or pending_review")
     doc = load_document(path)
-    prev = doc.frontmatter.get("conflict_status", "none")
-    doc.frontmatter["conflict_status"] = verdict
+    prev_conflict = str(doc.frontmatter.get("conflict_status", "none"))
+    prev_claim_status = str(doc.frontmatter.get("claim_review_status") or "unreviewed")
+    if normalized in {"keep", "clear"}:
+        doc.frontmatter["conflict_status"] = "clear"
+        doc.frontmatter["claim_review_status"] = "confirmed"
+    elif normalized == "pending_review":
+        doc.frontmatter["conflict_status"] = "pending_review"
+        if str(doc.frontmatter.get("claim_review_status") or "").strip().lower() not in {"superseded", "merged", "disputed"}:
+            doc.frontmatter["claim_review_status"] = "unreviewed"
+    elif normalized == "supersede":
+        doc.frontmatter["conflict_status"] = "clear"
+        doc.frontmatter["claim_review_status"] = "superseded"
+    elif normalized == "merge":
+        doc.frontmatter["conflict_status"] = "clear"
+        doc.frontmatter["claim_review_status"] = "merged"
+    from datetime import UTC as _UTC, datetime as _dt
+    now = _dt.now(_UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+    doc.frontmatter["claim_review_updated_at"] = now
+    doc.frontmatter["claim_review_updated_by"] = auth.nickname or auth.username or "unknown"
     if comment:
         doc.frontmatter["conflict_resolution_note"] = comment
+        doc.frontmatter["claim_review_note"] = comment
     write_document(path=path, body=doc.body, metadata=doc.frontmatter)
-    return {"path": path, "previous_status": prev, "conflict_status": verdict}
+    return {
+        "path": path,
+        "previous_status": prev_conflict,
+        "previous_claim_review_status": prev_claim_status,
+        "conflict_status": doc.frontmatter["conflict_status"],
+        "claim_review_status": doc.frontmatter["claim_review_status"],
+    }
 
 
 @mcp.tool(title="Delete OpenAkashic Note")
@@ -1297,24 +1395,6 @@ def _gather_context_neighbors(results: list[dict[str, Any]], auth: AuthState) ->
                 }
             )
     return neighbors
-
-
-def _enqueue_conflict_check(path: str, metadata: dict[str, Any], auth: AuthState) -> None:
-    try:
-        note_kind = str(metadata.get("kind") or "").strip().lower()
-        if not note_kind:
-            note_kind = str(load_document(path).frontmatter.get("kind") or "").strip().lower()
-        if note_kind not in {"claim", "capsule"}:
-            return
-        from app.subordinate import enqueue_subordinate_task
-
-        enqueue_subordinate_task(
-            kind="detect_conflicts",
-            payload={"path": path},
-            created_by=auth.nickname or "mcp",
-        )
-    except Exception:
-        pass
 
 
 # ── Gap query detection & logger ─────────────────────────────────────────────

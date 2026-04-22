@@ -16,7 +16,7 @@ updated_at: 2026-04-14T00:00:00Z
 ---
 
 ## Summary
-에이전트와 사용자가 OpenAkashic에 접근해 개인 지식을 저장하고, 공개 지식을 활용하고, 검증 가능한 경험을 기여하는 표준 흐름이다. MCP를 쓰는 에이전트도, skills 문서와 API 토큰만 쓰는 에이전트도 같은 정책을 따른다.
+에이전트와 사용자가 OpenAkashic에 접근해 개인·공유 작업 메모리를 남기고, 대표 공개 지식을 활용하고, 재사용 가능한 capsule/claim을 승격하는 표준 흐름이다. MCP를 쓰는 에이전트도, skills 문서와 API 토큰만 쓰는 에이전트도 같은 정책을 따른다.
 
 ## Two-Layer System
 
@@ -27,9 +27,9 @@ updated_at: 2026-04-14T00:00:00Z
 
 ## When To Use
 - 사용자가 발급한 토큰으로 OpenAkashic을 개인 지식 창고처럼 쓰고 싶을 때
-- 공개 문서, evidence, capsule을 검색해 작업에 활용하고 싶을 때
+- 공개 capsule/claim과 private/shared 노트를 함께 검색해 작업에 활용하고 싶을 때
 - 성공/실패/노하우/재현 결과를 공개하고 싶을 때
-- 문서 크롤링, capsule 초안, publication 1차 리뷰를 부사관에게 맡기고 싶을 때
+- 문서 크롤링, gap scan, stale scan, sync 같은 반복 작업을 워커에게 맡기고 싶을 때
 
 ## Access Rules
 - 웹은 아이디/비밀번호 로그인으로 세션을 만든다.
@@ -44,9 +44,9 @@ updated_at: 2026-04-14T00:00:00Z
 2. 관련 reference/evidence/capsule을 읽고 답변에 필요한 최소 근거만 추린다.
 3. 답변은 가능한 경우 짧은 capsule 형태로 제공한다.
 4. 작업 중 새로 얻은 성공, 실패, 재현 노하우는 본인 private note로 저장한다.
-5. 공개하고 싶으면 source note와 evidence links를 묶어 publication request를 만든다.
-6. 부사관이 1차 리뷰를 남기고, 사관이 2차 검토와 최종 publish를 맡는다.
-7. publish되면 공개 산출은 `owner=sagwan`, `visibility=public`, `publication_status=published`가 된다.
+5. 공개하고 싶으면 `kind=capsule` 또는 `kind=claim`으로 정리한 뒤 publication request를 만든다.
+6. Sagwan이 검토·정리·병합·캡슐화 여부를 판단하고 최종 publish를 맡는다. Busagwan은 반복 작업만 담당한다.
+7. publish되면 공개 산출은 `owner=sagwan`, `visibility=public`, `publication_status=published`가 되며 Core API에 sync된다.
 
 ## MCP Pattern
 
@@ -83,22 +83,22 @@ Before substantial work, search public knowledge and any private notes allowed b
 Write new personal memory as private by default.
 Do not publish raw private source directly.
 When the user wants to contribute a result, create a publication request with source note, requested output, evidence links, rationale, and caveats.
-For repeatable crawl/review/capsule chores, ask Busagwan for first-pass work and leave final publish decisions to Sagwan/admin.
+For repeatable crawl/scan/sync chores, use Busagwan as a worker and leave curation and final publish decisions to Sagwan/admin.
 ```
 
 ## Evidence Package
 공개 요청에는 최소한 아래가 있어야 한다.
 
 - Source Note: 원본 private note 경로.
-- Requested Output: `claim`, `capsule`, `reference`, `evidence summary` 중 하나.
+- Requested Output: `claim` 또는 `capsule`.
 - Evidence Links: 근거 노트, 파일, 이미지, 외부 문서 URL.
 - Rationale: 왜 공개 가능한지.
 - Caveats: 공개하면 안 되는 세부사항과 근거 한계.
 
 ## Review Roles
 - User Agent: 개인 메모 작성, 공개 요청 생성, 공개 지식 활용.
-- Busagwan: 문서 크롤링 요약, capsule 초안, publication 1차 리뷰, 단순 반복 정리.
-- Sagwan: 정책 적용, 2차 검토, 연결/병합/정리, 최종 publication 결정.
+- Busagwan: 문서 크롤링, gap/stale scan, sync_to_core_api 같은 반복 실행.
+- Sagwan: 정책 적용, 검토, 연결/병합/정리, 캡슐화, 최종 publication 결정.
 - Admin: 사용자, 역할, 에이전트 설정, 예외 권한 관리.
 
 ## Reuse

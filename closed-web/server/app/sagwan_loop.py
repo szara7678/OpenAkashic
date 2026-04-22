@@ -7,10 +7,9 @@ sagwan_loop.py
 - 사관은 LLM(기본: claude-cli) 로 **지능형 최종 판단**을 내린다.
   규칙 기반 거버넌스 게이트는 *pre-filter* 로만 쓴다 (값싼 필터 + 근거 부재 차단).
   게이트를 통과한 후보만 LLM 에게 물어 approve/defer 를 받는다.
-- 부사관(busagwan, gemma) 의 1차 리뷰가 입력 신호.
 - 루틴은 *배치* 로 동작한다: 주기(기본 10분) OR 대기 요청 수(기본 3건) 도달 시 실행.
 - 이 모듈은 `personal_vault/**` 원본 노트를 직접 공개하지 않는다 — 반드시 `kind` 가
-  capsule/claim/reference 또는 경로가 `doc/` 이어야 한다.
+  capsule/claim 또는 경로가 `doc/` 이어야 한다.
 - 별도 curation cycle 도 제공한다: 원본→capsule 파생 유도, stale 동기화 정리.
 """
 from __future__ import annotations
@@ -484,11 +483,13 @@ def pending_publication_request_count() -> int:
 
 def run_sagwan_curation_cycle(*, reason: str = "scheduled") -> dict[str, Any]:
     """
-    사관의 정제(큐레이션) 루틴. 세 종류의 작업을 수행한다:
-    (A) 원본 파생 유도 — knowledge/** raw 노트 → 부사관 draft_capsule enqueue
+    사관의 정제(큐레이션) 루틴. 다음 단계를 수행한다:
     (B) core_api 재동기화 — published 인데 core_api_id 없음 → sync_to_core_api enqueue
-    (C) 재검증 — published capsule/claim/reference 오래된 순으로 사관 LLM 재검토
+    (C) 재검증 — published capsule/claim 오래된 순으로 사관 LLM 재검토
     (D) 피드 수급 — sources.json 정의된 RSS/arXiv 피드에서 새 항목 → crawl_url enqueue
+    (E) 캡슐 생성 — 사관 LLM 이 seed 노트에서 직접 capsule 본문 작성 (과거 draft_capsule 부사관 이관)
+    (F) 충돌 판정 — 사관 LLM 이 의미 중복 후보를 판정 (과거 detect_conflicts 부사관 이관)
+    (G) signal scans — stale/gap 스캔 태스크 enqueue
     """
     try:
         a = _curate_derive_and_sync()
@@ -598,7 +599,7 @@ def _curate_derive_and_sync() -> dict[str, Any]:
         kind = str(fm.get("kind") or "").lower()
         pub_status = str(fm.get("publication_status") or "").lower()
 
-        if pub_status == "published" and not fm.get("core_api_id") and kind in {"capsule", "claim", "reference"}:
+        if pub_status == "published" and not fm.get("core_api_id") and kind in {"capsule", "claim"}:
             stale_published_count += 1
 
     sync_enqueued = False
@@ -631,7 +632,7 @@ def _validation_anchor(fm: dict[str, Any]) -> str:
 
 
 def _curate_revalidate_published(*, max_per_cycle: int = 5) -> dict[str, Any]:
-    """(C) published capsule/claim/reference 를 오래된 순으로 LLM 재검증."""
+    """(C) published capsule/claim 를 오래된 순으로 LLM 재검증."""
     from app.vault import list_note_paths, write_document
 
     candidates: list[tuple[str, str]] = []
@@ -643,7 +644,7 @@ def _curate_revalidate_published(*, max_per_cycle: int = 5) -> dict[str, Any]:
         fm = doc.frontmatter or {}
         if str(fm.get("publication_status") or "").lower() != "published":
             continue
-        if str(fm.get("kind") or "").lower() not in {"capsule", "claim", "reference"}:
+        if str(fm.get("kind") or "").lower() not in {"capsule", "claim"}:
             continue
         # 최근 재검증된 것은 24h 동안 재검증 대상에서 제외 (무한 루프 방지)
         last_v = str(fm.get("last_validated_at") or "")
@@ -681,15 +682,11 @@ def _curate_revalidate_published(*, max_per_cycle: int = 5) -> dict[str, Any]:
             stale += 1
         elif verdict == "refresh":
             refresh += 1
-            try:
-                from app.subordinate import enqueue_subordinate_task
-                enqueue_subordinate_task(
-                    kind="draft_capsule",
-                    payload={"source_path": path},
-                    created_by="sagwan",
-                )
-            except Exception as exc:
-                logger.warning("sagwan curation: refresh enqueue failed %s: %s", path, exc)
+            # Busagwan draft_capsule 태스크는 폐기됨(사관으로 이관). 재생성은 후속 curation 단계 또는
+            # 사람의 결정에 맡기고, 여기서는 플래그만 남긴다.
+            fm["needs_refresh"] = True
+            fm["refresh_requested_at"] = _now_iso()
+            fm["refresh_reason"] = note[:300]
         else:
             ok += 1
             if "stale" in fm:
@@ -1694,4 +1691,3 @@ def _build_capsule_gen_prompt(*, seed_title: str, seed_body: str,
         "",
         "출력은 마크다운 본문만. Frontmatter 금지. YAML 금지. '## Summary' 로 시작하라.",
     ])
-

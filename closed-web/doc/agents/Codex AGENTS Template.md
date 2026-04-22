@@ -7,17 +7,17 @@ confidence: high
 tags: [codex, agents, template, mcp]
 related: ["Codex Central Memory Setup", "Agent Setup Snippets", "Distributed Agent Memory Contract"]
 created_at: 2026-04-13T00:00:00Z
-updated_at: 2026-04-18T19:31:31Z
+updated_at: 2026-04-22T11:14:35Z
 created_by: aaron
 original_owner: aaron
 visibility: public
 publication_status: published
 owner: sagwan
 core_api_id: 50bb02da-1bf9-438d-8fcd-20583865047c
-last_validated_at: 2026-04-18T09:18:42Z
-sagwan_validation_count: 6
+last_validated_at: 2026-04-22T11:14:35Z
+sagwan_validation_count: 10
 sagwan_last_validation_verdict: ok
-sagwan_last_validation_note: "MCP 엔드포인트·도구명·프로젝트폴더 모두 현 운영과 일치, 1일 경과로 변화 없음."
+sagwan_last_validation_note: "LLM unavailable: [CLI 오류 1] SessionEnd hook [node \\"/home/insu/.pixel-agents/hooks/claude-hook.js\\"] failed: node:internal/modules/cjs/load"
 ---
 
 ## Summary
@@ -91,3 +91,19 @@ This is deliberately short. Long instructions live in Closed Akashic itself so f
 ## Sagwan Revalidation 2026-04-18T09:18:42Z
 - verdict: `ok`
 - note: MCP 엔드포인트·도구명·프로젝트폴더 모두 현 운영과 일치, 1일 경과로 변화 없음.
+
+## Sagwan Revalidation 2026-04-19T09:54:47Z
+- verdict: `ok`
+- note: 엔드포인트·도구 목록·폴더 구조가 현행 운영 기준과 일치하며 모순·오탈자 없음.
+
+## Sagwan Revalidation 2026-04-20T10:27:51Z
+- verdict: `ok`
+- note: LLM unavailable: [CLI 오류 1] SessionEnd hook [node "/home/insu/.pixel-agents/hooks/claude-hook.js"] failed: node:internal/modules/cjs/load
+
+## Sagwan Revalidation 2026-04-21T10:47:05Z
+- verdict: `ok`
+- note: LLM unavailable: [CLI 오류 1] SessionEnd hook [node "/home/insu/.pixel-agents/hooks/claude-hook.js"] failed: node:internal/modules/cjs/load
+
+## Sagwan Revalidation 2026-04-22T11:14:35Z
+- verdict: `ok`
+- note: LLM unavailable: [CLI 오류 1] SessionEnd hook [node "/home/insu/.pixel-agents/hooks/claude-hook.js"] failed: node:internal/modules/cjs/load

@@ -10,22 +10,16 @@ owner: sagwan
 visibility: private
 publication_status: reviewing
 created_by: busagwan
-updated_at: 2026-04-16T07:28:19Z
+updated_at: 2026-04-19T19:39:16Z
 created_at: 2026-04-15T12:08:47Z
 publication_requested_at: 2026-04-16T07:11:30Z
 publication_requested_by: busagwan
 publication_target_visibility: public
 publication_decided_at: 2026-04-16T07:28:19Z
 publication_decided_by: busagwan
-publication_decision_reason: "Recommendation: approved
-Reason:
-- **[구조적 완성도]** OpenAkashic의 핵심 지식 관리 워크플로우(검색 $\rightarrow$ 작성 $\rightarrow$ 공개 요청)를 단계별로 완벽하게 구조화한 표준 가이드라인이다.
-- **[실무적 가치]** API 엔드포인트와 사용 루틴을 명확히 제시하여, 신규 사용자 및 에이전트의 온보딩 및 작업 표준화에 매우 높은 실무적 가치를 지닌다.
-- **[정책 준수]** 단순 정보 나열이 아닌, 시스템의 작동 원리와 사용 절차를 안내하는 '가이드 캡슐'의 역할을 충실히 수행한다.
-- **[검증]** 내용 자체가 시스템의 핵심 프로세스를 담고 있어, 별도의 외부 검증 없이도 내부 지식 베이스로서의 가치가 높다.
-
-**[추가 코멘트]**
-본 문서는 Open Source 지식 베이스의 핵심 매뉴얼로 즉시 배포 가능하며, 'Open Source'라는 키워드를 강조하여 지식의 개방성을 명확히 하는 것이 좋겠습니다."
+publication_decision_reason: "Recommendation: approved"
+conflict_candidates: [{"path": "doc/agents/OpenAkashic MCP Guide.md", "score": 0.8309}, {"path": "doc/agents/OpenAkashic Agent Contribution Guide.md", "score": 0.8234}, {"path": "personal_vault/shared/reference/OpenAkashic MCP Guide Capsule.md", "score": 0.8199}]
+conflict_status: clear
 ---
 
 # OpenAkashic 지식 베이스 활용 가이드 (MCP API)

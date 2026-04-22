@@ -46,6 +46,7 @@ LIBRARIAN_TOOL_NAMES = (
     "set_publication_status",
     "enqueue_task",
 )
+LIBRARIAN_DEFAULT_ENABLED_TOOLS = tuple(name for name in LIBRARIAN_TOOL_NAMES if name != "exec_command")
 
 
 def librarian_settings_path() -> Path:
@@ -59,7 +60,7 @@ def _default_librarian_settings() -> dict[str, Any]:
         "model": settings.librarian_model,
         "base_url": settings.librarian_base_url,
         "reasoning_effort": settings.librarian_reasoning_effort,
-        "enabled_tools": list(LIBRARIAN_TOOL_NAMES),
+        "enabled_tools": list(LIBRARIAN_DEFAULT_ENABLED_TOOLS),
     }
 
 
@@ -74,11 +75,16 @@ def load_librarian_settings() -> dict[str, Any]:
         raw = json.loads(path.read_text(encoding="utf-8") or "{}")
     except json.JSONDecodeError:
         raw = {}
+    raw_enabled_tools = raw.get("enabled_tools", defaults["enabled_tools"])
     enabled_tools = [
         tool_name
-        for tool_name in raw.get("enabled_tools", defaults["enabled_tools"])
+        for tool_name in raw_enabled_tools
         if tool_name in LIBRARIAN_TOOL_NAMES
     ]
+    if enabled_tools == list(LIBRARIAN_TOOL_NAMES):
+        # Migrate legacy "all tools enabled" settings to the safer default by
+        # removing exec_command unless an admin explicitly re-enables it.
+        enabled_tools = list(LIBRARIAN_DEFAULT_ENABLED_TOOLS)
     return {
         "provider": str(raw.get("provider") or defaults["provider"]).strip() or defaults["provider"],
         "model": str(raw.get("model") or defaults["model"]).strip() or defaults["model"],
@@ -365,8 +371,8 @@ def _cli_tool_definitions(enabled_tools: list[str] | None = None) -> str:
         "upsert_note": "upsert_note(path: str, body: str, title?: str, kind?: str, project?: str) — 노트 생성/수정",
         "request_publication": "request_publication(path: str, requester?: str, rationale?: str, evidence_paths?: list) — 공개 신청",
         "list_publication_requests": "list_publication_requests(status?: str) — 공개 신청 목록",
-        "set_publication_status": "set_publication_status(path: str, status: str, reason?: str) — 공개 상태 변경 (status: requested|reviewing|approved|rejected|published)",
-        "enqueue_task": 'enqueue_task(kind: str, payload: dict) — 부사관 태스크 큐에 추가. kind: crawl_url|draft_capsule|draft_claim|sync_to_core_api|analyze_search_gaps. crawl_url payload: {"url": "...", "folder": "..."}, draft_capsule payload: {"source_path": "..."}, draft_claim payload: {"source_path": "..."}, sync_to_core_api payload: {"limit": 10}, analyze_search_gaps payload: {"max_new": 10}',
+        "set_publication_status": "set_publication_status(path: str, status: str, reason?: str) — 공개 상태 변경 (status: requested|reviewing|approved|rejected|published|needs_merge|needs_evidence|superseded)",
+        "enqueue_task": 'enqueue_task(kind: str, payload: dict) — 부사관 태스크 큐에 추가. kind: crawl_url|sync_to_core_api|analyze_search_gaps|scan_stale_private_notes. crawl_url payload: {"url": "...", "folder": "..."}, sync_to_core_api payload: {"limit": 10}, analyze_search_gaps payload: {"max_new": 10}, scan_stale_private_notes payload: {"max_scan": 50}',
     }
     lines = [
         "## 사용 가능한 도구",
@@ -760,19 +766,18 @@ def _tool_registry(enabled_tools: list[str] | None = None) -> list[dict[str, Any
             "name": "enqueue_task",
             "description": (
                 "Queue a background task for the subordinate agent (busagwan). "
-                "Use for repetitive or long-running work: crawling URLs, drafting capsules, syncing to Core API, or processing knowledge gaps. "
+                "Busagwan only handles pure HTTP/file/aggregate tasks — capsule/claim drafting moved to Sagwan curation. "
                 "kind=crawl_url: payload requires 'url'; optional 'folder', 'project'. "
-                "kind=draft_capsule: payload requires 'source_path'. "
-                "kind=draft_claim: payload requires 'source_path' — extracts atomic factual claims (measurements, experiments, observations) and creates kind=claim notes. "
                 "kind=sync_to_core_api: payload optionally has 'limit' (default 10). "
-                "kind=analyze_search_gaps: payload optionally has 'max_new' (default 10) — processes gap-queries.jsonl and creates candidate gap notes."
+                "kind=analyze_search_gaps: payload optionally has 'max_new' (default 10) — processes gap-queries.jsonl and creates candidate gap notes. "
+                "kind=scan_stale_private_notes: payload optionally has 'max_scan' (default 50) — marks overdue private notes needing refresh."
             ),
             "parameters": {
                 "type": "object",
                 "properties": {
                     "kind": {
                         "type": "string",
-                        "enum": ["crawl_url", "draft_capsule", "draft_claim", "sync_to_core_api", "analyze_search_gaps"],
+                        "enum": ["crawl_url", "sync_to_core_api", "analyze_search_gaps", "scan_stale_private_notes"],
                     },
                     "payload": {"type": "object"},
                     "run_after": {"type": "string", "description": "ISO8601 datetime to delay execution"},

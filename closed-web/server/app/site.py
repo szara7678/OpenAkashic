@@ -47,6 +47,7 @@ except ImportError:
         return raw_html
 
 from app.config import get_settings
+from app.fts_search import FTSDocument, lexical_rank
 from app.semantic_search import SemanticDocument, semantic_rank
 from app.vault import file_href, kind_catalog, kind_template_sections, list_note_paths, normalize_kind
 
@@ -83,6 +84,8 @@ class ClosedNote:
     body: str
     links: list[str]
     confirm_count: int = 0
+    dispute_count: int = 0
+    claim_review_status: str = "unreviewed"
     original_owner: str = ""
     created_by: str = ""
     freshness_date: str = ""
@@ -99,6 +102,58 @@ def _viewer_can_open_note(note: ClosedNote, viewer_owner: str | None, is_admin: 
         return bool(viewer_owner)  # 인증된 사용자라면 누구든 읽기 가능
     owner = (viewer_owner or "").strip()
     return bool(owner and note.owner == owner)
+
+
+_CLAIM_REVIEW_STATES = {"unreviewed", "confirmed", "disputed", "superseded", "merged"}
+
+
+def _effective_dispute_count(frontmatter: dict[str, Any], owner: str) -> int:
+    if "disputed_by" not in frontmatter:
+        return _as_int(frontmatter.get("dispute_count"))
+    owner_value = str(owner or "").strip()
+    return sum(1 for caller in _confirmation_callers(frontmatter.get("disputed_by")) if caller != owner_value)
+
+
+def _normalize_claim_review_status(frontmatter: dict[str, Any], *, kind: str, confirm_count: int, dispute_count: int) -> str:
+    raw = str(frontmatter.get("claim_review_status") or "").strip().lower()
+    if raw in _CLAIM_REVIEW_STATES:
+        return raw
+    publication_status = str(frontmatter.get("publication_status") or "").strip().lower()
+    if publication_status == "superseded":
+        return "superseded"
+    if publication_status == "needs_merge":
+        return "merged"
+    if dispute_count > 0:
+        return "disputed"
+    if kind == "claim" and confirm_count > 0:
+        return "confirmed"
+    return "unreviewed"
+
+
+def _claim_trust_badge(status: str) -> str:
+    mapping = {
+        "confirmed": "Confirmed",
+        "disputed": "Disputed",
+        "superseded": "Superseded",
+        "merged": "Merged",
+        "unreviewed": "Unreviewed",
+    }
+    return mapping.get(status, "Unreviewed")
+
+
+def _claim_trust_multiplier(status: str, confirm_count: int, dispute_count: int) -> float:
+    base = {
+        "unreviewed": 1.0,
+        "confirmed": 1.08,
+        "disputed": 0.74,
+        "superseded": 0.35,
+        "merged": 0.46,
+    }.get(status, 1.0)
+    confirm_boost = 1.0 + 0.05 * math.log(1 + max(0, confirm_count))
+    dispute_penalty = 1.0 / (1.0 + 0.18 * max(0, dispute_count))
+    if status in {"superseded", "merged"}:
+        confirm_boost = 1.0
+    return base * confirm_boost * dispute_penalty
 
 
 def _filter_notes_for_viewer(
@@ -168,6 +223,10 @@ def get_closed_graph(
                 "owner": note.owner,
                 "visibility": note.visibility,
                 "publication_status": note.publication_status,
+                "claim_review_status": note.claim_review_status,
+                "claim_review_badge": _claim_trust_badge(note.claim_review_status),
+                "confirm_count": note.confirm_count,
+                "dispute_count": note.dispute_count,
                 "tags": note.tags,
                 "summary": note.summary,
                 "inbound": inbound_count[note.slug],
@@ -196,6 +255,10 @@ def get_closed_graph(
                 "owner": "",
                 "visibility": "private",
                 "publication_status": "",
+                "claim_review_status": "",
+                "claim_review_badge": "",
+                "confirm_count": 0,
+                "dispute_count": 0,
                 "tags": [],
                 "summary": "",
                 "path": "",
@@ -307,6 +370,7 @@ def search_closed_notes(
     tags: list[str] | None = None,
 ) -> dict[str, Any]:
     q = query.strip().lower()
+    q_tokens = [token for token in re.findall(r"[\w가-힣]+", q, flags=re.UNICODE) if len(token) >= 2]
     notes = _load_notes()
     # raw import 노트는 기본적으로 검색에서 제외 (include_imported=True 시 포함)
     if not include_imported:
@@ -314,6 +378,8 @@ def search_closed_notes(
     # publication_request 스텁은 지식이 아닌 메타데이터 — 실제 source 노트의 rationale/evidence가
     # 본문에 포함돼 있어 source보다 상위 랭크되는 부작용을 일으킨다. 검색에서 제외한다.
     notes = [n for n in notes if not n.path.startswith("personal_vault/projects/ops/librarian/publication_requests/")]
+    # knowledge-gaps 초안은 메타 운영 산출물이라 사용자-facing 검색 상단을 오염시키기 쉽다.
+    notes = [n for n in notes if not n.path.startswith("doc/knowledge-gaps/")]
     # kind 필터
     if kind:
         notes = [n for n in notes if n.kind == kind]
@@ -322,28 +388,25 @@ def search_closed_notes(
         tag_set = {t.strip().lower() for t in tags}
         notes = [n for n in notes if tag_set.issubset({t.lower() for t in n.tags})]
     matches_by_slug: dict[str, dict[str, Any]] = {}
-    semantic_scores = {
-        key: score
-        for key, score in semantic_rank(
-            query,
-            [
-                SemanticDocument(
-                    key=note.slug,
-                    path=note.path,
-                    title=note.title,
-                    kind=note.kind,
-                    project=note.project,
-                    status=note.status,
-                    summary=note.summary,
-                    body=note.body,
-                )
-                for note in notes
-            ],
-            limit=max(limit * 3, limit),
-        )
-    }
-    # lexical score 계산 (후보 필터링도 겸함)
-    lexical_scores: dict[str, float] = {}
+    lexical_scores = lexical_rank(
+        query,
+        [
+            FTSDocument(
+                path=note.path,
+                slug=note.slug,
+                title=note.title,
+                summary=note.summary,
+                kind=note.kind,
+                project=note.project,
+                owner=note.owner,
+                tags=note.tags,
+                body=note.body,
+            )
+            for note in notes
+        ],
+        limit=max(limit * 5, 32),
+    )
+    note_by_slug = {note.slug: note for note in notes}
     for note in notes:
         haystack = " ".join(
             [
@@ -357,16 +420,59 @@ def search_closed_notes(
                 note.body,
             ]
         ).lower()
-        lexical_hit = bool(q and q in haystack)
-        semantic_score = semantic_scores.get(note.slug, 0.0)
-        if not lexical_hit and semantic_score <= 0:
-            continue
+        lexical_entry = lexical_scores.get(note.slug, {})
+        lexical_hit = bool(lexical_entry) or bool(q and q in haystack)
         title_hit = 4 if q and q in note.title.lower() else 0
         path_hit = 3 if q and q in note.path.lower() else 0
         tag_hit = 2 if q and any(q in tag.lower() for tag in note.tags) else 0
-        lexical_score = title_hit + path_hit + tag_hit + (haystack.count(q) if q else 0)
+        token_title_hit = sum(3 for token in q_tokens if token in note.title.lower())
+        token_path_hit = sum(2 for token in q_tokens if token in note.path.lower())
+        token_tag_hit = sum(1 for token in q_tokens if any(token in tag.lower() for tag in note.tags))
+        lexical_boost = (
+            title_hit
+            + path_hit
+            + tag_hit
+            + token_title_hit
+            + token_path_hit
+            + token_tag_hit
+            + (haystack.count(q) if q else 0)
+        )
+        lexical_score = float(lexical_entry.get("score") or 0.0) + float(lexical_boost)
         if lexical_score > 0:
-            lexical_scores[note.slug] = float(lexical_score)
+            lexical_scores[note.slug] = {
+                "score": lexical_score,
+                "bm25": float(lexical_entry.get("bm25") or 0.0),
+            }
+    # Common queries should stay fast: run semantic reranking over the lexical pool first.
+    # Only fall back to a global semantic pass when lexical recall is too thin.
+    semantic_scores: dict[str, float] = {}
+    if not lexical_scores:
+        semantic_scores = {
+            key: score
+            for key, score in semantic_rank(
+                query,
+                [
+                    SemanticDocument(
+                        key=note.slug,
+                        path=note.path,
+                        title=note.title,
+                        kind=note.kind,
+                        project=note.project,
+                        status=note.status,
+                        summary=note.summary,
+                        body=note.body,
+                    )
+                    for note in notes
+                ],
+                limit=max(limit * 3, limit),
+            )
+        }
+    for note in notes:
+        semantic_score = semantic_scores.get(note.slug, 0.0)
+        lexical_entry = lexical_scores.get(note.slug, {})
+        lexical_score = float(lexical_entry.get("score") or 0.0)
+        if lexical_score <= 0 and semantic_score <= 0:
+            continue
         matches_by_slug[note.slug] = {
             "path": note.path,
             "slug": note.slug,
@@ -380,13 +486,20 @@ def search_closed_notes(
             "summary": note.summary,
             "href": _note_href(note.slug, route_prefix),
             "lexical_score": float(lexical_score),
+            "lexical_bm25": round(float(lexical_entry.get("bm25") or 0.0), 6),
             "semantic_score": round(semantic_score, 4),
             "confirm_count": note.confirm_count,
+            "dispute_count": note.dispute_count,
+            "claim_review_status": note.claim_review_status,
+            "claim_review_badge": _claim_trust_badge(note.claim_review_status),
         }
     # Reciprocal Rank Fusion (Cormack et al. 2009) — 이질적 점수(정수 lexical vs [0,1] semantic)를
     # 선형 결합하는 대신 rank 기반으로 합쳐 scale 의존성을 제거한다. k=60은 업계 표준.
     RRF_K = 60
-    lexical_ranked = sorted(lexical_scores.items(), key=lambda kv: -kv[1])
+    lexical_ranked = sorted(
+        ((slug, float(payload.get("score") or 0.0)) for slug, payload in lexical_scores.items()),
+        key=lambda kv: -kv[1],
+    )
     semantic_ranked = sorted(
         ((slug, score) for slug, score in semantic_scores.items() if score > 0),
         key=lambda kv: -kv[1],
@@ -398,7 +511,11 @@ def search_closed_notes(
         rrf_scores[slug] = rrf_scores.get(slug, 0.0) + 1.0 / (RRF_K + rank)
     for slug, entry in matches_by_slug.items():
         confirm_count = int(entry.get("confirm_count") or 0)
-        final_score = rrf_scores.get(slug, 0.0) * (1.0 + 0.05 * math.log(1 + confirm_count))
+        dispute_count = int(entry.get("dispute_count") or 0)
+        claim_review_status = str(entry.get("claim_review_status") or "unreviewed")
+        trust_multiplier = _claim_trust_multiplier(claim_review_status, confirm_count, dispute_count)
+        final_score = rrf_scores.get(slug, 0.0) * trust_multiplier
+        entry["trust_multiplier"] = round(trust_multiplier, 6)
         entry["score"] = round(final_score, 6)
     results = sorted(matches_by_slug.values(), key=lambda item: (-item["score"], item["title"]))[:limit]
     # 결과가 얇을 때 semantic 점수가 조금이라도 있는 이웃 노트를 hint로 제공.
@@ -414,7 +531,6 @@ def search_closed_notes(
             ),
             key=lambda pair: -pair[1],
         )[:5]
-        note_by_slug = {note.slug: note for note in notes}
         for slug, score in hint_candidates:
             note = note_by_slug.get(slug)
             if not note:
@@ -433,10 +549,11 @@ def search_closed_notes(
         "results": results,
         "hints": hints,
         "meta": {
-            "retrieval": "lexical+semantic+rrf",
+            "retrieval": "sqlite_fts5+semantic+rrf",
             "rrf_k": RRF_K,
             "semantic_model": get_settings().embedding_model,
             "semantic_provider": get_settings().embedding_provider,
+            "lexical_backend": "sqlite_fts5",
         },
     }
 
@@ -1246,6 +1363,8 @@ def closed_note_html(
             <div class="metric"><div class="meta-label">Owner</div><div class="meta-value">{html.escape(payload["owner"])}</div></div>
             <div class="metric"><div class="meta-label">Visibility</div><div class="meta-value">{html.escape(payload["visibility"])}</div></div>
             <div class="metric"><div class="meta-label">Publication</div><div class="meta-value">{html.escape(payload["publication_status"])}</div></div>
+            <div class="metric"><div class="meta-label">Trust</div><div class="meta-value">{html.escape(payload["claim_review_badge"])}</div></div>
+            <div class="metric"><div class="meta-label">Signals</div><div class="meta-value">{int(payload["confirm_count"])} confirm / {int(payload["dispute_count"])} dispute</div></div>
           </div>
         </section>
         <section class="meta-section">
@@ -1721,8 +1840,18 @@ def closed_note_html(
               if (href.startsWith('/') || href.startsWith('https://')) a.href = href;
               const strong = document.createElement('strong');
               strong.textContent = item.title || '';
+              const badge = String(item.claim_review_badge || '');
+              if (badge && badge !== 'Unreviewed') {{
+                const badgeEl = document.createElement('span');
+                badgeEl.style.marginLeft = '8px';
+                badgeEl.style.fontSize = '.76rem';
+                badgeEl.style.color = '#475569';
+                badgeEl.textContent = `[${{badge}}]`;
+                strong.appendChild(badgeEl);
+              }}
               const small = document.createElement('small');
-              small.textContent = item.summary || item.path || '';
+              const signals = `${{Number(item.confirm_count || 0)}}c/${{Number(item.dispute_count || 0)}}d`;
+              small.textContent = `${{item.summary || item.path || ''}}${{item.kind === 'claim' ? ` · ${{badge || 'Unreviewed'}} · ${{signals}}` : ''}}`;
               a.appendChild(strong);
               a.appendChild(small);
               searchBox.appendChild(a);
@@ -2493,6 +2622,7 @@ def closed_graph_html(
             <div class="metric"><span>Status</span><strong id="status">-</strong></div>
             <div class="metric"><span>Visibility</span><strong id="visibility">-</strong></div>
             <div class="metric"><span>Publication</span><strong id="publication">-</strong></div>
+            <div class="metric"><span>Trust</span><strong id="trust">-</strong></div>
           </div>
           <div class="tags" id="tags"></div>
           <div class="actions">
@@ -3039,6 +3169,7 @@ def closed_graph_html(
       document.getElementById('status').textContent = restricted ? mask : (node.status || '-');
       document.getElementById('visibility').textContent = node.visibility || '-';
       document.getElementById('publication').textContent = restricted ? mask : (node.publication_status || '-');
+      document.getElementById('trust').textContent = restricted ? mask : (node.claim_review_badge || '-');
       document.getElementById('tags').innerHTML = restricted
         ? '<span class="tag">🔒 restricted</span>'
         : ((node.tags || []).map(tag => `<span class="tag">#${{tag}}</span>`).join('') || '<span class="tag">#untagged</span>');
@@ -3051,7 +3182,7 @@ def closed_graph_html(
       const tf = (id, text) => {{ const el = document.getElementById(id); if (el) el.textContent = text; }};
       tf('title', window._t?.('graph.select_node') ?? 'Select a node');
       tf('summary', window._t?.('graph.intro') ?? 'Click a node to see neighbors and metadata. WASD to pan, scroll or pinch to zoom, Q/E to step through neighbors.');
-      ['kind','degree','project','path','size','owner','status','visibility','publication'].forEach((id) => tf(id, '-'));
+      ['kind','degree','project','path','size','owner','status','visibility','publication','trust'].forEach((id) => tf(id, '-'));
       const tags = document.getElementById('tags');
       if (tags) tags.innerHTML = '';
       syncSelectionAccess();
@@ -3236,8 +3367,18 @@ def closed_graph_html(
               if (href.startsWith('/') || href.startsWith('https://')) a.href = href;
               const strong = document.createElement('strong');
               strong.textContent = item.title || '';
+              const badge = String(item.claim_review_badge || '');
+              if (badge && badge !== 'Unreviewed') {{
+                const badgeEl = document.createElement('span');
+                badgeEl.style.marginLeft = '8px';
+                badgeEl.style.fontSize = '.76rem';
+                badgeEl.style.color = '#475569';
+                badgeEl.textContent = `[${{badge}}]`;
+                strong.appendChild(badgeEl);
+              }}
               const small = document.createElement('small');
-              small.textContent = item.summary || item.path || '';
+              const signals = `${{Number(item.confirm_count || 0)}}c/${{Number(item.dispute_count || 0)}}d`;
+              small.textContent = `${{item.summary || item.path || ''}}${{item.kind === 'claim' ? ` · ${{badge || 'Unreviewed'}} · ${{signals}}` : ''}}`;
               a.appendChild(strong);
               a.appendChild(small);
               searchBox.appendChild(a);
@@ -4393,13 +4534,18 @@ def closed_debug_html(route_prefix: str = "") -> str:
               <div>
                 <h1 style="font-size:2rem;">Publication Queue</h1>
                 <p class="lead">Publication request queue. Approving syncs automatically to Core API.</p>
+                <p class="status-line" id="pub-summary">Loading queue summary…</p>
               </div>
               <div class="actions">
                 <select class="input" id="pub-status-filter" style="width:160px;">
                   <option value="">All statuses</option>
-                  <option value="pending" selected>Pending</option>
-                  <option value="approved">Approved</option>
+                  <option value="requested" selected>Requested</option>
+                  <option value="reviewing">Reviewing</option>
                   <option value="rejected">Rejected</option>
+                  <option value="published">Published</option>
+                  <option value="needs_merge">Needs Merge</option>
+                  <option value="needs_evidence">Needs Evidence</option>
+                  <option value="superseded">Superseded</option>
                 </select>
                 <button class="button" id="pub-refresh" type="button">Refresh</button>
               </div>
@@ -4584,6 +4730,7 @@ def closed_debug_html(route_prefix: str = "") -> str:
         impModalClose: document.getElementById('imp-modal-close'),
         impModalX: document.getElementById('imp-modal-x'),
         pubStatusFilter: document.getElementById('pub-status-filter'),
+        pubSummary: document.getElementById('pub-summary'),
         pubRefresh: document.getElementById('pub-refresh'),
         pubList: document.getElementById('pub-list'),
         pubModal: document.getElementById('pub-modal'),
@@ -5177,16 +5324,40 @@ def closed_debug_html(route_prefix: str = "") -> str:
       // ── publication dashboard ────────────────────
       async function loadPublicationRequests() {
         const t = token();
-        if (!t) { if (dom.pubList) dom.pubList.innerHTML = `<p class="locked-copy">${window._t?.('admin.pub_locked') ?? 'Login required.'}</p>`; return; }
+        if (!t) {
+          if (dom.pubList) dom.pubList.innerHTML = `<p class="locked-copy">${window._t?.('admin.pub_locked') ?? 'Login required.'}</p>`;
+          if (dom.pubSummary) dom.pubSummary.textContent = window._t?.('admin.pub_locked') ?? 'Login required.';
+          return;
+        }
         const status = dom.pubStatusFilter?.value || '';
-        const url = `${apiBase}/api/publication/requests${status ? `?status=${encodeURIComponent(status)}` : ''}`;
+        const url = `${apiBase}/api/publication/requests?limit=200`;
         try {
           const res = await fetch(url, { headers: { Authorization: `Bearer ${t}` } });
-          if (!res.ok) { dom.pubList.innerHTML = `<p class="locked-copy">${window._t?.('admin.pub_fetch_fail') ?? 'Failed to load. Check admin token.'}</p>`; return; }
+          if (!res.ok) {
+            dom.pubList.innerHTML = `<p class="locked-copy">${window._t?.('admin.pub_fetch_fail') ?? 'Failed to load. Check admin token.'}</p>`;
+            if (dom.pubSummary) dom.pubSummary.textContent = window._t?.('admin.pub_fetch_fail') ?? 'Failed to load. Check admin token.';
+            return;
+          }
           const data = await res.json();
-          renderPublicationList(data.requests || []);
+          const requests = data.requests || [];
+          const counts = requests.reduce((acc, item) => {
+            const key = String(item.status || 'unknown').toLowerCase();
+            acc[key] = (acc[key] || 0) + 1;
+            return acc;
+          }, {});
+          if (dom.pubSummary) {
+            dom.pubSummary.textContent = [
+              `total ${requests.length}`,
+              `requested ${counts.requested || 0}`,
+              `reviewing ${counts.reviewing || 0}`,
+              `published ${counts.published || 0}`,
+              `rejected ${counts.rejected || 0}`,
+            ].join(' · ');
+          }
+          renderPublicationList(status ? requests.filter((item) => String(item.status || '').toLowerCase() === status) : requests);
         } catch (error) {
           if (dom.pubList) dom.pubList.innerHTML = `<p class="locked-copy">${escapeHtml(error.message)}</p>`;
+          if (dom.pubSummary) dom.pubSummary.textContent = error.message;
         }
       }
 
@@ -5196,7 +5367,16 @@ def closed_debug_html(route_prefix: str = "") -> str:
         if (!dom.pubList) return;
         for (const key of Object.keys(pubRequestsIndex)) delete pubRequestsIndex[key];
         if (!requests.length) { dom.pubList.innerHTML = `<p class="locked-copy">${window._t?.('admin.pub_empty') ?? 'No requests.'}</p>`; return; }
-        const statusColor = { pending: '#c2410c', approved: '#15803d', rejected: '#b91c1c', published: '#15803d', reviewing: '#c2410c' };
+        const statusColor = {
+          requested: '#c2410c',
+          reviewing: '#c2410c',
+          approved: '#15803d',
+          published: '#15803d',
+          rejected: '#b91c1c',
+          needs_merge: '#7c3aed',
+          needs_evidence: '#0f766e',
+          superseded: '#64748b',
+        };
         dom.pubList.innerHTML = requests.map((r) => {
           pubRequestsIndex[r.path] = r;
           return `
@@ -5318,6 +5498,10 @@ def _note_payload(note: ClosedNote, notes: list[ClosedNote], route_prefix: str) 
         "created_by": note.created_by,
         "visibility": note.visibility,
         "publication_status": note.publication_status,
+        "claim_review_status": note.claim_review_status,
+        "claim_review_badge": _claim_trust_badge(note.claim_review_status),
+        "confirm_count": note.confirm_count,
+        "dispute_count": note.dispute_count,
         "tags": note.tags,
         "related": note.related,
         "summary": note.summary,
@@ -5456,11 +5640,14 @@ def _parse_note(root: Path, path: Path) -> ClosedNote:
     rel_path = path.relative_to(root).as_posix()
     title = str(frontmatter.get("title") or path.stem)
     owner = str(frontmatter.get("owner") or get_settings().default_note_owner)
+    kind = normalize_kind(str(frontmatter.get("kind") or "reference"))
+    confirm_count = _effective_confirm_count(frontmatter, owner)
+    dispute_count = _effective_dispute_count(frontmatter, owner)
     return ClosedNote(
         path=rel_path,
         slug=_slugify(path.stem),
         title=title,
-        kind=normalize_kind(str(frontmatter.get("kind") or "reference")),
+        kind=kind,
         project=str(frontmatter.get("project") or "openakashic"),
         status=str(frontmatter.get("status") or "draft"),
         owner=owner,
@@ -5471,7 +5658,14 @@ def _parse_note(root: Path, path: Path) -> ClosedNote:
         summary=_extract_summary(body),
         body=body.strip(),
         links=sorted(set(match.group(1).strip() for match in WIKI_LINK_PATTERN.finditer(body))),
-        confirm_count=_effective_confirm_count(frontmatter, owner),
+        confirm_count=confirm_count,
+        dispute_count=dispute_count,
+        claim_review_status=_normalize_claim_review_status(
+            frontmatter,
+            kind=kind,
+            confirm_count=confirm_count,
+            dispute_count=dispute_count,
+        ),
         original_owner=str(frontmatter.get("original_owner") or frontmatter.get("owner") or get_settings().default_note_owner),
         created_by=str(frontmatter.get("created_by") or frontmatter.get("owner") or ""),
         freshness_date=str(frontmatter.get("freshness_date") or ""),

@@ -3,12 +3,15 @@ from __future__ import annotations
 import asyncio
 from datetime import UTC, datetime, timedelta
 import fcntl
+import http.client
+import ipaddress
 import json
 import logging
 
 logger = logging.getLogger(__name__)
 from pathlib import Path
 import re
+import socket
 import threading
 from typing import Any
 from urllib import error as urlerror
@@ -305,7 +308,7 @@ def enqueue_subordinate_task(
         if pending >= _QUEUE_PENDING_LIMIT:
             raise RuntimeError(
                 f"Queue pending limit reached ({pending}/{_QUEUE_PENDING_LIMIT}). "
-                "Busagwan is falling behind — check ollama GPU or raise limit."
+                "Busagwan is falling behind — investigate worker latency or raise limit."
             )
         # 동일 kind+payload 의 pending 태스크가 이미 있으면 중복 enqueue 방지
         dedup_key = _task_dedup_key(kind, payload)
@@ -407,36 +410,6 @@ def run_subordinate_cycle(*, reason: str = "manual") -> dict[str, Any]:
     return {"status": "ok", "reason": reason, "processed": processed}
 
 
-def _run_publication_first_reviews(*, limit: int) -> list[dict[str, Any]]:
-    results: list[dict[str, Any]] = []
-    # "requested" → 아직 미리뷰 / "reviewing" 중 recommendation이 미확정(reviewing)인 항목도 재시도
-    candidates = list(list_publication_requests(status="requested")) + list(
-        list_publication_requests(status="reviewing")
-    )
-    seen: set[str] = set()
-    for request in candidates:
-        if len(results) >= limit:
-            break
-        if request.path in seen:
-            continue
-        seen.add(request.path)
-        try:
-            document = load_document(request.path)
-        except Exception as exc:
-            logger.warning("_run_publication_first_reviews: skipping missing note %s: %s", request.path, exc)
-            continue
-        recommendation = str(document.frontmatter.get("subordinate_recommendation") or "").strip().lower()
-        # 이미 확정/에스컬레이션된 항목은 건너뜀
-        if recommendation in {"approved", "rejected", "escalated"}:
-            continue
-        try:
-            result = _review_publication_request(request.path)
-            results.append(result)
-        except Exception as exc:
-            logger.warning("_run_publication_first_reviews: review failed for %s: %s", request.path, exc)
-    return results
-
-
 def _run_task(task: dict[str, Any], settings: dict[str, Any]) -> str:
     kind = str(task.get("kind") or "")
     payload = dict(task.get("payload") or {})
@@ -457,133 +430,6 @@ def _run_task(task: dict[str, Any], settings: dict[str, Any]) -> str:
             dry_run=bool(payload.get("dry_run") or False),
         )
     raise ValueError(f"Unsupported subordinate task: {kind}")
-
-
-def _detect_conflicts(path: str) -> str:
-    note_path = path.strip()
-    if not note_path:
-        raise ValueError("detect_conflicts requires path")
-    source = load_document(note_path)
-    source_fm = source.frontmatter
-    source_owner = str(source_fm.get("owner") or "").strip()
-    query = "\n".join(
-        [
-            str(source_fm.get("title") or Path(source.path).stem),
-            str(source_fm.get("kind") or ""),
-            str(source_fm.get("project") or ""),
-            " ".join(str(tag) for tag in source_fm.get("tags") or []),
-            source.body,
-        ]
-    ).strip()
-
-    documents: list[SemanticDocument] = []
-    document_by_path: dict[str, Any] = {}
-    for candidate_path in list_note_paths():
-        try:
-            candidate = load_document(candidate_path)
-        except Exception:
-            continue
-        candidate_fm = candidate.frontmatter
-        documents.append(
-            SemanticDocument(
-                key=candidate.path,
-                path=candidate.path,
-                title=str(candidate_fm.get("title") or Path(candidate.path).stem),
-                kind=str(candidate_fm.get("kind") or "reference"),
-                project=str(candidate_fm.get("project") or "openakashic"),
-                status=str(candidate_fm.get("status") or "active"),
-                summary=str(candidate_fm.get("summary") or ""),
-                body=candidate.body,
-            )
-        )
-        document_by_path[candidate.path] = candidate
-
-    # 2단계 threshold: >=0.86 무조건 / 0.74-0.86은 같은 project 또는 tag 겹칠 때만
-    source_tags = set(str(t) for t in (source_fm.get("tags") or []))
-    source_project = str(source_fm.get("project") or "")
-    conflict_candidates: list[dict[str, Any]] = []
-    checked = 0
-    for candidate_key, semantic_score in semantic_rank(query, documents, limit=8):
-        candidate = document_by_path.get(candidate_key)
-        if not candidate:
-            continue
-        if candidate.path == source.path:
-            continue
-        checked += 1
-        if checked > 5:
-            break
-        if semantic_score >= 0.86:
-            conflict_candidates.append(
-                {"path": candidate.path, "score": round(float(semantic_score), 4)}
-            )
-        elif semantic_score >= 0.74:
-            cand_fm = candidate.frontmatter
-            cand_tags = set(str(t) for t in (cand_fm.get("tags") or []))
-            cand_project = str(cand_fm.get("project") or "")
-            has_tag_overlap = bool(source_tags & cand_tags)
-            same_project = source_project and source_project == cand_project
-            if has_tag_overlap or same_project:
-                conflict_candidates.append(
-                    {"path": candidate.path, "score": round(float(semantic_score), 4)}
-                )
-
-    next_frontmatter = dict(source.frontmatter)
-    if not conflict_candidates:
-        next_frontmatter["conflict_candidates"] = []
-        next_frontmatter["conflict_status"] = "clear"
-        write_document(path=source.path, body=source.body, metadata=next_frontmatter)
-        return f"No conflict candidates detected for {source.path}"
-
-    # LLM으로 실제 충돌 여부 판단 — semantic 유사도만으로는 관련 노트와 모순 노트를 구별 불가.
-    candidate_snippets = []
-    for cc in conflict_candidates[:3]:
-        cand_doc = document_by_path.get(cc["path"])
-        if cand_doc:
-            snippet = (
-                f"Path: {cc['path']} (score={cc['score']})\n"
-                f"{cand_doc.body[:600]}"
-            )
-            candidate_snippets.append(snippet)
-
-    prompt = "\n\n".join(
-        [
-            "너는 OpenAkashic의 부사관이다. 소스 노트와 후보 노트들이 실제로 모순·충돌하는지 판단한다.",
-            f"소스 노트 ({source.path}):\n{source.body[:1500]}",
-            "유사도 높은 후보 노트들:\n" + "\n---\n".join(candidate_snippets),
-            (
-                "이 후보들이 소스 노트와 같은 사실에 대해 서로 다른 주장을 하는지 판단하라. "
-                "단순히 같은 주제라면 충돌이 아니다. 서로 다른 주장이어야 충돌이다."
-            ),
-            "출력 형식:\nVerdict: <CONFLICT|CLEAR>\nReason:\n- ...",
-        ]
-    )
-    reply = _ollama_generate(prompt)
-
-    verdict_match = re.search(
-        r'^\s*Verdict:\s*(CONFLICT|CLEAR)\b', reply, re.MULTILINE | re.IGNORECASE
-    )
-    if _is_llm_failure(reply) or not verdict_match:
-        # LLM 실패 또는 Verdict 줄 파싱 불가 → pending_review (재시도 대기)
-        next_frontmatter["conflict_candidates"] = conflict_candidates
-        next_frontmatter["conflict_status"] = "pending_review"
-        summary = (
-            f"LLM evaluation failed or malformed for {source.path}; "
-            f"{len(conflict_candidates)} candidate(s) pending manual review"
-        )
-    elif verdict_match.group(1).upper() == "CONFLICT":
-        next_frontmatter["conflict_candidates"] = conflict_candidates
-        next_frontmatter["conflict_status"] = "flagged"
-        summary = f"Confirmed conflict in {source.path}: {len(conflict_candidates)} candidate(s)"
-    else:
-        # CLEAR
-        next_frontmatter["conflict_candidates"] = conflict_candidates
-        next_frontmatter["conflict_status"] = "clear"
-        summary = (
-            f"No genuine conflict in {source.path} despite {len(conflict_candidates)} similar note(s)"
-        )
-
-    write_document(path=source.path, body=source.body, metadata=next_frontmatter)
-    return summary
 
 
 def _scan_stale_private_notes(owner: str, *, dry_run: bool = False) -> str:
@@ -647,326 +493,6 @@ def _scan_stale_private_notes(owner: str, *, dry_run: bool = False) -> str:
         return f"{result_summary} — failed to write summary: {exc}"
 
 
-_MAX_REVIEW_ATTEMPTS = 3
-
-
-def _is_llm_failure(reply: str) -> bool:
-    """ollama 응답이 에러인지 판별."""
-    return reply.startswith("부사관") and ("실패" in reply or "응답을 만들지 못했다" in reply)
-
-
-def _verify_evidence_paths(evidence_paths: list[str]) -> list[str]:
-    """evidence_paths 접근 가능 여부 확인. URL은 HEAD 요청, vault path는 load 시도."""
-    issues: list[str] = []
-    for item in evidence_paths[:4]:
-        item_str = str(item).strip()
-        if not item_str:
-            continue
-        if item_str.startswith("http://") or item_str.startswith("https://"):
-            try:
-                req = urlrequest.Request(item_str, method="HEAD", headers={
-                    "User-Agent": "OpenAkashic-Subordinate/1.0 (+https://knowledge.openakashic.com)",
-                })
-                with urlrequest.urlopen(req, timeout=10) as resp:
-                    if resp.status >= 400:
-                        issues.append(f"URL unreachable ({resp.status}): {item_str}")
-            except Exception as exc:
-                issues.append(f"URL unreachable: {item_str} — {exc}")
-        else:
-            try:
-                load_document(item_str)
-            except Exception:
-                issues.append(f"evidence note not found: {item_str}")
-    return issues
-
-
-def _review_publication_request(path: str) -> dict[str, Any]:
-    request_doc = load_document(path)
-    fm = request_doc.frontmatter
-
-    # ── 재시도 카운터 확인 ──
-    attempt = int(fm.get("subordinate_review_attempts") or 0)
-    if attempt >= _MAX_REVIEW_ATTEMPTS:
-        # 이미 최대 시도 — escalated 상태여야 함. 중복 처리 방지.
-        return {"kind": "review_publication_request", "path": path, "recommendation": "escalated"}
-
-    source_path = str(fm.get("source_path") or "")
-    try:
-        source_doc = load_document(source_path) if source_path else None
-    except Exception:
-        source_doc = None
-
-    # ── evidence 접근 가능 여부 검증 ──
-    evidence_paths = fm.get("evidence_paths") or []
-    evidence_issues = _verify_evidence_paths(evidence_paths)
-
-    evidence_notes: list[str] = []
-    for item in evidence_paths[:4]:
-        try:
-            evidence_doc = load_document(str(item))
-            evidence_notes.append(f"- {evidence_doc.frontmatter.get('title') or evidence_doc.path}: {evidence_doc.body[:280]}")
-        except Exception:
-            evidence_notes.append(f"- {item}")
-
-    try:
-        from app.agent_memory import before_task_context as _before_ctx
-        title_str = str(fm.get('title') or '')
-        ctx = _before_ctx("busagwan", title_str, current_note_path=source_path or None)
-        mem_block = ctx.get("combined") or ""
-    except Exception:
-        mem_block = ""
-
-    evidence_issue_block = ""
-    if evidence_issues:
-        evidence_issue_block = "## Evidence Verification Issues\n" + "\n".join(f"- {i}" for i in evidence_issues)
-
-    prompt = "\n\n".join(
-        [
-            "너는 OpenAkashic의 부사관이다. publication request의 1차 리뷰를 아주 짧고 실무적으로 작성한다.",
-            "반드시 approved 또는 rejected 중 하나를 결정해야 한다. 애매하면 approved로 통과시키고 사관이 최종 판단한다.",
-            "evidence URL이 접근 불가하면 rejected 한다.",
-            f"Request note title: {fm.get('title') or request_doc.path}",
-            f"Request body:\n{request_doc.body[:2000]}",
-            f"Source note:\n{(source_doc.body[:2500] if source_doc else '없음')}",
-            "Evidence:\n" + ("\n".join(evidence_notes) if evidence_notes else "- none"),
-            evidence_issue_block or "",
-            mem_block or "## 메모리 (비어있음)",
-            "출력 형식:\nRecommendation: <approved|rejected>\nReason:\n- ...\n- ...\nReview Summary:\n...",
-        ]
-    )
-    reply = _ollama_generate(prompt)
-    attempt += 1
-
-    # ── LLM 실패 → 재시도 대기 or escalation ──
-    if _is_llm_failure(reply):
-        next_fm = dict(fm)
-        next_fm["subordinate_review_attempts"] = attempt
-        next_fm["subordinate_last_attempt_at"] = _now_iso()
-        if attempt >= _MAX_REVIEW_ATTEMPTS:
-            # 최대 재시도 초과 → 사관에게 에스컬레이션
-            next_fm["subordinate_recommendation"] = "escalated"
-            set_publication_status(
-                path=path, status="escalated",
-                decider=SUBORDINATE_IDENTITY["nickname"],
-                reason=f"부사관 LLM {attempt}회 실패 — 사관 수동 리뷰 필요: {reply[:200]}",
-            )
-            append_section(
-                path,
-                f"Subordinate Review Failed {_now_iso()}",
-                f"- LLM 호출 {attempt}회 실패. 사관에게 에스컬레이션.\n- 마지막 오류: {reply[:300]}",
-            )
-            write_document(path=path, body=request_doc.body, metadata=next_fm, allow_owner_change=True)
-            return {"kind": "review_publication_request", "path": path, "recommendation": "escalated"}
-        else:
-            # 재시도 대기 — 상태/추천은 변경하지 않음, 다음 사이클에서 재시도
-            write_document(path=path, body=request_doc.body, metadata=next_fm, allow_owner_change=True)
-            logger.info("_review_publication_request: LLM failed (attempt %d/%d), will retry: %s",
-                        attempt, _MAX_REVIEW_ATTEMPTS, path)
-            return {"kind": "review_publication_request", "path": path, "recommendation": "retry_pending",
-                    "attempt": attempt}
-
-    # ── 정상 LLM 응답 파싱 ──
-    recommendation_match = re.search(r"Recommendation:\s*(\w+)", reply, flags=re.IGNORECASE)
-    recommendation = (recommendation_match.group(1).strip().lower() if recommendation_match else "approved")
-    if recommendation not in {"approved", "rejected"}:
-        recommendation = "approved"  # 정상 응답인데 형식만 안 맞으면 사관에게 위임
-
-    append_section(
-        path,
-        f"Subordinate First Review {_now_iso()}",
-        "\n".join(
-            [
-                f"- reviewer: `{SUBORDINATE_IDENTITY['nickname']}`",
-                f"- recommendation: `{recommendation}`",
-                *(f"- evidence issue: {i}" for i in evidence_issues),
-                "",
-                reply.strip(),
-            ]
-        ),
-    )
-    updated = set_publication_status(
-        path=path,
-        status=recommendation if recommendation != "approved" else "reviewing",
-        decider=SUBORDINATE_IDENTITY["nickname"],
-        reason=reply[:500],
-    )
-    next_frontmatter = dict(updated.frontmatter)
-    next_frontmatter["subordinate_reviewed_at"] = _now_iso()
-    next_frontmatter["subordinate_reviewed_by"] = SUBORDINATE_IDENTITY["nickname"]
-    next_frontmatter["subordinate_recommendation"] = recommendation
-    next_frontmatter["subordinate_review_attempts"] = attempt
-    write_document(path=path, body=updated.body, metadata=next_frontmatter, allow_owner_change=True)
-    _remember_subordinate_note(path, reply, task_kind="review_publication_request")
-    return {"kind": "review_publication_request", "path": path, "recommendation": recommendation}
-
-
-def _draft_capsule(source_path: str, *, auto_request: bool) -> dict[str, Any]:
-    if not source_path:
-        raise ValueError("source_path is required")
-    source = load_document(source_path)
-    title = str(source.frontmatter.get("title") or Path(source.path).stem)
-    prompt = "\n\n".join(
-        [
-            "너는 OpenAkashic의 부사관이다. 아래 source note를 바탕으로 public-facing capsule 초안을 만든다.",
-            "과도한 주장보다 실전 결과, evidence link placeholder, caveat를 짧게 정리한다.",
-            f"Source title: {title}",
-            f"Source body:\n{source.body[:4000]}",
-            "출력은 마크다운 본문만 작성하고, 최소 섹션은 Summary, Outcome, Evidence Links, Practical Use, Reuse 를 포함한다.",
-        ]
-    )
-    body = _ollama_generate(prompt)
-    project = str(source.frontmatter.get("project") or "ops/librarian")
-    folder = str(Path(source.path).parent)
-    capsule_title = f"{title} Capsule"
-    suggested = suggest_note_path("capsule", capsule_title, folder, None, project)
-    doc = write_document(
-        path=suggested,
-        title=capsule_title,
-        kind="capsule",
-        project=project,
-        status="draft",
-        tags=["capsule", "subordinate", "draft"],
-        related=[title],
-        body=body,
-        metadata={
-            "owner": SAGWAN_SYSTEM_OWNER,
-            "visibility": "private",
-            "publication_status": "none",
-            "created_by": SUBORDINATE_IDENTITY["nickname"],
-            "generated_by": SUBORDINATE_IDENTITY["nickname"],
-            "original_owner": str(source.frontmatter.get("owner") or ""),
-            "seed_path": source_path,
-        },
-        allow_owner_change=True,
-    )
-    request_data = None
-    if auto_request:
-        request_data = request_publication(
-            path=doc.path,
-            requester=SUBORDINATE_IDENTITY["nickname"],
-            rationale=f"Auto-requested from subordinate capsule draft (source: {source_path})",
-            evidence_paths=[source.path],
-        ).__dict__
-    _remember_subordinate_note(source_path, f"Created capsule draft at {doc.path}", task_kind="draft_capsule")
-    return {"path": doc.path, "request": request_data}
-
-
-def _draft_claim(source_path: str, *, auto_request: bool) -> list[dict[str, Any]]:
-    """소스 노트에서 원자적(atomic) 사실 주장(claim)을 추출해 kind=claim 노트를 생성한다.
-
-    claim의 설계 철학:
-    - 하나의 노트 = 하나의 주장.  측정/실험/관찰 결과에서 가장 잘 나온다.
-    - 주장은 falsifiable 해야 하고, Scope/Caveats 가 명시되어야 한다.
-    - busagwan이 소스 본문에서 최대 _MAX_CLAIMS_PER_SOURCE 개의 원자 주장을 추출한다.
-    """
-    _MAX_CLAIMS_PER_SOURCE = 3
-
-    if not source_path:
-        raise ValueError("source_path is required")
-    source = load_document(source_path)
-    source_title = str(source.frontmatter.get("title") or Path(source.path).stem)
-    project = str(source.frontmatter.get("project") or "ops/librarian")
-
-    prompt = "\n\n".join([
-        "너는 OpenAkashic의 부사관이다. 아래 source note에서 공개 가능한 원자적 사실 주장(atomic claim)을 추출한다.",
-        "규칙:",
-        f"- 최대 {_MAX_CLAIMS_PER_SOURCE}개의 claim만 추출한다.",
-        "- 각 claim은 단일하고 검증 가능(falsifiable)한 주장 하나만 담는다.",
-        "- 측정값·비교·실험 결과·정량적 관찰이 있는 경우 우선한다.",
-        "- 각 claim은 JSON 오브젝트로 출력한다. 형식은 아래와 같다:",
-        '  {"title": "...", "claim": "...", "scope": "...", "caveats": "..."}',
-        "- JSON 오브젝트 목록을 JSON 배열로 반환한다. 다른 텍스트는 출력하지 않는다.",
-        f"Source title: {source_title}",
-        f"Source body:\n{source.body[:4000]}",
-    ])
-
-    raw = _ollama_generate(prompt)
-
-    # JSON 파싱 — ollama가 마크다운 코드블록으로 감쌀 수도 있으므로 양쪽을 시도
-    claims_data: list[dict] = []
-    for candidate in (raw, raw.strip().lstrip("```json").lstrip("```").rstrip("```").strip()):
-        try:
-            parsed = json.loads(candidate)
-            if isinstance(parsed, list):
-                claims_data = [c for c in parsed if isinstance(c, dict) and c.get("claim")]
-                break
-        except (json.JSONDecodeError, ValueError):
-            continue
-
-    if not claims_data:
-        logger.warning("_draft_claim: no valid claims extracted from %s — raw:\n%s", source_path, raw[:400])
-        return []
-
-    created: list[dict[str, Any]] = []
-    for claim_obj in claims_data[:_MAX_CLAIMS_PER_SOURCE]:
-        claim_title = str(claim_obj.get("title") or f"[Claim] {source_title}")
-        claim_text = str(claim_obj.get("claim") or "")
-        scope_text = str(claim_obj.get("scope") or "이 소스 맥락에 한함")
-        caveats_text = str(claim_obj.get("caveats") or "없음")
-
-        body = "\n\n".join([
-            "## Summary",
-            claim_text,
-            "## Claim",
-            claim_text,
-            "## Evidence Links",
-            f"- [[{source_title}]]({source_path})",
-            "## Scope",
-            scope_text,
-            "## Caveats",
-            caveats_text,
-        ])
-
-        folder = str(Path(source_path).parent)
-        suggested = suggest_note_path("claim", claim_title, folder, None, project)
-        try:
-            doc = write_document(
-                path=suggested,
-                title=claim_title,
-                kind="claim",
-                project=project,
-                status="draft",
-                tags=["claim", "subordinate", "draft"],
-                related=[source_title],
-                body=body,
-                metadata={
-                    "owner": SAGWAN_SYSTEM_OWNER,
-                    "visibility": "private",
-                    "publication_status": "none",
-                    "created_by": SUBORDINATE_IDENTITY["nickname"],
-                    "generated_by": SUBORDINATE_IDENTITY["nickname"],
-                    "original_owner": str(source.frontmatter.get("owner") or ""),
-                    "claim_source": source_path,
-                    "seed_path": source_path,
-                },
-                allow_owner_change=True,
-            )
-        except Exception as exc:
-            logger.warning("_draft_claim: failed to write claim note: %s", exc)
-            continue
-
-        request_data = None
-        if auto_request:
-            try:
-                request_data = request_publication(
-                    path=doc.path,
-                    requester=SUBORDINATE_IDENTITY["nickname"],
-                    rationale="Auto-requested from subordinate claim draft",
-                    evidence_paths=[source_path],
-                ).__dict__
-            except Exception as exc:
-                logger.warning("_draft_claim: pub request failed: %s", exc)
-
-        created.append({"path": doc.path, "request": request_data})
-
-    _remember_subordinate_note(
-        source_path,
-        f"Created {len(created)} claim draft(s): {[c['path'] for c in created]}",
-        task_kind="draft_claim",
-    )
-    return created
-
-
 def _sync_published_notes_to_core_api(*, limit: int = 10) -> str:
     """
     publication_status=published이고 core_api_id가 없는 kind=capsule/claim 노트를
@@ -987,7 +513,7 @@ def _sync_published_notes_to_core_api(*, limit: int = 10) -> str:
         fm = doc.frontmatter
         if str(fm.get("publication_status") or "").lower() != "published":
             continue
-        if str(fm.get("kind") or "").lower() not in {"capsule", "claim", "reference", "evidence"}:
+        if str(fm.get("kind") or "").lower() not in {"capsule", "claim"}:
             continue
         if fm.get("core_api_id"):
             continue
@@ -1202,17 +728,134 @@ def _crawl_url_to_note(url: str, *, folder: str | None = None, project: str | No
     return doc.path
 
 
-def _fetch_url_text(url: str) -> str:
-    req = urlrequest.Request(
-        url,
-        headers={
-            "User-Agent": "OpenAkashic-Subordinate/1.0 (+https://knowledge.openakashic.com)",
-            "Accept-Language": "ko,en;q=0.9,ja;q=0.8",
-        },
+# SSRF defense limits
+_FETCH_MAX_BYTES = 5 * 1024 * 1024  # 5 MB cap for crawled HTML
+_FETCH_MAX_REDIRECTS = 3
+_FETCH_ALLOWED_SCHEMES = {"http", "https"}
+
+
+def _is_public_ip(ip_str: str) -> bool:
+    try:
+        ip = ipaddress.ip_address(ip_str)
+    except ValueError:
+        return False
+    # Block RFC1918, loopback, link-local, multicast, reserved, unspecified;
+    # applies to both IPv4 and IPv6 (includes ::1, fc00::/7, fe80::/10, etc.)
+    return not (
+        ip.is_private
+        or ip.is_loopback
+        or ip.is_link_local
+        or ip.is_multicast
+        or ip.is_reserved
+        or ip.is_unspecified
     )
-    with urlrequest.urlopen(req, timeout=20) as response:
-        charset = response.headers.get_content_charset() or "utf-8"
-        return response.read().decode(charset, errors="replace")
+
+
+def _validate_url_scheme_and_literal_host(url: str) -> None:
+    """Cheap preflight: scheme allowlist + reject non-public literal IPs.
+
+    DNS-based validation happens at connect time inside the custom HTTP(S)
+    connection classes below — doing it here as well would leave a TOCTOU
+    window where a hostile resolver can answer public for the preflight
+    lookup and private for the real connect.
+    """
+    parsed = urlparse.urlparse(url)
+    if parsed.scheme.lower() not in _FETCH_ALLOWED_SCHEMES:
+        raise ValueError(f"unsupported scheme: {parsed.scheme!r}")
+    host = parsed.hostname
+    if not host:
+        raise ValueError("missing host")
+    try:
+        ipaddress.ip_address(host)
+    except ValueError:
+        return
+    if not _is_public_ip(host):
+        raise ValueError(f"blocked non-public host: {host}")
+
+
+def _resolve_public_address(host: str, port: int) -> tuple[int, int, int, str, tuple]:
+    """Resolve host:port, reject if any record is non-public, return first addrinfo."""
+    try:
+        infos = socket.getaddrinfo(host, port, type=socket.SOCK_STREAM)
+    except socket.gaierror as exc:
+        raise ValueError(f"dns resolution failed for {host}: {exc}") from exc
+    if not infos:
+        raise ValueError(f"no dns records for {host}")
+    for info in infos:
+        resolved = info[4][0]
+        if not _is_public_ip(resolved):
+            raise ValueError(f"blocked non-public resolution {host} -> {resolved}")
+    return infos[0]
+
+
+class _SafeHTTPConnection(http.client.HTTPConnection):
+    def connect(self) -> None:  # noqa: D401
+        info = _resolve_public_address(self.host, self.port)
+        self.sock = socket.create_connection(info[4], self.timeout, self.source_address)
+
+
+class _SafeHTTPSConnection(http.client.HTTPSConnection):
+    def connect(self) -> None:  # noqa: D401
+        info = _resolve_public_address(self.host, self.port)
+        self.sock = socket.create_connection(info[4], self.timeout, self.source_address)
+        server_hostname = self._tunnel_host if self._tunnel_host else self.host
+        self.sock = self._context.wrap_socket(self.sock, server_hostname=server_hostname)
+
+
+class _SafeHTTPHandler(urlrequest.HTTPHandler):
+    def http_open(self, req):  # noqa: D401
+        return self.do_open(_SafeHTTPConnection, req)
+
+
+class _SafeHTTPSHandler(urlrequest.HTTPSHandler):
+    def https_open(self, req):  # noqa: D401
+        return self.do_open(_SafeHTTPSConnection, req)
+
+
+class _NoRedirectHandler(urlrequest.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):  # noqa: D401
+        # Surface redirect URL so the caller can re-validate before following.
+        raise urlerror.HTTPError(newurl, code, msg, headers, fp)
+
+
+def _fetch_url_text(url: str) -> str:
+    opener = urlrequest.build_opener(
+        _SafeHTTPHandler(), _SafeHTTPSHandler(), _NoRedirectHandler
+    )
+    visited: set[str] = set()
+    current = url
+    for _ in range(_FETCH_MAX_REDIRECTS + 1):
+        if current in visited:
+            raise ValueError(f"redirect loop on {current}")
+        visited.add(current)
+        _validate_url_scheme_and_literal_host(current)
+        req = urlrequest.Request(
+            current,
+            headers={
+                "User-Agent": "OpenAkashic-Subordinate/1.0 (+https://knowledge.openakashic.com)",
+                "Accept-Language": "ko,en;q=0.9,ja;q=0.8",
+            },
+        )
+        try:
+            response = opener.open(req, timeout=20)
+        except urlerror.HTTPError as exc:
+            if exc.code in (301, 302, 303, 307, 308):
+                location = exc.headers.get("Location") if exc.headers else None
+                if not location:
+                    raise ValueError(f"redirect without Location from {current}")
+                current = urlparse.urljoin(current, location)
+                continue
+            raise
+        with response:
+            length = response.headers.get("Content-Length")
+            if length and length.isdigit() and int(length) > _FETCH_MAX_BYTES:
+                raise ValueError(f"response too large: {length} bytes")
+            charset = response.headers.get_content_charset() or "utf-8"
+            raw = response.read(_FETCH_MAX_BYTES + 1)
+            if len(raw) > _FETCH_MAX_BYTES:
+                raise ValueError(f"response exceeds {_FETCH_MAX_BYTES} bytes")
+            return raw.decode(charset, errors="replace")
+    raise ValueError(f"too many redirects starting at {url}")
 
 
 def _extract_html_title(raw: str) -> str:

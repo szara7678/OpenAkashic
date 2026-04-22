@@ -28,6 +28,14 @@ from app.users import SAGWAN_SYSTEM_OWNER
 
 
 IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".avif"}
+# Reject executable/script suffixes that could be served back as content.
+BLOCKED_ASSET_SUFFIXES = {
+    ".exe", ".bat", ".cmd", ".com", ".msi", ".dll", ".so", ".dylib",
+    ".sh", ".bash", ".zsh", ".ps1", ".vbs", ".scr", ".jar", ".apk",
+    ".php", ".phtml", ".phar", ".jsp", ".asp", ".aspx",
+}
+MAX_IMAGE_BYTES = 10 * 1024 * 1024  # 10 MB
+MAX_ASSET_BYTES = 25 * 1024 * 1024  # 25 MB
 DEFAULT_IMAGE_FOLDER = "assets/images"
 DEFAULT_FILE_FOLDER = "assets/files"
 ROOT_NOTE_FILES = {"README.md", "AGENTS.md"}
@@ -142,7 +150,7 @@ KIND_ALIASES = {
     "decision": "policy",
     "pattern": "playbook",
 }
-VISIBILITY_VALUES = {"private", "public"}
+VISIBILITY_VALUES = {"private", "public", "shared"}
 PUBLICATION_STATUS_VALUES = {
     "none",
     "requested",
@@ -150,6 +158,9 @@ PUBLICATION_STATUS_VALUES = {
     "approved",
     "rejected",
     "published",
+    "needs_merge",
+    "needs_evidence",
+    "superseded",
     "escalated",  # busagwan 반복 실패 → 사관 수동 리뷰 필요
 }
 PUBLICATION_REQUEST_FOLDER = "personal_vault/projects/ops/librarian/publication_requests"
@@ -517,7 +528,10 @@ def set_publication_status(
     _apply_governance_defaults(frontmatter)
     next_status = _normalize_publication_status(status)
     if next_status == "none":
-        raise ValueError("Publication status decision must be requested, reviewing, approved, rejected, or published")
+        raise ValueError(
+            "Publication status decision must be requested, reviewing, approved, rejected, "
+            "published, needs_merge, needs_evidence, or superseded"
+        )
     frontmatter["publication_status"] = next_status
     frontmatter["publication_decided_at"] = _now_iso()
     frontmatter["publication_decided_by"] = (decider or "sagwan").strip() or "sagwan"
@@ -658,6 +672,8 @@ def save_image(
     suffix = Path(filename).suffix.lower()
     if suffix not in IMAGE_EXTENSIONS:
         raise ValueError("Unsupported image type")
+    if len(content) > MAX_IMAGE_BYTES:
+        raise ValueError(f"Image too large (max {MAX_IMAGE_BYTES} bytes)")
 
     stem = _slugify(Path(filename).stem)
     safe_name = f"{stem}-{uuid4().hex[:8]}{suffix}"
@@ -690,6 +706,10 @@ def save_asset(
     raw_folder = (folder or DEFAULT_FILE_FOLDER).strip().strip("/")
     target_folder = resolve_asset_folder(raw_folder)
     suffix = Path(filename).suffix.lower()
+    if suffix in BLOCKED_ASSET_SUFFIXES:
+        raise ValueError(f"Disallowed file type: {suffix}")
+    if len(content) > MAX_ASSET_BYTES:
+        raise ValueError(f"File too large (max {MAX_ASSET_BYTES} bytes)")
     stem = _slugify(Path(filename).stem or "file")
     safe_name = f"{stem}-{uuid4().hex[:8]}{suffix}"
     target = root / target_folder / safe_name
@@ -873,8 +893,8 @@ def _normalize_visibility(value: str) -> str:
         "personal_private": "private",
         "private_source": "private",
         "source_private": "private",
-        "source_shared": "private",
-        "shared_source": "private",
+        "source_shared": "shared",
+        "shared_source": "shared",
         "internal": "private",
         "derived_internal": "private",
         "requested": "private",

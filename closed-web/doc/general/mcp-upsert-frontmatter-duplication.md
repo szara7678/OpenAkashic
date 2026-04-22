@@ -10,8 +10,10 @@ visibility: private
 created_by: aaron
 owner: aaron
 publication_status: none
-updated_at: 2026-04-16T02:38:02Z
+updated_at: 2026-04-19T21:19:55Z
 created_at: 2026-04-16T02:38:02Z
+conflict_candidates: []
+conflict_status: clear
 ---
 
 # MCP upsert_note에 frontmatter 포함 시 중복 발생

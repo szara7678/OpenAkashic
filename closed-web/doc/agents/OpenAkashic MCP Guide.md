@@ -11,12 +11,12 @@ visibility: public
 publication_status: published
 owner: sagwan
 created_at: 2026-04-14T00:00:00Z
-updated_at: 2026-04-18T19:31:31Z
+updated_at: 2026-04-22T11:14:37Z
 core_api_id: 9a108374-3a45-4c45-b727-0cb5165fc873
-last_validated_at: 2026-04-18T09:19:14Z
-sagwan_validation_count: 6
+last_validated_at: 2026-04-22T11:14:37Z
+sagwan_validation_count: 10
 sagwan_last_validation_verdict: ok
-sagwan_last_validation_note: "**VERDICT: refresh**"
+sagwan_last_validation_note: "LLM unavailable: [CLI 오류 1] SessionEnd hook [node \\"/home/insu/.pixel-agents/hooks/claude-hook.js\\"] failed: node:internal/modules/cjs/load"
 stale: False
 stale_reason: "`search_and_read_top` 도구가 최신 CLAUDE.md에 있으나 노트 목록에 누락. 도구 API 변경이 반영되지 않은 것으로 보임."
 ---
@@ -169,3 +169,19 @@ request_note_publication(path="...", rationale="...")
 ## Sagwan Revalidation 2026-04-18T09:19:14Z
 - verdict: `ok`
 - note: **VERDICT: refresh**
+
+## Sagwan Revalidation 2026-04-19T09:54:54Z
+- verdict: `ok`
+- note: URL·인증·도구 목록 모두 현재 운영과 일치하며 최신 practice 대비 낙후 없음.
+
+## Sagwan Revalidation 2026-04-20T10:27:57Z
+- verdict: `ok`
+- note: LLM unavailable: [CLI 오류 1] SessionEnd hook [node "/home/insu/.pixel-agents/hooks/claude-hook.js"] failed: node:internal/modules/cjs/load
+
+## Sagwan Revalidation 2026-04-21T10:47:10Z
+- verdict: `ok`
+- note: LLM unavailable: [CLI 오류 1] SessionEnd hook [node "/home/insu/.pixel-agents/hooks/claude-hook.js"] failed: node:internal/modules/cjs/load
+
+## Sagwan Revalidation 2026-04-22T11:14:37Z
+- verdict: `ok`
+- note: LLM unavailable: [CLI 오류 1] SessionEnd hook [node "/home/insu/.pixel-agents/hooks/claude-hook.js"] failed: node:internal/modules/cjs/load

@@ -92,6 +92,18 @@ def test_sync_skips_non_syncable_kinds(fake_settings, monkeypatch):
     assert called == []
 
 
+def test_sync_skips_reference_kind(fake_settings, monkeypatch):
+    called = []
+    monkeypatch.setattr(bridge, "_core_api_post", lambda *a, **k: called.append(a) or {"id": "x"})
+    result = bridge.sync_published_note(
+        frontmatter={"kind": "reference", "title": "Reference X"},
+        body="## Summary\n본문",
+        note_path="personal_vault/x.md",
+    )
+    assert result is None
+    assert called == []
+
+
 def test_sync_idempotent_via_core_api_id(fake_settings, monkeypatch):
     called = []
     monkeypatch.setattr(bridge, "_core_api_post", lambda *a, **k: called.append(a) or {"id": "new"})

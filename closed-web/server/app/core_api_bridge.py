@@ -23,7 +23,7 @@ from app.config import get_settings
 
 logger = logging.getLogger(__name__)
 
-_SYNCABLE_KINDS = {"capsule", "claim", "reference"}
+_SYNCABLE_KINDS = {"capsule", "claim"}
 
 # confidence 필드는 노트에서 "high"/"medium"/"low" 같은 라벨 또는 float으로 올 수 있다.
 # Core API 스키마는 [0, 1] float만 받으므로 라벨을 대표 숫자로 매핑한다.
@@ -429,7 +429,7 @@ def sync_published_note(frontmatter: dict[str, Any], body: str, note_path: str, 
         return str(frontmatter["core_api_id"])
 
     try:
-        if kind in {"capsule", "reference"}:
+        if kind == "capsule":
             return _sync_capsule(frontmatter, body, note_path)
         if kind == "claim":
             return _sync_claim(frontmatter, body, note_path)

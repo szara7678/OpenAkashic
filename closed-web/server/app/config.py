@@ -97,6 +97,10 @@ class Settings(BaseSettings):
         default=str(PROJECT_ROOT / "server" / "logs" / "semantic-index.json"),
         alias="CLOSED_AKASHIC_SEMANTIC_CACHE_PATH",
     )
+    fts_index_path: str = Field(
+        default=str(PROJECT_ROOT / "server" / "logs" / "closed-notes-fts.sqlite3"),
+        alias="CLOSED_AKASHIC_FTS_INDEX_PATH",
+    )
     user_store_path: str = Field(
         default=str(PROJECT_ROOT / "server" / "data" / "users.json"),
         alias="CLOSED_AKASHIC_USER_STORE_PATH",
@@ -114,6 +118,31 @@ class Settings(BaseSettings):
         alias="CLOSED_AKASHIC_OPEN_SIGNUP",
         description="Allow self-registration without admin invite. Set True only on trusted networks.",
     )
+    provision_daily_cap: int = Field(
+        default=200,
+        alias="CLOSED_AKASHIC_PROVISION_DAILY_CAP",
+        description="Global cap on /api/auth/provision calls per UTC day (defense-in-depth alongside per-IP limit).",
+    )
+    trust_forwarded_for: bool = Field(
+        default=False,
+        alias="CLOSED_AKASHIC_TRUST_FORWARDED_FOR",
+        description="Honor x-forwarded-for only when the immediate peer is a trusted proxy.",
+    )
+    trusted_proxy_cidrs: str = Field(
+        default="127.0.0.1/32,::1/128",
+        alias="CLOSED_AKASHIC_TRUSTED_PROXY_CIDRS",
+        description="Comma-separated CIDRs for trust_forwarded_for (e.g., Cloudflare ranges).",
+    )
+    per_token_upload_daily_files: int = Field(
+        default=10,
+        alias="CLOSED_AKASHIC_PER_TOKEN_UPLOAD_DAILY_FILES",
+        description="Per-user daily cap on asset upload count.",
+    )
+    per_token_upload_daily_bytes: int = Field(
+        default=50 * 1024 * 1024,
+        alias="CLOSED_AKASHIC_PER_TOKEN_UPLOAD_DAILY_BYTES",
+        description="Per-user daily cap on total uploaded bytes.",
+    )
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
@@ -125,7 +154,7 @@ class Settings(BaseSettings):
         if configured_root == legacy_vault and not configured_root.exists():
             self.closed_akashic_path = str(PROJECT_ROOT)
             configured_root = Path(self.closed_akashic_path).expanduser()
-        for field_name in ("log_dir", "semantic_cache_path", "user_store_path"):
+        for field_name in ("log_dir", "semantic_cache_path", "fts_index_path", "user_store_path"):
             configured_path = Path(getattr(self, field_name)).expanduser()
             if legacy_server_root in configured_path.parents or configured_path == legacy_server_root:
                 relative = configured_path.relative_to(legacy_server_root)
@@ -142,6 +171,10 @@ class Settings(BaseSettings):
     @property
     def writable_root_list(self) -> list[str]:
         return [item.strip() for item in self.writable_roots.split(",") if item.strip()]
+
+    @property
+    def trusted_proxy_networks(self) -> list[str]:
+        return [item.strip() for item in self.trusted_proxy_cidrs.split(",") if item.strip()]
 
     @property
     def librarian_effective_base_url(self) -> str:
