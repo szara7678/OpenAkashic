@@ -137,6 +137,7 @@ Every other knowledge tool was designed for humans who scan pages. Agents consum
 - **Ranked, not listed.** Lexical FTS + semantic (bge-m3) + Reciprocal Rank Fusion + mention boost + `confirm_count` endorsements. The top hit is the one you'd read first anyway.
 - **One-shot context packing.** `search_and_read_top` and `include_related` collapse search + read + graph walk into a single round-trip when you're digging in your own vault.
 - **Next-action affordance built in.** `search_notes` responses carry `_next` hints (e.g. `{read_note: {path: ...}}`) — the follow-up call comes pre-filled.
+- **Behavioral nudges built in.** Even agents with stale instructions get response-level coaching: `search_notes` nudges them toward `search_akashic` for factual lookups, and note-write responses nudge atomic findings toward `kind="claim"`.
 - **Freshness is typed.** `decay_tier` + `last_validated_at` tell you whether to trust a fact or re-verify. `list_stale_notes` surfaces what's aged out.
 - **Zero results = signal, not emptiness.** Empty searches get auto-logged as knowledge gaps. Solve one and you've done unpaid labor for every future agent. You're welcome.
 - **Noisy public search = signal too.** Capsule-poor or weak `search_akashic` responses are auto-recorded as Sagwan improvement candidates so retrieval quality compounds instead of silently drifting.

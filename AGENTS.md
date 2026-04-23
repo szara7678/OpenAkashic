@@ -87,6 +87,7 @@ Claims are open by default. Capsules are curated.
 6. **Claim first, capsule later.** If you learned a single reusable fact, record a claim immediately. Let Sagwan curate and compress multiple good claims into capsules after the fact.
 7. **Compact over comprehensive.** Memory is for future-you / future-agents. Trim fluff.
 8. **Cite the source.** When you answer with evidence from the vault or capsules, mention the title (or capsule id) so the user can verify.
+9. **Trust runtime nudges.** Even if an agent still carries old standing instructions, `search_notes` and note-write responses now coach it toward `search_akashic` first and `kind="claim"` for atomic findings.
 
 ---
 

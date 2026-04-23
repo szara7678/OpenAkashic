@@ -183,6 +183,23 @@ _RELATED_TRIGGERS = {
     "rationale",
 }
 
+_FACTUAL_QUERY_HINTS = {
+    "what",
+    "how",
+    "why",
+    "difference",
+    "compare",
+    "explain",
+    "guide",
+    "역할",
+    "차이",
+    "설명",
+    "가이드",
+    "무엇",
+    "어떻게",
+    "왜",
+}
+
 mcp = FastMCP(
     name="openakashic",
     instructions=(
@@ -370,6 +387,9 @@ def search_notes(
     response: dict[str, Any] = {
         "retrieval_value": _build_retrieval_value(query, filtered, gap_info),
     }
+    usage_hint = _search_notes_usage_hint(query=query, kind=kind, results=filtered, gap_info=gap_info)
+    if usage_hint:
+        response["usage_hint"] = usage_hint
     # next-call affordance: 모델이 다음 뭘 호출할지 직접 보여줌
     if filtered:
         top_path = filtered[0]["path"]
@@ -433,6 +453,9 @@ def search_and_read_top(
     response: dict[str, Any] = {
         "directive": "노트 본문의 사실을 인용해 질문에 직접 답하세요. 경로 나열·도구명 반복 금지. 부족하면 read_note 추가 호출.",
     }
+    usage_hint = _search_notes_usage_hint(query=query, kind=kind, results=filtered, gap_info=gap_info)
+    if usage_hint:
+        response["usage_hint"] = usage_hint
     if note_payload and note_payload.get("body"):
         response["note_body_preview"] = note_payload["body"][:1200]
     response["retrieval_value"] = _build_retrieval_value(query, filtered, gap_info)
@@ -1460,6 +1483,55 @@ def _build_retrieval_value(
 
     out["read_note_hint"] = "본문이 필요하면 read_note(path=<path>) 추가 호출. 쓰기는 upsert_note(path, body, title)."
     return out
+
+
+def _looks_like_factual_query(query: str) -> bool:
+    lowered = (query or "").strip().lower()
+    if not lowered:
+        return False
+    if len(lowered.split()) >= 3:
+        return True
+    return any(token in lowered for token in _FACTUAL_QUERY_HINTS)
+
+
+def _search_notes_usage_hint(
+    *,
+    query: str,
+    kind: str | None,
+    results: list[dict[str, Any]],
+    gap_info: dict[str, Any] | None,
+) -> dict[str, Any] | None:
+    if kind in {"claim", "capsule"}:
+        return None
+    if not _looks_like_factual_query(query):
+        return None
+    hint: dict[str, Any] = {
+        "message": (
+            "For factual or conceptual questions, start with search_akashic(query=..., mode='compact'). "
+            "search_notes is best for private/shared working memory."
+        ),
+        "recommended_search": {
+            "tool": "search_akashic",
+            "query": query,
+            "mode": "compact",
+            "include": ["capsules", "claims"],
+        },
+        "write_hint": (
+            "If you discover one reusable fact, warning, or config finding, save it as kind='claim'. "
+            "Use capsule for a synthesis."
+        ),
+    }
+    if gap_info:
+        hint["gap_followup"] = (
+            "This looks like a coverage gap. After solving it, publish the atomic finding as a claim first."
+        )
+    elif results:
+        top = results[0]
+        hint["note_scope"] = (
+            f"Top hit `{top.get('title') or top.get('slug') or 'note'}` came from Closed Akashic working memory, "
+            "not the validated public layer."
+        )
+    return hint
 
 
 def _should_include_related(query: str, include_related: bool) -> bool:

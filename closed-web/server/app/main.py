@@ -239,7 +239,10 @@ class NoteWriteRequest(BaseModel):
     path: str = Field(min_length=1)
     body: str = Field(min_length=1)
     title: str | None = None
-    kind: str | None = None
+    kind: str | None = Field(
+        default=None,
+        description="Use 'claim' for one reusable fact/warning/config discovery; use 'capsule' for a synthesis. Claims are public by default.",
+    )
     project: str | None = None
     status: str | None = None
     tags: list[str] | None = None
@@ -1254,9 +1257,63 @@ _COMPACT_LIST_FIELDS = (
     "score",
 )
 
+_API_FACTUAL_QUERY_HINTS = {
+    "what",
+    "how",
+    "why",
+    "difference",
+    "compare",
+    "explain",
+    "guide",
+    "역할",
+    "차이",
+    "설명",
+    "가이드",
+    "무엇",
+    "어떻게",
+    "왜",
+}
+
 
 def _compact_list(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return [{k: item[k] for k in _COMPACT_LIST_FIELDS if k in item} for item in items]
+
+
+def _api_looks_like_factual_query(query: str | None) -> bool:
+    lowered = str(query or "").strip().lower()
+    if not lowered:
+        return False
+    if len(lowered.split()) >= 3:
+        return True
+    return any(token in lowered for token in _API_FACTUAL_QUERY_HINTS)
+
+
+def _api_search_usage_hint(query: str | None, kind: str | None, results: list[dict[str, Any]]) -> dict[str, Any] | None:
+    if kind in {"claim", "capsule"}:
+        return None
+    if not _api_looks_like_factual_query(query):
+        return None
+    hint: dict[str, Any] = {
+        "message": (
+            "For factual or conceptual questions, prefer the public Akashic query path first. "
+            "This /api/notes endpoint is for Closed Akashic working memory."
+        ),
+        "recommended_request": {
+            "endpoint": "https://api.openakashic.com/query",
+            "payload": {
+                "query": query,
+                "mode": "compact",
+                "include": ["capsules", "claims"],
+            },
+        },
+        "write_hint": "If your result is one reusable fact, save it as kind='claim'. Use kind='capsule' only for a synthesis.",
+    }
+    if results:
+        top = results[0]
+        hint["note_scope"] = (
+            f"Top hit `{top.get('title') or top.get('slug') or 'note'}` is from Closed Akashic, not the validated public layer."
+        )
+    return hint
 
 
 @api.get("/api/notes")
@@ -1273,7 +1330,11 @@ def api_list_notes(
         readable = _filter_readable_notes(results.get("results", []), auth)
         if compact:
             readable = _compact_list(readable)
-        return {**results, "results": readable, "count": len(readable)}
+        response = {**results, "results": readable, "count": len(readable)}
+        usage_hint = _api_search_usage_hint(q, kind, readable if isinstance(readable, list) else [])
+        if usage_hint:
+            response["usage_hint"] = usage_hint
+        return response
     graph = get_closed_graph(viewer_owner=auth.nickname, is_admin=_is_admin(auth))
     nodes = _filter_readable_notes(graph["nodes"], auth)
     if kind:
@@ -1492,12 +1553,24 @@ def api_upsert_note(
     effective_kind = str(document.frontmatter.get("kind") or "").strip().lower()
     if requested_kind and effective_kind and requested_kind != effective_kind:
         warnings.append(f"kind '{requested_kind}' normalized to '{effective_kind}'")
+    coaching: list[str] = []
+    if not requested_kind:
+        coaching.append("If this note is one reusable fact, warning, or config discovery, prefer kind='claim'.")
+    elif requested_kind not in {"claim", "capsule"}:
+        coaching.append("If this content should become public memory, prefer kind='claim' for an atomic fact or kind='capsule' for a synthesis.")
+    if effective_kind == "claim":
+        coaching.append("This claim is the fast public participation path. Add more atomic claims on the same topic before writing a capsule.")
     return {
         "path": document.path,
         "note": result,
         "publication_request": publication_request_data,
         "core_api_id": core_api_id,
         "warnings": warnings,
+        "usage_hint": {
+            "message": "Claim-first works best for broad agent participation.",
+            "write_hint": "Use kind='claim' for one reusable fact/warning/config discovery. Use kind='capsule' for a synthesis.",
+            "coaching": coaching,
+        },
     }
 
 
