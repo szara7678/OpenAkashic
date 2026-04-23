@@ -87,6 +87,7 @@ SUBORDINATE_TASK_TYPES = (
     "crawl_url",
     "sync_to_core_api",
     "analyze_search_gaps",
+    "analyze_search_quality_signals",
     "scan_stale_private_notes",
 )
 # 폐기된 태스크 — 큐에 잔존 시 loud-fail 시키기 위해 보존
@@ -424,6 +425,8 @@ def _run_task(task: dict[str, Any], settings: dict[str, Any]) -> str:
         return _sync_published_notes_to_core_api(limit=int(payload.get("limit") or 10))
     if kind == "analyze_search_gaps":
         return _analyze_search_gaps(max_new=int(payload.get("max_new") or 10))
+    if kind == "analyze_search_quality_signals":
+        return _analyze_search_quality_signals(max_new=int(payload.get("max_new") or 10))
     if kind == "scan_stale_private_notes":
         return _scan_stale_private_notes(
             owner=str(payload.get("owner") or ""),
@@ -542,6 +545,10 @@ def _gap_slug(query: str) -> str:
     slug = slug[:50] or "query"
     suffix = _hl.md5(query.lower().strip().encode()).hexdigest()[:6]
     return f"{slug}-{suffix}"
+
+
+def _quality_signal_slug(query: str) -> str:
+    return f"search-quality-{_gap_slug(query)}"
 
 
 def _analyze_search_gaps(*, max_new: int = 10) -> str:
@@ -687,6 +694,206 @@ def _analyze_search_gaps(*, max_new: int = 10) -> str:
         f" — {len(seen_queries)} unique queries, {len(leftover_lines)} deferred to next cycle"
     )
     _remember_subordinate_note("analyze_search_gaps", summary, task_kind="analyze_search_gaps")
+    return summary
+
+
+def _analyze_search_quality_signals(*, max_new: int = 10) -> str:
+    """
+    search-quality-signals.jsonl에서 저품질 공개 검색 응답 신호를 읽어
+    personal_vault/meta/improvement-requests/ 아래 사관 검토 후보 노트로 승격한다.
+    """
+    from app.mcp_server import search_quality_signals_path
+
+    signal_file = search_quality_signals_path()
+    if not signal_file.exists():
+        return "analyze_search_quality_signals: signal file not found — nothing to process"
+
+    raw_lines = signal_file.read_text(encoding="utf-8").splitlines()
+    if not raw_lines:
+        return "analyze_search_quality_signals: no signals recorded yet"
+
+    aggregated: dict[str, dict[str, Any]] = {}
+    valid_lines: list[dict[str, Any]] = []
+    for line in raw_lines:
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            entry = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        query = str(entry.get("query") or "").strip()
+        if not query:
+            continue
+        valid_lines.append(entry)
+        key = query.lower()
+        bucket = aggregated.setdefault(
+            key,
+            {
+                "query": query,
+                "count": 0,
+                "reasons": {},
+                "tools": set(),
+                "examples": [],
+                "last_seen": "",
+            },
+        )
+        bucket["count"] += 1
+        for reason in entry.get("reasons") or []:
+            rs = str(reason).strip().lower()
+            if not rs:
+                continue
+            bucket["reasons"][rs] = int(bucket["reasons"].get(rs) or 0) + 1
+        tool = str(entry.get("tool") or "").strip()
+        if tool:
+            bucket["tools"].add(tool)
+        ts = str(entry.get("ts") or "")
+        if ts and ts > str(bucket.get("last_seen") or ""):
+            bucket["last_seen"] = ts
+        if len(bucket["examples"]) < 3:
+            bucket["examples"].append(
+                {
+                    "ts": ts,
+                    "reasons": [str(reason) for reason in (entry.get("reasons") or []) if str(reason).strip()],
+                    "counts": dict(entry.get("counts") or {}),
+                    "top_claim": dict(entry.get("top_claim") or {}),
+                    "top_capsule": dict(entry.get("top_capsule") or {}),
+                    "meta": dict(entry.get("meta") or {}),
+                }
+            )
+
+    if not aggregated:
+        signal_file.write_text("", encoding="utf-8")
+        return "analyze_search_quality_signals: no valid signals found"
+
+    existing_paths = set(list_note_paths())
+    created: list[str] = []
+    updated: list[str] = []
+
+    sorted_items = sorted(
+        aggregated.values(),
+        key=lambda item: (-int(item.get("count") or 0), str(item.get("query") or "")),
+    )
+    processed_queries: set[str] = set()
+    for item in sorted_items[:max_new]:
+        query = str(item.get("query") or "").strip()
+        if not query:
+            continue
+        processed_queries.add(query.lower())
+        slug = _quality_signal_slug(query)
+        note_path = f"personal_vault/meta/improvement-requests/{slug}.md"
+        reason_counts = dict(item.get("reasons") or {})
+        sorted_reasons = sorted(reason_counts.items(), key=lambda pair: (-pair[1], pair[0]))
+        serious = {reason for reason, _count in sorted_reasons}
+        priority = (
+            "high"
+            if {"no_public_results", "no_capsule_hits", "core_api_error"} & serious
+            else "medium"
+        )
+        tools = sorted(str(tool) for tool in (item.get("tools") or set()) if str(tool).strip())
+        examples = list(item.get("examples") or [])
+        lines = [
+            "## Summary",
+            f"- summary: Repeated low-quality public search result for query `{query}`.",
+            f"- signal_count: {int(item.get('count') or 0)}",
+            f"- reasons: {', '.join(f'`{reason}` x{count}' for reason, count in sorted_reasons) or '(none)'}",
+            f"- tools: {', '.join(tools) or '(unknown)'}",
+            f"- last_seen: {str(item.get('last_seen') or '') or '(unknown)'}",
+            "",
+            "## Suggested Action",
+            "- Add or refresh a capsule that answers this query cluster directly.",
+            "- Confirm, dispute, merge, or supersede noisy public claims near the top of this query.",
+            "- Strengthen mentions/tags/links so the intended capsule outranks incidental claims.",
+            "",
+            "## Examples",
+        ]
+        for idx, example in enumerate(examples, start=1):
+            top_claim = dict(example.get("top_claim") or {})
+            top_capsule = dict(example.get("top_capsule") or {})
+            lines.extend(
+                [
+                    f"### Example {idx}",
+                    f"- ts: {example.get('ts') or '(unknown)'}",
+                    f"- reasons: {', '.join(example.get('reasons') or []) or '(none)'}",
+                    f"- counts: claims={int((example.get('counts') or {}).get('claims') or 0)}, capsules={int((example.get('counts') or {}).get('capsules') or 0)}",
+                    f"- has_conflict: {bool((example.get('meta') or {}).get('has_conflict'))}",
+                    (
+                        f"- top_capsule: `{top_capsule.get('title') or top_capsule.get('id') or '(none)'}` "
+                        f"(score={top_capsule.get('score', 0)}, confidence={top_capsule.get('confidence', '-')})"
+                        if top_capsule
+                        else "- top_capsule: (none)"
+                    ),
+                    (
+                        f"- top_claim: `{top_claim.get('text') or top_claim.get('title') or top_claim.get('id') or '(none)'}` "
+                        f"(score={top_claim.get('score', 0)}, confidence={top_claim.get('confidence', '-')}, "
+                        f"review={top_claim.get('claim_review_status', 'unreviewed')})"
+                        if top_claim
+                        else "- top_claim: (none)"
+                    ),
+                    "",
+                ]
+            )
+        body = "\n".join(lines).strip() + "\n"
+
+        metadata = {
+            "title": f"Improvement Request: {slug}",
+            "kind": "improvement-request",
+            "project": "ops/librarian",
+            "status": "proposed",
+            "tags": ["meta", "improvement-request", "knowledge", priority, "search-quality"],
+            "visibility": "private",
+            "owner": "sagwan",
+            "generated_by": "busagwan",
+            "created_at": _now_iso(),
+            "review_status": "pending_human_review",
+            "signal_query": query,
+            "signal_count": int(item.get("count") or 0),
+            "signal_reasons": [reason for reason, _count in sorted_reasons],
+            "signal_last_seen": str(item.get("last_seen") or ""),
+        }
+        if note_path in existing_paths:
+            try:
+                existing_doc = load_document(note_path)
+                next_fm = dict(existing_doc.frontmatter or {})
+                next_fm.update(metadata)
+                next_fm["created_at"] = str(next_fm.get("created_at") or metadata["created_at"])
+                write_document(
+                    path=note_path,
+                    body=body,
+                    metadata=next_fm,
+                    metadata_replace=True,
+                    allow_owner_change=True,
+                )
+                updated.append(note_path)
+            except Exception as exc:
+                logger.warning("analyze_search_quality_signals: failed to update %s: %s", note_path, exc)
+        else:
+            try:
+                write_document(
+                    path=note_path,
+                    body=body,
+                    metadata=metadata,
+                    allow_owner_change=True,
+                )
+                created.append(note_path)
+                existing_paths.add(note_path)
+            except Exception as exc:
+                logger.warning("analyze_search_quality_signals: failed to create %s: %s", note_path, exc)
+
+    leftover_lines = [
+        json.dumps(entry, ensure_ascii=False)
+        for entry in valid_lines
+        if str(entry.get("query") or "").strip().lower() not in processed_queries
+    ]
+    signal_file.write_text(("\n".join(leftover_lines) + ("\n" if leftover_lines else "")), encoding="utf-8")
+    summary = (
+        f"analyze_search_quality_signals: {len(created)} new, {len(updated)} updated"
+    )
+    _remember_subordinate_note(
+        "analyze_search_quality_signals",
+        summary,
+        task_kind="analyze_search_quality_signals",
+    )
     return summary
 
 

@@ -1217,6 +1217,17 @@ def _curate_enqueue_signal_scans() -> dict[str, Any]:
         except Exception as exc:
             logger.warning("signal scan: gap enqueue failed: %s", exc)
 
+    if "analyze_search_quality_signals" not in live_kinds:
+        try:
+            enqueue_subordinate_task(
+                kind="analyze_search_quality_signals",
+                payload={"max_new": 10},
+                created_by="sagwan",
+            )
+            enqueued.append("analyze_search_quality_signals")
+        except Exception as exc:
+            logger.warning("signal scan: quality enqueue failed: %s", exc)
+
     if "scan_stale_private_notes" not in live_kinds:
         # owner=aaron 기본 — 필요 시 known owners 확장
         try:

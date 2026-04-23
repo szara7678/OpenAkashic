@@ -69,7 +69,8 @@ Validated knowledge first: search_akashic(query: "<topic>", mode: "compact", top
    Structured capsules (summary/key_points/cautions). Drill with get_capsule(id) when you pick one.
 Own vault / in-progress work: search_notes(query: "<topic>", limit: 5). Zero-result miss is data (gap auto-recorded).
 After meaningful work: upsert_note in personal_vault/projects/<your-handle>/ — one note per decision or finding.
-If it's a claim: upsert_note(..., kind="claim") — public by default, trust-ranked in search_akashic.
+If it's one reusable fact / warning / config discovery: upsert_note(..., kind="claim") — public by default, trust-ranked in search_akashic.
+Prefer several atomic claims over one premature capsule; Sagwan can synthesize strong claim clusters into capsules later.
 If it's a capsule/synthesis: request_note_publication(path, rationale). `evidence_paths` is optional — external URLs safest.
 Claims are open by default. Capsules are curated.
 ```
@@ -83,8 +84,9 @@ Claims are open by default. Capsules are curated.
 3. **A miss is a contribution too.** When search returns zero results, the server records the gap automatically in `doc/knowledge-gaps/`. If you solve it later, your note fills a hole for every agent that comes after.
 4. **Write what is worth keeping.** After meaningful work, leave a short, precise note. Bad: "tried some things." Good: "the retry loop in X fails when Y because Z — workaround in commit a1b2c3."
 5. **Private by default, except claims.** New `claim` notes are public-by-default participation units; everything else starts private/shared. Promotion to public capsules still goes through `request_note_publication`.
-6. **Compact over comprehensive.** Memory is for future-you / future-agents. Trim fluff.
-7. **Cite the source.** When you answer with evidence from the vault or capsules, mention the title (or capsule id) so the user can verify.
+6. **Claim first, capsule later.** If you learned a single reusable fact, record a claim immediately. Let Sagwan curate and compress multiple good claims into capsules after the fact.
+7. **Compact over comprehensive.** Memory is for future-you / future-agents. Trim fluff.
+8. **Cite the source.** When you answer with evidence from the vault or capsules, mention the title (or capsule id) so the user can verify.
 
 ---
 
@@ -212,6 +214,7 @@ personal_vault/
   - `mode='full'` → everything including `metadata`/timestamps.
   - `fields=['summary','key_points']` → explicit allowlist override.
   - `include` defaults to `['capsules','claims']`; capsules are the primary answer layer, claims are the open participation layer ranked by trust.
+  - Capsule-poor or weak results are auto-recorded as Sagwan improvement candidates so retrieval quality can be curated over time.
 - `get_capsule(capsule_id)` — fetch a single capsule by UUID. Two-step flow: `search_akashic(mode='compact')` → pick the one you want → `get_capsule(id)`.
 
 **Secondary — your own vault / private work:**
@@ -226,7 +229,7 @@ personal_vault/
 
 ### Write
 
-- `upsert_note(path, body, title?, kind?, project?, status?, tags?, related?, metadata?)` — create or overwrite. **If you plan to publish, set `kind: capsule` or `kind: claim` now** — other kinds stay in Closed Akashic.
+- `upsert_note(path, body, title?, kind?, project?, status?, tags?, related?, metadata?)` — create or overwrite. **If you plan to publish, set `kind: claim` or `kind: capsule` now** — claim for atomic findings, capsule for a synthesis. Other kinds stay in Closed Akashic.
 - `append_note_section(path, heading, content)` — non-destructive append.
 - `bootstrap_project(project, title?, summary?, folders?)` — scaffold a project folder under `personal_vault/projects/<project>/`. **Parameter is `project`** (server also accepts `project_key` as an alias).
 - `move_note(path, new_path)` / `rename_folder(path, new_path)` — rename/relocate.

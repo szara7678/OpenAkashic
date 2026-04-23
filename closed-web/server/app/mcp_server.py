@@ -93,7 +93,7 @@ _TOOL_MANIFEST = {
         "search_akashic": {
             "required": ["query"],
             "optional": ["top_k", "include", "mode", "fields"],
-            "failure_hint": "검증된 공개 지식의 기본 검색 도구. 요약만 필요하면 mode='compact', 전체가 필요하면 mode='full'. 세부 필드만 원하면 fields=['summary','key_points']. 내부 메모/작업 노트는 search_notes 사용.",
+            "failure_hint": "검증된 공개 지식의 기본 검색 도구. 요약만 필요하면 mode='compact', 전체가 필요하면 mode='full'. 세부 필드만 원하면 fields=['summary','key_points']. 내부 메모/작업 노트는 search_notes 사용. capsule 없이 claim만 뜨거나 결과가 약하면 품질 신호가 자동으로 Sagwan 후보에 기록된다.",
         },
         "get_capsule": {
             "required": ["capsule_id"],
@@ -102,7 +102,7 @@ _TOOL_MANIFEST = {
         "upsert_note": {
             "required": ["path", "body"],
             "optional": ["title", "kind", "project", "status", "tags", "related", "metadata"],
-            "failure_hint": "path는 personal_vault/ 로 시작. 기존 노트면 read_note로 내용 확인 후 덮어쓰기. 임시 메모는 tags=['agent-scratch'].",
+            "failure_hint": "path는 personal_vault/ 로 시작. 기존 노트면 read_note로 내용 확인 후 덮어쓰기. 임시 메모는 tags=['agent-scratch']. 한 가지 재사용 가능한 사실이면 capsule보다 claim을 우선 고려.",
         },
         "append_note_section": {
             "required": ["path", "heading", "content"],
@@ -201,6 +201,7 @@ mcp = FastMCP(
         "  packaged for agents. Use mode='compact' for quick lookups (title + summary_head), mode='standard' for full capsule,\n"
         "  mode='full' when you also need metadata/timestamps. Use fields=['summary','key_points'] for custom projection.\n"
         "  Default include=['capsules','claims'] — capsules are the primary answer layer, claims are the easy-participation layer.\n"
+        "  If results feel noisy or capsule-poor, the system auto-records a quality signal for Sagwan review.\n"
         "- get_capsule(capsule_id=...) — fetch a single capsule by UUID (full body) after you saw it in search results.\n"
         "- search_notes — personal vault / doc (private & shared working memory, NOT validated).\n"
         "- read_note / read_raw_note — when you already know the exact path.\n"
@@ -229,6 +230,7 @@ mcp = FastMCP(
         "## Agent Memory Protocol\n"
         "- Read before major work: check search_notes for existing notes on the topic.\n"
         "- Write back after meaningful work: upsert_note or append_note_section with concise, reusable takeaways.\n"
+        "- Prefer `kind=claim` for one reusable fact, decision, warning, or configuration discovery. Sagwan can synthesize clusters of related claims into capsules later.\n"
         "- Prefer linking related notes via the 'related' field rather than duplicating content.\n"
         "- For bootstrap: use bootstrap_project to initialize a new project workspace with standard folders.\n\n"
 
@@ -648,6 +650,7 @@ def upsert_note(
     """Create or overwrite an OpenAkashic markdown note.
 
     kind='claim' notes are public by default and become trust-ranked Core API claims.
+    Prefer claim for atomic reusable findings; Sagwan can later turn multiple related claims into a capsule.
     kind='capsule' notes stay private until you request publication review.
     Other kinds (playbook, concept, etc.) remain Closed-only working memory.
     Writable roots: personal_vault/, doc/, assets/ only.
@@ -725,9 +728,11 @@ def upsert_note(
         "_next": (
             f"Note saved at '{saved_path}'. "
             + (
-                f"Public claim synced to Core API as '{core_api_id}'. Search with search_akashic(query=...)."
+                f"Public claim synced to Core API as '{core_api_id}'. Search with search_akashic(query=...). "
+                "If you discover more atomic facts on the same topic, keep adding claims — Sagwan can later synthesize them into a capsule."
                 if direct_public_claim and core_api_id
-                else "To submit for public review: call request_note_publication with "
+                else "If this is a single reusable fact, consider saving it as kind='claim'. "
+                     "For a synthesis/capsule, call request_note_publication with "
                      f"path='{saved_path}', rationale='<why this is worth publishing>', "
                      "evidence_paths=['<supporting note paths or URLs>']"
             )
@@ -1190,11 +1195,94 @@ def search_akashic(
     )
     try:
         with urlrequest.urlopen(req, timeout=10) as resp:
-            return json.loads(resp.read().decode("utf-8"))
+            response = json.loads(resp.read().decode("utf-8"))
+        reasons = _detect_akashic_quality_issues(
+            query=resolved_query,
+            response=response,
+            include=include,
+        )
+        if reasons:
+            _record_search_quality_signal(
+                tool="search_akashic",
+                query=resolved_query,
+                reasons=reasons,
+                include=include,
+                mode=mode,
+                response=response,
+            )
+            try:
+                from app.subordinate import enqueue_subordinate_task
+
+                enqueue_subordinate_task(
+                    kind="analyze_search_quality_signals",
+                    payload={"max_new": 10},
+                    created_by="signal-monitor",
+                )
+            except Exception:
+                pass
+        try:
+            log_tool_event(
+                "search_akashic",
+                user="anonymous",
+                args_summary={
+                    "query": resolved_query[:120],
+                    "top_k": top_k,
+                    "include": include or ["capsules", "claims"],
+                    "mode": mode,
+                    "quality_reasons": reasons,
+                },
+            )
+        except Exception:
+            pass
+        if reasons:
+            response["_quality_signal"] = {
+                "recorded": True,
+                "reasons": reasons,
+                "message": "Low-quality Akashic search signal recorded for Sagwan review.",
+            }
+        return response
     except urlerror.URLError as exc:
-        return {"error": f"Core API unreachable: {exc}", "query": resolved_query, "results": {}}
+        response = {"error": f"Core API unreachable: {exc}", "query": resolved_query, "results": {}}
+        _record_search_quality_signal(
+            tool="search_akashic",
+            query=resolved_query,
+            reasons=["core_api_error"],
+            include=include,
+            mode=mode,
+            response=response,
+        )
+        try:
+            from app.subordinate import enqueue_subordinate_task
+
+            enqueue_subordinate_task(
+                kind="analyze_search_quality_signals",
+                payload={"max_new": 10},
+                created_by="signal-monitor",
+            )
+        except Exception:
+            pass
+        return response
     except Exception as exc:
-        return {"error": str(exc), "query": resolved_query, "results": {}}
+        response = {"error": str(exc), "query": resolved_query, "results": {}}
+        _record_search_quality_signal(
+            tool="search_akashic",
+            query=resolved_query,
+            reasons=["core_api_error"],
+            include=include,
+            mode=mode,
+            response=response,
+        )
+        try:
+            from app.subordinate import enqueue_subordinate_task
+
+            enqueue_subordinate_task(
+                kind="analyze_search_quality_signals",
+                payload={"max_new": 10},
+                created_by="signal-monitor",
+            )
+        except Exception:
+            pass
+        return response
 
 
 @mcp.tool(title="Get Akashic Capsule (full body by id)")
@@ -1461,12 +1549,22 @@ def _is_gap_query(query: str, results: list[dict[str, Any]]) -> bool:
 
 
 _GAP_LOCK = __import__("threading").Lock()
+_SEARCH_QUALITY_LOCK = __import__("threading").Lock()
+_AKASHIC_LOW_CAPSULE_SCORE = 0.24
+_AKASHIC_LOW_CLAIM_SCORE = 0.22
 
 
 def gap_queries_path() -> Path:
     """JSONL file recording search_notes queries that returned 0 results."""
     from app.config import get_settings as _gs
     return Path(_gs().user_store_path).with_name("gap-queries.jsonl")
+
+
+def search_quality_signals_path() -> Path:
+    """JSONL file recording low-quality search_akashic responses for curator review."""
+    from app.config import get_settings as _gs
+
+    return Path(_gs().user_store_path).with_name("search-quality-signals.jsonl")
 
 
 def _record_gap_query(query: str) -> None:
@@ -1482,6 +1580,144 @@ def _record_gap_query(query: str) -> None:
                 fh.write(line + "\n")
     except Exception:
         pass  # never break search on logging failure
+
+
+def _score_of(item: dict[str, Any] | None) -> float:
+    if not item:
+        return 0.0
+    try:
+        return float(item.get("score") or 0.0)
+    except Exception:
+        return 0.0
+
+
+def _claim_review_status_of(item: dict[str, Any] | None) -> str:
+    if not item:
+        return "unreviewed"
+    return str(item.get("claim_review_status") or "unreviewed").strip().lower() or "unreviewed"
+
+
+def _summarize_public_result(item: dict[str, Any] | None) -> dict[str, Any]:
+    if not item:
+        return {}
+    payload: dict[str, Any] = {}
+    for key in (
+        "id",
+        "title",
+        "text",
+        "summary_head",
+        "confidence",
+        "claim_role",
+        "claim_review_status",
+        "confirm_count",
+        "dispute_count",
+        "score",
+    ):
+        value = item.get(key)
+        if value is not None:
+            payload[key] = value
+    return payload
+
+
+def _detect_akashic_quality_issues(
+    *,
+    query: str,
+    response: dict[str, Any],
+    include: list[str] | None,
+) -> list[str]:
+    include_set = {str(item).strip().lower() for item in (include or ["capsules", "claims"]) if item}
+    include_set = {"evidences" if item == "evidence" else item for item in include_set}
+    if not {"capsules", "claims"} & include_set:
+        return []
+
+    if response.get("error"):
+        return ["core_api_error"]
+
+    results = dict(response.get("results") or {})
+    claims = [item for item in (results.get("claims") or []) if isinstance(item, dict)]
+    capsules = [item for item in (results.get("capsules") or []) if isinstance(item, dict)]
+    reasons: list[str] = []
+
+    if not claims and not capsules:
+        return ["no_public_results"]
+
+    top_capsule_score = _score_of(capsules[0] if capsules else None)
+    top_claim_score = _score_of(claims[0] if claims else None)
+
+    if "capsules" in include_set:
+        if not capsules:
+            reasons.append("no_capsule_hits")
+        elif top_capsule_score < _AKASHIC_LOW_CAPSULE_SCORE:
+            reasons.append("weak_capsule_match")
+
+    if "claims" in include_set:
+        if claims and not capsules:
+            reasons.append("claim_only_results")
+        if claims and top_claim_score < _AKASHIC_LOW_CLAIM_SCORE:
+            reasons.append("weak_claim_match")
+
+    if claims and not capsules:
+        claim_statuses = [_claim_review_status_of(item) for item in claims[:3]]
+        if claim_statuses and all(status == "unreviewed" for status in claim_statuses):
+            reasons.append("claim_only_unreviewed")
+
+    meta = dict(response.get("meta") or {})
+    if bool(meta.get("has_conflict")):
+        reasons.append("conflict_in_top_claims")
+
+    deduped: list[str] = []
+    seen: set[str] = set()
+    for reason in reasons:
+        if reason not in seen:
+            deduped.append(reason)
+            seen.add(reason)
+    return deduped
+
+
+def _record_search_quality_signal(
+    *,
+    tool: str,
+    query: str,
+    reasons: list[str],
+    include: list[str] | None,
+    mode: str,
+    response: dict[str, Any],
+) -> None:
+    import json as _json
+    from datetime import UTC as _UTC, datetime as _dt
+
+    results = dict(response.get("results") or {})
+    claims = [item for item in (results.get("claims") or []) if isinstance(item, dict)]
+    capsules = [item for item in (results.get("capsules") or []) if isinstance(item, dict)]
+    line = _json.dumps(
+        {
+            "ts": _dt.now(_UTC).isoformat().replace("+00:00", "Z"),
+            "tool": tool,
+            "query": query.strip(),
+            "reasons": reasons,
+            "mode": mode,
+            "include": include or ["capsules", "claims"],
+            "meta": {
+                "retrieval": str((response.get("meta") or {}).get("retrieval") or ""),
+                "has_conflict": bool((response.get("meta") or {}).get("has_conflict")),
+            },
+            "counts": {
+                "claims": len(claims),
+                "capsules": len(capsules),
+            },
+            "top_claim": _summarize_public_result(claims[0] if claims else None),
+            "top_capsule": _summarize_public_result(capsules[0] if capsules else None),
+        },
+        ensure_ascii=False,
+    )
+    try:
+        path = search_quality_signals_path()
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with _SEARCH_QUALITY_LOCK:
+            with path.open("a", encoding="utf-8") as fh:
+                fh.write(line + "\n")
+    except Exception:
+        pass
 
 
 def _find_gap_note(query: str) -> dict[str, Any] | None:
