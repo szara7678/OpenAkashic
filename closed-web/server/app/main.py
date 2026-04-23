@@ -1296,7 +1296,7 @@ def _api_search_usage_hint(query: str | None, kind: str | None, results: list[di
     hint: dict[str, Any] = {
         "message": (
             "For factual or conceptual questions, prefer the public Akashic query path first. "
-            "This /api/notes endpoint is for Closed Akashic working memory."
+            "This /api/notes endpoint is for OpenAkashic's private/shared working-memory layer."
         ),
         "recommended_request": {
             "endpoint": "https://api.openakashic.com/query",
@@ -1311,7 +1311,8 @@ def _api_search_usage_hint(query: str | None, kind: str | None, results: list[di
     if results:
         top = results[0]
         hint["note_scope"] = (
-            f"Top hit `{top.get('title') or top.get('slug') or 'note'}` is from Closed Akashic, not the validated public layer."
+            f"Top hit `{top.get('title') or top.get('slug') or 'note'}` is from OpenAkashic's private/shared working-memory layer, "
+            "not the validated public layer."
         )
     return hint
 

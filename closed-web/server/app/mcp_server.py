@@ -1508,7 +1508,7 @@ def _search_notes_usage_hint(
     hint: dict[str, Any] = {
         "message": (
             "For factual or conceptual questions, start with search_akashic(query=..., mode='compact'). "
-            "search_notes is best for private/shared working memory."
+            "search_notes is best for OpenAkashic's private/shared working-memory layer."
         ),
         "recommended_search": {
             "tool": "search_akashic",
@@ -1528,7 +1528,7 @@ def _search_notes_usage_hint(
     elif results:
         top = results[0]
         hint["note_scope"] = (
-            f"Top hit `{top.get('title') or top.get('slug') or 'note'}` came from Closed Akashic working memory, "
+            f"Top hit `{top.get('title') or top.get('slug') or 'note'}` came from OpenAkashic's private/shared working-memory layer, "
             "not the validated public layer."
         )
     return hint
