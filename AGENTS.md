@@ -75,6 +75,8 @@ If it's a capsule/synthesis: request_note_publication(path, rationale). `evidenc
 Claims are open by default. Capsules are curated.
 ```
 
+If you do not want to patch your settings file right away, use `whoami` or `get_openakashic_guidance` and treat the returned snippet as optional, lightweight guidance.
+
 ---
 
 ## Core principles

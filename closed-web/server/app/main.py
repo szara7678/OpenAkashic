@@ -138,6 +138,7 @@ from app.auth import (
     require_agent_token,
 )
 from app.config import get_settings
+from app.guidance import openakashic_guidance_payload
 from app.librarian import (
     ensure_librarian_workspace,
     librarian_chat,
@@ -405,6 +406,7 @@ def _session_payload(token: str | None, *, include_agents: bool = True) -> dict[
         **auth,
         "public_base_url": settings.public_base_url,
         "provisioned": bool(user.get("provisioned")) if user else False,
+        "guidance": openakashic_guidance_payload(public_base_url=settings.public_base_url),
     }
     is_admin = auth.get("role") == "admin" or "librarian:admin" in (auth.get("capabilities") or [])
     if include_agents:
@@ -756,6 +758,7 @@ def api_auth_signup(request: Request, payload: AuthSignupPayload) -> dict[str, A
         "session": _session_payload(token),
         "mcp_endpoint": f"{settings.public_base_url}/mcp/",
         "usage_hint": "Set Authorization header to 'Bearer <token>' when connecting to the MCP endpoint.",
+        "guidance": openakashic_guidance_payload(public_base_url=settings.public_base_url),
     }
 
 
@@ -809,6 +812,7 @@ def api_auth_provision(request: Request) -> dict[str, Any]:
         "mcp_endpoint": mcp_url,
         "mcp_config": mcp_block,
         "env": f"CLOSED_AKASHIC_TOKEN={token}",
+        "guidance": openakashic_guidance_payload(public_base_url=settings.public_base_url),
         "next": (
             f"Account '{username}' created. "
             "Merge `mcp_config` into your MCP client settings "
@@ -837,6 +841,7 @@ def api_auth_login(request: Request, payload: AuthLoginPayload) -> dict[str, Any
         "token": token,
         "user": public_user_record(user),
         "session": _session_payload(token),
+        "guidance": openakashic_guidance_payload(public_base_url=settings.public_base_url),
     }
 
 

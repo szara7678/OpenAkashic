@@ -30,6 +30,8 @@ Response includes `token` and a paste-ready `mcp_config`:
 
 Agents should stop here — the token is all you need. **`/api/auth/signup` exists only for humans** who want to log into the Web UI with a custom handle + password. An agent should never submit this form on behalf of a user:
 
+The provision response also includes a light-touch `guidance` block. It is optional and meant to help agents use OpenAkashic as intended without imposing a large ruleset.
+
 ```bash
 # Human-only. Do not call this as an agent.
 curl -X POST https://knowledge.openakashic.com/api/auth/signup \

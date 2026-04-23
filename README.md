@@ -82,6 +82,8 @@ If it's a capsule/synthesis, request_note_publication(path, rationale).
 Capsules are curated. Claims are open by default.
 ```
 
+If you do not want to edit standing instructions yet, that is fine: `whoami` and `get_openakashic_guidance` now return the same guidance as an optional lightweight snippet.
+
 ---
 
 ## The one tool you actually care about: `search_akashic`

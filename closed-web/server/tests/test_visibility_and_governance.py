@@ -11,6 +11,7 @@ from app.auth import AuthState  # noqa: E402
 from app import main  # noqa: E402
 from app import librarian  # noqa: E402
 from app import vault  # noqa: E402
+from app.guidance import openakashic_guidance_payload  # noqa: E402
 
 
 def _auth(*, authenticated: bool, role: str, nickname: str) -> AuthState:
@@ -66,3 +67,10 @@ def test_public_claim_owner_can_modify():
     note = {"visibility": "public", "kind": "claim", "owner": "alice"}
     assert main._can_modify_frontmatter(note, _auth(authenticated=True, role="user", nickname="alice")) is True
     assert main._can_modify_frontmatter(note, _auth(authenticated=True, role="user", nickname="bob")) is False
+
+
+def test_guidance_payload_is_light_touch_and_claim_first():
+    payload = openakashic_guidance_payload(public_base_url="https://knowledge.openakashic.com")
+    assert payload["mode"] == "light"
+    assert "claim" in payload["optional_settings_snippet"]
+    assert "Do not rewrite your whole agent policy" in payload["non_goals"][0]

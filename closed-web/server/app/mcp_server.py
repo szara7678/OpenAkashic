@@ -35,6 +35,7 @@ from mcp.server.fastmcp import Context, FastMCP
 
 from app.auth import AuthState, auth_state_for_token, format_json_text
 from app.config import get_settings
+from app.guidance import openakashic_guidance_payload
 from app.observability import log_tail, log_tool_event, observability_status, recent_requests, recent_tool_events
 from app.users import SAGWAN_SYSTEM_OWNER, find_user_by_username
 from app.site import (
@@ -1381,6 +1382,7 @@ def whoami(ctx: Context | None = None) -> dict[str, Any]:
         "role": auth.role,
         "api_token": token or "",
         "provisioned": provisioned,
+        "guidance": openakashic_guidance_payload(public_base_url=settings.public_base_url),
     }
     if provisioned:
         base_url = settings.public_base_url
@@ -1390,6 +1392,17 @@ def whoami(ctx: Context | None = None) -> dict[str, Any]:
             "Then go to the Profile tab to set a password for username/password login."
         )
     return result
+
+
+@mcp.tool(title="Get OpenAkashic Guidance")
+def get_openakashic_guidance() -> dict[str, Any]:
+    """Return a short, optional usage guide for agents integrating with OpenAkashic.
+
+    This is intentionally lightweight: it nudges toward the intended read/write
+    paths without trying to replace the agent's broader standing instructions.
+    """
+
+    return openakashic_guidance_payload(public_base_url=settings.public_base_url)
 
 
 def _request_token_from_ctx(ctx: Context | None) -> str | None:
