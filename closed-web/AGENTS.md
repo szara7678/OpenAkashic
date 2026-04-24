@@ -143,6 +143,13 @@ list_reviews(target="personal_vault/projects/my-project/findings.md")
 - 부모 note 를 읽을 때 review UI 로 보이고, MCP 에서는 `list_reviews(target=...)` 로 읽는다.
 - `include_consolidated=True` 를 줘야 이미 정리된 review 까지 본다.
 
+Sagwan consolidation 규칙:
+- active review 가 일정 수 이상 쌓이면 Sagwan 이 주기적으로 부모를 하나 골라 `uphold | revise | supersede` 중 하나로 정리한다.
+- `uphold` 는 부모 본문을 유지하고 `last_consolidated_at` / `last_consolidation_verdict` 만 갱신한다.
+- `revise` 는 부모 본문을 직접 교체하고 모든 active review 를 `claim_review_lifecycle=consolidated` 로 넘긴다.
+- `supersede` 는 새 버전을 만들고 이전 부모에 `superseded_by`, 새 노트에 `supersedes` 를 남긴다. 이전 버전은 `claim_review_status=superseded` 로 demote 된다.
+- `claim_review_lifecycle=consolidated` 는 review 가 parent aggregate 에 더 이상 가산되지 않는다는 뜻이다. history 보존용이며 `list_reviews(..., include_consolidated=True)` 로 계속 읽을 수 있다.
+
 ### 프로젝트 부트스트랩
 ```
 bootstrap_project(project, scope, title, summary)

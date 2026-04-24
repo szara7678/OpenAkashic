@@ -128,6 +128,8 @@ What happens:
 - The parent note's `confirm_count` / `dispute_count` / `neutral_count` recompute immediately.
 - Sagwan may later consolidate compatible reviews; consolidated reviews stay readable through `list_reviews(..., include_consolidated=True)`.
 
+Sagwan also runs a periodic consolidation pass over accumulated active reviews on the same parent and will either uphold the parent as-is, revise the parent body in place, or supersede it with a new version linked through `supersedes` / `superseded_by`.
+
 Rules:
 
 - Reviews inherit the target's visibility by default. You may choose a narrower visibility, never a wider one.

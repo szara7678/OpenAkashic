@@ -102,6 +102,8 @@ class ClosedNote:
     evidence_paths: list[str] = field(default_factory=list)
     topic: str = ""
     target_title_snapshot: str = ""
+    supersedes: str = ""
+    superseded_by: str = ""
 
 
 def _targeted_claim_lifecycle(frontmatter: dict[str, Any]) -> str:
@@ -637,6 +639,21 @@ def closed_note_html(
     review_path_href_map = {visible.path: _note_href(visible.slug, route_prefix) for visible in visible_notes}
     tag_html = "".join(f'<span class="tag">#{html.escape(tag)}</span>' for tag in payload["tags"])
     note_json = _json_script_text(payload)
+    version_banner_html = ""
+    if payload.get("superseded_by") and payload.get("superseded_by_href"):
+        version_banner_html = (
+            f'''<aside class="version-banner read-view" role="note">
+  <span class="version-pill is-danger">Superseded</span>
+  <a href="{html.escape(payload["superseded_by_href"])}">See newer version →</a>
+</aside>'''
+        )
+    elif payload.get("supersedes") and payload.get("supersedes_href"):
+        version_banner_html = (
+            f'''<aside class="version-banner read-view" role="note">
+  <span class="version-pill is-muted">Revised from</span>
+  <a href="{html.escape(payload["supersedes_href"])}">← Previous version</a>
+</aside>'''
+        )
 
     return f"""<!doctype html>
 <html lang="ko">
@@ -1326,6 +1343,38 @@ def closed_note_html(
     }}
     a.review-chip:hover {{ text-decoration: none; border-color: var(--line-strong); background: #fff; }}
     .review-empty {{ padding: 14px; border: 1px dashed var(--line-strong); border-radius: 12px; color: var(--muted); background: rgba(255,255,255,.74); }}
+    .version-banner {{
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+      padding: 14px 16px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255,255,255,.88);
+      box-shadow: 0 12px 28px rgba(15, 23, 42, .06);
+    }}
+    .version-pill {{
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 28px;
+      padding: 0 10px;
+      border-radius: 999px;
+      font-size: .78rem;
+      font-weight: 700;
+      border: 1px solid transparent;
+    }}
+    .version-pill.is-danger {{
+      color: #991b1b;
+      background: rgba(254, 226, 226, .95);
+      border-color: rgba(248, 113, 113, .45);
+    }}
+    .version-pill.is-muted {{
+      color: var(--muted);
+      background: rgba(241, 245, 249, .96);
+      border-color: var(--line);
+    }}
     .missing-link {{ color: #b91c1c; font-weight: 600; }}
     .wiki-link {{ color: var(--accent); text-decoration: none; border-bottom: 1px dashed rgba(37, 99, 235, .4); }}
     .wiki-link:hover {{ border-bottom-style: solid; border-bottom-color: var(--accent); }}
@@ -1593,6 +1642,7 @@ def closed_note_html(
           <textarea class="editor-title-input" id="editor-title" rows="1" placeholder="Untitled"></textarea>
         </header>
         <section class="article-wrap">
+          {version_banner_html}
           <article class="markdown read-view" id="main-content" data-edit-target="body">{payload["body_html"]}</article>
           {(
               f'''
@@ -4719,6 +4769,15 @@ def closed_debug_html(route_prefix: str = "") -> str:
                       <span>Research max fetches</span>
                       <input class="input" id="sagwan-research-max-fetches" type="number" min="1" max="6" step="1" />
                     </label>
+                    <label class="checkbox"><input id="sagwan-consolidate-enabled" type="checkbox" /> <span>consolidation stage enabled</span></label>
+                    <label class="field">
+                      <span>Consolidation interval (sec)</span>
+                      <input class="input" id="sagwan-consolidate-interval" type="number" min="1800" max="86400" step="600" />
+                    </label>
+                    <label class="field">
+                      <span>Consolidation min reviews</span>
+                      <input class="input" id="sagwan-consolidate-min-reviews" type="number" min="2" max="20" step="1" />
+                    </label>
                     <label class="field">
                       <span>Topic proposal interval (h)</span>
                       <input class="input" id="sagwan-topic-interval-hours" type="number" min="1" max="168" step="1" />
@@ -4741,6 +4800,7 @@ def closed_debug_html(route_prefix: str = "") -> str:
                     <button class="button" id="sagwan-run-approval" type="button">Run Approval Now</button>
                     <button class="button" id="sagwan-run-curate" type="button">Run Curation Now</button>
                     <button class="button" id="sagwan-run-research" type="button">Run Research Now</button>
+                    <button class="button" id="sagwan-run-consolidation" type="button">Run Consolidation Now</button>
                   </div>
                   <p class="status-line" id="sagwan-save-status">Heartbeat still protects the loops; saved values apply from the next tick.</p>
                 </section>
@@ -4781,6 +4841,15 @@ def closed_debug_html(route_prefix: str = "") -> str:
                     </div>
                     <div id="sagwan-research-list" class="list" style="display:grid;gap:10px;">
                       <div class="locked-copy">Loading research log…</div>
+                    </div>
+                  </section>
+                  <section class="card">
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+                      <h2 class="card-title">Recent Consolidations</h2>
+                      <button class="button" id="sagwan-consolidations-refresh" type="button">Refresh</button>
+                    </div>
+                    <div id="sagwan-consolidations-list" class="list" style="display:grid;gap:10px;">
+                      <div class="locked-copy">Loading consolidation log…</div>
                     </div>
                   </section>
                 </div>
@@ -4975,6 +5044,9 @@ def closed_debug_html(route_prefix: str = "") -> str:
         sagwanResearchEnabled: document.getElementById('sagwan-research-enabled'),
         sagwanResearchInterval: document.getElementById('sagwan-research-interval'),
         sagwanResearchMaxFetches: document.getElementById('sagwan-research-max-fetches'),
+        sagwanConsolidateEnabled: document.getElementById('sagwan-consolidate-enabled'),
+        sagwanConsolidateInterval: document.getElementById('sagwan-consolidate-interval'),
+        sagwanConsolidateMinReviews: document.getElementById('sagwan-consolidate-min-reviews'),
         sagwanTopicIntervalHours: document.getElementById('sagwan-topic-interval-hours'),
         sagwanMetaIntervalHours: document.getElementById('sagwan-meta-interval-hours'),
         sagwanBatchTrigger: document.getElementById('sagwan-batch-trigger'),
@@ -4983,6 +5055,7 @@ def closed_debug_html(route_prefix: str = "") -> str:
         sagwanRunApproval: document.getElementById('sagwan-run-approval'),
         sagwanRunCurate: document.getElementById('sagwan-run-curate'),
         sagwanRunResearch: document.getElementById('sagwan-run-research'),
+        sagwanRunConsolidation: document.getElementById('sagwan-run-consolidation'),
         sagwanSaveStatus: document.getElementById('sagwan-save-status'),
         sagwanRuntimeStatus: document.getElementById('sagwan-runtime-status'),
         sagwanActivityRefresh: document.getElementById('sagwan-activity-refresh'),
@@ -4991,6 +5064,8 @@ def closed_debug_html(route_prefix: str = "") -> str:
         sagwanCapsulesList: document.getElementById('sagwan-capsules-list'),
         sagwanResearchRefresh: document.getElementById('sagwan-research-refresh'),
         sagwanResearchList: document.getElementById('sagwan-research-list'),
+        sagwanConsolidationsRefresh: document.getElementById('sagwan-consolidations-refresh'),
+        sagwanConsolidationsList: document.getElementById('sagwan-consolidations-list'),
         impStatusFilter: document.getElementById('imp-status-filter'),
         impRefresh: document.getElementById('imp-refresh'),
         impList: document.getElementById('imp-list'),
@@ -5433,12 +5508,15 @@ def closed_debug_html(route_prefix: str = "") -> str:
         if (dom.sagwanResearchEnabled) dom.sagwanResearchEnabled.checked = Boolean(settings.research_enabled);
         if (dom.sagwanResearchInterval) dom.sagwanResearchInterval.value = settings.research_interval_sec || 7200;
         if (dom.sagwanResearchMaxFetches) dom.sagwanResearchMaxFetches.value = settings.research_max_fetches || 3;
+        if (dom.sagwanConsolidateEnabled) dom.sagwanConsolidateEnabled.checked = Boolean(settings.consolidate_enabled);
+        if (dom.sagwanConsolidateInterval) dom.sagwanConsolidateInterval.value = settings.consolidate_interval_sec || 21600;
+        if (dom.sagwanConsolidateMinReviews) dom.sagwanConsolidateMinReviews.value = settings.consolidate_min_reviews || 3;
         if (dom.sagwanTopicIntervalHours) dom.sagwanTopicIntervalHours.value = settings.topic_min_interval_hours || 12;
         if (dom.sagwanMetaIntervalHours) dom.sagwanMetaIntervalHours.value = settings.meta_min_interval_hours || 12;
         if (dom.sagwanBatchTrigger) dom.sagwanBatchTrigger.value = settings.batch_trigger || 3;
         if (dom.sagwanApprovalMax) dom.sagwanApprovalMax.value = settings.approval_max_per_cycle || 10;
         if (dom.sagwanRuntimeStatus) {
-          dom.sagwanRuntimeStatus.textContent = `approval=${settings.interval_sec ?? '-'}s · curation=${settings.curation_interval_sec ?? '-'}s · research=${settings.research_interval_sec ?? '-'}s (enabled=${Boolean(settings.research_enabled)}, fetches≤${settings.research_max_fetches ?? '-'}) · topic_interval=${settings.topic_min_interval_hours ?? '-'}h · meta_interval=${settings.meta_min_interval_hours ?? '-'}h · batch_trigger=${settings.batch_trigger ?? '-'} · approval_max_per_cycle=${settings.approval_max_per_cycle ?? '-'} · enabled=${Boolean(settings.enabled)} · use_llm=${Boolean(settings.use_llm)}`;
+          dom.sagwanRuntimeStatus.textContent = `approval=${settings.interval_sec ?? '-'}s · curation=${settings.curation_interval_sec ?? '-'}s · research=${settings.research_interval_sec ?? '-'}s (enabled=${Boolean(settings.research_enabled)}, fetches≤${settings.research_max_fetches ?? '-'}) · consolidate=${settings.consolidate_interval_sec ?? '-'}s (enabled=${Boolean(settings.consolidate_enabled)}, min_reviews≥${settings.consolidate_min_reviews ?? '-'}) · topic_interval=${settings.topic_min_interval_hours ?? '-'}h · meta_interval=${settings.meta_min_interval_hours ?? '-'}h · batch_trigger=${settings.batch_trigger ?? '-'} · approval_max_per_cycle=${settings.approval_max_per_cycle ?? '-'} · enabled=${Boolean(settings.enabled)} · use_llm=${Boolean(settings.use_llm)}`;
         }
       }
 
@@ -5471,6 +5549,9 @@ def closed_debug_html(route_prefix: str = "") -> str:
               research_enabled: Boolean(dom.sagwanResearchEnabled?.checked),
               research_interval_sec: Number(dom.sagwanResearchInterval?.value || 7200),
               research_max_fetches: Number(dom.sagwanResearchMaxFetches?.value || 3),
+              consolidate_enabled: Boolean(dom.sagwanConsolidateEnabled?.checked),
+              consolidate_interval_sec: Number(dom.sagwanConsolidateInterval?.value || 21600),
+              consolidate_min_reviews: Number(dom.sagwanConsolidateMinReviews?.value || 3),
               topic_min_interval_hours: Number(dom.sagwanTopicIntervalHours?.value || 12),
               meta_min_interval_hours: Number(dom.sagwanMetaIntervalHours?.value || 12),
               batch_trigger: Number(dom.sagwanBatchTrigger?.value || 3),
@@ -5505,7 +5586,8 @@ def closed_debug_html(route_prefix: str = "") -> str:
           const topic = data.topic_proposals?.status || '-';
           const meta = data.meta_curation?.status || '-';
           const research = data.research_gaps?.status || '-';
-          if (dom.sagwanSaveStatus) dom.sagwanSaveStatus.textContent = `Curation done: topic_proposals=${topic}, meta_curation=${meta}, research=${research}.`;
+          const consolidate = data.consolidate_reviews?.verdict || data.consolidate_reviews?.status || '-';
+          if (dom.sagwanSaveStatus) dom.sagwanSaveStatus.textContent = `Curation done: topic_proposals=${topic}, meta_curation=${meta}, research=${research}, consolidate=${consolidate}.`;
           refreshSagwanActivityPanels();
         } catch (error) {
           if (dom.sagwanSaveStatus) dom.sagwanSaveStatus.textContent = error.message;
@@ -5522,6 +5604,21 @@ def closed_debug_html(route_prefix: str = "") -> str:
           await loadSagwanCapsules();
         } catch (error) {
           if (dom.sagwanSaveStatus) dom.sagwanSaveStatus.textContent = `Research run failed: ${error.message}`;
+        }
+      }
+
+      async function runSagwanConsolidation() {
+        if (!isAdminSession()) return;
+        if (dom.sagwanSaveStatus) dom.sagwanSaveStatus.textContent = 'Running consolidation…';
+        try {
+          const data = await fetchJson('/api/admin/sagwan/consolidate/run', { method: 'POST' });
+          if (dom.sagwanSaveStatus) {
+            dom.sagwanSaveStatus.textContent = `Consolidation ${data.status || 'done'} (${data.verdict || '-'})`;
+          }
+          await loadSagwanConsolidations();
+          await loadSagwanCapsules();
+        } catch (error) {
+          if (dom.sagwanSaveStatus) dom.sagwanSaveStatus.textContent = `Consolidation run failed: ${error.message}`;
         }
       }
 
@@ -5653,8 +5750,56 @@ def closed_debug_html(route_prefix: str = "") -> str:
         }
       }
 
+      function renderSagwanConsolidations(entries) {
+        if (!dom.sagwanConsolidationsList) return;
+        if (!entries.length) {
+          dom.sagwanConsolidationsList.innerHTML = '<div class="locked-copy">No consolidation cycles yet.</div>';
+          return;
+        }
+        const verdictTone = (verdict) => {
+          const value = String(verdict || '').toLowerCase();
+          if (value === 'supersede') return 'error';
+          if (value === 'revise') return 'warn';
+          return 'ok';
+        };
+        dom.sagwanConsolidationsList.innerHTML = entries.map((entry) => {
+          const targetLabel = escapeHtml(entry.target_title || entry.target || '(unknown target)');
+          const targetHtml = entry.target_href
+            ? `<a href="${escapeHtml(entry.target_href)}" style="font-weight:700;color:var(--text);text-decoration:none;">${targetLabel}</a>`
+            : `<span style="font-weight:700;">${targetLabel}</span>`;
+          const newLink = entry.new_href
+            ? `<div style="font-size:.8rem;color:var(--muted);">new: <a href="${escapeHtml(entry.new_href)}">${escapeHtml(entry.new_title || entry.new_path)}</a></div>`
+            : '';
+          return `
+            <div class="card" style="padding:14px 16px;display:grid;gap:8px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+                ${targetHtml}
+                <span class="badge ${verdictTone(entry.verdict)}">${escapeHtml(entry.verdict || '-')}</span>
+              </div>
+              <div style="font-size:.78rem;color:var(--muted);">${escapeHtml(fmtTime(entry.ts))} · reviews=${escapeHtml(entry.review_count || 0)} · model=${escapeHtml(entry.model || '-')}</div>
+              <div style="font-size:.84rem;color:var(--muted);">${escapeHtml(entry.rationale || '-')}</div>
+              ${newLink}
+            </div>
+          `;
+        }).join('');
+      }
+
+      async function loadSagwanConsolidations() {
+        if (!dom.sagwanConsolidationsList) return;
+        if (!isAdminSession()) {
+          dom.sagwanConsolidationsList.innerHTML = '<div class="locked-copy">Log in as admin to view consolidation history.</div>';
+          return;
+        }
+        try {
+          const data = await fetchJson('/api/admin/sagwan/consolidations?limit=20');
+          renderSagwanConsolidations(data.entries || []);
+        } catch (error) {
+          dom.sagwanConsolidationsList.innerHTML = `<div class="locked-copy">${escapeHtml(error.message)}</div>`;
+        }
+      }
+
       async function refreshSagwanActivityPanels() {
-        await Promise.all([loadSagwanActivity(), loadSagwanCapsules(), loadSagwanResearch()]);
+        await Promise.all([loadSagwanActivity(), loadSagwanCapsules(), loadSagwanResearch(), loadSagwanConsolidations()]);
       }
 
       // ── improvement requests ────────────────────
@@ -5753,6 +5898,7 @@ def closed_debug_html(route_prefix: str = "") -> str:
       dom.sagwanActivityRefresh?.addEventListener('click', loadSagwanActivity);
       dom.sagwanCapsulesRefresh?.addEventListener('click', loadSagwanCapsules);
       dom.sagwanResearchRefresh?.addEventListener('click', loadSagwanResearch);
+      dom.sagwanConsolidationsRefresh?.addEventListener('click', loadSagwanConsolidations);
       [dom.q, dom.kind, dom.method, dom.statusMin, dom.limit, dom.sort, dom.order, dom.requestId]
         .forEach((element) => element.addEventListener('input', scheduleRefresh));
       dom.userSearch?.addEventListener('input', renderUsers);
@@ -5763,6 +5909,7 @@ def closed_debug_html(route_prefix: str = "") -> str:
       dom.sagwanRunApproval?.addEventListener('click', runSagwanApproval);
       dom.sagwanRunCurate?.addEventListener('click', runSagwanCurate);
       dom.sagwanRunResearch?.addEventListener('click', runSagwanResearch);
+      dom.sagwanRunConsolidation?.addEventListener('click', runSagwanConsolidation);
       dom.impRefresh?.addEventListener('click', loadImprovementRequests);
       dom.impStatusFilter?.addEventListener('change', loadImprovementRequests);
       dom.impModalClose?.addEventListener('click', () => { if (dom.impModal) dom.impModal.hidden = true; });
@@ -5942,6 +6089,7 @@ def _note_payload(
 ) -> dict[str, Any]:
     route_prefix = _normalize_prefix(route_prefix)
     lookup = _note_lookup(notes)
+    path_lookup = {item.path: item for item in notes}
     related_notes = []
     for related in note.related:
         target = _resolve_note_reference(related, lookup)
@@ -5986,6 +6134,9 @@ def _note_payload(
             for review in review_notes[:100]
         ]
 
+    supersedes_note = path_lookup.get(note.supersedes) if note.supersedes else None
+    superseded_by_note = path_lookup.get(note.superseded_by) if note.superseded_by else None
+
     return {
         "path": note.path,
         "slug": note.slug,
@@ -6019,6 +6170,12 @@ def _note_payload(
         "evidence_paths": note.evidence_paths,
         "topic": note.topic,
         "target_title_snapshot": note.target_title_snapshot,
+        "supersedes": note.supersedes,
+        "superseded_by": note.superseded_by,
+        "supersedes_href": _note_href(supersedes_note.slug, route_prefix) if supersedes_note else "",
+        "superseded_by_href": _note_href(superseded_by_note.slug, route_prefix) if superseded_by_note else "",
+        "supersedes_title": supersedes_note.title if supersedes_note else "",
+        "superseded_by_title": superseded_by_note.title if superseded_by_note else "",
         "is_review_target": note.kind in {"capsule", "claim"} and not note.targets,
         "reviews": reviews,
         "related_notes": related_notes,
@@ -6212,6 +6369,8 @@ def _parse_note(root: Path, path: Path) -> ClosedNote:
         evidence_paths=_as_list(frontmatter.get("evidence_paths")),
         topic=str(frontmatter.get("topic") or ""),
         target_title_snapshot=str(frontmatter.get("target_title_snapshot") or ""),
+        supersedes=str(frontmatter.get("supersedes") or "").strip(),
+        superseded_by=str(frontmatter.get("superseded_by") or "").strip(),
     )
 
 
@@ -6372,6 +6531,8 @@ def _empty_note() -> ClosedNote:
         summary=empty_copy,
         body=f"## Summary\n{empty_copy}",
         links=[],
+        supersedes="",
+        superseded_by="",
     )
 
 

@@ -2,6 +2,7 @@ import base64
 import json
 import threading
 import time
+from contextlib import contextmanager
 from collections import defaultdict
 from pathlib import Path
 from typing import Annotated, Any
@@ -15,6 +16,7 @@ _MCP_RATE_LOCK = threading.Lock()
 _MCP_WRITE_MIN: dict[str, list[float]] = defaultdict(list)
 _MCP_WRITE_HOUR: dict[str, list[float]] = defaultdict(list)
 _UPSERT_TOOL_CONTEXT = threading.local()
+_INTERNAL_AUTH_OVERRIDE = threading.local()
 
 
 def _check_mcp_write_rate(auth: "AuthState") -> None:
@@ -824,28 +826,17 @@ def upsert_note(
     }
 
 
-@mcp.tool(title="Review OpenAkashic Claim or Capsule")
-def review_note(
-    target: Annotated[str, Field(description="Path of the capsule or claim you are reviewing. Must be under personal_vault/ and kind in {capsule, claim}. Example: 'personal_vault/projects/my-project/findings.md'")],
-    stance: Annotated[str, Field(description="'support' if you back the target, 'dispute' if you contradict it, 'neutral' for a note-level comment.")],
-    rationale: Annotated[str, Field(description="Short plain-text explanation (20-2000 chars). Markdown OK. This becomes the body of your review note.")],
-    evidence_urls: Annotated[list[str] | None, Field(description="External URLs backing your stance. Max 10. Each URL is validated for storage hygiene (SSRF-safe); never fetched automatically.")] = None,
-    evidence_paths: Annotated[list[str] | None, Field(description="Paths to supporting vault notes. Max 10. Must live under personal_vault/, doc/, or assets/.")] = None,
-    topic: Annotated[str | None, Field(description="Optional one-line topic tag for clustering.")] = None,
+def _review_note_impl(
+    *,
+    auth: AuthState,
+    target: str,
+    stance: str,
+    rationale: str,
+    evidence_urls: list[str] | None = None,
+    evidence_paths: list[str] | None = None,
+    topic: str | None = None,
     ctx: Context | None = None,
 ) -> dict[str, Any]:
-    """Attach a review to an existing capsule or claim.
-
-    Reviews appear on the parent's page, feed the trust score, and are visible
-    to every agent reading that parent. You can review a review — it becomes a
-    counter-claim threaded on the original targeted claim.
-
-    Prefer this over `dispute_note`/`confirm_note` when you have rationale + evidence —
-    those are one-click signals only.
-    Prefer this over `upsert_note(kind='claim', metadata={...})` because this tool sets
-    the correct defaults and path for you.
-    """
-    auth = _auth_from_ctx(ctx)
     if not target.startswith("personal_vault/") or not target.endswith(".md"):
         raise ValueError("target must be a personal_vault/*.md path")
     target_doc = load_document(target)
@@ -867,20 +858,21 @@ def review_note(
     prior_review_flag = getattr(_UPSERT_TOOL_CONTEXT, "invoked_via_review_tool", False)
     _UPSERT_TOOL_CONTEXT.invoked_via_review_tool = True
     try:
-        review = upsert_note(
-            path=review_path,
-            body=f"## Rationale\n{rationale_text}",
-            kind="claim",
-            metadata={
-                "targets": target,
-                "stance": normalized_stance,
-                "claim_review_lifecycle": "active",
-                "evidence_urls": evidence_urls or [],
-                "evidence_paths": evidence_paths or [],
-                "topic": (str(topic or "").strip() or None),
-            },
-            ctx=ctx,
-        )
+        with _auth_override(auth):
+            review = upsert_note(
+                path=review_path,
+                body=f"## Rationale\n{rationale_text}",
+                kind="claim",
+                metadata={
+                    "targets": target,
+                    "stance": normalized_stance,
+                    "claim_review_lifecycle": "active",
+                    "evidence_urls": evidence_urls or [],
+                    "evidence_paths": evidence_paths or [],
+                    "topic": (str(topic or "").strip() or None),
+                },
+                ctx=ctx,
+            )
     finally:
         if prior_review_flag:
             _UPSERT_TOOL_CONTEXT.invoked_via_review_tool = prior_review_flag
@@ -920,6 +912,85 @@ def review_note(
         "evidence_count": evidence_count,
         "parent_aggregate": parent_aggregate,
     }
+
+
+def _post_internal_review(
+    *,
+    target: str,
+    stance: str,
+    rationale: str,
+    evidence_urls: list[str] | None = None,
+    evidence_paths: list[str] | None = None,
+    topic: str | None = None,
+) -> dict[str, Any]:
+    normalized_topic = str(topic or "").strip() or None
+    for review in _load_targeted_claims_for(target):
+        if str(review.owner or "").strip() != SAGWAN_SYSTEM_OWNER:
+            continue
+        if normalized_topic and str(review.topic or "").strip() != normalized_topic:
+            continue
+        return {
+            "status": "skipped_duplicate",
+            "path": review.path,
+            "target": target,
+            "topic": normalized_topic,
+        }
+
+    admin_auth = AuthState(
+        authenticated=True,
+        role="admin",
+        token_label="server-sagwan",
+        username=SAGWAN_SYSTEM_OWNER,
+        nickname=SAGWAN_SYSTEM_OWNER,
+        owner=SAGWAN_SYSTEM_OWNER,
+        capabilities=auth_state_for_token(settings.bearer_token.strip() or None).capabilities,
+        display_name=SAGWAN_SYSTEM_OWNER,
+    )
+    result = _review_note_impl(
+        auth=admin_auth,
+        target=target,
+        stance=stance,
+        rationale=rationale,
+        evidence_urls=evidence_urls,
+        evidence_paths=evidence_paths,
+        topic=normalized_topic,
+        ctx=None,
+    )
+    return {"status": "created", **result}
+
+
+@mcp.tool(title="Review OpenAkashic Claim or Capsule")
+def review_note(
+    target: Annotated[str, Field(description="Path of the capsule or claim you are reviewing. Must be under personal_vault/ and kind in {capsule, claim}. Example: 'personal_vault/projects/my-project/findings.md'")],
+    stance: Annotated[str, Field(description="'support' if you back the target, 'dispute' if you contradict it, 'neutral' for a note-level comment.")],
+    rationale: Annotated[str, Field(description="Short plain-text explanation (20-2000 chars). Markdown OK. This becomes the body of your review note.")],
+    evidence_urls: Annotated[list[str] | None, Field(description="External URLs backing your stance. Max 10. Each URL is validated for storage hygiene (SSRF-safe); never fetched automatically.")] = None,
+    evidence_paths: Annotated[list[str] | None, Field(description="Paths to supporting vault notes. Max 10. Must live under personal_vault/, doc/, or assets/.")] = None,
+    topic: Annotated[str | None, Field(description="Optional one-line topic tag for clustering.")] = None,
+    ctx: Context | None = None,
+) -> dict[str, Any]:
+    """Attach a review to an existing capsule or claim.
+
+    Reviews appear on the parent's page, feed the trust score, and are visible
+    to every agent reading that parent. You can review a review — it becomes a
+    counter-claim threaded on the original targeted claim.
+
+    Prefer this over `dispute_note`/`confirm_note` when you have rationale + evidence —
+    those are one-click signals only.
+    Prefer this over `upsert_note(kind='claim', metadata={...})` because this tool sets
+    the correct defaults and path for you.
+    """
+    auth = _auth_from_ctx(ctx)
+    return _review_note_impl(
+        auth=auth,
+        target=target,
+        stance=stance,
+        rationale=rationale,
+        evidence_urls=evidence_urls,
+        evidence_paths=evidence_paths,
+        topic=topic,
+        ctx=ctx,
+    )
 
 
 @mcp.tool(title="Request OpenAkashic Note Publication")
@@ -1629,7 +1700,26 @@ def _request_token_from_ctx(ctx: Context | None) -> str | None:
 
 
 def _auth_from_ctx(ctx: Context | None) -> AuthState:
+    override = getattr(_INTERNAL_AUTH_OVERRIDE, "auth", None)
+    if override is not None:
+        return override
     return auth_state_for_token(_request_token_from_ctx(ctx))
+
+
+@contextmanager
+def _auth_override(auth: AuthState):
+    previous = getattr(_INTERNAL_AUTH_OVERRIDE, "auth", None)
+    _INTERNAL_AUTH_OVERRIDE.auth = auth
+    try:
+        yield
+    finally:
+        if previous is None:
+            try:
+                delattr(_INTERNAL_AUTH_OVERRIDE, "auth")
+            except AttributeError:
+                pass
+        else:
+            _INTERNAL_AUTH_OVERRIDE.auth = previous
 
 
 _WRITEBACK_KEYWORDS = (

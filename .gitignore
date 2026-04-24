@@ -31,3 +31,4 @@ closed-web/personal_vault/
 closed-web/server/logs/
 closed-web/server/data/
 closed-web/server/output/
+.plan/

@@ -170,6 +170,7 @@ from app.sagwan_loop import (
     load_sagwan_settings,
     pending_publication_request_count,
     run_sagwan_approval_cycle,
+    run_sagwan_consolidation_cycle,
     run_sagwan_curation_cycle,
     run_sagwan_research_cycle,
     save_sagwan_settings,
@@ -1088,6 +1089,11 @@ def api_admin_run_sagwan_research(auth: AuthState = Depends(require_admin_token)
     return run_sagwan_research_cycle(reason=f"manual:{auth.nickname}", force=True)
 
 
+@api.post("/api/admin/sagwan/consolidate/run")
+def api_admin_run_sagwan_consolidate(auth: AuthState = Depends(require_admin_token)) -> dict[str, Any]:
+    return run_sagwan_consolidation_cycle(reason=f"manual:{auth.nickname}", force=True)
+
+
 _IMPROVEMENT_REQUEST_PREFIX = "personal_vault/meta/improvement-requests/"
 _IMPROVEMENT_PRIORITY_TAGS = {"low", "medium", "high"}
 _IMPROVEMENT_KIND_TAGS = {"code", "knowledge", "policy", "data"}
@@ -1166,6 +1172,7 @@ def api_admin_improvement_detail(
 _SAGWAN_ACTIVITY_ROOT = "personal_vault/projects/ops/librarian/activity"
 _SAGWAN_CAPSULE_PREFIX = "personal_vault/projects/ops/librarian/capsules/"
 _SAGWAN_RESEARCH_LOG_PATH = f"{_SAGWAN_ACTIVITY_ROOT}/research-log.md"
+_SAGWAN_CONSOLIDATION_LOG_PATH = f"{_SAGWAN_ACTIVITY_ROOT}/consolidation-log.md"
 
 
 def _admin_parse_h2_sections(body: str) -> list[tuple[str, str]]:
@@ -1297,6 +1304,44 @@ def _admin_recent_sagwan_research(limit: int) -> dict[str, Any]:
     return {"entries": entries[:limit]}
 
 
+def _admin_recent_sagwan_consolidations(limit: int) -> dict[str, Any]:
+    try:
+        doc = load_document(_SAGWAN_CONSOLIDATION_LOG_PATH)
+    except Exception:
+        return {"entries": []}
+    entries: list[dict[str, Any]] = []
+    for heading, block in _admin_parse_h2_sections(doc.body or ""):
+        parts = heading.split(" ", 1)
+        if len(parts) != 2 or parts[1] != "consolidate-reviews":
+            continue
+        target_path = _admin_parse_bullet_value(block, "target")
+        new_path = _admin_parse_bullet_value(block, "new_path")
+        target_note = get_closed_note(target_path, route_prefix="/closed", is_admin=True) if target_path else None
+        new_note = get_closed_note(new_path, route_prefix="/closed", is_admin=True) if new_path else None
+        review_count_raw = _admin_parse_bullet_value(block, "review_count")
+        try:
+            review_count = int(review_count_raw or 0)
+        except ValueError:
+            review_count = 0
+        entries.append(
+            {
+                "ts": parts[0],
+                "verdict": _admin_parse_bullet_value(block, "verdict") or "",
+                "target": target_path,
+                "target_href": (target_note or {}).get("href") or "",
+                "target_title": (target_note or {}).get("title") or "",
+                "review_count": review_count,
+                "rationale": _admin_parse_bullet_value(block, "rationale"),
+                "new_path": new_path,
+                "new_href": (new_note or {}).get("href") or "",
+                "new_title": (new_note or {}).get("title") or "",
+                "model": _admin_parse_bullet_value(block, "model"),
+            }
+        )
+    entries.sort(key=lambda item: str(item.get("ts") or ""), reverse=True)
+    return {"entries": entries[:limit]}
+
+
 @api.get("/api/admin/sagwan/activity")
 def api_admin_sagwan_activity(
     limit: int = Query(default=20, ge=1, le=100),
@@ -1319,6 +1364,14 @@ def api_admin_sagwan_research(
     auth: AuthState = Depends(require_admin_token),
 ) -> dict[str, Any]:
     return _admin_recent_sagwan_research(limit)
+
+
+@api.get("/api/admin/sagwan/consolidations")
+def api_admin_sagwan_consolidations(
+    limit: int = Query(default=20, ge=1, le=100),
+    auth: AuthState = Depends(require_admin_token),
+) -> dict[str, Any]:
+    return _admin_recent_sagwan_consolidations(limit)
 
 
 @api.post("/api/admin/core/resync")

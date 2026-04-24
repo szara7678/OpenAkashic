@@ -75,6 +75,9 @@ def _default_sagwan_settings() -> dict[str, Any]:
         "research_enabled": True,
         "research_interval_sec": 7200,   # 2시간
         "research_max_fetches": 3,
+        "consolidate_enabled": True,
+        "consolidate_interval_sec": 21600,  # 6시간
+        "consolidate_min_reviews": 3,
         "topic_min_interval_hours": 12,
         "meta_min_interval_hours": 12,
     }
@@ -114,6 +117,15 @@ def load_sagwan_settings() -> dict[str, Any]:
             6,
             max(1, int(raw.get("research_max_fetches") or defaults["research_max_fetches"])),
         ),
+        "consolidate_enabled": bool(raw.get("consolidate_enabled", defaults["consolidate_enabled"])),
+        "consolidate_interval_sec": min(
+            86400,
+            max(1800, int(raw.get("consolidate_interval_sec") or defaults["consolidate_interval_sec"])),
+        ),
+        "consolidate_min_reviews": min(
+            20,
+            max(2, int(raw.get("consolidate_min_reviews") or defaults["consolidate_min_reviews"])),
+        ),
         "topic_min_interval_hours": min(
             168,
             max(1, int(raw.get("topic_min_interval_hours") or defaults["topic_min_interval_hours"])),
@@ -151,6 +163,15 @@ def save_sagwan_settings(payload: dict[str, Any]) -> dict[str, Any]:
         "research_max_fetches": min(
             6,
             max(1, int(payload.get("research_max_fetches") or current["research_max_fetches"])),
+        ),
+        "consolidate_enabled": bool(payload.get("consolidate_enabled", current["consolidate_enabled"])),
+        "consolidate_interval_sec": min(
+            86400,
+            max(1800, int(payload.get("consolidate_interval_sec") or current["consolidate_interval_sec"])),
+        ),
+        "consolidate_min_reviews": min(
+            20,
+            max(2, int(payload.get("consolidate_min_reviews") or current["consolidate_min_reviews"])),
         ),
         "topic_min_interval_hours": min(
             168,
@@ -534,6 +555,17 @@ def run_sagwan_research_cycle(*, reason: str = "manual", force: bool = False) ->
         return {"status": "error", "detail": str(exc), "reason": reason}
 
 
+def run_sagwan_consolidation_cycle(*, reason: str = "manual", force: bool = False) -> dict[str, Any]:
+    try:
+        result = _curate_consolidate_reviews(force=force)
+        if reason:
+            result = {**result, "reason": reason}
+        return result
+    except Exception as exc:
+        logger.error("sagwan consolidation cycle failed: %s", exc)
+        return {"status": "error", "detail": str(exc), "reason": reason}
+
+
 def run_sagwan_curation_cycle(*, reason: str = "scheduled") -> dict[str, Any]:
     """
     사관의 정제(큐레이션) 루틴. 다음 단계를 수행한다:
@@ -545,6 +577,7 @@ def run_sagwan_curation_cycle(*, reason: str = "scheduled") -> dict[str, Any]:
     (G) signal scans — stale/gap 스캔 태스크 enqueue
     (H) 연구 토픽 제안 — 주제만 제안/기록 (자동 crawl 없음)
     (K) gap-driven research — 사관이 WebSearch/WebFetch 로 직접 리서치 capsule 초안 생성
+    (L) review consolidation — 누적 리뷰를 uphold/revise/supersede 로 정리
     """
     try:
         a = _curate_derive_and_sync()
@@ -601,6 +634,12 @@ def run_sagwan_curation_cycle(*, reason: str = "scheduled") -> dict[str, Any]:
         k_research = {"error": str(exc)}
 
     try:
+        l_consolidate = _curate_consolidate_reviews()
+    except Exception as exc:
+        logger.error("sagwan curation L (consolidate reviews) failed: %s", exc)
+        l_consolidate = {"error": str(exc)}
+
+    try:
         distill = distill_memory("sagwan", llm_invoke=_invoke_claude_cli)
     except Exception as exc:
         logger.error("sagwan distill failed: %s", exc)
@@ -613,6 +652,7 @@ def run_sagwan_curation_cycle(*, reason: str = "scheduled") -> dict[str, Any]:
         "topic_proposals": h_topics,
         "meta_curation": i_meta,
         "research_gaps": k_research,
+        "consolidate_reviews": l_consolidate,
         "distill_sagwan": distill,
     }
     try:
@@ -631,6 +671,7 @@ def run_sagwan_curation_cycle(*, reason: str = "scheduled") -> dict[str, Any]:
                 f"meta_status={i_meta.get('status', '?')} "
                 f"research_status={k_research.get('status', '?')} "
                 f"research_capsule={k_research.get('capsule_path', '-')} "
+                f"consolidate={l_consolidate.get('verdict', l_consolidate.get('status', '?'))} "
                 f"distill_sagwan={distill.get('status')}"
             ),
             kind="curation",
@@ -699,6 +740,7 @@ def _validation_anchor(fm: dict[str, Any]) -> str:
 def _curate_revalidate_published(*, max_per_cycle: int = 5) -> dict[str, Any]:
     """(C) published capsule/claim 를 오래된 순으로 LLM 재검증."""
     from app.vault import list_note_paths, write_document
+    from app.mcp_server import _post_internal_review
 
     candidates: list[tuple[str, str]] = []
     for path in list_note_paths():
@@ -726,6 +768,7 @@ def _curate_revalidate_published(*, max_per_cycle: int = 5) -> dict[str, Any]:
     refresh = 0
     results: list[dict[str, Any]] = []
     model = (load_librarian_settings() or {}).get("model") or None
+    cycle_date = datetime.now(UTC).date().isoformat()
 
     for path in targets:
         checked += 1
@@ -760,6 +803,29 @@ def _curate_revalidate_published(*, max_per_cycle: int = 5) -> dict[str, Any]:
             write_document(path=path, body=doc.body, metadata=fm, allow_owner_change=True)
         except Exception as exc:
             logger.warning("sagwan curation: write_document failed for %s: %s", path, exc)
+        try:
+            if verdict in {"stale", "refresh"}:
+                _post_internal_review(
+                    target=path,
+                    stance="dispute",
+                    rationale=(
+                        f"Sagwan revalidation ({cycle_date} cycle) flagged this capsule as stale or inaccurate: "
+                        f"{note[:1500]}"
+                    ),
+                    topic="sagwan-revalidation",
+                )
+            elif verdict == "ok":
+                _post_internal_review(
+                    target=path,
+                    stance="support",
+                    rationale=(
+                        "Sagwan revalidation cycle confirmed this capsule still matches current sources. "
+                        f"Sampled freshness date: {fm.get('freshness_date') or '(none)'}."
+                    ),
+                    topic="sagwan-revalidation",
+                )
+        except Exception as exc:
+            logger.warning("sagwan revalidation: review_note posting failed for %s: %s", path, exc)
         append_section(
             path,
             f"Sagwan Revalidation {_now_iso()}",
@@ -927,6 +993,7 @@ _SAGWAN_CAPSULE_FOLDER = "personal_vault/projects/ops/librarian/capsules"
 _SAGWAN_CAPSULE_CREATOR = "sagwan"
 _CAPSULE_GEN_MAX_PER_CYCLE = 1  # 안전상 사이클당 1개만 생성
 _RESEARCH_LOG_PATH = "personal_vault/projects/ops/librarian/activity/research-log.md"
+_CONSOLIDATION_LOG_PATH = "personal_vault/projects/ops/librarian/activity/consolidation-log.md"
 
 
 def _parse_iso_datetime(value: str) -> datetime | None:
@@ -1284,6 +1351,423 @@ def _touch_research_state(now_iso: str) -> None:
         metadata=next_frontmatter,
         allow_owner_change=True,
     )
+
+
+def _ensure_consolidation_log_document() -> None:
+    try:
+        load_document(_CONSOLIDATION_LOG_PATH)
+        return
+    except Exception:
+        pass
+    write_document(
+        path=_CONSOLIDATION_LOG_PATH,
+        title="Sagwan Consolidation Log",
+        kind="reference",
+        project="ops/librarian",
+        status="active",
+        tags=["sagwan", "activity", "review-consolidation"],
+        body="\n".join(
+            [
+                "## Summary",
+                "Sagwan review consolidation history. Frontmatter `last_run_at` is the stage-L cooldown anchor.",
+            ]
+        ),
+        metadata={"visibility": "private", "publication_status": "none", "owner": "sagwan"},
+        allow_owner_change=True,
+    )
+
+
+def _build_consolidation_prompt(*, capsule: Any, reviews: list[Any]) -> str:
+    title = str(capsule.frontmatter.get("title") or capsule.path)
+    kind = str(capsule.frontmatter.get("kind") or "capsule").strip().lower()
+    review_blocks: list[str] = []
+    for index, review in enumerate(reviews, start=1):
+        review_blocks.append(
+            "\n".join(
+                [
+                    f"### Review {index}",
+                    f"- path: {review.path}",
+                    f"- stance: {review.stance or 'neutral'}",
+                    f"- owner: {review.owner or '-'}",
+                    f"- topic: {review.topic or '-'}",
+                    f"- rationale: {_review_rationale_text(review.body)}",
+                    f"- evidence_urls: {json.dumps(review.evidence_urls or [], ensure_ascii=False)}",
+                    f"- evidence_paths: {json.dumps(review.evidence_paths or [], ensure_ascii=False)}",
+                ]
+            )
+        )
+    return "\n\n".join(
+        [
+            "너는 OpenAkashic 사관이다. 부모 캡슐/클레임과 누적 리뷰를 읽고 통합 결론을 내린다.",
+            "판단 규칙:",
+            "- 리뷰가 대부분 support 이고 사실 반박이 없으면 uphold.",
+            "- dispute 포인트가 타당하고 현재 본문에 흡수 가능하면 revise.",
+            "- 문서가 근본적으로 틀렸거나 시대에 뒤처져 새 버전이 낫다면 supersede.",
+            "- support/neutral 만 많다는 이유로 새 버전을 만들지 마라.",
+            "- revise 또는 supersede 일 때만 NEW_TITLE / NEW_BODY 를 작성한다.",
+            "- NEW_BODY 는 반드시 아래 섹션을 포함한다: ## Summary / ## Key Points / ## Cautions / ## Sources",
+            "",
+            "출력 형식:",
+            "VERDICT: uphold | revise | supersede",
+            "RATIONALE: <한국어 한두 문장>",
+            "NEW_TITLE: <선택, revise|supersede일 때>",
+            "NEW_BODY:",
+            "## Summary",
+            "...",
+            "## Key Points",
+            "...",
+            "## Cautions",
+            "...",
+            "## Sources",
+            "...",
+            "",
+            f"## Parent Note",
+            f"path: {capsule.path}",
+            f"title: {title}",
+            f"kind: {kind}",
+            "",
+            "## Parent Body",
+            str(capsule.body or "").strip() or "(empty)",
+            "",
+            "## Reviews",
+            "\n\n".join(review_blocks) or "(no reviews)",
+        ]
+    )
+
+
+def _parse_consolidation_decision(raw: str) -> dict[str, str] | None:
+    text = str(raw or "").strip()
+    if not text:
+        return None
+
+    verdict_match = re.search(r"^\s*VERDICT\s*:\s*(uphold|revise|supersede)\s*$", text, re.IGNORECASE | re.MULTILINE)
+    if not verdict_match:
+        return None
+    verdict = verdict_match.group(1).strip().lower()
+
+    rationale_match = re.search(
+        r"^\s*RATIONALE\s*:\s*(.+?)(?=^\s*(?:NEW_TITLE|NEW_BODY|VERDICT)\s*:|\Z)",
+        text,
+        re.IGNORECASE | re.MULTILINE | re.DOTALL,
+    )
+    new_title_match = re.search(
+        r"^\s*NEW_TITLE\s*:\s*(.+?)(?=^\s*(?:NEW_BODY|RATIONALE|VERDICT)\s*:|\Z)",
+        text,
+        re.IGNORECASE | re.MULTILINE | re.DOTALL,
+    )
+    new_body_match = re.search(r"^\s*NEW_BODY\s*:\s*(.*)\Z", text, re.IGNORECASE | re.MULTILINE | re.DOTALL)
+
+    rationale = (rationale_match.group(1).strip() if rationale_match else "")[:2000]
+    new_title = (new_title_match.group(1).strip() if new_title_match else "")[:240]
+    new_body = new_body_match.group(1).strip() if new_body_match else ""
+
+    return {
+        "verdict": verdict,
+        "rationale": rationale,
+        "new_title": new_title,
+        "new_body": new_body,
+    }
+
+
+def _mark_review_consolidated(review_path: str, *, cycle_id: str) -> None:
+    review_doc = load_document(review_path)
+    next_frontmatter = dict(review_doc.frontmatter or {})
+    next_frontmatter["claim_review_lifecycle"] = "consolidated"
+    next_frontmatter["claim_review_cycle_id"] = cycle_id
+    next_frontmatter["claim_review_consolidated_at"] = _now_iso()
+    write_document(
+        path=review_path,
+        body=review_doc.body,
+        metadata=next_frontmatter,
+        metadata_replace=False,
+        allow_owner_change=True,
+    )
+
+
+def _mark_review_active(review_path: str) -> None:
+    review_doc = load_document(review_path)
+    next_frontmatter = dict(review_doc.frontmatter or {})
+    next_frontmatter["claim_review_lifecycle"] = "active"
+    next_frontmatter["claim_review_cycle_id"] = None
+    next_frontmatter["claim_review_consolidated_at"] = None
+    write_document(
+        path=review_path,
+        body=review_doc.body,
+        metadata=next_frontmatter,
+        metadata_replace=False,
+        allow_owner_change=True,
+    )
+
+
+def _touch_parent_consolidation(parent_path: str, now_iso: str, verdict: str) -> None:
+    parent_doc = load_document(parent_path)
+    next_frontmatter = dict(parent_doc.frontmatter or {})
+    next_frontmatter["last_consolidated_at"] = now_iso
+    next_frontmatter["last_consolidation_verdict"] = verdict
+    write_document(
+        path=parent_path,
+        body=parent_doc.body,
+        metadata=next_frontmatter,
+        metadata_replace=False,
+        allow_owner_change=True,
+    )
+
+
+def _write_revised_capsule(old_doc: Any, new_body: str, now_iso: str) -> None:
+    next_frontmatter = dict(old_doc.frontmatter or {})
+    next_frontmatter["last_consolidated_at"] = now_iso
+    next_frontmatter["last_consolidation_verdict"] = "revise"
+    next_frontmatter["revision_count"] = int(next_frontmatter.get("revision_count") or 0) + 1
+    write_document(
+        path=old_doc.path,
+        body=new_body,
+        metadata=next_frontmatter,
+        metadata_replace=False,
+        allow_owner_change=True,
+    )
+
+
+def _write_superseding_capsule(*, old_doc: Any, new_title: str, new_body: str, now_iso: str) -> str:
+    old_frontmatter = dict(old_doc.frontmatter or {})
+    old_kind = str(old_frontmatter.get("kind") or "capsule").strip().lower() or "capsule"
+    target_path = suggest_note_path(old_kind, new_title, _SAGWAN_CAPSULE_FOLDER, None, "ops/librarian")
+    if target_path == old_doc.path:
+        target_path = suggest_note_path(
+            old_kind,
+            f"{new_title} {now_iso[:10]}",
+            _SAGWAN_CAPSULE_FOLDER,
+            None,
+            "ops/librarian",
+        )
+    try:
+        load_document(target_path)
+    except Exception:
+        pass
+    else:
+        target_path = suggest_note_path(
+            old_kind,
+            f"{new_title} {now_iso[:10]}",
+            _SAGWAN_CAPSULE_FOLDER,
+            None,
+            "ops/librarian",
+        )
+
+    related = [str(item) for item in (old_frontmatter.get("related") or []) if str(item).strip()]
+    if old_doc.path not in related:
+        related.append(old_doc.path)
+
+    new_doc = write_document(
+        path=target_path,
+        title=new_title,
+        kind=old_kind,
+        project=str(old_frontmatter.get("project") or "ops/librarian"),
+        status=str(old_frontmatter.get("status") or "active"),
+        tags=[str(item) for item in (old_frontmatter.get("tags") or []) if str(item).strip()],
+        related=related,
+        body=new_body,
+        metadata={
+            "visibility": "private",
+            "publication_status": "none",
+            "owner": "sagwan",
+            "generated_by": "sagwan",
+            "supersedes": old_doc.path,
+            "revision_count": 1,
+            "last_consolidated_at": now_iso,
+            "last_consolidation_verdict": "supersede",
+        },
+        allow_owner_change=True,
+    )
+    return new_doc.path
+
+
+def _mark_parent_superseded_by(old_path: str, new_path: str, now_iso: str) -> None:
+    old_doc = load_document(old_path)
+    next_frontmatter = dict(old_doc.frontmatter or {})
+    next_frontmatter["superseded_by"] = new_path
+    next_frontmatter["claim_review_status"] = "superseded"
+    next_frontmatter["last_consolidated_at"] = now_iso
+    next_frontmatter["last_consolidation_verdict"] = "supersede"
+    write_document(
+        path=old_path,
+        body=old_doc.body,
+        metadata=next_frontmatter,
+        metadata_replace=False,
+        allow_owner_change=True,
+    )
+
+
+def _append_consolidation_log_entry(
+    *,
+    target: str,
+    verdict: str,
+    review_count: int,
+    rationale: str,
+    new_path: str | None,
+    model: str,
+) -> None:
+    _ensure_consolidation_log_document()
+    ts = _now_iso()
+    lines = [
+        f"- target: {target}",
+        f"- verdict: {verdict}",
+        f"- review_count: {review_count}",
+        f"- rationale: {rationale or '(none)'}",
+        f"- model: {model or '-'}",
+    ]
+    if new_path:
+        lines.append(f"- new_path: {new_path}")
+    append_section(
+        _CONSOLIDATION_LOG_PATH,
+        f"{ts} consolidate-reviews",
+        "\n".join(lines),
+    )
+
+
+def _touch_consolidation_state(now_iso: str) -> None:
+    _ensure_consolidation_log_document()
+    doc = load_document(_CONSOLIDATION_LOG_PATH)
+    next_frontmatter = dict(doc.frontmatter or {})
+    next_frontmatter["last_run_at"] = now_iso
+    write_document(
+        path=_CONSOLIDATION_LOG_PATH,
+        body=doc.body,
+        metadata=next_frontmatter,
+        allow_owner_change=True,
+    )
+
+
+def _review_rationale_text(body: str) -> str:
+    text = str(body or "").strip()
+    if text.startswith("## Rationale"):
+        text = text[len("## Rationale"):].strip()
+    return text[:2000]
+
+
+def _curate_consolidate_reviews(force: bool = False) -> dict[str, Any]:
+    from app.mcp_server import _recompute_parent_aggregate
+    from app.site import _load_targeted_claims_for
+
+    settings = load_sagwan_settings()
+    if not settings.get("consolidate_enabled", True):
+        return {"status": "disabled"}
+
+    _ensure_consolidation_log_document()
+    state_doc = load_document(_CONSOLIDATION_LOG_PATH)
+    state = dict(state_doc.frontmatter or {})
+    last_run_at = str(state.get("last_run_at") or "").strip()
+    interval_sec = int(settings.get("consolidate_interval_sec") or 21600)
+    if last_run_at and not force:
+        last_dt = _parse_iso_datetime(last_run_at)
+        if last_dt is not None:
+            next_allowed = last_dt + timedelta(seconds=interval_sec)
+            if datetime.now(UTC) < next_allowed:
+                return {
+                    "status": "cooldown",
+                    "last_run_at": last_run_at,
+                    "next_run_after": next_allowed.replace(microsecond=0).isoformat().replace("+00:00", "Z"),
+                }
+
+    min_reviews = int(settings.get("consolidate_min_reviews") or 3)
+    candidates: list[dict[str, Any]] = []
+    for path in list_note_paths():
+        if not path.startswith("personal_vault/"):
+            continue
+        try:
+            doc = load_document(path)
+        except Exception:
+            continue
+        frontmatter = dict(doc.frontmatter or {})
+        kind = str(frontmatter.get("kind") or "").strip().lower()
+        if kind not in {"capsule", "claim"}:
+            continue
+        if str(frontmatter.get("targets") or "").strip():
+            continue
+        if str(frontmatter.get("claim_review_status") or "").strip().lower() in {"superseded", "merged"}:
+            continue
+        active_reviews = _load_targeted_claims_for(path)
+        if len(active_reviews) < min_reviews:
+            continue
+        candidates.append(
+            {
+                "path": path,
+                "doc": doc,
+                "reviews": active_reviews,
+                "last_consolidated_at": str(frontmatter.get("last_consolidated_at") or ""),
+            }
+        )
+
+    if not candidates:
+        return {"status": "no_candidates", "min_reviews": min_reviews}
+
+    candidates.sort(key=lambda item: (item["last_consolidated_at"] or "", -len(item["reviews"])))
+    picked = candidates[0]
+    librarian_settings = load_librarian_settings() or {}
+    model = librarian_settings.get("model") or None
+    prompt = _build_consolidation_prompt(capsule=picked["doc"], reviews=picked["reviews"])
+    raw = _invoke_claude_cli(prompt, model=model)
+    decision = _parse_consolidation_decision(raw)
+    if not decision:
+        return {"status": "llm_parse_error", "raw": raw[:500], "target": picked["path"]}
+
+    verdict = decision["verdict"]
+    now_iso = _now_iso()
+    cycle_id = f"L-{now_iso}"
+    new_path: str | None = None
+
+    for review in picked["reviews"]:
+        _mark_review_consolidated(review.path, cycle_id=cycle_id)
+
+    if verdict == "uphold":
+        _touch_parent_consolidation(picked["path"], now_iso, verdict)
+    elif verdict == "revise":
+        new_body = str(decision.get("new_body") or "")
+        if len(new_body) < 400 or "## Summary" not in new_body:
+            for review in picked["reviews"]:
+                _mark_review_active(review.path)
+            return {"status": "revise_too_weak", "raw": raw[:300], "target": picked["path"]}
+        _write_revised_capsule(picked["doc"], new_body, now_iso)
+    elif verdict == "supersede":
+        new_body = str(decision.get("new_body") or "")
+        if len(new_body) < 400 or "## Summary" not in new_body:
+            for review in picked["reviews"]:
+                _mark_review_active(review.path)
+            return {"status": "supersede_too_weak", "raw": raw[:300], "target": picked["path"]}
+        old_title = str(picked["doc"].frontmatter.get("title") or picked["path"])
+        new_title = str(decision.get("new_title") or f"{old_title} (v2)")
+        new_path = _write_superseding_capsule(
+            old_doc=picked["doc"],
+            new_title=new_title,
+            new_body=new_body,
+            now_iso=now_iso,
+        )
+        _mark_parent_superseded_by(picked["path"], new_path, now_iso)
+    else:
+        for review in picked["reviews"]:
+            _mark_review_active(review.path)
+        return {"status": "unknown_verdict", "verdict": verdict, "target": picked["path"]}
+
+    _append_consolidation_log_entry(
+        target=picked["path"],
+        verdict=verdict,
+        review_count=len(picked["reviews"]),
+        rationale=str(decision.get("rationale") or ""),
+        new_path=new_path,
+        model=str(model or ""),
+    )
+    _touch_consolidation_state(now_iso)
+    _recompute_parent_aggregate(picked["path"])
+    if new_path:
+        _recompute_parent_aggregate(new_path)
+    result = {
+        "status": "ok",
+        "verdict": verdict,
+        "target": picked["path"],
+        "review_count": len(picked["reviews"]),
+        "rationale": str(decision.get("rationale") or ""),
+    }
+    if new_path:
+        result["new_path"] = new_path
+    return result
 
 
 def _curate_research_gaps(force: bool = False) -> dict[str, Any]:
