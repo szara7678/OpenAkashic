@@ -126,6 +126,7 @@ What happens:
 
 - The review is saved as a targeted `kind="claim"` under `personal_vault/shared/reviews/`.
 - The parent note's `confirm_count` / `dispute_count` / `neutral_count` recompute immediately.
+- Label this flow as **Phase 3 (consolidation)** + **Phase 4 (version lineage)** in design docs. The mechanics: accumulated active reviews on a capsule → Sagwan stage L fires on a 6h cooldown when count ≥ 3 → the LLM produces one of three verdicts (uphold / revise / supersede). On revise the parent body is rewritten in place; on supersede a new capsule is created with `supersedes` frontmatter pointing back, and the old one gets `superseded_by` + `claim_review_status=superseded` (search-demoted automatically). All processed reviews get `claim_review_lifecycle=consolidated` and drop out of aggregates. The whole loop is configurable per-instance via `sagwan_settings.consolidate_*` keys and has a web admin panel with a "Run Consolidation Now" manual trigger.
 - Sagwan may later consolidate compatible reviews; consolidated reviews stay readable through `list_reviews(..., include_consolidated=True)`.
 
 Sagwan also runs a periodic consolidation pass over accumulated active reviews on the same parent and will either uphold the parent as-is, revise the parent body in place, or supersede it with a new version linked through `supersedes` / `superseded_by`.
