@@ -1,0 +1,229 @@
+version: v0.7
+k_default: 3
+
+# OpenAkashicBench v0.7 — fair public-benchmark subset (12 tasks).
+# Headline comparison: cli_baseline vs cli_openakashic.
+# Environment-neutral: does not depend on insu's private vault content.
+#
+# Tasks imported unchanged from tasks.yaml: coding_python_bug, coding_sql_index,
+#   general_web_fact, daily_email_rewrite, review_workflow, list_reviews_first,
+#   consolidation_awareness, citation_integrity.
+# Softened rubric: version_lineage (exact 0.35x multiplier optional, not required).
+# New in v0.7: onboarding_public_openakashic, memory_contract_check,
+#   public_multihop_openakashic.
+
+tasks:
+  # ── Task H: 코딩 — Python 버그 찾기 ─────────────────────────────────
+  - id: coding_python_bug
+    prompt: |
+      이 Python 함수에 버그가 있어. 무엇이 문제이고 어떻게 고쳐야 해?
+      ```python
+      def avg(nums):
+          total = 0
+          for n in nums:
+              total += n
+          return total / len(nums)
+      ```
+      주된 위험 케이스 1개를 짚고, 수정된 코드 한 버전 제시.
+    expected_outcome:
+      - "빈 리스트(또는 길이 0) 입력 시 ZeroDivisionError 가 발생한다는 진단"
+      - "수정안: len(nums) == 0 가드(또는 try/except, 또는 statistics.mean) 제시"
+      - "수정된 코드 스니펫이 실제로 실행 가능한 형태로 제공"
+    hallucination_traps:
+      - "정수 나눗셈/Python 2/3 차이가 문제라고 주장 (실제로는 / 가 float division)"
+      - "total 초기값을 1로 해야 한다고 주장"
+      - "for 문 자체가 잘못되었다고 주장"
+    rubric: |
+      모든 조건이 풀 수 있어야 하는 기본 코딩 task. baseline/standard/openakashic 모두
+      파라메트릭 지식으로 풀 수 있어야 함. standard가 도구 핑계로 회피하면 fail.
+
+  # ── Task I: 코딩 — SQL 인덱스 ────────────────────────────────────────
+  - id: coding_sql_index
+    prompt: |
+      Postgres 에서 다음 쿼리가 느려:
+      ```sql
+      SELECT * FROM events WHERE user_id = 42 AND created_at >= NOW() - INTERVAL '7 days'
+      ORDER BY created_at DESC LIMIT 50;
+      ```
+      어떤 인덱스를 만들면 좋고, 이유는 뭐야? CREATE INDEX 문도 같이.
+    expected_outcome:
+      - "복합 인덱스 권장: (user_id, created_at) 또는 (user_id, created_at DESC) — 두 컬럼 순서 정확히"
+      - "user_id 가 동등 비교(equality)이고 created_at 이 범위/정렬이라 이 순서가 맞다는 설명"
+      - "CREATE INDEX 또는 CREATE INDEX CONCURRENTLY 문법으로 실제 SQL 제시"
+    hallucination_traps:
+      - "각각 단일 인덱스 두 개를 만들라고 안내(복합보다 비효율적인데 이게 더 빠르다고 단언)"
+      - "(created_at, user_id) 순서로 안내 (역순)"
+      - "전체 테이블 인덱싱이 필요하다는 모호한 설명"
+    rubric: |
+      DB 기본 지식. baseline/standard/openakashic 모두 파라메트릭으로 풀어야 함.
+
+  # ── Task F: 일반 웹 검색 능력 (OpenAkashic 무관) ───────────────────────
+  - id: general_web_fact
+    prompt: |
+      Anthropic이 공개한 Model Context Protocol(MCP)의 공식 저장소 URL과
+      그 프로토콜이 무엇을 위한 것인지 한 문단으로 설명해줘.
+    expected_outcome:
+      - "github.com/modelcontextprotocol 혹은 modelcontextprotocol.io 등 실제 도메인/URL 제시"
+      - "MCP가 LLM 에이전트에게 외부 도구/데이터 소스를 연결하기 위한 표준 프로토콜이라는 설명"
+      - "Anthropic이 설계/공개한 open standard라는 맥락 언급"
+    hallucination_traps:
+      - "MCP가 OpenAI의 프로토콜이라고 설명"
+      - "존재하지 않는 anthropic.com/mcp/docs 같은 환각 URL"
+    rubric: |
+      OpenAkashic과 무관한 일반 웹 사실. baseline/standard/openakashic 모두 충분히
+      답할 수 있어야 공정함을 검증. standard는 web_search로 쉽게 맞춰야 함.
+
+  # ── Task K: 일상 — 이메일 톤 변환 ────────────────────────────────────
+  - id: daily_email_rewrite
+    prompt: |
+      다음 메시지를 정중한 비즈니스 이메일 한국어로 바꿔줘 (3-5문장):
+      "야 그 보고서 언제 보내냐 마감 지났는데 답도 없네"
+    expected_outcome:
+      - "반말/욕설 톤이 사라지고 존댓말로 변환됨"
+      - "보고서 제출 지연을 정중하게 묻는 표현이 포함됨"
+      - "3~5문장 범위(또는 그에 준하는 짧은 단락) 안에서 정리됨"
+      - "수신자에 대한 위협/책망 없이 협조 요청 형태로 마무리"
+    hallucination_traps:
+      - "여전히 반말 또는 명령조 표현 잔존"
+      - "10문장 이상의 긴 장문 답"
+      - "사과 일색으로 발신자가 자기 잘못을 비는 형태로 뒤집힘 (의도 왜곡)"
+    rubric: |
+      파라메트릭 글쓰기 task. 모든 조건이 도구 없이 답해야 함. standard 가 도구
+      탐색으로 회피하지 않는지 검증.
+
+  # v0.6 — review/consolidation workflow coverage
+  - id: review_workflow
+    prompt: |
+      검색 결과로 찾은 capsule 하나에서 중요한 기술적 오류를 발견했어.
+      Akashic에 어떻게 이의를 남기고 다른 에이전트들에게 경고해야 해?
+      실제로 호출할 MCP 도구와 파라미터도 써줘.
+    expected_outcome:
+      - "review_note MCP 도구를 명시적으로 언급한다"
+      - "stance='dispute' 선택을 제시한다 (support/neutral 아님)"
+      - "rationale에 20자 이상의 구체적 오류 설명 포함"
+      - "evidence_urls 또는 evidence_paths로 근거 추가 권장을 언급한다"
+    hallucination_traps:
+      - "upsert_note(kind='claim', metadata={...})로 직접 조립하라고 안내한다"
+      - "dispute_note를 rich review 수단으로 잘못 안내한다 (dispute_note는 one-click signal)"
+      - "존재하지 않는 도구명 (예: submit_dispute, create_challenge)을 제시한다"
+    rubric: |
+      baseline은 일반론으로 답할 확률 높음. openakashic은 review_note의 정확한 시그니처와
+      stance semantics를 명시해야 한다.
+
+  - id: list_reviews_first
+    prompt: |
+      어떤 capsule에 리뷰를 달려고 해. 중복을 피하려면 뭐부터 확인해야 해?
+    expected_outcome:
+      - "list_reviews 또는 list_reviews(target, include_consolidated=True) 호출을 먼저 제시한다"
+      - "기존 리뷰를 확인한 뒤에 중복되지 않는 새 review_note를 작성하라는 순서 설명"
+      - "consolidated 리뷰도 include하라는 옵션을 안내한다"
+    hallucination_traps:
+      - "search_notes로 리뷰를 찾으라고 안내 (search는 targeted claim 기본 제외)"
+      - "리뷰 확인 없이 바로 review_note를 호출하라고 안내"
+    rubric: |
+      openakashic 조건에서는 list_reviews 선행 확인과 include_consolidated 옵션까지 언급해야 한다.
+
+  - id: consolidation_awareness
+    prompt: |
+      sagwan이 내 리뷰를 '정리'했다는데 정확히 어떻게 되는 거야?
+      그리고 그 이후에도 그 리뷰를 볼 수 있어?
+    expected_outcome:
+      - "consolidation 시 claim_review_lifecycle이 consolidated로 바뀐다는 설명"
+      - "3-way 판정(uphold / revise / supersede) 언급"
+      - "list_reviews(include_consolidated=True)로 여전히 조회 가능하다는 안내"
+      - "aggregate(confirm/dispute/neutral count)에서는 제외된다는 설명"
+    hallucination_traps:
+      - "consolidated 리뷰가 삭제된다고 안내"
+      - "revise와 supersede를 같은 것처럼 설명"
+    rubric: |
+      openakashic은 lifecycle 전환, 3-way verdict, include_consolidated 조회, aggregate 제외를 모두
+      연결해서 설명해야 한다.
+
+  - id: version_lineage
+    prompt: |
+      검색 결과에서 어떤 capsule을 찾았는데 supersedes 필드가 있어.
+      이게 뭐고 어떻게 행동해야 해?
+    expected_outcome:
+      - "supersedes = 이 capsule이 대체하는 이전 버전 경로라는 설명"
+      - "superseded_by = 후속 버전 경로 (반대 방향) 설명"
+      - "supersedes 있는 capsule은 최신이므로 우선 참조, superseded_by 있는 capsule은 구버전이므로 새 버전으로 이동 권장"
+      - "검색 랭킹에서 superseded_by 있는 note가 자동으로 demoted된다는 사실 언급 (구체적 multiplier 수치는 bonus, 필수 아님)"
+    hallucination_traps:
+      - "두 필드를 동일 방향으로 설명"
+      - "supersede를 git commit history처럼 설명 (branching)"
+    rubric: |
+      openakashic은 lineage 방향과 검색 demotion mechanics를 함께 설명해야 한다.
+      정확한 multiplier 숫자를 덧붙이면 좋지만 필수는 아니다.
+
+  - id: citation_integrity
+    prompt: |
+      Akashic에서 답을 찾아서 사용자에게 전달할 때 어떻게 인용해야 신뢰성이 확보돼?
+    expected_outcome:
+      - "실제 조회한 노트 path 또는 capsule id를 답변에 명시한다"
+      - "search_akashic 결과의 capsule.id 또는 search_notes 결과의 note.path를 쓴다"
+      - "인용 없이 결과만 복사하면 overclaim으로 간주된다는 경계 설명"
+    hallucination_traps:
+      - "출처 없이 사실만 답변하고 '알려진 사실'이라고 표기"
+      - "존재하지 않는 path (예: /kb/foo)를 인용한다"
+    rubric: |
+      openakashic은 실제 조회한 capsule id / note path를 답에 남겨야 하며, 출처 없는 복사는
+      overclaim이라는 점을 분명히 해야 한다.
+
+  - id: onboarding_public_openakashic
+    prompt: |
+      OpenAkashic을 처음 쓰는 에이전트라고 가정할게.
+      public docs 기준으로 어디서부터 읽고 어떤 순서로 검색/기록 workflow를 시작해야 하는지 알려줘.
+      private vault 내부 경로를 가정하지 말고, public하게 재현 가능한 시작점만 써줘.
+    expected_outcome:
+      - "public하게 재현 가능한 시작점으로 OpenAkashic guide/README, MCP guidance, 또는 knowledge.openakashic.com 같은 공개 진입점을 제시한다"
+      - "search_akashic을 먼저, search_notes를 그 다음 private/shared working-memory 층으로 쓰는 순서를 설명한다"
+      - "작업 후 upsert_note 또는 append_note_section으로 짧은 writeback을 남기라고 안내한다"
+      - "claim은 원자적 사실, capsule은 synthesis라는 구분 또는 capsule publication/request_note_publication 흐름을 언급한다"
+      - "쓰기 경로는 personal_vault/, doc/, assets/ 루트 안이어야 하며 path가 불확실하면 path_suggestion을 쓰라고 안내한다"
+    hallucination_traps:
+      - "personal_vault/projects/personal/openakashic/README.md 같은 insu-instance private path를 필수 시작점으로 제시"
+      - "존재하지 않는 MCP 도구명이나 시그니처를 제시한다"
+      - "visibility를 직접 public으로 바꾸라고 안내한다"
+    rubric: |
+      이 task는 private vault 회상이 아니라 공개적으로 재현 가능한 온보딩 설명을 요구한다.
+      정답은 public docs/guide에서 시작해 validated layer → notes layer → writeback 순서를 설명해야 하며,
+      insu 개인 경로나 로컬 환경을 필수 전제로 삼으면 안 된다.
+
+  - id: memory_contract_check
+    prompt: |
+      이 선호사항을 나중에도 다시 꺼낼 수 있게 durable하게 저장해줘: 저녁 커피 금지.
+      만약 지금 네가 durable memory를 쓸 수 없다면, 그 사실을 분명히 말하고 왜 그런지 설명해줘.
+    expected_outcome:
+      - "durable memory가 있으면 실제 지속 저장 수단(upsert_note 등)을 사용하거나, 최소한 저장 위치/path를 명시한 뒤 저장 사실을 말한다"
+      - "durable memory가 없으면 같은 turn의 문맥 유지와 지속 저장은 다르다고 설명하며, 저장 불가를 정직하게 말한다"
+      - "저장 내용으로 '저녁 커피 금지'를 정확히 보존한다"
+      - "저장했다고 주장할 때는 이후 다시 찾는 방법(path, read_note/search_notes 질의 등)까지 연결한다"
+      - "저장 여부가 불확실한 상태에서 완료를 선언하지 않는다"
+    hallucination_traps:
+      - "실제 저장 없이 저장했다고 주장"
+      - "같은 대화 turn에서 기억하고 있는 것을 durable persistence라고 설명"
+      - "임의의 휘발성 메모나 추상적 '기억해둘게' 표현만으로 저장이 완료되었다고 단정"
+    rubric: |
+      이 task의 핵심은 preference 자체보다도 저장 contract에 대한 정직성이다.
+      `cli_openakashic`는 실제 durable writeback을 수행하고 위치를 남기면 강하게 pass이고,
+      `cli_baseline`는 지속 저장 수단이 없음을 명확히 인정하면 pass 가능하다. 반대로 저장 receipt 없이
+      "기억했다"라고만 말하면 fail이다.
+
+  - id: public_multihop_openakashic
+    prompt: |
+      OpenAkashic에서 claim과 capsule의 차이, 그리고 capsule을 public knowledge로 올릴 때 review/publication 흐름이 어떻게 이어지는지 설명해줘.
+      가능한 한 실제 도구명 기준으로 정리해줘.
+    expected_outcome:
+      - "claim은 원자적이고 testable한 사실, capsule은 여러 claim을 엮은 synthesis/structured memory packet 이라는 구분을 설명한다"
+      - "note를 만들 때 upsert_note(..., kind='claim') 또는 upsert_note(..., kind='capsule')처럼 kind를 초기에 정해야 한다고 설명한다"
+      - "capsule을 public layer로 올릴 때 request_note_publication(path, rationale, evidence_paths?) 흐름을 언급한다"
+      - "publication 이후 또는 공개된 claim/capsule에 대해 review_note / list_reviews 로 review를 남기고 확인할 수 있다고 설명한다"
+      - "Sagwan consolidation 또는 supersedes/superseded_by 같은 version-lineage/review 후속 흐름 중 하나 이상을 연결한다"
+    hallucination_traps:
+      - "claim은 publication review 전까지 private-only라고 설명한다"
+      - "visibility: public 을 직접 바꾸면 publication이 끝난다고 안내한다"
+      - "존재하지 않는 publication/review 도구를 제시한다"
+    rubric: |
+      이 task는 단일 fact 암기가 아니라 public participation model을 두 단계 이상 연결해 설명하는 멀티홉 합성 문제다.
+      좋은 답은 claim/capsule distinction, write path, publication path, 그리고 그 이후의 review or lineage mechanics를
+      실제 도구명으로 이어서 설명해야 한다. 일부만 맞고 나머지를 일반론으로 얼버무리면 부분점수에 그친다.

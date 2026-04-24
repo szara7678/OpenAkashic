@@ -2,6 +2,13 @@
 
 아카식 노트 + MCP 환경에서 에이전트가 **도구를 올바르게 쓰는가**를 측정하는 골든 태스크 벤치.
 
+## v0.7 task files
+
+- `tasks-v0.7.yaml` — 12 public-fair tasks for CLI headline benchmark. Use this for `cli_baseline` vs `cli_openakashic` comparison.
+- `tasks-private.yaml` — 5 insu-specific regression tasks. Use these only against an instance with insu's private vault content.
+- `tasks.yaml` — the 17-task union (v0.5 + v0.6). Retained for historical comparability.
+- `tasks-public.yaml` — older 12-task environment-neutral subset. Superseded by `tasks-v0.7.yaml`.
+
 ## Methodology caveat
 
 - `standard` 조건은 **실제 CLI agent가 아니다**. `DDG + ephemeral LocalNoteStore` 를 흉내 낸 시뮬레이션이므로,
