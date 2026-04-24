@@ -73,8 +73,10 @@ def _default_sagwan_settings() -> dict[str, Any]:
         "use_llm": True,           # LLM 최종 판단 사용
         "curation_interval_sec": 3600,  # 1시간마다 정제 루틴
         "research_enabled": True,
-        "research_interval_sec": 14400,  # 4시간
+        "research_interval_sec": 7200,   # 2시간
         "research_max_fetches": 3,
+        "topic_min_interval_hours": 12,
+        "meta_min_interval_hours": 12,
     }
 
 
@@ -112,6 +114,14 @@ def load_sagwan_settings() -> dict[str, Any]:
             6,
             max(1, int(raw.get("research_max_fetches") or defaults["research_max_fetches"])),
         ),
+        "topic_min_interval_hours": min(
+            168,
+            max(1, int(raw.get("topic_min_interval_hours") or defaults["topic_min_interval_hours"])),
+        ),
+        "meta_min_interval_hours": min(
+            168,
+            max(1, int(raw.get("meta_min_interval_hours") or defaults["meta_min_interval_hours"])),
+        ),
     }
 
 
@@ -141,6 +151,14 @@ def save_sagwan_settings(payload: dict[str, Any]) -> dict[str, Any]:
         "research_max_fetches": min(
             6,
             max(1, int(payload.get("research_max_fetches") or current["research_max_fetches"])),
+        ),
+        "topic_min_interval_hours": min(
+            168,
+            max(1, int(payload.get("topic_min_interval_hours") or current["topic_min_interval_hours"])),
+        ),
+        "meta_min_interval_hours": min(
+            168,
+            max(1, int(payload.get("meta_min_interval_hours") or current["meta_min_interval_hours"])),
         ),
     }
     path = sagwan_settings_path()
@@ -1190,11 +1208,11 @@ def _extract_source_urls(capsule_body: str) -> list[str]:
     if not match:
         return []
     section = match.group(1)
-    urls = re.findall(r"https?://[^\s)>\"']+", section)
+    urls = re.findall(r"https?://[^\s)>\"'`]+", section)
     deduped: list[str] = []
     seen: set[str] = set()
     for url in urls:
-        cleaned = url.rstrip(".,")
+        cleaned = url.rstrip(".,;:!?`")
         if cleaned in seen:
             continue
         seen.add(cleaned)
@@ -1711,11 +1729,18 @@ def _curate_propose_topics() -> dict[str, Any]:
     except Exception:
         pass
 
+    min_interval_hours = _TOPIC_MIN_INTERVAL_HOURS
+    try:
+        settings = load_sagwan_settings()
+        min_interval_hours = int(settings.get("topic_min_interval_hours") or _TOPIC_MIN_INTERVAL_HOURS)
+    except Exception:
+        min_interval_hours = _TOPIC_MIN_INTERVAL_HOURS
+
     last_run = str(state_fm.get("last_run_at") or "").strip()
     if last_run:
         try:
             last_dt = datetime.fromisoformat(last_run.replace("Z", "+00:00"))
-            if datetime.now(UTC) - last_dt < timedelta(hours=_TOPIC_MIN_INTERVAL_HOURS):
+            if datetime.now(UTC) - last_dt < timedelta(hours=min_interval_hours):
                 return {"status": "cooldown", "next_run_after": last_run}
         except Exception:
             pass
@@ -1833,11 +1858,17 @@ def _curate_system_health() -> dict[str, Any]:
         state_fm = dict(state_doc.frontmatter or {})
     except Exception:
         pass
+    min_interval_hours = _META_MIN_INTERVAL_HOURS
+    try:
+        settings = load_sagwan_settings()
+        min_interval_hours = int(settings.get("meta_min_interval_hours") or _META_MIN_INTERVAL_HOURS)
+    except Exception:
+        min_interval_hours = _META_MIN_INTERVAL_HOURS
     last_run = str(state_fm.get("last_run_at") or "").strip()
     if last_run:
         try:
             last_dt = datetime.fromisoformat(last_run.replace("Z", "+00:00"))
-            if datetime.now(UTC) - last_dt < timedelta(hours=_META_MIN_INTERVAL_HOURS):
+            if datetime.now(UTC) - last_dt < timedelta(hours=min_interval_hours):
                 return {"status": "cooldown", "next_run_after": last_run}
         except Exception:
             pass

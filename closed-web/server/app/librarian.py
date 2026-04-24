@@ -348,7 +348,11 @@ def _invoke_claude_cli_with_tools(
 ) -> str:
     """claude -p CLI를 subprocess로 호출해 응답 텍스트를 반환한다."""
     try:
-        cmd = ["claude", "-p", "--tools", ",".join(tools or []), "--output-format", "text"]
+        tool_list = tools or []
+        cmd = ["claude", "-p", "--tools", ",".join(tool_list), "--output-format", "text"]
+        if tool_list:
+            # `claude -p` cannot complete interactive tool approvals.
+            cmd.extend(["--permission-mode", "bypassPermissions"])
         if model:
             cmd.extend(["--model", model])
         cmd.append(prompt)

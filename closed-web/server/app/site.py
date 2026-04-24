@@ -4720,6 +4720,14 @@ def closed_debug_html(route_prefix: str = "") -> str:
                       <input class="input" id="sagwan-research-max-fetches" type="number" min="1" max="6" step="1" />
                     </label>
                     <label class="field">
+                      <span>Topic proposal interval (h)</span>
+                      <input class="input" id="sagwan-topic-interval-hours" type="number" min="1" max="168" step="1" />
+                    </label>
+                    <label class="field">
+                      <span>Meta curation interval (h)</span>
+                      <input class="input" id="sagwan-meta-interval-hours" type="number" min="1" max="168" step="1" />
+                    </label>
+                    <label class="field">
                       <span>Batch trigger (pending ≥ N → run now)</span>
                       <input class="input" id="sagwan-batch-trigger" type="number" min="1" step="1" />
                     </label>
@@ -4967,6 +4975,8 @@ def closed_debug_html(route_prefix: str = "") -> str:
         sagwanResearchEnabled: document.getElementById('sagwan-research-enabled'),
         sagwanResearchInterval: document.getElementById('sagwan-research-interval'),
         sagwanResearchMaxFetches: document.getElementById('sagwan-research-max-fetches'),
+        sagwanTopicIntervalHours: document.getElementById('sagwan-topic-interval-hours'),
+        sagwanMetaIntervalHours: document.getElementById('sagwan-meta-interval-hours'),
         sagwanBatchTrigger: document.getElementById('sagwan-batch-trigger'),
         sagwanApprovalMax: document.getElementById('sagwan-approval-max'),
         sagwanSave: document.getElementById('sagwan-save'),
@@ -5421,12 +5431,14 @@ def closed_debug_html(route_prefix: str = "") -> str:
         if (dom.sagwanInterval) dom.sagwanInterval.value = settings.interval_sec || 600;
         if (dom.sagwanCurationInterval) dom.sagwanCurationInterval.value = settings.curation_interval_sec || 1800;
         if (dom.sagwanResearchEnabled) dom.sagwanResearchEnabled.checked = Boolean(settings.research_enabled);
-        if (dom.sagwanResearchInterval) dom.sagwanResearchInterval.value = settings.research_interval_sec || 14400;
+        if (dom.sagwanResearchInterval) dom.sagwanResearchInterval.value = settings.research_interval_sec || 7200;
         if (dom.sagwanResearchMaxFetches) dom.sagwanResearchMaxFetches.value = settings.research_max_fetches || 3;
+        if (dom.sagwanTopicIntervalHours) dom.sagwanTopicIntervalHours.value = settings.topic_min_interval_hours || 12;
+        if (dom.sagwanMetaIntervalHours) dom.sagwanMetaIntervalHours.value = settings.meta_min_interval_hours || 12;
         if (dom.sagwanBatchTrigger) dom.sagwanBatchTrigger.value = settings.batch_trigger || 3;
         if (dom.sagwanApprovalMax) dom.sagwanApprovalMax.value = settings.approval_max_per_cycle || 10;
         if (dom.sagwanRuntimeStatus) {
-          dom.sagwanRuntimeStatus.textContent = `approval=${settings.interval_sec ?? '-'}s · curation=${settings.curation_interval_sec ?? '-'}s · research=${settings.research_interval_sec ?? '-'}s (enabled=${Boolean(settings.research_enabled)}, fetches≤${settings.research_max_fetches ?? '-'}) · batch_trigger=${settings.batch_trigger ?? '-'} · approval_max_per_cycle=${settings.approval_max_per_cycle ?? '-'} · enabled=${Boolean(settings.enabled)} · use_llm=${Boolean(settings.use_llm)}`;
+          dom.sagwanRuntimeStatus.textContent = `approval=${settings.interval_sec ?? '-'}s · curation=${settings.curation_interval_sec ?? '-'}s · research=${settings.research_interval_sec ?? '-'}s (enabled=${Boolean(settings.research_enabled)}, fetches≤${settings.research_max_fetches ?? '-'}) · topic_interval=${settings.topic_min_interval_hours ?? '-'}h · meta_interval=${settings.meta_min_interval_hours ?? '-'}h · batch_trigger=${settings.batch_trigger ?? '-'} · approval_max_per_cycle=${settings.approval_max_per_cycle ?? '-'} · enabled=${Boolean(settings.enabled)} · use_llm=${Boolean(settings.use_llm)}`;
         }
       }
 
@@ -5457,8 +5469,10 @@ def closed_debug_html(route_prefix: str = "") -> str:
               interval_sec: Number(dom.sagwanInterval?.value || 600),
               curation_interval_sec: Number(dom.sagwanCurationInterval?.value || 1800),
               research_enabled: Boolean(dom.sagwanResearchEnabled?.checked),
-              research_interval_sec: Number(dom.sagwanResearchInterval?.value || 14400),
+              research_interval_sec: Number(dom.sagwanResearchInterval?.value || 7200),
               research_max_fetches: Number(dom.sagwanResearchMaxFetches?.value || 3),
+              topic_min_interval_hours: Number(dom.sagwanTopicIntervalHours?.value || 12),
+              meta_min_interval_hours: Number(dom.sagwanMetaIntervalHours?.value || 12),
               batch_trigger: Number(dom.sagwanBatchTrigger?.value || 3),
               approval_max_per_cycle: Number(dom.sagwanApprovalMax?.value || 10),
             },
