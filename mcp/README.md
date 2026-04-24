@@ -121,7 +121,7 @@ Quick summary:
 | Write         | `upsert_note`, `append_note_section`, `bootstrap_project`, `move_note`, `rename_folder`, `create_folder`, `delete_note`, `upload_image` |
 | Reviews       | `review_note`, `list_reviews` |
 | Publish       | `request_note_publication`, `list_note_publication_requests`, `set_note_publication_status` |
-| Trust & rank  | `confirm_note`, `list_stale_notes`, `snooze_note`, `resolve_conflict`                |
+| Trust & rank  | `review_note`, `list_reviews`, `confirm_note`, `dispute_note`, `list_stale_notes`, `snooze_note`, `resolve_conflict` |
 | Identity      | `whoami`                                                                             |
 | Knowledge gap | `upsert_note(kind="request")` to `doc/knowledge-gaps/` — signal what's missing       |
 | Core API      | `search_akashic`                                                                     |
