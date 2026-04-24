@@ -1,0 +1,27 @@
+{
+  "model": "claude-haiku-4-5",
+  "condition": "cli_openakashic",
+  "cli_harness": "claude",
+  "cli_model": "claude-haiku-4-5",
+  "timestamp": "20260424T174306Z",
+  "records": [
+    {
+      "task_id": "coding_python_bug",
+      "condition": "cli_openakashic",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-24T17:42:59+00:00",
+      "finished_at": "2026-04-24T17:43:06+00:00",
+      "duration_ms": 7012.3,
+      "plan": "",
+      "tool_calls": [],
+      "answer": "**주된 버그: 빈 리스트에서 0으로 나누기 (ZeroDivisionError)**\n\n`nums = []`일 때 `len(nums)`가 0이 되어 `total / 0`에서 오류 발생.\n\n```python\ndef avg(nums):\n    if not nums:\n        return 0  # 또는 None, 또는 예외 발생\n    total = 0\n    for n in nums:\n        total += n\n    return total / len(nums)\n```\n\n또는 더 간결하게:\n```python\ndef avg(nums):\n    return sum(nums) / len(nums) if nums else 0\n```\n\n어느 반환값(0, None, 예외)이 맞을지는 코드의 맥락에 따라 결정하세요.",
+      "raw_model_output_turn1": "**주된 버그: 빈 리스트에서 0으로 나누기 (ZeroDivisionError)**\n\n`nums = []`일 때 `len(nums)`가 0이 되어 `total / 0`에서 오류 발생.\n\n```python\ndef avg(nums):\n    if not nums:\n        return 0  # 또는 None, 또는 예외 발생\n    total = 0\n    for n in nums:\n        total += n\n    return total / len(nums)\n```\n\n또는 더 간결하게:\n```python\ndef avg(nums):\n    return sum(nums) / len(nums) if nums else 0\n```\n\n어느 반환값(0, None, 예외)이 맞을지는 코드의 맥락에 따라 결정하세요.",
+      "raw_model_output_turn2": "",
+      "cli_harness": "claude",
+      "cli_model": "claude-haiku-4-5",
+      "error": null,
+      "format_violation": false
+    }
+  ]
+}

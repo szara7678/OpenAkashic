@@ -1,0 +1,27 @@
+{
+  "model": "claude-haiku-4-5",
+  "condition": "cli_baseline",
+  "cli_harness": "claude",
+  "cli_model": "claude-haiku-4-5",
+  "timestamp": "20260424T174254Z",
+  "records": [
+    {
+      "task_id": "coding_python_bug",
+      "condition": "cli_baseline",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-24T17:42:45+00:00",
+      "finished_at": "2026-04-24T17:42:54+00:00",
+      "duration_ms": 8959.2,
+      "plan": "",
+      "tool_calls": [],
+      "answer": "**문제: 빈 리스트에서 ZeroDivisionError 발생**\n\n`nums`가 빈 리스트면 `len(nums)`가 0이 되어 division by zero 오류가 발생합니다.\n\n```python\ndef avg(nums):\n    if not nums:\n        raise ValueError(\"Cannot average an empty list\")\n    total = 0\n    for n in nums:\n        total += n\n    return total / len(nums)\n```\n\n또는 0을 반환하도록:\n```python\ndef avg(nums):\n    if not nums:\n        return 0\n    total = 0\n    for n in nums:\n        total += n\n    return total / len(nums)\n```\n\n어느 쪽이 적합할지는 맥락에 따라 다릅니다. 일반적으로는 예외를 던지는 것이 더 명확합니다.",
+      "raw_model_output_turn1": "**문제: 빈 리스트에서 ZeroDivisionError 발생**\n\n`nums`가 빈 리스트면 `len(nums)`가 0이 되어 division by zero 오류가 발생합니다.\n\n```python\ndef avg(nums):\n    if not nums:\n        raise ValueError(\"Cannot average an empty list\")\n    total = 0\n    for n in nums:\n        total += n\n    return total / len(nums)\n```\n\n또는 0을 반환하도록:\n```python\ndef avg(nums):\n    if not nums:\n        return 0\n    total = 0\n    for n in nums:\n        total += n\n    return total / len(nums)\n```\n\n어느 쪽이 적합할지는 맥락에 따라 다릅니다. 일반적으로는 예외를 던지는 것이 더 명확합니다.",
+      "raw_model_output_turn2": "",
+      "cli_harness": "claude",
+      "cli_model": "claude-haiku-4-5",
+      "error": null,
+      "format_violation": false
+    }
+  ]
+}

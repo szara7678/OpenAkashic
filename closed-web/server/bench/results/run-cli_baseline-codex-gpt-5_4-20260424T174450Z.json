@@ -1,0 +1,27 @@
+{
+  "model": "gpt-5.4",
+  "condition": "cli_baseline",
+  "cli_harness": "codex",
+  "cli_model": "gpt-5.4",
+  "timestamp": "20260424T174450Z",
+  "records": [
+    {
+      "task_id": "coding_python_bug",
+      "condition": "cli_baseline",
+      "model": "gpt-5.4",
+      "attempt": 1,
+      "started_at": "2026-04-24T17:44:37+00:00",
+      "finished_at": "2026-04-24T17:44:50+00:00",
+      "duration_ms": 12196.6,
+      "plan": "",
+      "tool_calls": [],
+      "answer": "주된 문제는 `nums`가 빈 리스트일 때 `len(nums)`가 `0`이라서 `ZeroDivisionError`가 난다는 점이야.\n\n수정은 빈 입력을 먼저 처리하면 된다. 예를 들면:\n\n```python\ndef avg(nums):\n    if not nums:\n        raise ValueError(\"nums must not be empty\")\n\n    total = 0\n    for n in nums:\n        total += n\n    return total / len(nums)\n```\n\n핵심은 `빈 입력 방어`를 추가하는 것. 필요하면 `0`을 반환하도록 바꿀 수도 있지만, 평균이 정의되지 않는 입력이라 보통은 예외를 명시적으로 던지는 쪽이 더 안전하다.",
+      "raw_model_output_turn1": "주된 문제는 `nums`가 빈 리스트일 때 `len(nums)`가 `0`이라서 `ZeroDivisionError`가 난다는 점이야.\n\n수정은 빈 입력을 먼저 처리하면 된다. 예를 들면:\n\n```python\ndef avg(nums):\n    if not nums:\n        raise ValueError(\"nums must not be empty\")\n\n    total = 0\n    for n in nums:\n        total += n\n    return total / len(nums)\n```\n\n핵심은 `빈 입력 방어`를 추가하는 것. 필요하면 `0`을 반환하도록 바꿀 수도 있지만, 평균이 정의되지 않는 입력이라 보통은 예외를 명시적으로 던지는 쪽이 더 안전하다.",
+      "raw_model_output_turn2": "",
+      "cli_harness": "codex",
+      "cli_model": "gpt-5.4",
+      "error": null,
+      "format_violation": false
+    }
+  ]
+}

@@ -2,6 +2,21 @@
 
 아카식 노트 + MCP 환경에서 에이전트가 **도구를 올바르게 쓰는가**를 측정하는 골든 태스크 벤치.
 
+## v0.7 task files
+
+- `tasks-v0.7.yaml` — 12 public-fair tasks for CLI headline benchmark. Use this for `cli_baseline` vs `cli_openakashic` comparison.
+- `tasks-private.yaml` — 5 insu-specific regression tasks. Use these only against an instance with insu's private vault content.
+- `tasks.yaml` — the 17-task union (v0.5 + v0.6). Retained for historical comparability.
+- `tasks-public.yaml` — older 12-task environment-neutral subset. Superseded by `tasks-v0.7.yaml`.
+
+## Methodology caveat
+
+- `standard` 조건은 **실제 CLI agent가 아니다**. `DDG + ephemeral LocalNoteStore` 를 흉내 낸 시뮬레이션이므로,
+  실제 범용 에이전트(Claude Code / Codex CLI)가 가진 web/runtime 행동을 완전히 대변하지 못한다.
+- 특히 내부 정보 검색 task 에서는 `standard` 가 "결과 없음 → 답변 포기" 쪽으로 과도하게 무너질 수 있다.
+- 그래서 v0.7 방향의 주 비교축은 `cli_baseline` vs `cli_openakashic` 이다.
+- 기존 `baseline` / `standard` / `openakashic` 은 과거 결과와의 comparability 때문에 계속 유지한다.
+
 ## 4개 축
 
 - `tool_selection` — 적절한 MCP 도구를 선택하는가
@@ -16,6 +31,8 @@
 - [runner.py](runner.py) — task 1개 실행 (LLM → JSON plan → 실제 MCP 호출 → final_response)
 - [judge.py](judge.py) — GPT-5.4 rubric 채점
 - [report.py](report.py) — pass@k / pass^k 집계 + markdown 요약
+- [mcp-baseline.json](mcp-baseline.json) — Claude CLI baseline용 empty MCP config
+- [mcp-openakashic.json](mcp-openakashic.json) — Claude CLI OpenAkashic용 MCP config template
 - `results/` — 실행 결과 + 채점 결과
 
 ## 전제 조건
@@ -30,8 +47,17 @@
 # 단일 task 테스트
 python3 runner.py --task-id coding_python_bug --model claude-haiku-4-5 --condition baseline --k 1
 
+# 실제 Claude CLI baseline/openakashic 비교
+python3 runner.py --task-id coding_python_bug --model claude-haiku-4-5 \
+  --condition cli_baseline --cli-harness claude --k 1
+python3 runner.py --task-id coding_python_bug --model claude-haiku-4-5 \
+  --condition cli_openakashic --cli-harness claude --k 1
+
 # 전체 17개 task × k회 반복
 python3 runner.py --all --model claude-haiku-4-5 --condition all3 --k 3
+
+# 전체 5개 조건 반복 (historical + CLI)
+python3 runner.py --all --model claude-haiku-4-5 --condition all5 --cli-harness claude --k 3
 
 # 채점 (run 결과 → judged 결과)
 python3 judge.py --run results/run-claude-haiku-4-5-<stamp>.json --judge-model gpt-5.4
@@ -58,6 +84,19 @@ python3 report.py --judged results/*-judged.json --out results/report-compare.md
 runner는 `tool_calls`를 순서대로 실제 MCP에 실행하고 receipt를 기록한다. 모델이
 receipt 없이 `final_response`에 "저장했습니다"/"완료되었습니다"를 쓰면 overclaim
 판정. Multi-turn ReAct 루프는 v0.1에서.
+
+## CLI harness conditions
+
+- `cli_baseline`: 실제 CLI agent를 1회 subprocess로 실행한다. built-in tools 는 허용하지만
+  OpenAkashic MCP 는 연결하지 않는다.
+- `cli_openakashic`: 같은 CLI agent + OpenAkashic MCP 를 붙여 실행한다.
+- 현재 지원 하네스:
+  - `--cli-harness claude`: `claude -p --tools default ...`
+  - `--cli-harness codex`: `codex exec ...`
+- 이 모드에서는 벤치 러너가 개별 tool receipt 를 수집하지 않는다. 최종 stdout 텍스트만
+  `answer` 와 `raw_model_output_turn1` 로 저장한다.
+- Claude CLI용 JSON 파일은 러너 시작 시 로컬 `~/.claude/settings.json` 토큰으로
+  `mcp-openakashic.json` 을 덮어써서 최신화한다. 커밋된 파일은 template 이다.
 
 ## 메트릭
 
