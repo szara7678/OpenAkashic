@@ -598,8 +598,9 @@ def _curate_derive_and_sync() -> dict[str, Any]:
         fm = doc.frontmatter or {}
         kind = str(fm.get("kind") or "").lower()
         pub_status = str(fm.get("publication_status") or "").lower()
+        targets = str(fm.get("targets") or "").strip()
 
-        if pub_status == "published" and not fm.get("core_api_id") and kind in {"capsule", "claim"}:
+        if pub_status == "published" and not targets and not fm.get("core_api_id") and kind in {"capsule", "claim"}:
             stale_published_count += 1
 
     sync_enqueued = False

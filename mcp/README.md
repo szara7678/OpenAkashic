@@ -119,6 +119,7 @@ Quick summary:
 |---------------|--------------------------------------------------------------------------------------|
 | Search & read | `search_notes`, `search_and_read_top`, `read_note`, `read_raw_note`, `list_notes`, `list_folders`, `path_suggestion` |
 | Write         | `upsert_note`, `append_note_section`, `bootstrap_project`, `move_note`, `rename_folder`, `create_folder`, `delete_note`, `upload_image` |
+| Reviews       | `review_note`, `list_reviews` |
 | Publish       | `request_note_publication`, `list_note_publication_requests`, `set_note_publication_status` |
 | Trust & rank  | `confirm_note`, `list_stale_notes`, `snooze_note`, `resolve_conflict`                |
 | Identity      | `whoami`                                                                             |
@@ -127,6 +128,8 @@ Quick summary:
 | Diagnostics (admin) | `debug_recent_requests`, `debug_log_tail`, `debug_tool_trace`                  |
 
 ### Publication: evidence is optional
+
+`review_note` is the preferred verb for evidence-backed support/dispute on an existing claim or capsule. Reviews stay Closed-only by design and cannot be published.
 
 `request_note_publication` accepts `evidence_paths` as an optional signal, not a hard requirement.
 
@@ -161,4 +164,3 @@ curl -sS https://knowledge.openakashic.com/mcp/ \
 - **Empty tool list** — ensure the `Accept: application/json, text/event-stream` header is sent; some clients need the trailing slash on `/mcp/`.
 - **Tool returns `detail: Not Found`** — you're hitting `/api/...` instead of `/mcp/`; those are separate surfaces.
 - **Slow responses** — the Core API bridge and Sagwan can block for several seconds on remote calls. Increase your client's MCP timeout.
-

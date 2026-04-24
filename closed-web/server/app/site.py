@@ -6,7 +6,7 @@ import math
 import re
 import threading
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date, datetime
 from pathlib import Path
 from typing import Any
@@ -49,7 +49,7 @@ except ImportError:
 from app.config import get_settings
 from app.fts_search import FTSDocument, lexical_rank
 from app.semantic_search import SemanticDocument, semantic_rank
-from app.vault import file_href, kind_catalog, kind_template_sections, list_note_paths, normalize_kind
+from app.vault import file_href, kind_catalog, kind_template_sections, list_note_paths, load_document, normalize_kind
 
 
 WIKI_LINK_PATTERN = re.compile(r"\[\[([^\]|#]+)(?:#([^\]|]+))?(?:\|([^\]]+))?\]\]")
@@ -83,14 +83,33 @@ class ClosedNote:
     summary: str
     body: str
     links: list[str]
+    frontmatter: dict[str, Any] = field(default_factory=dict)
     confirm_count: int = 0
     dispute_count: int = 0
+    neutral_count: int = 0
     claim_review_status: str = "unreviewed"
     original_owner: str = ""
     created_by: str = ""
     freshness_date: str = ""
     decay_tier: str = "general"
     snoozed_until: str = ""
+    claim_id: str = ""
+    targets: str | None = None
+    stance: str = ""
+    claim_review_lifecycle: str = ""
+    self_authored: bool = False
+    evidence_urls: list[str] = field(default_factory=list)
+    evidence_paths: list[str] = field(default_factory=list)
+    topic: str = ""
+    target_title_snapshot: str = ""
+
+
+def _targeted_claim_lifecycle(frontmatter: dict[str, Any]) -> str:
+    value = str(frontmatter.get("claim_review_lifecycle") or "").strip().lower()
+    if value:
+        return value
+    legacy = str(frontmatter.get("review_status") or "").strip().lower()
+    return legacy or "active"
 
 
 def _viewer_can_open_note(note: ClosedNote, viewer_owner: str | None, is_admin: bool) -> bool:
@@ -102,6 +121,12 @@ def _viewer_can_open_note(note: ClosedNote, viewer_owner: str | None, is_admin: 
         return bool(viewer_owner)  # 인증된 사용자라면 누구든 읽기 가능
     owner = (viewer_owner or "").strip()
     return bool(owner and note.owner == owner)
+
+
+def _as_bool(value: Any) -> bool:
+    if isinstance(value, bool):
+        return value
+    return str(value or "").strip().lower() in {"1", "true", "yes", "on"}
 
 
 _CLAIM_REVIEW_STATES = {"unreviewed", "confirmed", "disputed", "superseded", "merged"}
@@ -286,7 +311,13 @@ def get_closed_graph(
     }
 
 
-def get_closed_note(path: str, route_prefix: str = "") -> dict[str, Any] | None:
+def get_closed_note(
+    path: str,
+    route_prefix: str = "",
+    *,
+    viewer_owner: str | None = None,
+    is_admin: bool = False,
+) -> dict[str, Any] | None:
     safe_path = Path(path)
     if safe_path.is_absolute() or ".." in safe_path.parts:
         return None
@@ -300,15 +331,23 @@ def get_closed_note(path: str, route_prefix: str = "") -> dict[str, Any] | None:
     note = next((item for item in notes if item.path == target.relative_to(root).as_posix()), None)
     if not note:
         return None
-    return _note_payload(note, notes, route_prefix)
+    visible_notes = _filter_notes_for_viewer(notes, viewer_owner=viewer_owner, is_admin=is_admin)
+    return _note_payload(note, visible_notes or [note], route_prefix, viewer_owner=viewer_owner, is_admin=is_admin)
 
 
-def get_closed_note_by_slug(slug: str, route_prefix: str = "") -> dict[str, Any] | None:
+def get_closed_note_by_slug(
+    slug: str,
+    route_prefix: str = "",
+    *,
+    viewer_owner: str | None = None,
+    is_admin: bool = False,
+) -> dict[str, Any] | None:
     notes = _load_notes()
     note = next((item for item in notes if item.slug == slug), None)
     if not note:
         return None
-    return _note_payload(note, notes, route_prefix)
+    visible_notes = _filter_notes_for_viewer(notes, viewer_owner=viewer_owner, is_admin=is_admin)
+    return _note_payload(note, visible_notes or [note], route_prefix, viewer_owner=viewer_owner, is_admin=is_admin)
 
 
 def list_stale_closed_notes(days_overdue: int = 0) -> list[dict[str, Any]]:
@@ -358,7 +397,7 @@ def get_closed_home_note(
     candidates = visible_notes
     home = next((note for note in candidates if note.path.lower() == "readme.md"), None)
     note = home or (candidates[0] if candidates else _empty_note())
-    return _note_payload(note, candidates, route_prefix)
+    return _note_payload(note, candidates, route_prefix, viewer_owner=viewer_owner, is_admin=is_admin)
 
 
 def search_closed_notes(
@@ -366,6 +405,7 @@ def search_closed_notes(
     limit: int = 12,
     route_prefix: str = "",
     include_imported: bool = False,
+    include_targeted_claims: bool = False,
     kind: str | None = None,
     tags: list[str] | None = None,
 ) -> dict[str, Any]:
@@ -380,6 +420,9 @@ def search_closed_notes(
     notes = [n for n in notes if not n.path.startswith("personal_vault/projects/ops/librarian/publication_requests/")]
     # knowledge-gaps 초안은 메타 운영 산출물이라 사용자-facing 검색 상단을 오염시키기 쉽다.
     notes = [n for n in notes if not n.path.startswith("doc/knowledge-gaps/")]
+    include_targeted = bool(include_targeted_claims)
+    if not include_targeted:
+        notes = [n for n in notes if not (n.kind == "claim" and n.targets)]
     # kind 필터
     if kind:
         notes = [n for n in notes if n.kind == kind]
@@ -572,7 +615,13 @@ def closed_note_html(
     home_candidates = visible_notes
     note = note or next((item for item in home_candidates if item.path.lower() == "readme.md"), None)
     note = note or (home_candidates[0] if home_candidates else _empty_note())
-    payload = _note_payload(note, visible_notes or [note], route_prefix)
+    payload = _note_payload(
+        note,
+        visible_notes or [note],
+        route_prefix,
+        viewer_owner=viewer_owner,
+        is_admin=is_admin,
+    )
     note_links = _explorer_html(visible_notes, note.slug, route_prefix)
     path_breadcrumb = _path_breadcrumb_html(payload["path"])
     shared_styles = _shared_ui_styles()
@@ -585,6 +634,7 @@ def closed_note_html(
 
     related_html = _link_list_html(payload["related_notes"], "Related Notes", route_prefix, "No related notes found.")
     backlinks_html = _link_list_html(payload["backlinks"], "Backlinks", route_prefix, "No backlinks found.")
+    review_path_href_map = {visible.path: _note_href(visible.slug, route_prefix) for visible in visible_notes}
     tag_html = "".join(f'<span class="tag">#{html.escape(tag)}</span>' for tag in payload["tags"])
     note_json = _json_script_text(payload)
 
@@ -1236,6 +1286,46 @@ def closed_note_html(
     .note-card:hover {{ text-decoration: none; transform: translateY(-1px); border-color: var(--line-strong); background: var(--surface-strong); }}
     .note-card strong {{ display: block; line-height: 1.35; overflow-wrap: anywhere; }}
     .note-card small {{ display: block; margin-top: 6px; color: var(--muted); line-height: 1.55; overflow-wrap: anywhere; }}
+    .reviews-section {{ margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--line); }}
+    .reviews-toolbar {{ display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin: 18px 0 16px; }}
+    .review-tabs {{ display: flex; flex-wrap: wrap; gap: 8px; }}
+    .review-tab {{
+      appearance: none; border: 1px solid var(--line); background: rgba(255,255,255,.86); color: var(--muted);
+      border-radius: 999px; padding: 8px 12px; font: inherit; font-size: .84rem; font-weight: 700; cursor: pointer;
+    }}
+    .review-tab.is-active {{ color: var(--ink); border-color: rgba(37, 99, 235, .28); background: rgba(37, 99, 235, .10); }}
+    .review-sort {{ display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: .84rem; }}
+    .review-sort select {{
+      border: 1px solid var(--line); border-radius: 999px; background: rgba(255,255,255,.92);
+      color: var(--ink); padding: 7px 10px; font: inherit;
+    }}
+    .review-list {{ display: grid; gap: 12px; }}
+    .review-card {{
+      padding: 14px; border-radius: 12px; border: 1px solid var(--line);
+      background: rgba(255,255,255,.9); box-shadow: 0 10px 24px rgba(15, 23, 42, .05);
+    }}
+    .review-head {{ display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }}
+    .review-meta {{ display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: var(--muted); font-size: .84rem; }}
+    .review-stance {{
+      display: inline-flex; align-items: center; height: 26px; padding: 0 10px; border-radius: 999px;
+      font-size: .78rem; font-weight: 800; letter-spacing: .02em; text-transform: uppercase; border: 1px solid transparent;
+    }}
+    .review-stance.is-support {{ background: rgba(22, 163, 74, .12); color: #166534; border-color: rgba(22, 163, 74, .2); }}
+    .review-stance.is-dispute {{ background: rgba(220, 38, 38, .12); color: #991b1b; border-color: rgba(220, 38, 38, .2); }}
+    .review-stance.is-neutral {{ background: rgba(100, 116, 139, .12); color: #475569; border-color: rgba(100, 116, 139, .2); }}
+    .review-self {{
+      display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 999px;
+      background: rgba(148, 163, 184, .16); color: var(--muted); font-size: .74rem; font-weight: 700;
+    }}
+    .review-rationale {{ margin: 0; color: var(--ink); line-height: 1.7; }}
+    .review-evidence {{ display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }}
+    .review-chip {{
+      display: inline-flex; align-items: center; gap: 6px; min-height: 30px; padding: 0 10px;
+      border-radius: 999px; border: 1px solid var(--line); background: rgba(244, 247, 251, .95);
+      color: var(--ink); font-size: .78rem; font-weight: 600;
+    }}
+    a.review-chip:hover {{ text-decoration: none; border-color: var(--line-strong); background: #fff; }}
+    .review-empty {{ padding: 14px; border: 1px dashed var(--line-strong); border-radius: 12px; color: var(--muted); background: rgba(255,255,255,.74); }}
     .missing-link {{ color: #b91c1c; font-weight: 600; }}
     .wiki-link {{ color: var(--accent); text-decoration: none; border-bottom: 1px dashed rgba(37, 99, 235, .4); }}
     .wiki-link:hover {{ border-bottom-style: solid; border-bottom-color: var(--accent); }}
@@ -1504,6 +1594,36 @@ def closed_note_html(
         </header>
         <section class="article-wrap">
           <article class="markdown read-view" id="main-content" data-edit-target="body">{payload["body_html"]}</article>
+          {(
+              f'''
+          <section class="reviews-section read-view" aria-labelledby="reviews-heading">
+            <h3 id="reviews-heading">Reviews</h3>
+            <div class="meta-grid">
+              <div class="metric"><div class="meta-label">Support</div><div class="meta-value">{int(payload["support_count"])}</div></div>
+              <div class="metric"><div class="meta-label">Dispute</div><div class="meta-value">{int(payload["dispute_count"])}</div></div>
+              <div class="metric"><div class="meta-label">Neutral</div><div class="meta-value">{int(payload["neutral_count"])}</div></div>
+              <div class="metric"><div class="meta-label">Visible Reviews</div><div class="meta-value">{len(payload["reviews"])}</div></div>
+            </div>
+            <div class="reviews-toolbar">
+              <div class="review-tabs" id="review-tabs">
+                <button class="review-tab is-active" type="button" data-review-filter="all">All</button>
+                <button class="review-tab" type="button" data-review-filter="support">Support</button>
+                <button class="review-tab" type="button" data-review-filter="dispute">Dispute</button>
+                <button class="review-tab" type="button" data-review-filter="neutral">Neutral</button>
+              </div>
+              <label class="review-sort">Sort
+                <select id="review-sort">
+                  <option value="recent">Recent</option>
+                  <option value="evidence">Evidence count</option>
+                </select>
+              </label>
+            </div>
+            <div class="review-list" id="review-list"></div>
+          </section>
+              '''
+              if payload.get("is_review_target")
+              else ""
+          )}
           <section class="inline-editor edit-view">
             <textarea class="editor-body-input" id="editor-body" placeholder="## Summary&#10;&#10;## Body"></textarea>
           </section>
@@ -1516,6 +1636,7 @@ def closed_note_html(
   <script type="application/json" id="closed-note-data">{note_json}</script>
   <script>
     const noteMeta = JSON.parse(document.getElementById('closed-note-data')?.textContent || '{{}}');
+    const reviewPathHrefMap = {json.dumps(review_path_href_map, ensure_ascii=False)};
     if (noteMeta?.slug && noteMeta?.status !== 'empty') {{
       window.closedAkashicUI?.recordRecentNote?.(noteMeta.slug);
     }}
@@ -1532,6 +1653,101 @@ def closed_note_html(
         window.localStorage.setItem(__collapsibleKey(key), el.open ? '1' : '0');
       }});
     }});
+
+    (function initReviews() {{
+      const container = document.getElementById('review-list');
+      const tabs = [...document.querySelectorAll('[data-review-filter]')];
+      const sortSelect = document.getElementById('review-sort');
+      if (!container || !Array.isArray(noteMeta?.reviews)) return;
+      let filter = 'all';
+
+      function relTime(value) {{
+        if (!value) return 'unknown time';
+        const ts = Date.parse(value);
+        if (!Number.isFinite(ts)) return String(value);
+        const diff = Math.round((Date.now() - ts) / 1000);
+        const abs = Math.abs(diff);
+        if (abs < 60) return 'just now';
+        if (abs < 3600) return `${{Math.floor(abs / 60)}}m ago`;
+        if (abs < 86400) return `${{Math.floor(abs / 3600)}}h ago`;
+        return `${{Math.floor(abs / 86400)}}d ago`;
+      }}
+
+      function escapeHtml(value) {{
+        return String(value ?? '').replace(/[&<>\"']/g, (ch) => ({{ '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;', \"'\": '&#39;' }})[ch] || ch);
+      }}
+
+      function renderEvidence(review) {{
+        const urls = Array.isArray(review.evidence_urls) ? review.evidence_urls : [];
+        const paths = Array.isArray(review.evidence_paths) ? review.evidence_paths : [];
+        const chips = [];
+        for (const url of urls) {{
+          chips.push(`<a class="review-chip" href="${{escapeHtml(url)}}" target="_blank" rel="noreferrer noopener">URL</a>`);
+        }}
+        for (const path of paths) {{
+          if (path === '(restricted)') {{
+            chips.push('<span class="review-chip">(restricted)</span>');
+            continue;
+          }}
+          const assetHref = String(path).startsWith('assets/') ? `${{String('{_normalize_prefix(route_prefix)}') || ''}}/files/${{encodeURI(path)}}` : '';
+          const href = String(reviewPathHrefMap[path] || assetHref || '');
+          if (href) {{
+            chips.push(`<a class="review-chip" href="${{escapeHtml(href)}}">${{escapeHtml(path.split('/').slice(-1)[0] || path)}}</a>`);
+          }} else {{
+            chips.push(`<span class="review-chip">${{escapeHtml(path)}}</span>`);
+          }}
+        }}
+        return chips.join('');
+      }}
+
+      function render() {{
+        let reviews = [...noteMeta.reviews];
+        if (filter !== 'all') reviews = reviews.filter((item) => String(item.stance || '') === filter);
+        const sortValue = sortSelect?.value || 'recent';
+        reviews.sort((a, b) => {{
+          if (sortValue === 'evidence') {{
+            const aCount = (a.evidence_urls?.length || 0) + (a.evidence_paths?.length || 0);
+            const bCount = (b.evidence_urls?.length || 0) + (b.evidence_paths?.length || 0);
+            if (bCount !== aCount) return bCount - aCount;
+          }}
+          return String(b.created_at || '').localeCompare(String(a.created_at || ''));
+        }});
+        if (!reviews.length) {{
+          container.innerHTML = '<div class="review-empty">No visible reviews in this slice.</div>';
+          return;
+        }}
+        container.innerHTML = reviews.map((review) => {{
+          const stance = String(review.stance || 'neutral');
+          const reviewHref = review.slug ? `${{String('{_normalize_prefix(route_prefix)}') || ''}}/notes/${{encodeURIComponent(review.slug)}}` : '';
+          const owner = review.owner || review.claim_id || review.target_title_snapshot || 'review';
+          return `
+            <article class="review-card">
+              <div class="review-head">
+                <div class="review-meta">
+                  <span class="review-stance is-${{escapeHtml(stance)}}">${{escapeHtml(stance)}}</span>
+                  ${{review.self_authored ? '<span class="review-self">self</span>' : ''}}
+                  <strong>${{reviewHref ? `<a href="${{escapeHtml(reviewHref)}}">${{escapeHtml(owner)}}</a>` : escapeHtml(owner)}}</strong>
+                  <span>${{escapeHtml(relTime(review.created_at))}}</span>
+                </div>
+                <span class="meta-copy">${{escapeHtml(review.claim_review_lifecycle || 'active')}}</span>
+              </div>
+              <p class="review-rationale">${{escapeHtml(review.rationale_excerpt || '')}}</p>
+              <div class="review-evidence">${{renderEvidence(review)}}</div>
+            </article>
+          `;
+        }}).join('');
+      }}
+
+      tabs.forEach((tab) => {{
+        tab.addEventListener('click', () => {{
+          filter = tab.dataset.reviewFilter || 'all';
+          tabs.forEach((item) => item.classList.toggle('is-active', item === tab));
+          render();
+        }});
+      }});
+      sortSelect?.addEventListener('change', render);
+      render();
+    }})();
 
     (function initWikiPreview() {{
       const links = document.querySelectorAll('.wiki-link[data-note-slug]');
@@ -5464,7 +5680,35 @@ def _explorer_html(notes: list[ClosedNote], current_slug: str, route_prefix: str
     return _render_explorer_nodes(tree, current_slug, route_prefix, depth=0, prefix=())
 
 
-def _note_payload(note: ClosedNote, notes: list[ClosedNote], route_prefix: str) -> dict[str, Any]:
+def _viewer_can_open_path(path: str, viewer_owner: str | None, is_admin: bool) -> bool:
+    safe_path = str(path or "").strip()
+    if not safe_path:
+        return False
+    if safe_path.startswith("assets/"):
+        return True
+    try:
+        document = load_document(safe_path)
+    except Exception:
+        return False
+    visibility = str(document.frontmatter.get("visibility") or get_settings().default_note_visibility).strip().lower()
+    if visibility == "public":
+        return True
+    if is_admin:
+        return True
+    if visibility == "shared":
+        return bool(viewer_owner)
+    owner = str(document.frontmatter.get("owner") or "").strip()
+    return bool(viewer_owner and owner == viewer_owner)
+
+
+def _note_payload(
+    note: ClosedNote,
+    notes: list[ClosedNote],
+    route_prefix: str,
+    *,
+    viewer_owner: str | None = None,
+    is_admin: bool = False,
+) -> dict[str, Any]:
     route_prefix = _normalize_prefix(route_prefix)
     lookup = _note_lookup(notes)
     related_notes = []
@@ -5486,6 +5730,31 @@ def _note_payload(note: ClosedNote, notes: list[ClosedNote], route_prefix: str) 
         if referenced:
             backlinks.append(_note_link_payload(other, route_prefix))
 
+    reviews: list[dict[str, Any]] = []
+    if note.kind in {"capsule", "claim"} and not note.targets:
+        review_notes = _load_targeted_claims_for(note.path)
+        review_notes = [review for review in review_notes if _viewer_can_open_note(review, viewer_owner, is_admin)]
+        reviews = [
+            {
+                "claim_id": review.claim_id,
+                "slug": review.slug,
+                "path": review.path,
+                "owner": review.owner,
+                "stance": review.stance,
+                "claim_review_lifecycle": review.claim_review_lifecycle,
+                "self_authored": review.self_authored,
+                "rationale_excerpt": review.body[:240],
+                "evidence_urls": review.evidence_urls,
+                "evidence_paths": [
+                    p if _viewer_can_open_path(p, viewer_owner=viewer_owner, is_admin=is_admin) else "(restricted)"
+                    for p in review.evidence_paths
+                ],
+                "created_at": review.frontmatter.get("created_at"),
+                "target_title_snapshot": review.target_title_snapshot,
+            }
+            for review in review_notes[:100]
+        ]
+
     return {
         "path": note.path,
         "slug": note.slug,
@@ -5501,13 +5770,26 @@ def _note_payload(note: ClosedNote, notes: list[ClosedNote], route_prefix: str) 
         "claim_review_status": note.claim_review_status,
         "claim_review_badge": _claim_trust_badge(note.claim_review_status),
         "confirm_count": note.confirm_count,
+        "support_count": note.confirm_count,
         "dispute_count": note.dispute_count,
+        "neutral_count": note.neutral_count,
         "tags": note.tags,
         "related": note.related,
         "summary": note.summary,
         "body": note.body,
         "body_html": _render_markdown(note.body, lookup, route_prefix),
         "links": note.links,
+        "claim_id": note.claim_id,
+        "targets": note.targets,
+        "stance": note.stance,
+        "claim_review_lifecycle": note.claim_review_lifecycle,
+        "self_authored": note.self_authored,
+        "evidence_urls": note.evidence_urls,
+        "evidence_paths": note.evidence_paths,
+        "topic": note.topic,
+        "target_title_snapshot": note.target_title_snapshot,
+        "is_review_target": note.kind in {"capsule", "claim"} and not note.targets,
+        "reviews": reviews,
         "related_notes": related_notes,
         "backlinks": sorted(backlinks, key=lambda item: item["title"]),
         "outbound": len(note.links) + len(note.related),
@@ -5634,6 +5916,23 @@ def _load_notes() -> list[ClosedNote]:
         return _NOTES_CACHE
 
 
+# TODO: path-based targeting is rename-fragile. move_document does not rewrite
+# inbound references. Reviews orphan silently on rename until a later pass adds
+# reference rewriting to the move flow.
+def _load_targeted_claims_for(parent_path: str, *, include_consolidated: bool = False) -> list[ClosedNote]:
+    notes = _load_notes()
+    return sorted(
+        [
+            n for n in notes
+            if n.kind == "claim"
+            and n.targets == parent_path
+            and (include_consolidated or n.claim_review_lifecycle != "consolidated")
+        ],
+        key=lambda n: str(n.frontmatter.get("created_at") or ""),
+        reverse=True,
+    )
+
+
 def _parse_note(root: Path, path: Path) -> ClosedNote:
     raw = path.read_text(encoding="utf-8")
     frontmatter, body = _split_frontmatter(raw)
@@ -5658,8 +5957,10 @@ def _parse_note(root: Path, path: Path) -> ClosedNote:
         summary=_extract_summary(body),
         body=body.strip(),
         links=sorted(set(match.group(1).strip() for match in WIKI_LINK_PATTERN.finditer(body))),
+        frontmatter=frontmatter,
         confirm_count=confirm_count,
         dispute_count=dispute_count,
+        neutral_count=_as_int(frontmatter.get("neutral_count")),
         claim_review_status=_normalize_claim_review_status(
             frontmatter,
             kind=kind,
@@ -5671,6 +5972,15 @@ def _parse_note(root: Path, path: Path) -> ClosedNote:
         freshness_date=str(frontmatter.get("freshness_date") or ""),
         decay_tier=str(frontmatter.get("decay_tier") or "general").strip().lower() or "general",
         snoozed_until=str(frontmatter.get("snoozed_until") or ""),
+        claim_id=str(frontmatter.get("claim_id") or ""),
+        targets=str(frontmatter.get("targets") or "").strip() or None,
+        stance=str(frontmatter.get("stance") or ""),
+        claim_review_lifecycle=_targeted_claim_lifecycle(frontmatter),
+        self_authored=_as_bool(frontmatter.get("self_authored")),
+        evidence_urls=_as_list(frontmatter.get("evidence_urls")),
+        evidence_paths=_as_list(frontmatter.get("evidence_paths")),
+        topic=str(frontmatter.get("topic") or ""),
+        target_title_snapshot=str(frontmatter.get("target_title_snapshot") or ""),
     )
 
 

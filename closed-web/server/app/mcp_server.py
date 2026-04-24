@@ -14,6 +14,7 @@ from pydantic import Field
 _MCP_RATE_LOCK = threading.Lock()
 _MCP_WRITE_MIN: dict[str, list[float]] = defaultdict(list)
 _MCP_WRITE_HOUR: dict[str, list[float]] = defaultdict(list)
+_UPSERT_TOOL_CONTEXT = threading.local()
 
 
 def _check_mcp_write_rate(auth: "AuthState") -> None:
@@ -39,6 +40,7 @@ from app.guidance import openakashic_guidance_payload
 from app.observability import log_tail, log_tool_event, observability_status, recent_requests, recent_tool_events
 from app.users import SAGWAN_SYSTEM_OWNER, find_user_by_username
 from app.site import (
+    _load_targeted_claims_for,
     get_closed_graph,
     get_closed_note,
     get_closed_note_by_slug,
@@ -46,13 +48,17 @@ from app.site import (
     search_closed_notes,
 )
 from app.core_api_bridge import sync_published_note
+from app.subordinate import _validate_url_scheme_and_literal_host
 from app.vault import (
     append_section,
     bootstrap_project_workspace,
     delete_document,
+    generate_claim_id,
+    generate_review_path,
     ensure_folder,
     folder_index,
     folder_rules,
+    is_claim_id_taken,
     list_publication_requests,
     list_note_paths,
     load_document,
@@ -103,7 +109,7 @@ _TOOL_MANIFEST = {
         "upsert_note": {
             "required": ["path", "body"],
             "optional": ["title", "kind", "project", "status", "tags", "related", "metadata"],
-            "failure_hint": "path는 personal_vault/ 로 시작. 기존 노트면 read_note로 내용 확인 후 덮어쓰기. 임시 메모는 tags=['agent-scratch']. 한 가지 재사용 가능한 사실이면 capsule보다 claim을 우선 고려.",
+            "failure_hint": "path는 personal_vault/ 로 시작. 기존 노트면 read_note로 내용 확인 후 덮어쓰기. 임시 메모는 tags=['agent-scratch']. 한 가지 재사용 가능한 사실이면 capsule보다 claim을 우선 고려. 타겟에 대한 리뷰를 쓰려고 metadata={targets, stance, ...}로 조립하지 말 것 — review_note(target, stance, rationale) 전용 도구를 쓸 것.",
         },
         "append_note_section": {
             "required": ["path", "heading", "content"],
@@ -133,6 +139,16 @@ _TOOL_MANIFEST = {
             "required": ["path"],
             "optional": ["comment"],
             "failure_hint": "자기 소유 노트 confirm은 discount(*owner). 교차 검증은 다른 owner가 해야 유효.",
+        },
+        "review_note": {
+            "required": ["target", "stance", "rationale"],
+            "optional": ["evidence_urls", "evidence_paths", "topic"],
+            "failure_hint": "target는 kind in {capsule, claim}. stance는 support|dispute|neutral. 자세한 rationale + 최소 1개 evidence 권장.",
+        },
+        "list_reviews": {
+            "required": ["target"],
+            "optional": ["include_consolidated"],
+            "failure_hint": "target은 capsule/claim path. 새 리뷰 전 중복 방지를 위해 먼저 호출.",
         },
         "dispute_note": {
             "required": ["path"],
@@ -183,6 +199,8 @@ _RELATED_TRIGGERS = {
     "because",
     "rationale",
 }
+
+_VISIBILITY_RANK = {"private": 0, "shared": 1, "public": 2}
 
 _FACTUAL_QUERY_HINTS = {
     "what",
@@ -270,6 +288,8 @@ mcp = FastMCP(
         "- search_notes                   — pagination/filtering over vault/doc.\n"
         "- read_note                      — when you already know the exact slug or path.\n"
         "- upsert_note                    — write new notes (use `tags:['agent-scratch']` for temporary memory).\n"
+        "- review_note                    — attach an evidence-backed support/dispute to an existing claim or capsule; the natural verb for rebuttals.\n"
+        "- list_reviews                   — read existing reviews on a target before adding another.\n"
         "- request_note_publication       — hand off capsules/syntheses to the librarian for curation.\n"
         "Ignore list_notes / list_folders / debug_* unless explicitly required — they return long payloads.\n\n"
 
@@ -280,6 +300,9 @@ mcp = FastMCP(
         "4. Do your work (run code, gather findings, etc.).\n"
         "5. upsert_note(path='personal_vault/projects/<project>/<slug>.md', body='...', kind='claim' or 'capsule')\n"
         "   → claim이면 기본 public/trust-ranked layer로 바로 동기화된다. capsule이면 응답의 `path`를 저장한다.\n"
+        "5b. Reviewing someone else's claim/capsule instead of writing your own?\n"
+        "   → review_note(target=..., stance='support'|'dispute'|'neutral', rationale='...', evidence_urls=[...], evidence_paths=[...])\n"
+        "   → Reviews are Closed-only; don't call request_note_publication on them.\n"
         "6. capsule일 때만 request_note_publication(path=<saved_path>, rationale='...', evidence_paths=[...])\n"
         "   → rationale must be ≥20 chars. evidence_paths should list supporting note paths or URLs.\n\n"
 
@@ -442,7 +465,7 @@ def search_and_read_top(
     top = filtered[0] if filtered else None
     note_payload = None
     if top and include_body:
-        note_payload = get_closed_note_by_slug(top["slug"])
+        note_payload = get_closed_note_by_slug(top["slug"], viewer_owner=auth.nickname, is_admin=_is_admin(auth))
         if note_payload and not _can_read_note_payload(note_payload, auth):
             note_payload = None
     gap_info = None
@@ -499,12 +522,12 @@ def read_note(
     """Read a note by slug or relative markdown path."""
     auth = _auth_from_ctx(ctx)
     if slug:
-        note = get_closed_note_by_slug(slug)
+        note = get_closed_note_by_slug(slug, viewer_owner=auth.nickname, is_admin=_is_admin(auth))
     elif path:
-        note = get_closed_note(path)
+        note = get_closed_note(path, viewer_owner=auth.nickname, is_admin=_is_admin(auth))
         if not note and not path.endswith(".md"):
             # upsert_note auto-normalizes paths to append .md; mirror that for read_note.
-            note = get_closed_note(path + ".md")
+            note = get_closed_note(path + ".md", viewer_owner=auth.nickname, is_admin=_is_admin(auth))
     else:
         raise ValueError("Provide either slug or path")
     if not note:
@@ -687,6 +710,11 @@ def upsert_note(
         return {"error": "body (또는 content) 파라미터가 필수입니다. 노트 내용을 전달하세요."}
     auth = _auth_from_ctx(ctx)
     _check_mcp_write_rate(auth)
+    existing_frontmatter: dict[str, Any] = {}
+    try:
+        existing_frontmatter = load_document(path).frontmatter
+    except Exception:
+        existing_frontmatter = {}
     write_metadata = _normalize_write_metadata(path=path, metadata=metadata or {}, auth=auth, kind=kind)
     doc = write_document(
         path=path,
@@ -701,14 +729,26 @@ def upsert_note(
     )
     publication_request = None
     core_api_id = None
+    old_target = str(existing_frontmatter.get("targets") or "").strip() or None
+    new_target = str(doc.frontmatter.get("targets") or "").strip() or None
+    old_stance = str(existing_frontmatter.get("stance") or "").strip().lower()
+    new_stance = str(doc.frontmatter.get("stance") or "").strip().lower()
+    old_review_lifecycle = _targeted_claim_lifecycle_value(existing_frontmatter)
+    new_review_lifecycle = _targeted_claim_lifecycle_value(doc.frontmatter)
+    targeted_claim_written_directly = (
+        str(doc.frontmatter.get("kind") or "").strip().lower() == "claim"
+        and bool(str(doc.frontmatter.get("targets") or "").strip())
+        and not getattr(_UPSERT_TOOL_CONTEXT, "invoked_via_review_tool", False)
+    )
     direct_public_claim = (
         str(doc.frontmatter.get("kind") or "").strip().lower() == "claim"
         and str(doc.frontmatter.get("visibility") or "").strip().lower() == "public"
+        and not str(doc.frontmatter.get("targets") or "").strip()
     )
     wants_publication = not _is_admin(auth) and (
         str((metadata or {}).get("visibility") or "").strip().lower() == "public"
         or str(write_metadata.get("publication_status") or "").strip().lower() == "requested"
-    )
+    ) and not str(doc.frontmatter.get("targets") or "").strip()
     if direct_public_claim:
         core_api_id = sync_published_note(
             frontmatter=doc.frontmatter,
@@ -732,7 +772,20 @@ def upsert_note(
             rationale=None,
             evidence_paths=[],
         )
-    note = get_closed_note(doc.path)
+    if str(doc.frontmatter.get("kind") or "").strip().lower() == "claim":
+        recompute_targets: list[str] = []
+        if old_target and old_target != new_target:
+            recompute_targets.append(old_target)
+        if new_target and new_target not in recompute_targets:
+            if new_review_lifecycle != "consolidated":
+                recompute_targets.append(new_target)
+            elif old_target == new_target:
+                recompute_targets.append(new_target)
+        elif old_target and old_target == new_target and (old_stance != new_stance or old_review_lifecycle != new_review_lifecycle):
+            recompute_targets.append(old_target)
+        for target_path in recompute_targets:
+            _recompute_parent_aggregate(target_path)
+    note = get_closed_note(doc.path, viewer_owner=auth.nickname, is_admin=_is_admin(auth))
     saved_path = doc.path
     try:
         log_tool_event(
@@ -749,6 +802,8 @@ def upsert_note(
         "note": note,
         "publication_request": publication_request.__dict__ if publication_request else None,
         "core_api_id": core_api_id,
+        "claim_id": str(doc.frontmatter.get("claim_id") or "") if str(doc.frontmatter.get("kind") or "").strip().lower() == "claim" else None,
+        "is_targeted": bool(str(doc.frontmatter.get("targets") or "").strip()) if str(doc.frontmatter.get("kind") or "").strip().lower() == "claim" else False,
         "_next": (
             f"Note saved at '{saved_path}'. "
             + (
@@ -760,7 +815,110 @@ def upsert_note(
                      f"path='{saved_path}', rationale='<why this is worth publishing>', "
                      "evidence_paths=['<supporting note paths or URLs>']"
             )
+            + (
+                " For future reviews prefer the dedicated review_note(target, stance, rationale, evidence_urls?) tool — it sets the correct path and defaults."
+                if targeted_claim_written_directly
+                else ""
+            )
         ),
+    }
+
+
+@mcp.tool(title="Review OpenAkashic Claim or Capsule")
+def review_note(
+    target: Annotated[str, Field(description="Path of the capsule or claim you are reviewing. Must be under personal_vault/ and kind in {capsule, claim}. Example: 'personal_vault/projects/my-project/findings.md'")],
+    stance: Annotated[str, Field(description="'support' if you back the target, 'dispute' if you contradict it, 'neutral' for a note-level comment.")],
+    rationale: Annotated[str, Field(description="Short plain-text explanation (20-2000 chars). Markdown OK. This becomes the body of your review note.")],
+    evidence_urls: Annotated[list[str] | None, Field(description="External URLs backing your stance. Max 10. Each URL is validated for storage hygiene (SSRF-safe); never fetched automatically.")] = None,
+    evidence_paths: Annotated[list[str] | None, Field(description="Paths to supporting vault notes. Max 10. Must live under personal_vault/, doc/, or assets/.")] = None,
+    topic: Annotated[str | None, Field(description="Optional one-line topic tag for clustering.")] = None,
+    ctx: Context | None = None,
+) -> dict[str, Any]:
+    """Attach a review to an existing capsule or claim.
+
+    Reviews appear on the parent's page, feed the trust score, and are visible
+    to every agent reading that parent. You can review a review — it becomes a
+    counter-claim threaded on the original targeted claim.
+
+    Prefer this over `dispute_note`/`confirm_note` when you have rationale + evidence —
+    those are one-click signals only.
+    Prefer this over `upsert_note(kind='claim', metadata={...})` because this tool sets
+    the correct defaults and path for you.
+    """
+    auth = _auth_from_ctx(ctx)
+    if not target.startswith("personal_vault/") or not target.endswith(".md"):
+        raise ValueError("target must be a personal_vault/*.md path")
+    target_doc = load_document(target)
+    if not _can_read_frontmatter(target_doc.frontmatter, auth):
+        raise ValueError("Target note is not readable for this token")
+    target_kind = str(target_doc.frontmatter.get("kind") or "").strip().lower()
+    if target_kind not in {"capsule", "claim"}:
+        raise ValueError(
+            f"review target must be a kind='capsule' or kind='claim' note (got kind={target_kind!r})."
+        )
+    normalized_stance = str(stance or "").strip().lower()
+    if normalized_stance not in {"support", "dispute", "neutral"}:
+        raise ValueError("stance must be one of support|dispute|neutral")
+    rationale_text = str(rationale or "").strip()
+    if not 20 <= len(rationale_text) <= 2000:
+        raise ValueError("rationale must be 20-2000 chars")
+
+    review_path = generate_review_path()
+    prior_review_flag = getattr(_UPSERT_TOOL_CONTEXT, "invoked_via_review_tool", False)
+    _UPSERT_TOOL_CONTEXT.invoked_via_review_tool = True
+    try:
+        review = upsert_note(
+            path=review_path,
+            body=f"## Rationale\n{rationale_text}",
+            kind="claim",
+            metadata={
+                "targets": target,
+                "stance": normalized_stance,
+                "claim_review_lifecycle": "active",
+                "evidence_urls": evidence_urls or [],
+                "evidence_paths": evidence_paths or [],
+                "topic": (str(topic or "").strip() or None),
+            },
+            ctx=ctx,
+        )
+    finally:
+        if prior_review_flag:
+            _UPSERT_TOOL_CONTEXT.invoked_via_review_tool = prior_review_flag
+        else:
+            try:
+                delattr(_UPSERT_TOOL_CONTEXT, "invoked_via_review_tool")
+            except AttributeError:
+                pass
+    parent_doc = load_document(target)
+    parent_aggregate = {
+        "confirm_count": int(parent_doc.frontmatter.get("confirm_count") or 0),
+        "dispute_count": int(parent_doc.frontmatter.get("dispute_count") or 0),
+        "neutral_count": int(parent_doc.frontmatter.get("neutral_count") or 0),
+    }
+    evidence_count = len(evidence_urls or []) + len(evidence_paths or [])
+    try:
+        log_tool_event(
+            "review_note",
+            user=auth.nickname or auth.username,
+            args_summary={
+                "target": target,
+                "stance": normalized_stance,
+                "topic": (str(topic or "").strip() or None),
+                "evidence_count": evidence_count,
+            },
+            notes_read=[target],
+            notes_written=[review["path"]],
+        )
+    except Exception:
+        pass
+    return {
+        "path": review["path"],
+        "claim_id": review.get("claim_id"),
+        "stance": normalized_stance,
+        "targets": target,
+        "rationale_chars": len(rationale_text),
+        "evidence_count": evidence_count,
+        "parent_aggregate": parent_aggregate,
     }
 
 
@@ -834,8 +992,11 @@ def set_note_publication_status(path: str, status: str, reason: str | None = Non
     auth = _auth_from_ctx(ctx)
     if not _is_admin(auth):
         raise ValueError("Only admins can set publication status directly")
+    source_doc = load_document(path)
+    if str(source_doc.frontmatter.get("targets") or "").strip():
+        raise ValueError("Targeted claims (reviews) cannot be published. Reviews stay Closed-only by design — publish the underlying capsule instead.")
     document = set_publication_status(path=path, status=status, decider=auth.nickname, reason=reason)
-    note = get_closed_note(document.path)
+    note = get_closed_note(document.path, viewer_owner=auth.nickname, is_admin=_is_admin(auth))
     return {"path": document.path, "frontmatter": document.frontmatter, "note": note}
 
 
@@ -850,7 +1011,7 @@ def append_note_section(
     auth = _auth_from_ctx(ctx)
     _assert_can_modify_document(path, auth)
     doc = append_section(path, heading, content)
-    note = get_closed_note(doc.path)
+    note = get_closed_note(doc.path, viewer_owner=auth.nickname, is_admin=_is_admin(auth))
     try:
         log_tool_event(
             "append_note_section",
@@ -921,10 +1082,7 @@ def confirm_note(
     entry = "|".join(parts)
     confirmed_by.append(entry)
 
-    # confirm_count = 제3자 확인만 (self-confirm 제외)
-    cross_confirms = sum(1 for e in confirmed_by if not e.startswith("*"))
     next_fm["confirmed_by"] = confirmed_by
-    next_fm["confirm_count"] = cross_confirms
 
     write_document(
         path=path,
@@ -933,9 +1091,10 @@ def confirm_note(
         metadata_replace=True,
         allow_owner_change=True,
     )
+    recomputed = _recompute_parent_aggregate(path)
     return {
         "path": path,
-        "confirm_count": next_fm["confirm_count"],
+        "confirm_count": recomputed.get("confirm_count", int(next_fm.get("confirm_count") or 0)),
         "confirmed_by": confirmed_by,
         "self_confirm": is_self_confirm,
     }
@@ -1006,9 +1165,7 @@ def dispute_note(
     if reason:
         parts.append(reason.strip()[:200].replace("|", "/"))
     disputed_by.append("|".join(parts))
-    dispute_count = sum(1 for e in disputed_by if _entry_caller(e))
     next_fm["disputed_by"] = disputed_by
-    next_fm["dispute_count"] = dispute_count
     current_status = str(next_fm.get("claim_review_status") or "").strip().lower()
     if current_status not in {"superseded", "merged"}:
         next_fm["claim_review_status"] = "disputed"
@@ -1024,11 +1181,64 @@ def dispute_note(
         metadata_replace=True,
         allow_owner_change=True,
     )
+    recomputed = _recompute_parent_aggregate(path)
     return {
         "path": path,
-        "dispute_count": dispute_count,
+        "dispute_count": recomputed.get("dispute_count", int(next_fm.get("dispute_count") or 0)),
         "disputed_by": disputed_by,
         "claim_review_status": next_fm.get("claim_review_status") or "disputed",
+    }
+
+
+@mcp.tool(title="List Reviews on OpenAkashic Note")
+def list_reviews(
+    target: Annotated[str, Field(description="Capsule/claim path whose reviews you want to read.")],
+    include_consolidated: Annotated[bool, Field(description="Include reviews already merged by Sagwan. Default False.")] = False,
+    ctx: Context | None = None,
+) -> dict[str, Any]:
+    """Return all reviews attached to a target, sorted by recency. Use before writing a new review to avoid duplication."""
+    auth = _auth_from_ctx(ctx)
+    if not target.startswith("personal_vault/") or not target.endswith(".md"):
+        raise ValueError("target must be a personal_vault/*.md path")
+    target_doc = load_document(target)
+    if not _can_read_frontmatter(target_doc.frontmatter, auth):
+        raise ValueError("Target note is not readable for this token")
+    target_kind = str(target_doc.frontmatter.get("kind") or "").strip().lower()
+    if target_kind not in {"capsule", "claim"}:
+        raise ValueError(
+            f"target must be a kind='capsule' or kind='claim' note (got kind={target_kind!r})."
+        )
+    visible_reviews = [
+        review for review in _load_targeted_claims_for(target, include_consolidated=include_consolidated)
+        if _can_read_frontmatter(review.frontmatter, auth)
+    ]
+    try:
+        log_tool_event(
+            "list_reviews",
+            user=auth.nickname or auth.username,
+            args_summary={"target": target, "include_consolidated": include_consolidated},
+            notes_read=[target, *[review.path for review in visible_reviews[:20]]],
+        )
+    except Exception:
+        pass
+    return {
+        "target": target,
+        "count": len(visible_reviews),
+        "reviews": [
+            {
+                "claim_id": review.claim_id,
+                "path": review.path,
+                "stance": review.stance,
+                "owner": review.owner,
+                "self_authored": review.self_authored,
+                "rationale_excerpt": _review_rationale_excerpt(review.body),
+                "evidence_urls": review.evidence_urls,
+                "evidence_paths": review.evidence_paths,
+                "created_at": review.frontmatter.get("created_at"),
+                "claim_review_lifecycle": review.claim_review_lifecycle,
+            }
+            for review in visible_reviews
+        ],
     }
 
 
@@ -1869,11 +2079,138 @@ def _assert_can_modify_document(path: str, auth: AuthState) -> None:
 
 
 def _assert_can_request_publication(path: str, auth: AuthState) -> None:
-    if _is_admin(auth):
-        return
     document = load_document(path)
-    if _note_owner(document.frontmatter) != auth.nickname:
+    if not _is_admin(auth) and _note_owner(document.frontmatter) != auth.nickname:
         raise ValueError("Users can only request publication for their own notes")
+    if str(document.frontmatter.get("targets") or "").strip():
+        raise ValueError("Targeted claims (reviews) cannot be published. Reviews stay Closed-only by design — publish the underlying capsule instead.")
+
+
+def _as_boolish(value: Any) -> bool:
+    if isinstance(value, bool):
+        return value
+    return str(value or "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _dedupe_str_list(values: list[str]) -> list[str]:
+    seen: set[str] = set()
+    deduped: list[str] = []
+    for item in values:
+        if item not in seen:
+            seen.add(item)
+            deduped.append(item)
+    return deduped
+
+
+def _confirmation_callers(value: Any) -> list[str]:
+    callers: list[str] = []
+    raw_items = value if isinstance(value, list) else ([value] if value is not None else [])
+    for item in raw_items:
+        raw = str(item).strip()
+        if not raw:
+            continue
+        caller = raw.lstrip("*").split("|", 1)[0].strip()
+        if caller and caller not in callers:
+            callers.append(caller)
+    return callers
+
+
+def _effective_confirm_count(frontmatter: dict[str, Any]) -> int:
+    owner_value = _note_owner(frontmatter)
+    return sum(1 for caller in _confirmation_callers(frontmatter.get("confirmed_by")) if caller != owner_value)
+
+
+def _effective_dispute_count(frontmatter: dict[str, Any]) -> int:
+    owner_value = _note_owner(frontmatter)
+    return sum(1 for caller in _confirmation_callers(frontmatter.get("disputed_by")) if caller != owner_value)
+
+
+def _targeted_claim_lifecycle_value(frontmatter: dict[str, Any]) -> str:
+    value = str(frontmatter.get("claim_review_lifecycle") or "").strip().lower()
+    if value:
+        return value
+    legacy = str(frontmatter.get("review_status") or "").strip().lower()
+    return legacy or "active"
+
+
+def _review_rationale_excerpt(body: str, *, limit: int = 240) -> str:
+    text = (body or "").strip()
+    if text.startswith("## Rationale"):
+        text = text[len("## Rationale"):].strip()
+    return text[:limit]
+
+
+def migrate_targeted_claim_review_lifecycle_field() -> dict[str, int]:
+    migrated = 0
+    skipped = 0
+    for path in list_note_paths():
+        if not path.startswith("personal_vault/"):
+            continue
+        try:
+            document = load_document(path)
+        except Exception:
+            continue
+        frontmatter = dict(document.frontmatter or {})
+        if str(frontmatter.get("kind") or "").strip().lower() != "claim":
+            continue
+        if not str(frontmatter.get("targets") or "").strip():
+            continue
+        if "review_status" not in frontmatter or "claim_review_lifecycle" in frontmatter:
+            skipped += 1
+            continue
+        frontmatter["claim_review_lifecycle"] = frontmatter.pop("review_status")
+        write_document(
+            path=document.path,
+            body=document.body,
+            metadata=frontmatter,
+            allow_owner_change=True,
+        )
+        migrated += 1
+    return {"migrated": migrated, "skipped": skipped}
+
+
+def _recompute_parent_aggregate(parent_path: str) -> dict[str, int]:
+    parent_doc = load_document(parent_path)
+    rich_support = 0
+    rich_dispute = 0
+    rich_neutral = 0
+    for note_path in list_note_paths():
+        if not note_path.startswith("personal_vault/"):
+            continue
+        try:
+            child_doc = load_document(note_path)
+        except Exception:
+            continue
+        frontmatter = child_doc.frontmatter
+        if str(frontmatter.get("kind") or "").strip().lower() != "claim":
+            continue
+        if str(frontmatter.get("targets") or "").strip() != parent_path:
+            continue
+        if _targeted_claim_lifecycle_value(frontmatter) == "consolidated":
+            continue
+        if _as_boolish(frontmatter.get("self_authored")):
+            continue
+        stance = str(frontmatter.get("stance") or "").strip().lower()
+        if stance == "support":
+            rich_support += 1
+        elif stance == "dispute":
+            rich_dispute += 1
+        elif stance == "neutral":
+            rich_neutral += 1
+
+    next_metadata = {
+        "confirm_count": _effective_confirm_count(parent_doc.frontmatter) + rich_support,
+        "dispute_count": _effective_dispute_count(parent_doc.frontmatter) + rich_dispute,
+        "neutral_count": rich_neutral,
+    }
+    write_document(
+        path=parent_path,
+        body=parent_doc.body,
+        metadata=next_metadata,
+        metadata_replace=False,
+        allow_owner_change=True,
+    )
+    return next_metadata
 
 
 def _normalize_write_metadata(*, path: str, metadata: dict[str, Any], auth: AuthState, kind: str | None = None) -> dict[str, Any]:
@@ -1888,6 +2225,8 @@ def _normalize_write_metadata(*, path: str, metadata: dict[str, Any], auth: Auth
         existing_frontmatter = {}
     resolved_kind = str(kind or next_metadata.get("kind") or existing_frontmatter.get("kind") or "reference").strip().lower()
     explicit_visibility = "visibility" in next_metadata and str(next_metadata.get("visibility") or "").strip() != ""
+    effective_targets = next_metadata.get("targets") if "targets" in next_metadata else existing_frontmatter.get("targets")
+    effective_targets = str(effective_targets or "").strip() or None
 
     requested_visibility = str(
         next_metadata.get("visibility") or existing_frontmatter.get("visibility") or settings.default_note_visibility
@@ -1896,8 +2235,154 @@ def _normalize_write_metadata(*, path: str, metadata: dict[str, Any], auth: Auth
         requested_visibility = "public"
     if requested_visibility not in {"private", "public", "shared"}:
         requested_visibility = "private"
-    direct_public_claim = resolved_kind == "claim" and requested_visibility == "public"
-    if not _is_admin(auth) and requested_visibility == "public" and not direct_public_claim:
+    if resolved_kind == "claim":
+        if existing_frontmatter.get("claim_id"):
+            next_metadata["claim_id"] = existing_frontmatter.get("claim_id")
+        else:
+            allocated = None
+            for _ in range(3):
+                candidate = generate_claim_id()
+                if not is_claim_id_taken(candidate):
+                    allocated = candidate
+                    break
+            if not allocated:
+                raise ValueError("could not allocate unique claim_id")
+            next_metadata["claim_id"] = allocated
+
+        targeted_only_fields = (
+            "stance",
+            "claim_review_lifecycle",
+            "target_title_snapshot",
+            "self_authored",
+            "evidence_urls",
+            "evidence_paths",
+        )
+        if not effective_targets:
+            if any(
+                field in next_metadata and next_metadata.get(field) not in (None, "", [])
+                for field in targeted_only_fields
+            ):
+                raise ValueError(
+                    "targets is required for stance/claim_review_lifecycle/target_title_snapshot/self_authored/evidence_urls/evidence_paths — atomic claims must omit these."
+                )
+            if "targets" in next_metadata:
+                next_metadata["targets"] = None
+                next_metadata["stance"] = None
+                next_metadata["claim_review_lifecycle"] = None
+                next_metadata["self_authored"] = None
+                next_metadata["target_title_snapshot"] = None
+                next_metadata["evidence_urls"] = None
+                next_metadata["evidence_paths"] = None
+        else:
+            if not effective_targets.startswith("personal_vault/") or not effective_targets.endswith(".md"):
+                raise ValueError("targets must be a personal_vault/*.md path")
+            try:
+                target_doc = load_document(effective_targets)
+            except Exception as exc:
+                raise ValueError(f"targets note not found: {effective_targets}") from exc
+            target_kind = str(target_doc.frontmatter.get("kind") or "").strip().lower()
+            if target_kind not in {"capsule", "claim"}:
+                raise ValueError(
+                    f"targets must be a kind=capsule or kind=claim note (got kind={target_kind!r}). "
+                    "Reviews can only attach to published knowledge notes."
+                )
+            seen_targets: set[str] = set()
+            cursor = effective_targets
+            depth = 0
+            while cursor:
+                if cursor in seen_targets or cursor == path:
+                    raise ValueError("targets cycle detected or depth>8")
+                seen_targets.add(cursor)
+                depth += 1
+                if depth > 8:
+                    raise ValueError("targets cycle detected or depth>8")
+                try:
+                    cursor_doc = load_document(cursor)
+                except Exception:
+                    break
+                cursor = str(cursor_doc.frontmatter.get("targets") or "").strip() or None
+
+            effective_stance = next_metadata.get("stance") if "stance" in next_metadata else existing_frontmatter.get("stance")
+            effective_stance = str(effective_stance or "").strip().lower()
+            if effective_stance not in {"support", "dispute", "neutral"}:
+                raise ValueError("stance is required and must be one of support|dispute|neutral when targets is set")
+            next_metadata["targets"] = effective_targets
+            next_metadata["stance"] = effective_stance
+
+            effective_lifecycle = (
+                next_metadata.get("claim_review_lifecycle")
+                if "claim_review_lifecycle" in next_metadata
+                else existing_frontmatter.get("claim_review_lifecycle")
+            )
+            if effective_lifecycle in (None, "") and "review_status" in existing_frontmatter:
+                effective_lifecycle = existing_frontmatter.get("review_status")
+            effective_lifecycle = str(effective_lifecycle or "active").strip().lower()
+            if effective_lifecycle not in {"active", "consolidated", "orphaned"}:
+                raise ValueError("claim_review_lifecycle must be one of active|consolidated|orphaned")
+            next_metadata.pop("review_status", None)
+            next_metadata["claim_review_lifecycle"] = effective_lifecycle
+            next_metadata["self_authored"] = (_note_owner(target_doc.frontmatter) == auth.nickname)
+            next_metadata["target_title_snapshot"] = str(
+                target_doc.frontmatter.get("title") or Path(effective_targets).stem
+            )
+            target_visibility = str(target_doc.frontmatter.get("visibility") or "private").strip().lower()
+            target_visibility = target_visibility if target_visibility in _VISIBILITY_RANK else "private"
+            if _is_admin(auth) and explicit_visibility:
+                pass
+            elif not explicit_visibility:
+                requested_visibility = target_visibility
+            else:
+                requested_rank = _VISIBILITY_RANK.get(requested_visibility, 0)
+                target_rank = _VISIBILITY_RANK.get(target_visibility, 0)
+                if requested_rank > target_rank:
+                    requested_visibility = target_visibility
+
+        if "evidence_urls" in next_metadata and next_metadata.get("evidence_urls") not in (None, ""):
+            raw_urls = next_metadata.get("evidence_urls")
+            if not isinstance(raw_urls, list):
+                raise ValueError("evidence_urls must be a list of strings")
+            if len(raw_urls) > 10:
+                raise ValueError("evidence_urls supports at most 10 items")
+            cleaned_urls: list[str] = []
+            for raw_url in raw_urls:
+                if not isinstance(raw_url, str):
+                    raise ValueError("evidence_urls must be a list of strings")
+                url = raw_url.strip()
+                if not url:
+                    continue
+                if len(url) > 500:
+                    raise ValueError("evidence_urls entries must be <= 500 chars")
+                # SSRF posture: validate stored URLs only. These links are never auto-fetched here.
+                _validate_url_scheme_and_literal_host(url)
+                cleaned_urls.append(url)
+            next_metadata["evidence_urls"] = _dedupe_str_list(cleaned_urls)
+
+        if "evidence_paths" in next_metadata and next_metadata.get("evidence_paths") not in (None, ""):
+            raw_paths = next_metadata.get("evidence_paths")
+            if not isinstance(raw_paths, list):
+                raise ValueError("evidence_paths must be a list of strings")
+            if len(raw_paths) > 10:
+                raise ValueError("evidence_paths supports at most 10 items")
+            cleaned_paths: list[str] = []
+            for raw_path in raw_paths:
+                if not isinstance(raw_path, str):
+                    raise ValueError("evidence_paths must be a list of strings")
+                evidence_path = raw_path.strip()
+                if not evidence_path:
+                    continue
+                if evidence_path.startswith("assets/"):
+                    cleaned_paths.append(evidence_path)
+                    continue
+                if not (
+                    (evidence_path.startswith("personal_vault/") or evidence_path.startswith("doc/"))
+                    and evidence_path.endswith(".md")
+                ):
+                    raise ValueError("evidence_paths must stay under personal_vault/|doc/|assets/")
+                cleaned_paths.append(evidence_path)
+            next_metadata["evidence_paths"] = _dedupe_str_list(cleaned_paths)
+
+    direct_public_claim = resolved_kind == "claim" and requested_visibility == "public" and not effective_targets
+    if not _is_admin(auth) and requested_visibility == "public" and not direct_public_claim and not effective_targets:
         next_metadata["publication_target_visibility"] = "public"
         requested_visibility = "private"
     next_metadata["visibility"] = requested_visibility
@@ -1906,14 +2391,14 @@ def _normalize_write_metadata(*, path: str, metadata: dict[str, Any], auth: Auth
         if not _can_modify_frontmatter(existing_frontmatter, auth):
             raise ValueError("Notes can only be modified by their owner or an admin")
         owner = _note_owner(existing_frontmatter)
-        if requested_visibility == "public" and not direct_public_claim:
+        if requested_visibility == "public" and not direct_public_claim and not effective_targets:
             next_metadata.setdefault("original_owner", existing_frontmatter.get("original_owner") or owner)
             owner = SAGWAN_SYSTEM_OWNER
         next_metadata["owner"] = owner
         next_metadata.setdefault("created_by", existing_frontmatter.get("created_by") or owner)
     else:
         next_metadata["created_by"] = next_metadata.get("created_by") or auth.nickname
-        if requested_visibility == "public" and _is_admin(auth) and not direct_public_claim:
+        if requested_visibility == "public" and _is_admin(auth) and not direct_public_claim and not effective_targets:
             next_metadata["owner"] = SAGWAN_SYSTEM_OWNER
         else:
             next_metadata["owner"] = auth.nickname

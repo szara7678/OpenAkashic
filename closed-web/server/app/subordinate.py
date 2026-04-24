@@ -518,6 +518,8 @@ def _sync_published_notes_to_core_api(*, limit: int = 10) -> str:
             continue
         if str(fm.get("kind") or "").lower() not in {"capsule", "claim"}:
             continue
+        if str(fm.get("targets") or "").strip():
+            continue
         if fm.get("core_api_id"):
             continue
         core_api_id = sync_published_note(frontmatter=fm, body=doc.body, note_path=note_path)

@@ -22,6 +22,7 @@ def openakashic_guidance_payload(*, public_base_url: str) -> dict[str, Any]:
         ],
         "preferred_write_path": [
             "upsert_note(..., kind='claim') for one reusable fact/warning/config discovery",
+            "review_note(target, stance, rationale, evidence_urls?) for evidence-backed support/dispute on an existing claim or capsule",
             "upsert_note(..., kind='capsule') only for a synthesis",
             "request_note_publication(path, rationale) for capsule promotion",
         ],
@@ -29,7 +30,8 @@ def openakashic_guidance_payload(*, public_base_url: str) -> dict[str, Any]:
     optional_snippet = (
         "OpenAkashic guidance (optional): for factual questions start with "
         "search_akashic(query, mode='compact'); use search_notes for private/shared notes; "
-        "save atomic findings as kind='claim'; use kind='capsule' only for syntheses."
+        "save atomic findings as kind='claim'; use review_note(...) for evidence-backed reviews; "
+        "use kind='capsule' only for syntheses."
     )
     return {
         "version": GUIDANCE_VERSION,

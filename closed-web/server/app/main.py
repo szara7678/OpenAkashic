@@ -550,12 +550,15 @@ def _normalize_write_metadata(payload: NoteWriteRequest, auth: AuthState) -> dic
 
 
 def _assert_can_request_publication(path: str, auth: AuthState) -> None:
-    if _is_admin(auth):
-        return
     document = load_document(path)
     owner = str(document.frontmatter.get("owner") or settings.default_note_owner).strip()
-    if owner != auth.nickname:
+    if not _is_admin(auth) and owner != auth.nickname:
         raise HTTPException(status_code=403, detail="Users can only request publication for their own notes")
+    if str(document.frontmatter.get("targets") or "").strip():
+        raise HTTPException(
+            status_code=400,
+            detail="Targeted claims (reviews) cannot be published. Reviews stay Closed-only by design — publish the underlying capsule instead.",
+        )
 
 
 def _vault_http_error(exc: Exception) -> HTTPException:
@@ -657,7 +660,7 @@ def prefixed_search(
 @api.get("/note")
 def note(request: Request, path: str = Query(min_length=1)) -> dict[str, Any]:
     auth = _auth_from_request(request)
-    result = get_closed_note(path, route_prefix=_route_prefix(request))
+    result = get_closed_note(path, route_prefix=_route_prefix(request), viewer_owner=auth.nickname, is_admin=_is_admin(auth))
     if not result:
         raise HTTPException(status_code=404, detail="Note not found")
     _assert_can_read_note_payload(result, auth)
@@ -667,7 +670,7 @@ def note(request: Request, path: str = Query(min_length=1)) -> dict[str, Any]:
 @api.get("/closed/note")
 def prefixed_note(request: Request, path: str = Query(min_length=1)) -> dict[str, Any]:
     auth = _auth_from_request(request)
-    result = get_closed_note(path, route_prefix="/closed")
+    result = get_closed_note(path, route_prefix="/closed", viewer_owner=auth.nickname, is_admin=_is_admin(auth))
     if not result:
         raise HTTPException(status_code=404, detail="Note not found")
     _assert_can_read_note_payload(result, auth)
@@ -699,7 +702,7 @@ def prefixed_home(request: Request) -> dict[str, Any]:
 @api.get("/notes/{slug}", response_class=HTMLResponse)
 def note_page(request: Request, slug: str) -> str:
     auth = _auth_from_request(request)
-    note_data = get_closed_note_by_slug(slug, route_prefix=_route_prefix(request))
+    note_data = get_closed_note_by_slug(slug, route_prefix=_route_prefix(request), viewer_owner=auth.nickname, is_admin=_is_admin(auth))
     if not note_data:
         raise HTTPException(status_code=404, detail="Note not found")
     _assert_can_read_note_payload(note_data, auth)
@@ -714,7 +717,7 @@ def note_page(request: Request, slug: str) -> str:
 @api.get("/closed/notes/{slug}", response_class=HTMLResponse)
 def prefixed_note_page(request: Request, slug: str) -> str:
     auth = _auth_from_request(request)
-    note_data = get_closed_note_by_slug(slug, route_prefix="/closed")
+    note_data = get_closed_note_by_slug(slug, route_prefix="/closed", viewer_owner=auth.nickname, is_admin=_is_admin(auth))
     if not note_data:
         raise HTTPException(status_code=404, detail="Note not found")
     _assert_can_read_note_payload(note_data, auth)
@@ -1362,7 +1365,7 @@ def api_note_by_slug(
     slug: str,
     auth: AuthState = Depends(require_agent_token),
 ) -> dict[str, Any]:
-    result = get_closed_note_by_slug(slug)
+    result = get_closed_note_by_slug(slug, viewer_owner=auth.nickname, is_admin=_is_admin(auth))
     if not result:
         raise HTTPException(status_code=404, detail="Note not found")
     _assert_can_read_note_payload(result, auth)
@@ -1375,7 +1378,7 @@ def api_note_by_path(
     compact: bool = Query(default=False, description="drop body_html, related_notes, backlinks"),
     auth: AuthState = Depends(require_agent_token),
 ) -> dict[str, Any]:
-    result = get_closed_note(path)
+    result = get_closed_note(path, viewer_owner=auth.nickname, is_admin=_is_admin(auth))
     if not result:
         raise HTTPException(status_code=404, detail="Note not found")
     _assert_can_read_note_payload(result, auth)
@@ -1522,11 +1525,12 @@ def api_upsert_note(
         direct_public_claim = (
             str(document.frontmatter.get("kind") or "").strip().lower() == "claim"
             and str(document.frontmatter.get("visibility") or "").strip().lower() == "public"
+            and not str(document.frontmatter.get("targets") or "").strip()
         )
         wants_publication = not _is_admin(auth) and (
             str((payload.metadata or {}).get("visibility") or "").strip().lower() == "public"
             or str(metadata.get("publication_status") or "").strip().lower() == "requested"
-        )
+        ) and not str(document.frontmatter.get("targets") or "").strip()
         if direct_public_claim:
             core_api_id = sync_published_note(
                 frontmatter=document.frontmatter,
@@ -1553,7 +1557,7 @@ def api_upsert_note(
             publication_request_data = request.__dict__
     except (FileNotFoundError, ValueError) as exc:
         raise _vault_http_error(exc) from exc
-    result = get_closed_note(document.path)
+    result = get_closed_note(document.path, viewer_owner=auth.nickname, is_admin=_is_admin(auth))
     warnings: list[str] = []
     requested_kind = (payload.kind or "").strip().lower()
     effective_kind = str(document.frontmatter.get("kind") or "").strip().lower()
@@ -1590,7 +1594,7 @@ def api_append_note(
         document = append_section(payload.path, payload.heading, payload.content)
     except (FileNotFoundError, ValueError) as exc:
         raise _vault_http_error(exc) from exc
-    result = get_closed_note(document.path)
+    result = get_closed_note(document.path, viewer_owner=auth.nickname, is_admin=_is_admin(auth))
     return {"path": document.path, "note": result}
 
 
@@ -1703,6 +1707,9 @@ def api_publication_status(
     auth: AuthState = Depends(require_admin_token),
 ) -> dict[str, Any]:
     try:
+        source = load_document(payload.path)
+        if str(source.frontmatter.get("targets") or "").strip():
+            raise ValueError("Targeted claims (reviews) cannot be published. Reviews stay Closed-only by design — publish the underlying capsule instead.")
         document = set_publication_status(
             path=payload.path,
             status=payload.status,
@@ -1904,6 +1911,32 @@ def api_file(path: str) -> FileResponse:
 @api.get("/closed/files/{path:path}")
 def api_prefixed_file(path: str) -> FileResponse:
     return _serve_asset(path)
+
+
+def _glama_connector_payload() -> dict[str, Any]:
+    email = os.getenv("CLOSED_AKASHIC_GLAMA_MAINTAINER_EMAIL", "").strip()
+    if not email:
+        raise HTTPException(status_code=404, detail="Glama maintainer email not configured")
+    return {
+        "$schema": "https://glama.ai/mcp/schemas/connector.json",
+        "maintainers": [
+            {
+                "email": email,
+            }
+        ],
+    }
+
+
+@api.api_route("/.well-known/glama.json", methods=["GET", "HEAD"])
+def glama_well_known() -> dict[str, Any]:
+    return _glama_connector_payload()
+
+
+@api.api_route("/glama.json", methods=["GET", "HEAD"])
+def glama_root() -> dict[str, Any]:
+    # Expose the same payload at the root as a compatibility fallback for
+    # registries/UIs that probe /glama.json directly.
+    return _glama_connector_payload()
 
 
 @api.get("/health")

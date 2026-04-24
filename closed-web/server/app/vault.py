@@ -15,6 +15,8 @@ from uuid import uuid4
 # 단일 프로세스 내 스레드 경합이 대상이므로 threading.Lock 으로 충분.
 _path_locks: dict[str, threading.Lock] = {}
 _path_locks_guard = threading.Lock()
+_CLAIM_ID_CACHE: set[str] | None = None
+_CLAIM_ID_CACHE_LOCK = threading.Lock()
 
 
 def _get_path_lock(abs_path: str) -> threading.Lock:
@@ -267,6 +269,51 @@ def list_note_paths() -> list[str]:
     ]
 
 
+def generate_claim_id() -> str:
+    from datetime import UTC, datetime
+    import secrets
+    ts = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
+    return f"c_{ts}_{secrets.token_hex(3)}"
+
+
+def generate_review_path() -> str:
+    from datetime import UTC, datetime
+    ts = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
+    return f"personal_vault/shared/reviews/r_{ts}_{uuid4().hex[:6]}.md"
+
+
+def _load_claim_id_set() -> set[str]:
+    global _CLAIM_ID_CACHE
+    with _CLAIM_ID_CACHE_LOCK:
+        if _CLAIM_ID_CACHE is not None:
+            return _CLAIM_ID_CACHE
+        root = vault_root() / "personal_vault"
+        claim_ids: set[str] = set()
+        if root.exists():
+            for path in root.rglob("*.md"):
+                if not path.is_file():
+                    continue
+                try:
+                    document = load_document(path.relative_to(vault_root()).as_posix())
+                except Exception:
+                    continue
+                claim_id = str(document.frontmatter.get("claim_id") or "").strip()
+                if claim_id:
+                    claim_ids.add(claim_id)
+        _CLAIM_ID_CACHE = claim_ids
+        return _CLAIM_ID_CACHE
+
+
+def is_claim_id_taken(claim_id: str) -> bool:
+    return claim_id in _load_claim_id_set()
+
+
+def invalidate_claim_id_cache() -> None:
+    global _CLAIM_ID_CACHE
+    with _CLAIM_ID_CACHE_LOCK:
+        _CLAIM_ID_CACHE = None
+
+
 def load_document(path: str) -> VaultDocument:
     target = resolve_note_path(path, must_exist=True)
     raw = target.read_text(encoding="utf-8")
@@ -359,6 +406,7 @@ def write_document(
             _inv()
         except Exception:
             pass
+        invalidate_claim_id_cache()
         return load_document(path)
 
 
