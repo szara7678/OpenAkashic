@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""OpenAkashicBench v0.5 — A/B comparison report.
+"""OpenAkashicBench — A/B comparison report.
 
 Reads two or more *-judged.json files (one per condition) and produces a
 side-by-side markdown comparing baseline vs openakashic per task.
@@ -58,7 +58,7 @@ def render_markdown(bundles: list[dict[str, Any]],
     conditions = sorted({b.get("condition") for b in bundles if b.get("condition")})
 
     lines: list[str] = [
-        f"# OpenAkashicBench v0.5 — A/B Report",
+        f"# OpenAkashicBench — A/B Report",
         "",
         f"**Model**: `{model}`  ",
         f"**Conditions compared**: {', '.join(conditions)}  ",
