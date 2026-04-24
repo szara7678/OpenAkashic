@@ -33,7 +33,6 @@ from standard_tools import LocalNoteStore, TOOL_MANIFEST_TEXT as STD_TOOL_MANIFE
 from standard_tools import dispatch as std_dispatch
 
 BENCH_DIR = Path(__file__).resolve().parent
-TASKS_FILE = BENCH_DIR / "tasks.yaml"
 RESULTS_DIR = BENCH_DIR / "results"
 RESULTS_DIR.mkdir(exist_ok=True)
 
@@ -176,8 +175,9 @@ class RunRecord:
 
 # ── 인프라 호출 ────────────────────────────────────────────────────────────
 
-def load_tasks() -> list[dict[str, Any]]:
-    with open(TASKS_FILE, encoding="utf-8") as fp:
+def load_tasks(filename: str = "tasks.yaml") -> list[dict[str, Any]]:
+    p = BENCH_DIR / filename
+    with open(p, encoding="utf-8") as fp:
         data = yaml.safe_load(fp)
     return data.get("tasks", [])
 
@@ -483,10 +483,11 @@ def main() -> int:
     parser.add_argument("--condition", required=True,
                         choices=["baseline", "standard", "openakashic", "all3"],
                         help="Which condition(s) to run")
+    parser.add_argument("--tasks-file", default="tasks.yaml")
     parser.add_argument("--k", type=int, default=1, help="Repetitions per task")
     args = parser.parse_args()
 
-    all_tasks = load_tasks()
+    all_tasks = load_tasks(args.tasks_file)
     if args.task_id:
         tasks = [t for t in all_tasks if t["id"] == args.task_id]
         if not tasks:

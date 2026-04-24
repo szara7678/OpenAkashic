@@ -4852,6 +4852,16 @@ def closed_debug_html(route_prefix: str = "") -> str:
                       <div class="locked-copy">Loading consolidation log…</div>
                     </div>
                   </section>
+                  <section class="card">
+                    <h2 class="card-title">Benchmark Trends</h2>
+                    <p class="lead">OpenAkashicBench pass@k over time per condition. Manual trigger available.</p>
+                    <div class="actions">
+                      <button class="button" id="bench-run" type="button">Run Bench Now</button>
+                      <button class="button" id="bench-refresh" type="button">Refresh</button>
+                    </div>
+                    <div id="bench-trend" class="locked-copy">Loading benchmark history…</div>
+                    <p class="status-line" id="bench-status"></p>
+                  </section>
                 </div>
               </section>
             </div>
@@ -5066,6 +5076,10 @@ def closed_debug_html(route_prefix: str = "") -> str:
         sagwanResearchList: document.getElementById('sagwan-research-list'),
         sagwanConsolidationsRefresh: document.getElementById('sagwan-consolidations-refresh'),
         sagwanConsolidationsList: document.getElementById('sagwan-consolidations-list'),
+        benchRun: document.getElementById('bench-run'),
+        benchRefresh: document.getElementById('bench-refresh'),
+        benchTrend: document.getElementById('bench-trend'),
+        benchStatus: document.getElementById('bench-status'),
         impStatusFilter: document.getElementById('imp-status-filter'),
         impRefresh: document.getElementById('imp-refresh'),
         impList: document.getElementById('imp-list'),
@@ -5622,6 +5636,79 @@ def closed_debug_html(route_prefix: str = "") -> str:
         }
       }
 
+      function renderBenchHistory(entries) {
+        if (!dom.benchTrend) return;
+        if (!entries.length) {
+          dom.benchTrend.innerHTML = '<div class="locked-copy">No benchmark runs yet.</div>';
+          if (dom.benchStatus) dom.benchStatus.textContent = 'Run the benchmark once to start tracking trends.';
+          return;
+        }
+        const rows = entries.slice(0, 10).map((entry, index) => {
+          const prev = entries[index + 1] || null;
+          const delta = prev
+            ? Number(entry.pass_at_k_openakashic || 0) - Number(prev.pass_at_k_openakashic || 0)
+            : null;
+          const deltaText = delta === null ? '—' : `${delta >= 0 ? '+' : ''}${delta.toFixed(2)}`;
+          return `
+            <tr>
+              <td>${escapeHtml(entry.date || '-')}</td>
+              <td>${escapeHtml(entry.task_count || 0)}</td>
+              <td>${Number(entry.pass_at_k_baseline || 0).toFixed(2)}</td>
+              <td>${Number(entry.pass_at_k_standard || 0).toFixed(2)}</td>
+              <td>${Number(entry.pass_at_k_openakashic || 0).toFixed(2)}</td>
+              <td>${escapeHtml(deltaText)}</td>
+            </tr>
+          `;
+        }).join('');
+        const note = entries.length < 2 ? '<p class="status-line">Need more runs for trend.</p>' : '';
+        dom.benchTrend.innerHTML = `
+          <div style="overflow:auto;">
+            <table style="width:100%;border-collapse:collapse;font-size:.84rem;">
+              <thead>
+                <tr>
+                  <th align="left">date</th>
+                  <th align="left">task_count</th>
+                  <th align="left">baseline pass@k</th>
+                  <th align="left">standard pass@k</th>
+                  <th align="left">openakashic pass@k</th>
+                  <th align="left">Δ vs prev</th>
+                </tr>
+              </thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
+          ${note}
+        `;
+        if (dom.benchStatus) dom.benchStatus.textContent = `Showing ${Math.min(entries.length, 10)} recent run(s).`;
+      }
+
+      async function loadBenchHistory() {
+        if (!dom.benchTrend) return;
+        if (!isAdminSession()) {
+          dom.benchTrend.innerHTML = '<div class="locked-copy">Log in as admin to view benchmark history.</div>';
+          if (dom.benchStatus) dom.benchStatus.textContent = '';
+          return;
+        }
+        try {
+          const data = await fetchJson('/api/admin/bench/history?limit=20');
+          renderBenchHistory(data.entries || []);
+        } catch (error) {
+          dom.benchTrend.innerHTML = `<div class="locked-copy">${escapeHtml(error.message)}</div>`;
+          if (dom.benchStatus) dom.benchStatus.textContent = '';
+        }
+      }
+
+      async function runBenchNow() {
+        if (!isAdminSession()) return;
+        if (dom.benchStatus) dom.benchStatus.textContent = 'Starting benchmark run…';
+        try {
+          const data = await fetchJson('/api/admin/bench/run', { method: 'POST' });
+          if (dom.benchStatus) dom.benchStatus.textContent = data.note || 'Started, check back in 5-30 min.';
+        } catch (error) {
+          if (dom.benchStatus) dom.benchStatus.textContent = error.message;
+        }
+      }
+
       function startSagwanAutoRefresh() {
         stopSagwanAutoRefresh();
         state.sagwanTimer = window.setInterval(() => {
@@ -5799,7 +5886,7 @@ def closed_debug_html(route_prefix: str = "") -> str:
       }
 
       async function refreshSagwanActivityPanels() {
-        await Promise.all([loadSagwanActivity(), loadSagwanCapsules(), loadSagwanResearch(), loadSagwanConsolidations()]);
+        await Promise.all([loadSagwanActivity(), loadSagwanCapsules(), loadSagwanResearch(), loadSagwanConsolidations(), loadBenchHistory()]);
       }
 
       // ── improvement requests ────────────────────
@@ -5899,6 +5986,7 @@ def closed_debug_html(route_prefix: str = "") -> str:
       dom.sagwanCapsulesRefresh?.addEventListener('click', loadSagwanCapsules);
       dom.sagwanResearchRefresh?.addEventListener('click', loadSagwanResearch);
       dom.sagwanConsolidationsRefresh?.addEventListener('click', loadSagwanConsolidations);
+      dom.benchRefresh?.addEventListener('click', loadBenchHistory);
       [dom.q, dom.kind, dom.method, dom.statusMin, dom.limit, dom.sort, dom.order, dom.requestId]
         .forEach((element) => element.addEventListener('input', scheduleRefresh));
       dom.userSearch?.addEventListener('input', renderUsers);
@@ -5910,6 +5998,7 @@ def closed_debug_html(route_prefix: str = "") -> str:
       dom.sagwanRunCurate?.addEventListener('click', runSagwanCurate);
       dom.sagwanRunResearch?.addEventListener('click', runSagwanResearch);
       dom.sagwanRunConsolidation?.addEventListener('click', runSagwanConsolidation);
+      dom.benchRun?.addEventListener('click', runBenchNow);
       dom.impRefresh?.addEventListener('click', loadImprovementRequests);
       dom.impStatusFilter?.addEventListener('change', loadImprovementRequests);
       dom.impModalClose?.addEventListener('click', () => { if (dom.impModal) dom.impModal.hidden = true; });

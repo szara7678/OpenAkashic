@@ -78,6 +78,9 @@ def _default_sagwan_settings() -> dict[str, Any]:
         "consolidate_enabled": True,
         "consolidate_interval_sec": 21600,  # 6시간
         "consolidate_min_reviews": 3,
+        "bench_enabled": False,
+        "bench_interval_sec": 604800,  # 1주
+        "bench_model": "",
         "topic_min_interval_hours": 12,
         "meta_min_interval_hours": 12,
     }
@@ -126,6 +129,12 @@ def load_sagwan_settings() -> dict[str, Any]:
             20,
             max(2, int(raw.get("consolidate_min_reviews") or defaults["consolidate_min_reviews"])),
         ),
+        "bench_enabled": bool(raw.get("bench_enabled", defaults["bench_enabled"])),
+        "bench_interval_sec": min(
+            2592000,
+            max(86400, int(raw.get("bench_interval_sec") or defaults["bench_interval_sec"])),
+        ),
+        "bench_model": str(raw.get("bench_model") or defaults["bench_model"]).strip(),
         "topic_min_interval_hours": min(
             168,
             max(1, int(raw.get("topic_min_interval_hours") or defaults["topic_min_interval_hours"])),
@@ -173,6 +182,12 @@ def save_sagwan_settings(payload: dict[str, Any]) -> dict[str, Any]:
             20,
             max(2, int(payload.get("consolidate_min_reviews") or current["consolidate_min_reviews"])),
         ),
+        "bench_enabled": bool(payload.get("bench_enabled", current["bench_enabled"])),
+        "bench_interval_sec": min(
+            2592000,
+            max(86400, int(payload.get("bench_interval_sec") or current["bench_interval_sec"])),
+        ),
+        "bench_model": str(payload.get("bench_model") or current["bench_model"]).strip(),
         "topic_min_interval_hours": min(
             168,
             max(1, int(payload.get("topic_min_interval_hours") or current["topic_min_interval_hours"])),
@@ -566,6 +581,19 @@ def run_sagwan_consolidation_cycle(*, reason: str = "manual", force: bool = Fals
         return {"status": "error", "detail": str(exc), "reason": reason}
 
 
+def _curate_run_bench(settings: dict[str, Any]) -> dict[str, Any]:
+    from app.bench_scheduled import trigger_full_bench_run_async
+
+    return trigger_full_bench_run_async(
+        reason="scheduled:sagwan-curation",
+        force=False,
+        settings=settings,
+        tasks_file="tasks.yaml",
+        k=1,
+        model=str(settings.get("bench_model") or "").strip() or None,
+    )
+
+
 def run_sagwan_curation_cycle(*, reason: str = "scheduled") -> dict[str, Any]:
     """
     사관의 정제(큐레이션) 루틴. 다음 단계를 수행한다:
@@ -579,6 +607,8 @@ def run_sagwan_curation_cycle(*, reason: str = "scheduled") -> dict[str, Any]:
     (K) gap-driven research — 사관이 WebSearch/WebFetch 로 직접 리서치 capsule 초안 생성
     (L) review consolidation — 누적 리뷰를 uphold/revise/supersede 로 정리
     """
+    settings = load_sagwan_settings()
+
     try:
         a = _curate_derive_and_sync()
     except Exception as exc:
@@ -639,6 +669,15 @@ def run_sagwan_curation_cycle(*, reason: str = "scheduled") -> dict[str, Any]:
         logger.error("sagwan curation L (consolidate reviews) failed: %s", exc)
         l_consolidate = {"error": str(exc)}
 
+    if settings.get("bench_enabled"):
+        try:
+            m_bench = _curate_run_bench(settings)
+        except Exception as exc:
+            logger.error("sagwan curation bench trigger failed: %s", exc)
+            m_bench = {"error": str(exc)}
+    else:
+        m_bench = {"status": "disabled"}
+
     try:
         distill = distill_memory("sagwan", llm_invoke=_invoke_claude_cli)
     except Exception as exc:
@@ -653,6 +692,7 @@ def run_sagwan_curation_cycle(*, reason: str = "scheduled") -> dict[str, Any]:
         "meta_curation": i_meta,
         "research_gaps": k_research,
         "consolidate_reviews": l_consolidate,
+        "bench": m_bench,
         "distill_sagwan": distill,
     }
     try:
@@ -672,6 +712,7 @@ def run_sagwan_curation_cycle(*, reason: str = "scheduled") -> dict[str, Any]:
                 f"research_status={k_research.get('status', '?')} "
                 f"research_capsule={k_research.get('capsule_path', '-')} "
                 f"consolidate={l_consolidate.get('verdict', l_consolidate.get('status', '?'))} "
+                f"bench={m_bench.get('status', '?')} "
                 f"distill_sagwan={distill.get('status')}"
             ),
             kind="curation",

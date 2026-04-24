@@ -1374,6 +1374,47 @@ def api_admin_sagwan_consolidations(
     return _admin_recent_sagwan_consolidations(limit)
 
 
+@api.get("/api/admin/bench/history")
+def api_admin_bench_history(
+    limit: int = Query(default=20, ge=1, le=100),
+    auth: AuthState = Depends(require_admin_token),
+) -> dict[str, Any]:
+    entries: list[dict[str, Any]] = []
+    for path in list_note_paths():
+        if not path.startswith("personal_vault/projects/ops/bench/history/"):
+            continue
+        try:
+            doc = load_document(path)
+            fm = doc.frontmatter or {}
+            entries.append(
+                {
+                    "date": str(fm.get("date") or path.rsplit("/", 1)[-1].replace(".md", "")),
+                    "path": path,
+                    "task_count": int(fm.get("task_count") or 0),
+                    "pass_at_k_baseline": float(fm.get("pass_at_k_baseline") or 0),
+                    "pass_at_k_standard": float(fm.get("pass_at_k_standard") or 0),
+                    "pass_at_k_openakashic": float(fm.get("pass_at_k_openakashic") or 0),
+                    "model": str(fm.get("model") or ""),
+                    "run_started_at": str(fm.get("run_started_at") or ""),
+                    "run_finished_at": str(fm.get("run_finished_at") or ""),
+                }
+            )
+        except Exception:
+            continue
+    entries.sort(key=lambda item: str(item.get("run_finished_at") or item.get("date") or ""), reverse=True)
+    return {"entries": entries[:limit]}
+
+
+@api.post("/api/admin/bench/run")
+def api_admin_bench_run(auth: AuthState = Depends(require_admin_token)) -> dict[str, Any]:
+    from app.bench_scheduled import trigger_full_bench_run_async
+
+    result = trigger_full_bench_run_async(reason=f"manual:{auth.nickname}", force=True)
+    if result.get("status") == "started":
+        return {**result, "note": "Result will appear in /api/admin/bench/history"}
+    return result
+
+
 @api.post("/api/admin/core/resync")
 def api_admin_core_resync(
     path: str | None = Query(default=None, description="specific note path; if omitted, rescans all published capsules/claims"),
