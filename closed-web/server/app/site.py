@@ -183,6 +183,19 @@ def _claim_trust_multiplier(status: str, confirm_count: int, dispute_count: int)
     return base * confirm_boost * dispute_penalty
 
 
+def _build_trust_hint(*, claim_review_status: str, confirm_count: int, dispute_count: int) -> str:
+    status = str(claim_review_status or "").strip().lower()
+    if status == "superseded":
+        return "⚠ superseded"
+    if status == "merged":
+        return "merged"
+    if dispute_count > confirm_count and dispute_count > 0:
+        return f"⚠ disputed ({dispute_count}d / {confirm_count}c)"
+    if confirm_count >= 2:
+        return f"✓ confirmed ({confirm_count}c)"
+    return ""
+
+
 def _filter_notes_for_viewer(
     notes: list[ClosedNote],
     *,
@@ -535,8 +548,16 @@ def search_closed_notes(
             "semantic_score": round(semantic_score, 4),
             "confirm_count": note.confirm_count,
             "dispute_count": note.dispute_count,
+            "neutral_count": note.neutral_count,
             "claim_review_status": note.claim_review_status,
             "claim_review_badge": _claim_trust_badge(note.claim_review_status),
+            "trust_hint": _build_trust_hint(
+                claim_review_status=note.claim_review_status,
+                confirm_count=note.confirm_count,
+                dispute_count=note.dispute_count,
+            ),
+            "supersedes": note.supersedes,
+            "superseded_by": note.superseded_by,
         }
     # Reciprocal Rank Fusion (Cormack et al. 2009) — 이질적 점수(정수 lexical vs [0,1] semantic)를
     # 선형 결합하는 대신 rank 기반으로 합쳐 scale 의존성을 제거한다. k=60은 업계 표준.
