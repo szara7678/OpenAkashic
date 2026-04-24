@@ -19,6 +19,15 @@ from pathlib import Path
 from typing import Any
 
 
+KNOWN_CONDITION_ORDER = [
+    "cli_baseline",
+    "cli_openakashic",
+    "baseline",
+    "standard",
+    "openakashic",
+]
+
+
 def load_judged(paths: list[Path]) -> list[dict[str, Any]]:
     return [json.loads(p.read_text()) for p in paths]
 
@@ -55,13 +64,17 @@ def aggregate_by_task_condition(bundles: list[dict[str, Any]]
 def render_markdown(bundles: list[dict[str, Any]],
                     per_task: dict[str, dict[str, Any]]) -> str:
     model = bundles[0].get("model", "unknown")
-    conditions = sorted({b.get("condition") for b in bundles if b.get("condition")})
+    raw_conditions = {b.get("condition") for b in bundles if b.get("condition")}
+    conditions = [c for c in KNOWN_CONDITION_ORDER if c in raw_conditions]
+    conditions += sorted(raw_conditions - set(conditions))
+    cli_harnesses = sorted({b.get("cli_harness") for b in bundles if b.get("cli_harness")})
 
     lines: list[str] = [
         f"# OpenAkashicBench — A/B Report",
         "",
         f"**Model**: `{model}`  ",
         f"**Conditions compared**: {', '.join(conditions)}  ",
+        f"**CLI harnesses**: {', '.join(cli_harnesses) if cli_harnesses else 'n/a'}  ",
         f"**Tasks**: {len(per_task)}",
         "",
     ]
@@ -89,10 +102,15 @@ def render_markdown(bundles: list[dict[str, Any]],
     def _pair_lift(left: str, right: str, label: str) -> None:
         if left not in conditions or right not in conditions:
             return
-        lines.append(f"## Lift: {right} vs {left} ({label})")
+        lines.append(f"### {label}: {right} vs {left}")
         lines.append("")
-        lines.append(f"| task | {left} hit | {right} hit | Δ hit | {left} traps | {right} traps | Δ traps |")
-        lines.append("|---|---|---|---|---|---|---|")
+        lines.append(
+            f"| task | {left} pass@k | {right} pass@k | Δ pass@k | "
+            f"{left} hit | {right} hit | Δ hit | "
+            f"{left} traps | {right} traps | trap reduction |"
+        )
+        lines.append("|---|---|---|---|---|---|---|---|---|---|")
+        tot_l_p = tot_r_p = 0
         tot_l_h = tot_r_h = 0.0
         tot_l_t = tot_r_t = 0
         counted = 0
@@ -101,22 +119,41 @@ def render_markdown(bundles: list[dict[str, Any]],
             R = per_task[tid].get(right)
             if not (L and R):
                 continue
-            lines.append(f"| {tid} | {L['mean_hit_rate']:.2f} | {R['mean_hit_rate']:.2f} | "
-                         f"{R['mean_hit_rate']-L['mean_hit_rate']:+.2f} | "
-                         f"{L['total_traps_hit']} | {R['total_traps_hit']} | "
-                         f"{R['total_traps_hit']-L['total_traps_hit']:+d} |")
+            trap_reduction = L["total_traps_hit"] - R["total_traps_hit"]
+            lines.append(
+                f"| {tid} | {L['pass_at_k']} | {R['pass_at_k']} | {R['pass_at_k']-L['pass_at_k']:+d} | "
+                f"{L['mean_hit_rate']:.2f} | {R['mean_hit_rate']:.2f} | "
+                f"{R['mean_hit_rate']-L['mean_hit_rate']:+.2f} | "
+                f"{L['total_traps_hit']} | {R['total_traps_hit']} | "
+                f"{trap_reduction:+d} |"
+            )
+            tot_l_p += L["pass_at_k"]
+            tot_r_p += R["pass_at_k"]
             tot_l_h += L['mean_hit_rate']; tot_r_h += R['mean_hit_rate']
             tot_l_t += L['total_traps_hit']; tot_r_t += R['total_traps_hit']
             counted += 1
         if counted:
-            lines.append(f"| **mean** | **{tot_l_h/counted:.2f}** | **{tot_r_h/counted:.2f}** | "
-                         f"**{(tot_r_h-tot_l_h)/counted:+.2f}** | **{tot_l_t}** | **{tot_r_t}** | "
-                         f"**{tot_r_t-tot_l_t:+d}** |")
+            lines.append(
+                f"| **mean** | **{tot_l_p/counted:.2f}** | **{tot_r_p/counted:.2f}** | "
+                f"**{(tot_r_p-tot_l_p)/counted:+.2f}** | "
+                f"**{tot_l_h/counted:.2f}** | **{tot_r_h/counted:.2f}** | "
+                f"**{(tot_r_h-tot_l_h)/counted:+.2f}** | **{tot_l_t}** | **{tot_r_t}** | "
+                f"**{tot_l_t-tot_r_t:+d}** |"
+            )
         lines.append("")
 
-    _pair_lift("baseline", "standard", "기본 에이전트 도구가 주는 이득")
-    _pair_lift("standard", "openakashic", "OpenAkashic 고유 가치")
-    _pair_lift("baseline", "openakashic", "전체 lift")
+    if "cli_baseline" in conditions or "cli_openakashic" in conditions:
+        lines.append("## CLI conditions")
+        lines.append("")
+        _pair_lift("cli_baseline", "cli_openakashic", "Primary benchmark")
+
+    simulated_present = any(c in conditions for c in ("baseline", "standard", "openakashic"))
+    if simulated_present:
+        lines.append("## Simulated conditions")
+        lines.append("")
+        _pair_lift("baseline", "standard", "기본 에이전트 도구가 주는 이득")
+        _pair_lift("standard", "openakashic", "OpenAkashic 고유 가치")
+        _pair_lift("baseline", "openakashic", "전체 lift")
 
     lines.append("## Per-task detail")
     lines.append("")

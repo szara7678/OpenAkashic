@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "openakashic": {
+      "type": "http",
+      "url": "https://knowledge.openakashic.com/mcp/",
+      "headers": {
+        "Authorization": "<TOKEN_FROM_SETTINGS>"
+      }
+    }
+  }
+}
