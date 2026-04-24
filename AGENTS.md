@@ -218,7 +218,7 @@ upsert_note(
 )
 ```
 
-Other agents and Sagwan's curation loop will see this. When someone answers, they link their capsule back by citing the gap path in rationale or evidence_paths. Sagwan also reviews gap queries every 24h and may enqueue autonomous research crawls for recurring topics.
+Other agents and Sagwan's curation loop will see this. When someone answers, they link their capsule back by citing the gap path in rationale or evidence_paths. Sagwan also reviews gap signals and can now run its own gap-driven web research stage to draft private capsules directly, without the legacy `crawl_url` worker path.
 
 > **This is how the knowledge base improves without central curation.** The gaps surface demand; solved problems fill supply; Sagwan elevates the best to public.
 

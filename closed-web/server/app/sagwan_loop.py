@@ -18,6 +18,7 @@ from datetime import UTC, datetime, timedelta
 import json
 import logging
 from pathlib import Path
+import re
 from typing import Any
 
 from app.agent_memory import (
@@ -30,7 +31,7 @@ from app.agent_memory import (
     render_context_snippet,
 )
 from app.config import get_settings
-from app.librarian import _invoke_claude_cli, load_librarian_settings
+from app.librarian import _invoke_claude_cli, _invoke_claude_cli_with_tools, load_librarian_settings
 from app.vault import (
     PUBLICATION_REQUEST_FOLDER,
     append_section,
@@ -38,6 +39,8 @@ from app.vault import (
     list_publication_requests,
     load_document,
     set_publication_status,
+    suggest_note_path,
+    write_document,
 )
 
 logger = logging.getLogger(__name__)
@@ -69,6 +72,9 @@ def _default_sagwan_settings() -> dict[str, Any]:
         "require_subordinate_review": False,
         "use_llm": True,           # LLM 최종 판단 사용
         "curation_interval_sec": 3600,  # 1시간마다 정제 루틴
+        "research_enabled": True,
+        "research_interval_sec": 14400,  # 4시간
+        "research_max_fetches": 3,
     }
 
 
@@ -97,6 +103,15 @@ def load_sagwan_settings() -> dict[str, Any]:
         "curation_interval_sec": max(
             300, int(raw.get("curation_interval_sec") or defaults["curation_interval_sec"])
         ),
+        "research_enabled": bool(raw.get("research_enabled", defaults["research_enabled"])),
+        "research_interval_sec": min(
+            86400,
+            max(1800, int(raw.get("research_interval_sec") or defaults["research_interval_sec"])),
+        ),
+        "research_max_fetches": min(
+            6,
+            max(1, int(raw.get("research_max_fetches") or defaults["research_max_fetches"])),
+        ),
     }
 
 
@@ -117,6 +132,15 @@ def save_sagwan_settings(payload: dict[str, Any]) -> dict[str, Any]:
         "curation_interval_sec": max(
             300,
             int(payload.get("curation_interval_sec") or current["curation_interval_sec"]),
+        ),
+        "research_enabled": bool(payload.get("research_enabled", current["research_enabled"])),
+        "research_interval_sec": min(
+            86400,
+            max(1800, int(payload.get("research_interval_sec") or current["research_interval_sec"])),
+        ),
+        "research_max_fetches": min(
+            6,
+            max(1, int(payload.get("research_max_fetches") or current["research_max_fetches"])),
         ),
     }
     path = sagwan_settings_path()
@@ -481,15 +505,28 @@ def pending_publication_request_count() -> int:
 
 # ─── 정제/큐레이션 루틴 ────────────────────────────────────────────────────────
 
+def run_sagwan_research_cycle(*, reason: str = "manual", force: bool = False) -> dict[str, Any]:
+    try:
+        result = _curate_research_gaps(force=force)
+        if reason:
+            result = {**result, "reason": reason}
+        return result
+    except Exception as exc:
+        logger.error("sagwan research cycle failed: %s", exc)
+        return {"status": "error", "detail": str(exc), "reason": reason}
+
+
 def run_sagwan_curation_cycle(*, reason: str = "scheduled") -> dict[str, Any]:
     """
     사관의 정제(큐레이션) 루틴. 다음 단계를 수행한다:
     (B) core_api 재동기화 — published 인데 core_api_id 없음 → sync_to_core_api enqueue
     (C) 재검증 — published capsule/claim 오래된 순으로 사관 LLM 재검토
-    (D) 피드 수급 — sources.json 정의된 RSS/arXiv 피드에서 새 항목 → crawl_url enqueue
+    (D) 레거시 피드 수급 — deprecated no-op
     (E) 캡슐 생성 — 사관 LLM 이 seed 노트에서 직접 capsule 본문 작성 (과거 draft_capsule 부사관 이관)
     (F) 충돌 판정 — 사관 LLM 이 의미 중복 후보를 판정 (과거 detect_conflicts 부사관 이관)
     (G) signal scans — stale/gap 스캔 태스크 enqueue
+    (H) 연구 토픽 제안 — 주제만 제안/기록 (자동 crawl 없음)
+    (K) gap-driven research — 사관이 WebSearch/WebFetch 로 직접 리서치 capsule 초안 생성
     """
     try:
         a = _curate_derive_and_sync()
@@ -540,6 +577,12 @@ def run_sagwan_curation_cycle(*, reason: str = "scheduled") -> dict[str, Any]:
         i_meta = {"error": str(exc)}
 
     try:
+        k_research = _curate_research_gaps()
+    except Exception as exc:
+        logger.error("sagwan curation K (research gaps) failed: %s", exc)
+        k_research = {"error": str(exc)}
+
+    try:
         distill = distill_memory("sagwan", llm_invoke=_invoke_claude_cli)
     except Exception as exc:
         logger.error("sagwan distill failed: %s", exc)
@@ -551,6 +594,7 @@ def run_sagwan_curation_cycle(*, reason: str = "scheduled") -> dict[str, Any]:
         "capsule_gen": e, "conflict_detect": f_conflict, "signal_scans": g_signals,
         "topic_proposals": h_topics,
         "meta_curation": i_meta,
+        "research_gaps": k_research,
         "distill_sagwan": distill,
     }
     try:
@@ -567,6 +611,8 @@ def run_sagwan_curation_cycle(*, reason: str = "scheduled") -> dict[str, Any]:
                 f"signals_enqueued={g_signals.get('enqueued', 0)} "
                 f"topics_status={h_topics.get('status', '?')} "
                 f"meta_status={i_meta.get('status', '?')} "
+                f"research_status={k_research.get('status', '?')} "
+                f"research_capsule={k_research.get('capsule_path', '-')} "
                 f"distill_sagwan={distill.get('status')}"
             ),
             kind="curation",
@@ -844,76 +890,12 @@ def _parse_feed_items(raw_xml: str, max_items: int) -> list[tuple[str, str]]:
 
 
 def _curate_ingest_feeds(*, max_per_feed: int = 3, max_total: int = 5) -> dict[str, Any]:
-    """(D) sources.json 에서 새 항목 fetch → 중복 체크 → crawl_url 태스크 enqueue."""
-    from urllib import error as urlerror
-    from urllib import request as urlrequest
-
-    from app.site import search_closed_notes
-    from app.subordinate import enqueue_subordinate_task
-
-    sources = _load_sources()
-    if not sources:
-        return {"enabled": False, "enqueued": 0, "feeds": 0}
-
-    enqueued = 0
-    feeds_processed = 0
-    skipped_duplicate = 0
-    errors: list[str] = []
-
-    for feed in sources:
-        if enqueued >= max_total:
-            break
-        feeds_processed += 1
-        url = str(feed.get("url") or "")
-        folder = str(feed.get("folder") or "personal_vault/feeds")
-        tags = list(feed.get("tags") or [])
-        try:
-            req = urlrequest.Request(url, headers={"User-Agent": "OpenAkashic-Sagwan/1.0"})
-            with urlrequest.urlopen(req, timeout=15) as resp:
-                raw_xml = resp.read().decode("utf-8", errors="replace")
-            items = _parse_feed_items(raw_xml, max_items=max_per_feed)
-        except (urlerror.URLError, TimeoutError, OSError) as exc:
-            errors.append(f"{url}: {exc}")
-            continue
-        except Exception as exc:
-            errors.append(f"{url}: {exc}")
-            continue
-
-        for title, link in items:
-            if enqueued >= max_total:
-                break
-            try:
-                hits = search_closed_notes(title, limit=3).get("results", [])
-                t_low = title.lower()
-                if hits and any(
-                    t_low in (h.get("title") or "").lower()
-                    or (h.get("title") or "").lower() in t_low
-                    for h in hits
-                ):
-                    skipped_duplicate += 1
-                    continue
-            except Exception:
-                pass
-            try:
-                enqueue_subordinate_task(
-                    kind="crawl_url",
-                    payload={"url": link, "folder": folder, "tags": tags, "title_hint": title},
-                    created_by="sagwan",
-                )
-                enqueued += 1
-            except RuntimeError as exc:
-                # 큐 상한 초과 — 이번 사이클 feed 수급 중단
-                errors.append(f"queue_limit: {exc}")
-                break
-            except Exception as exc:
-                errors.append(f"enqueue {link}: {exc}")
-
+    """(D) legacy RSS/arXiv ingest path is deprecated and intentionally no-ops."""
     return {
-        "enabled": True,
-        "feeds": feeds_processed,
-        "enqueued": enqueued,
-        "skipped_duplicate": skipped_duplicate,
-        "errors": errors[:5],
+        "status": "deprecated",
+        "note": "replaced by _curate_research_gaps in stage K",
+        "feeds": 0,
+        "enqueued": 0,
     }
 
 
@@ -926,6 +908,468 @@ def _curate_ingest_feeds(*, max_per_feed: int = 3, max_total: int = 5) -> dict[s
 _SAGWAN_CAPSULE_FOLDER = "personal_vault/projects/ops/librarian/capsules"
 _SAGWAN_CAPSULE_CREATOR = "sagwan"
 _CAPSULE_GEN_MAX_PER_CYCLE = 1  # 안전상 사이클당 1개만 생성
+_RESEARCH_LOG_PATH = "personal_vault/projects/ops/librarian/activity/research-log.md"
+
+
+def _parse_iso_datetime(value: str) -> datetime | None:
+    raw = str(value or "").strip()
+    if not raw:
+        return None
+    try:
+        return datetime.fromisoformat(raw.replace("Z", "+00:00")).astimezone(UTC)
+    except ValueError:
+        return None
+
+
+def _topic_slug(value: str) -> str:
+    slug = re.sub(r"[^0-9a-zA-Z가-힣]+", "-", str(value or "").strip()).strip("-").lower()
+    return slug[:60] or "research-gap"
+
+
+def _inventory_knowledge_state() -> dict[str, Any]:
+    now = datetime.now(UTC)
+    clusters: dict[str, dict[str, Any]] = {}
+    recent_gap_queries: list[dict[str, Any]] = []
+    total_capsules = 0
+    total_claims = 0
+
+    for path in list_note_paths():
+        try:
+            doc = load_document(path)
+        except Exception:
+            continue
+        fm = dict(doc.frontmatter or {})
+        kind = str(fm.get("kind") or "").strip().lower()
+        tags = [str(tag).strip() for tag in (fm.get("tags") or []) if str(tag).strip()]
+        if kind == "capsule":
+            total_capsules += 1
+        elif kind == "claim":
+            total_claims += 1
+
+        if path.startswith("doc/knowledge-gaps/"):
+            gap_query = str(fm.get("gap_query") or fm.get("title") or Path(path).stem).strip()
+            recent_gap_queries.append(
+                {
+                    "query": gap_query,
+                    "miss_count": int(fm.get("miss_count") or 0),
+                    "last_queried": str(fm.get("last_queried") or fm.get("updated_at") or ""),
+                    "path": path,
+                }
+            )
+
+        if not tags:
+            tags = ["untagged"]
+        freshness_anchor = (
+            _parse_iso_datetime(str(fm.get("freshness_date") or ""))
+            or _parse_iso_datetime(str(fm.get("updated_at") or ""))
+            or _parse_iso_datetime(str(fm.get("created_at") or ""))
+        )
+        age_days = None
+        if freshness_anchor is not None:
+            age_days = max(0.0, (now - freshness_anchor).total_seconds() / 86400.0)
+
+        for tag in tags:
+            cluster = clusters.setdefault(
+                tag,
+                {
+                    "tag": tag,
+                    "note_count": 0,
+                    "capsule_count": 0,
+                    "claim_count": 0,
+                    "total_body_chars": 0,
+                    "freshness_ages": [],
+                },
+            )
+            cluster["note_count"] += 1
+            cluster["total_body_chars"] += len(doc.body or "")
+            if kind == "capsule":
+                cluster["capsule_count"] += 1
+            elif kind == "claim":
+                cluster["claim_count"] += 1
+            if age_days is not None:
+                cluster["freshness_ages"].append(age_days)
+
+    tag_clusters: list[dict[str, Any]] = []
+    for item in clusters.values():
+        note_count = max(1, int(item["note_count"]))
+        ages = [float(age) for age in item.get("freshness_ages") or []]
+        tag_clusters.append(
+            {
+                "tag": item["tag"],
+                "note_count": int(item["note_count"]),
+                "capsule_count": int(item["capsule_count"]),
+                "claim_count": int(item["claim_count"]),
+                "avg_body_chars": round(float(item["total_body_chars"]) / note_count, 1),
+                "avg_freshness_age_days": round(sum(ages) / len(ages), 1) if ages else None,
+            }
+        )
+
+    top_thin: list[dict[str, Any]] = []
+    for cluster in tag_clusters:
+        reasons: list[str] = []
+        knowledge_count = int(cluster["capsule_count"]) + int(cluster["claim_count"])
+        if knowledge_count == 0:
+            reasons.append("no_capsules_or_claims")
+        elif knowledge_count <= 2:
+            reasons.append("few_capsules_or_claims")
+        if float(cluster["avg_body_chars"] or 0) < 700:
+            reasons.append("shallow_notes")
+        age_days = cluster.get("avg_freshness_age_days")
+        if age_days is not None and float(age_days) > 120:
+            reasons.append("stale_cluster")
+        if reasons:
+            top_thin.append(
+                {
+                    "tag": cluster["tag"],
+                    "reason": ", ".join(reasons),
+                    "note_count": cluster["note_count"],
+                    "capsule_count": cluster["capsule_count"],
+                    "claim_count": cluster["claim_count"],
+                    "avg_body_chars": cluster["avg_body_chars"],
+                    "avg_freshness_age_days": age_days,
+                }
+            )
+
+    tag_clusters.sort(
+        key=lambda item: (
+            int(item["capsule_count"]) + int(item["claim_count"]),
+            int(item["note_count"]),
+            float(item["avg_body_chars"] or 0),
+        )
+    )
+    top_thin.sort(
+        key=lambda item: (
+            -len(str(item.get("reason") or "").split(",")),
+            int(item.get("capsule_count") or 0) + int(item.get("claim_count") or 0),
+            int(item.get("note_count") or 0),
+        )
+    )
+    recent_gap_queries.sort(
+        key=lambda item: (
+            str(item.get("last_queried") or ""),
+            int(item.get("miss_count") or 0),
+        ),
+        reverse=True,
+    )
+
+    return {
+        "tag_clusters": tag_clusters[:30],
+        "top_thin": top_thin[:10],
+        "total_capsules": total_capsules,
+        "total_claims": total_claims,
+        "recent_gap_queries": recent_gap_queries[:10],
+    }
+
+
+def _build_gap_selection_prompt(inventory: dict[str, Any], memory_snippet: str) -> str:
+    top_thin = inventory.get("top_thin") or []
+    gap_queries = inventory.get("recent_gap_queries") or []
+    inventory_block = json.dumps(
+        {
+            "total_capsules": inventory.get("total_capsules", 0),
+            "total_claims": inventory.get("total_claims", 0),
+            "top_thin": top_thin[:8],
+            "recent_gap_queries": gap_queries[:8],
+        },
+        ensure_ascii=False,
+        indent=2,
+    )
+    return "\n\n".join(
+        [
+            "너는 OpenAkashic 사관이다. 지식 인벤토리를 보고 지금 가장 얇고 가치 있는 연구 공백 하나를 고른다.",
+            "선정 기준:",
+            "- 이미 충분히 두꺼운 태그 군집은 피한다.",
+            "- 최근 gap query 와 연결되거나, capsule/claim 이 부족하거나, 오래된 군집을 우선한다.",
+            "- 검색 쿼리는 실제 웹 검색에 바로 쓸 수 있게 구체적으로 쓴다.",
+            "- broad topic 금지. implementation / architecture / failure mode 같이 재사용 가능한 주제를 고른다.",
+            "",
+            "반드시 JSON 객체만 출력하라. 설명 금지.",
+            '{"topic":"...","queries":["q1","q2","q3"],"rationale":"...","target_capsule_title":"..."}',
+            "",
+            "## 인벤토리",
+            inventory_block,
+            "",
+            "## 최근 사관 기억",
+            memory_snippet or "(없음)",
+        ]
+    )
+
+
+def _parse_gap_selection(raw: str) -> dict[str, Any] | None:
+    text = str(raw or "").strip()
+    if not text:
+        return None
+
+    candidates = [text]
+    fenced = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", text, re.DOTALL)
+    if fenced:
+        candidates.insert(0, fenced.group(1).strip())
+    brace = re.search(r"(\{.*\})", text, re.DOTALL)
+    if brace:
+        candidates.append(brace.group(1).strip())
+
+    parsed: dict[str, Any] | None = None
+    for candidate in candidates:
+        try:
+            payload = json.loads(candidate)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(payload, dict):
+            parsed = payload
+            break
+
+    if parsed is None:
+        topic_match = re.search(r"topic\s*[:=]\s*(.+)", text, re.IGNORECASE)
+        rationale_match = re.search(r"rationale\s*[:=]\s*(.+)", text, re.IGNORECASE)
+        title_match = re.search(r"target_capsule_title\s*[:=]\s*(.+)", text, re.IGNORECASE)
+        query_lines = re.findall(r"query(?:ies)?\s*[:=]\s*(.+)", text, re.IGNORECASE)
+        parsed = {
+            "topic": topic_match.group(1).strip().strip('"\'' ) if topic_match else "",
+            "queries": query_lines,
+            "rationale": rationale_match.group(1).strip().strip('"\'' ) if rationale_match else "",
+            "target_capsule_title": title_match.group(1).strip().strip('"\'' ) if title_match else "",
+        }
+
+    topic = str(parsed.get("topic") or "").strip()
+    raw_queries = parsed.get("queries")
+    if isinstance(raw_queries, str):
+        queries = [
+            item.strip().strip('"\'' )
+            for item in re.split(r"[,\n;]+", raw_queries)
+            if item.strip()
+        ]
+    elif isinstance(raw_queries, list):
+        queries = [str(item).strip().strip('"\'' ) for item in raw_queries if str(item).strip()]
+    else:
+        queries = []
+    rationale = str(parsed.get("rationale") or "").strip()
+    target_capsule_title = str(parsed.get("target_capsule_title") or "").strip()
+
+    if not topic or not queries:
+        return None
+    cleaned_queries = list(dict.fromkeys(query for query in queries if len(query) >= 3))[:5]
+    if not cleaned_queries:
+        return None
+
+    return {
+        "topic": topic,
+        "queries": cleaned_queries,
+        "rationale": rationale[:500],
+        "target_capsule_title": target_capsule_title[:200],
+    }
+
+
+def _build_research_prompt(gap: dict[str, Any]) -> str:
+    queries = gap.get("queries") or []
+    max_fetches = int(gap.get("max_fetches") or 3)
+    lines = [
+        "너는 OpenAkashic 사관이다. 공개 웹을 조사해 private capsule 초안을 작성한다.",
+        "반드시 WebSearch 를 먼저 사용하고, 검색 결과 중 신뢰 가능한 공개 URL만 고른다.",
+        f"WebFetch 는 전체 합계 최대 {max_fetches}회까지만 사용한다. 그 이상 fetch 하지 마라.",
+        "과장 금지. 확인되지 않은 내용은 Cautions 에 적어라.",
+        "최종 출력은 마크다운 본문만 작성하고, 반드시 아래 섹션을 포함한다:",
+        "## Summary",
+        "## Key Points",
+        "## Cautions",
+        "## Sources",
+        "Sources 섹션에는 사용한 각 URL을 bullet 로 명시하라.",
+        "",
+        f"## Topic\n{gap.get('topic')}",
+        "",
+        "## Search Queries",
+        *[f"- {query}" for query in queries],
+    ]
+    if gap.get("rationale"):
+        lines.extend(["", "## Why This Gap Matters", str(gap.get("rationale"))])
+    return "\n".join(lines)
+
+
+def _extract_source_urls(capsule_body: str) -> list[str]:
+    body = str(capsule_body or "")
+    match = re.search(r"^##\s+Sources\s*$([\s\S]*)", body, re.IGNORECASE | re.MULTILINE)
+    if not match:
+        return []
+    section = match.group(1)
+    urls = re.findall(r"https?://[^\s)>\"']+", section)
+    deduped: list[str] = []
+    seen: set[str] = set()
+    for url in urls:
+        cleaned = url.rstrip(".,")
+        if cleaned in seen:
+            continue
+        seen.add(cleaned)
+        deduped.append(cleaned)
+    return deduped
+
+
+def _ensure_research_log_document() -> None:
+    try:
+        load_document(_RESEARCH_LOG_PATH)
+        return
+    except Exception:
+        pass
+    write_document(
+        path=_RESEARCH_LOG_PATH,
+        title="Sagwan Research Log",
+        kind="reference",
+        project="ops/librarian",
+        status="active",
+        tags=["sagwan", "activity", "research-gap"],
+        body="\n".join(
+            [
+                "## Summary",
+                "Sagwan gap-driven research history. Frontmatter `last_run_at` is the stage-K cooldown anchor.",
+            ]
+        ),
+        metadata={"visibility": "private", "publication_status": "none", "owner": "sagwan"},
+        allow_owner_change=True,
+    )
+
+
+def _append_research_log_entry(
+    *,
+    topic: str,
+    queries: list[str],
+    rationale: str,
+    cited_urls: list[str],
+    capsule_path: str,
+    model: str,
+    max_fetches: int,
+) -> None:
+    _ensure_research_log_document()
+    ts = _now_iso()
+    append_section(
+        _RESEARCH_LOG_PATH,
+        f"{ts} research-gap",
+        "\n".join(
+            [
+                f"- topic: {topic}",
+                f"- queries: {json.dumps(queries, ensure_ascii=False)}",
+                f"- rationale: {rationale or '(none)'}",
+                f"- model: {model or '-'}",
+                f"- max_fetches: {max_fetches}",
+                f"- capsule_path: {capsule_path}",
+                f"- cited_urls: {json.dumps(cited_urls, ensure_ascii=False)}",
+            ]
+        ),
+    )
+
+
+def _touch_research_state(now_iso: str) -> None:
+    _ensure_research_log_document()
+    doc = load_document(_RESEARCH_LOG_PATH)
+    next_frontmatter = dict(doc.frontmatter or {})
+    next_frontmatter["last_run_at"] = now_iso
+    write_document(
+        path=_RESEARCH_LOG_PATH,
+        body=doc.body,
+        metadata=next_frontmatter,
+        allow_owner_change=True,
+    )
+
+
+def _curate_research_gaps(force: bool = False) -> dict[str, Any]:
+    settings = load_sagwan_settings()
+    if not settings.get("research_enabled", True):
+        return {"status": "disabled"}
+
+    _ensure_research_log_document()
+    state_doc = load_document(_RESEARCH_LOG_PATH)
+    state = dict(state_doc.frontmatter or {})
+    last_run_at = str(state.get("last_run_at") or "").strip()
+    interval_sec = int(settings.get("research_interval_sec") or 14400)
+    if last_run_at and not force:
+        last_dt = _parse_iso_datetime(last_run_at)
+        if last_dt is not None:
+            next_allowed = last_dt + timedelta(seconds=interval_sec)
+            if datetime.now(UTC) < next_allowed:
+                return {
+                    "status": "cooldown",
+                    "last_run_at": last_run_at,
+                    "next_run_after": next_allowed.replace(microsecond=0).isoformat().replace("+00:00", "Z"),
+                }
+
+    inventory = _inventory_knowledge_state()
+    memory = before_task_context("sagwan", "research gap selection", current_note_path=None, total_chars=2400)
+    memory_snippet = "\n\n".join(
+        block for block in [memory.get("distilled", ""), recent_memory_tail("sagwan", max_sections=4, char_budget=1000)] if block
+    )
+    selection_prompt = _build_gap_selection_prompt(inventory, memory_snippet)
+    librarian_settings = load_librarian_settings() or {}
+    model = librarian_settings.get("model") or None
+    raw_selection = _invoke_claude_cli(selection_prompt, model=model)
+    gap = _parse_gap_selection(raw_selection)
+    if not gap:
+        return {"status": "llm_parse_error", "raw": raw_selection[:500]}
+
+    gap["topic_slug"] = _topic_slug(gap["topic"])
+    gap["max_fetches"] = int(settings.get("research_max_fetches") or 3)
+
+    research_prompt = _build_research_prompt(gap)
+    raw_capsule = _invoke_claude_cli_with_tools(
+        research_prompt,
+        model=model,
+        tools=["WebSearch", "WebFetch", "Read"],
+        timeout=300,
+    )
+    if not raw_capsule or raw_capsule.startswith("[CLI 오류"):
+        return {"status": "llm_error", "detail": (raw_capsule or "")[:200], "gap": gap}
+
+    if len(raw_capsule) < 400 or "## Summary" not in raw_capsule or "## Sources" not in raw_capsule:
+        return {"status": "response_too_weak", "detail": raw_capsule[:200], "gap": gap}
+
+    cited_urls = _extract_source_urls(raw_capsule)
+    capsule_title = str(gap.get("target_capsule_title") or "").strip() or f"{gap['topic']} Capsule"
+
+    from app.subordinate import SUBORDINATE_IDENTITY
+
+    suggested_path = suggest_note_path("capsule", capsule_title, _SAGWAN_CAPSULE_FOLDER, None, "ops/librarian")
+    doc = write_document(
+        path=suggested_path,
+        title=capsule_title,
+        kind="capsule",
+        project="ops/librarian",
+        status="draft",
+        tags=["capsule", "sagwan-generated", "research-gap", gap["topic_slug"]],
+        body=raw_capsule,
+        metadata={
+            "visibility": "private",
+            "publication_status": "none",
+            "owner": SUBORDINATE_IDENTITY.get("nickname", "busagwan"),
+            "created_by": _SAGWAN_CAPSULE_CREATOR,
+            "generated_by": "sagwan-research",
+            "research_gap_topic": gap["topic"],
+            "research_queries": gap["queries"],
+            "research_cited_urls": cited_urls,
+            "evidence_urls": cited_urls,
+            "evidence_paths": [],
+        },
+        allow_owner_change=True,
+    )
+
+    _append_research_log_entry(
+        topic=gap["topic"],
+        queries=gap["queries"],
+        rationale=str(gap.get("rationale") or ""),
+        cited_urls=cited_urls,
+        capsule_path=doc.path,
+        model=str(model or ""),
+        max_fetches=gap["max_fetches"],
+    )
+    now_iso = _now_iso()
+    _touch_research_state(now_iso)
+
+    return {
+        "status": "ok",
+        "gap_topic": gap["topic"],
+        "queries": gap["queries"],
+        "capsule_path": doc.path,
+        "cited_urls": cited_urls,
+        "inventory_summary": {
+            "total_capsules": inventory.get("total_capsules", 0),
+            "total_claims": inventory.get("total_claims", 0),
+        },
+    }
 
 
 def _curate_generate_capsules() -> dict[str, Any]:
@@ -1245,16 +1689,16 @@ def _curate_enqueue_signal_scans() -> dict[str, Any]:
 
 
 # ─── (H) 사관 주제 자율 선정 ─────────────────────────────────────────────────
-# 설계: 고정 피드(arxiv cs.CL, HN)만으로는 관심 영역 확장 불가. 사관이 직접 관심 주제
-# 3개를 제안하고, 각 주제를 arxiv/Google News 검색 URL 로 변환해 피드 수급과 동일한
-# 방식으로 크롤을 enqueue 한다. 24시간에 한 번만 실행 (claude-cli 비용 절약).
+# 설계: 사관이 직접 관심 주제 3개를 제안해 activity 로그에 남긴다.
+# 자동 crawl_url enqueue 는 폐기되었고, 실제 웹 조사는 stage K가 맡는다.
+# 24시간에 한 번만 실행 (claude-cli 비용 절약).
 
 _TOPIC_STATE_PATH = "personal_vault/projects/ops/librarian/activity/topic-proposals.md"
 _TOPIC_MIN_INTERVAL_HOURS = 24
 
 
 def _curate_propose_topics() -> dict[str, Any]:
-    """(H) 사관이 직접 관심 주제를 선정하고 arxiv/Google News 검색 피드로 크롤 enqueue."""
+    """(H) 사관이 직접 관심 주제를 선정하고 후속 stage K / 인간 검토용으로 기록한다."""
     from app.vault import write_document, load_document as _ld
 
     # 1) 쿨다운 확인
@@ -1327,64 +1771,9 @@ def _curate_propose_topics() -> dict[str, Any]:
     if not topics:
         return {"status": "parse_error", "detail": reply[:200]}
 
-    # 4) 각 주제를 arxiv 검색 피드로 변환 → 아이템 파싱 → crawl_url enqueue
-    from urllib import error as urlerror
-    from urllib import parse as urlparse_
-    from urllib import request as urlrequest
-    from app.site import search_closed_notes
-    from app.subordinate import enqueue_subordinate_task
-
+    # 4) 주제만 기록한다. 자동 crawl_url enqueue 는 폐기되었고, 웹 조사는 stage K가 담당한다.
     total_enqueued = 0
-    per_topic: list[dict[str, Any]] = []
-    for q in topics:
-        qs = urlparse_.quote_plus(q)
-        feed_url = (
-            f"http://export.arxiv.org/api/query?search_query=all:{qs}"
-            "&sortBy=submittedDate&sortOrder=descending&max_results=3"
-        )
-        items: list[tuple[str, str]] = []
-        try:
-            req = urlrequest.Request(feed_url, headers={"User-Agent": "OpenAkashic-Sagwan/1.0"})
-            with urlrequest.urlopen(req, timeout=15) as resp:
-                raw_xml = resp.read().decode("utf-8", errors="replace")
-            items = _parse_feed_items(raw_xml, max_items=3)
-        except (urlerror.URLError, TimeoutError, OSError) as exc:
-            per_topic.append({"topic": q, "error": str(exc), "enqueued": 0})
-            continue
-        except Exception as exc:
-            per_topic.append({"topic": q, "error": str(exc), "enqueued": 0})
-            continue
-
-        enq = 0
-        for title, link in items:
-            try:
-                hits = search_closed_notes(title, limit=3).get("results", [])
-                t_low = title.lower()
-                if hits and any(
-                    t_low in (h.get("title") or "").lower()
-                    or (h.get("title") or "").lower() in t_low
-                    for h in hits
-                ):
-                    continue
-            except Exception:
-                pass
-            try:
-                enqueue_subordinate_task(
-                    kind="crawl_url",
-                    payload={
-                        "url": link,
-                        "folder": "personal_vault/feeds",
-                        "tags": ["sagwan-topic-proposal"],
-                        "title_hint": title,
-                    },
-                    created_by="sagwan",
-                )
-                enq += 1
-                total_enqueued += 1
-            except Exception as exc:
-                per_topic.append({"topic": q, "error": f"enqueue {link}: {exc}", "enqueued": enq})
-                break
-        per_topic.append({"topic": q, "enqueued": enq})
+    per_topic = [{"topic": q, "enqueued": 0, "mode": "proposal_only"} for q in topics]
 
     # 5) state 업데이트
     now_iso = _now_iso()
@@ -1402,7 +1791,7 @@ def _curate_propose_topics() -> dict[str, Any]:
     new_body = (state_body or "## 최근 주제 제안\n\n").rstrip() + "\n\n"
     new_body += f"### {now_iso}\n"
     for item in per_topic:
-        mark = item.get("error") or f"enqueued={item.get('enqueued', 0)}"
+        mark = item.get("error") or "recorded for stage K / human follow-up"
         new_body += f"- **{item['topic']}** — {mark}\n"
     try:
         write_document(path=_TOPIC_STATE_PATH, body=new_body, metadata=state_fm_next, allow_owner_change=True)

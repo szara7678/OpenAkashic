@@ -4710,6 +4710,15 @@ def closed_debug_html(route_prefix: str = "") -> str:
                       <span>Curation interval (sec)</span>
                       <input class="input" id="sagwan-curation-interval" type="number" min="300" step="60" />
                     </label>
+                    <label class="checkbox"><input id="sagwan-research-enabled" type="checkbox" /> <span>research stage enabled</span></label>
+                    <label class="field">
+                      <span>Research interval (sec)</span>
+                      <input class="input" id="sagwan-research-interval" type="number" min="1800" step="600" />
+                    </label>
+                    <label class="field">
+                      <span>Research max fetches</span>
+                      <input class="input" id="sagwan-research-max-fetches" type="number" min="1" max="6" step="1" />
+                    </label>
                     <label class="field">
                       <span>Batch trigger (pending ≥ N → run now)</span>
                       <input class="input" id="sagwan-batch-trigger" type="number" min="1" step="1" />
@@ -4723,6 +4732,7 @@ def closed_debug_html(route_prefix: str = "") -> str:
                     <button class="button primary" id="sagwan-save" type="button">Save Schedule</button>
                     <button class="button" id="sagwan-run-approval" type="button">Run Approval Now</button>
                     <button class="button" id="sagwan-run-curate" type="button">Run Curation Now</button>
+                    <button class="button" id="sagwan-run-research" type="button">Run Research Now</button>
                   </div>
                   <p class="status-line" id="sagwan-save-status">Heartbeat still protects the loops; saved values apply from the next tick.</p>
                 </section>
@@ -4739,6 +4749,31 @@ def closed_debug_html(route_prefix: str = "") -> str:
                     <h2 class="card-title">Runtime Status</h2>
                     <div class="locked-copy" id="librarian-runtime-status">Loading agent status…</div>
                     <div class="locked-copy" id="sagwan-runtime-status">Loading schedule…</div>
+                  </section>
+                  <section class="card">
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+                      <h2 class="card-title">Recent Curation Cycles</h2>
+                      <button class="button" id="sagwan-activity-refresh" type="button">Refresh</button>
+                    </div>
+                    <div id="sagwan-activity-list" class="locked-copy">Loading curation cycles…</div>
+                  </section>
+                  <section class="card">
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+                      <h2 class="card-title">Sagwan Capsules</h2>
+                      <button class="button" id="sagwan-capsules-refresh" type="button">Refresh</button>
+                    </div>
+                    <div id="sagwan-capsules-list" class="list" style="display:grid;gap:10px;">
+                      <div class="locked-copy">Loading capsules…</div>
+                    </div>
+                  </section>
+                  <section class="card">
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+                      <h2 class="card-title">Research Log</h2>
+                      <button class="button" id="sagwan-research-refresh" type="button">Refresh</button>
+                    </div>
+                    <div id="sagwan-research-list" class="list" style="display:grid;gap:10px;">
+                      <div class="locked-copy">Loading research log…</div>
+                    </div>
                   </section>
                 </div>
               </section>
@@ -4860,6 +4895,7 @@ def closed_debug_html(route_prefix: str = "") -> str:
       const state = {
         panel: 'overview',
         timer: null,
+        sagwanTimer: null,
         loading: false,
         status: null,
         events: [],
@@ -4928,13 +4964,23 @@ def closed_debug_html(route_prefix: str = "") -> str:
         sagwanUseLlm: document.getElementById('sagwan-use-llm'),
         sagwanInterval: document.getElementById('sagwan-interval'),
         sagwanCurationInterval: document.getElementById('sagwan-curation-interval'),
+        sagwanResearchEnabled: document.getElementById('sagwan-research-enabled'),
+        sagwanResearchInterval: document.getElementById('sagwan-research-interval'),
+        sagwanResearchMaxFetches: document.getElementById('sagwan-research-max-fetches'),
         sagwanBatchTrigger: document.getElementById('sagwan-batch-trigger'),
         sagwanApprovalMax: document.getElementById('sagwan-approval-max'),
         sagwanSave: document.getElementById('sagwan-save'),
         sagwanRunApproval: document.getElementById('sagwan-run-approval'),
         sagwanRunCurate: document.getElementById('sagwan-run-curate'),
+        sagwanRunResearch: document.getElementById('sagwan-run-research'),
         sagwanSaveStatus: document.getElementById('sagwan-save-status'),
         sagwanRuntimeStatus: document.getElementById('sagwan-runtime-status'),
+        sagwanActivityRefresh: document.getElementById('sagwan-activity-refresh'),
+        sagwanActivityList: document.getElementById('sagwan-activity-list'),
+        sagwanCapsulesRefresh: document.getElementById('sagwan-capsules-refresh'),
+        sagwanCapsulesList: document.getElementById('sagwan-capsules-list'),
+        sagwanResearchRefresh: document.getElementById('sagwan-research-refresh'),
+        sagwanResearchList: document.getElementById('sagwan-research-list'),
         impStatusFilter: document.getElementById('imp-status-filter'),
         impRefresh: document.getElementById('imp-refresh'),
         impList: document.getElementById('imp-list'),
@@ -4979,6 +5025,14 @@ def closed_debug_html(route_prefix: str = "") -> str:
         return String(value ?? '').replace(/[&<>"']/g, (char) => (
           {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[char]
         ));
+      }
+
+      function shortExternalLabel(url) {
+        try {
+          return new URL(String(url || '')).hostname || String(url || '');
+        } catch (error) {
+          return String(url || '');
+        }
       }
 
       function stringify(value) {
@@ -5044,7 +5098,13 @@ def closed_debug_html(route_prefix: str = "") -> str:
           panel.hidden = key !== state.panel;
         });
         if (state.panel === 'publication') loadPublicationRequests();
-        if (state.panel === 'sagwan') refreshSagwanSchedule();
+        if (state.panel === 'sagwan') {
+          refreshSagwanSchedule();
+          refreshSagwanActivityPanels();
+          startSagwanAutoRefresh();
+        } else {
+          stopSagwanAutoRefresh();
+        }
         if (state.panel === 'improvements') loadImprovementRequests();
       }
 
@@ -5360,10 +5420,13 @@ def closed_debug_html(route_prefix: str = "") -> str:
         if (dom.sagwanUseLlm) dom.sagwanUseLlm.checked = Boolean(settings.use_llm);
         if (dom.sagwanInterval) dom.sagwanInterval.value = settings.interval_sec || 600;
         if (dom.sagwanCurationInterval) dom.sagwanCurationInterval.value = settings.curation_interval_sec || 1800;
+        if (dom.sagwanResearchEnabled) dom.sagwanResearchEnabled.checked = Boolean(settings.research_enabled);
+        if (dom.sagwanResearchInterval) dom.sagwanResearchInterval.value = settings.research_interval_sec || 14400;
+        if (dom.sagwanResearchMaxFetches) dom.sagwanResearchMaxFetches.value = settings.research_max_fetches || 3;
         if (dom.sagwanBatchTrigger) dom.sagwanBatchTrigger.value = settings.batch_trigger || 3;
         if (dom.sagwanApprovalMax) dom.sagwanApprovalMax.value = settings.approval_max_per_cycle || 10;
         if (dom.sagwanRuntimeStatus) {
-          dom.sagwanRuntimeStatus.textContent = `approval=${settings.interval_sec ?? '-'}s · curation=${settings.curation_interval_sec ?? '-'}s · batch_trigger=${settings.batch_trigger ?? '-'} · approval_max_per_cycle=${settings.approval_max_per_cycle ?? '-'} · enabled=${Boolean(settings.enabled)} · use_llm=${Boolean(settings.use_llm)}`;
+          dom.sagwanRuntimeStatus.textContent = `approval=${settings.interval_sec ?? '-'}s · curation=${settings.curation_interval_sec ?? '-'}s · research=${settings.research_interval_sec ?? '-'}s (enabled=${Boolean(settings.research_enabled)}, fetches≤${settings.research_max_fetches ?? '-'}) · batch_trigger=${settings.batch_trigger ?? '-'} · approval_max_per_cycle=${settings.approval_max_per_cycle ?? '-'} · enabled=${Boolean(settings.enabled)} · use_llm=${Boolean(settings.use_llm)}`;
         }
       }
 
@@ -5393,6 +5456,9 @@ def closed_debug_html(route_prefix: str = "") -> str:
               use_llm: Boolean(dom.sagwanUseLlm?.checked),
               interval_sec: Number(dom.sagwanInterval?.value || 600),
               curation_interval_sec: Number(dom.sagwanCurationInterval?.value || 1800),
+              research_enabled: Boolean(dom.sagwanResearchEnabled?.checked),
+              research_interval_sec: Number(dom.sagwanResearchInterval?.value || 14400),
+              research_max_fetches: Number(dom.sagwanResearchMaxFetches?.value || 3),
               batch_trigger: Number(dom.sagwanBatchTrigger?.value || 3),
               approval_max_per_cycle: Number(dom.sagwanApprovalMax?.value || 10),
             },
@@ -5424,10 +5490,157 @@ def closed_debug_html(route_prefix: str = "") -> str:
           const data = await fetchJson('/api/admin/sagwan/curate', { method: 'POST' });
           const topic = data.topic_proposals?.status || '-';
           const meta = data.meta_curation?.status || '-';
-          if (dom.sagwanSaveStatus) dom.sagwanSaveStatus.textContent = `Curation done: topic_proposals=${topic}, meta_curation=${meta}.`;
+          const research = data.research_gaps?.status || '-';
+          if (dom.sagwanSaveStatus) dom.sagwanSaveStatus.textContent = `Curation done: topic_proposals=${topic}, meta_curation=${meta}, research=${research}.`;
+          refreshSagwanActivityPanels();
         } catch (error) {
           if (dom.sagwanSaveStatus) dom.sagwanSaveStatus.textContent = error.message;
         }
+      }
+
+      async function runSagwanResearch() {
+        if (!isAdminSession()) return;
+        if (dom.sagwanSaveStatus) dom.sagwanSaveStatus.textContent = 'Running research…';
+        try {
+          const data = await fetchJson('/api/admin/sagwan/research/run', { method: 'POST' });
+          if (dom.sagwanSaveStatus) dom.sagwanSaveStatus.textContent = `Research ${data.status || 'done'} (${data.capsule_path || '-'})`;
+          await loadSagwanResearch();
+          await loadSagwanCapsules();
+        } catch (error) {
+          if (dom.sagwanSaveStatus) dom.sagwanSaveStatus.textContent = `Research run failed: ${error.message}`;
+        }
+      }
+
+      function startSagwanAutoRefresh() {
+        stopSagwanAutoRefresh();
+        state.sagwanTimer = window.setInterval(() => {
+          if (state.panel === 'sagwan') refreshSagwanActivityPanels();
+        }, 60000);
+      }
+
+      function stopSagwanAutoRefresh() {
+        if (state.sagwanTimer) {
+          window.clearInterval(state.sagwanTimer);
+          state.sagwanTimer = null;
+        }
+      }
+
+      function renderSagwanActivity(events) {
+        if (!dom.sagwanActivityList) return;
+        if (!events.length) {
+          dom.sagwanActivityList.innerHTML = '<div class="locked-copy">No curation cycle events yet.</div>';
+          return;
+        }
+        dom.sagwanActivityList.innerHTML = `
+          <div style="display:grid;gap:8px;">
+            ${events.map((event) => `
+              <div style="display:grid;grid-template-columns:160px 220px 1fr;gap:10px;font-size:.84rem;">
+                <div>${escapeHtml(fmtTime(event.ts))}</div>
+                <div style="font-weight:700;">${escapeHtml(event.subject || 'curation cycle')}</div>
+                <div style="color:var(--muted);">${escapeHtml(event.outcome || '-')}</div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+
+      async function loadSagwanActivity() {
+        if (!dom.sagwanActivityList) return;
+        if (!isAdminSession()) {
+          dom.sagwanActivityList.innerHTML = '<div class="locked-copy">Log in as admin to view curation cycles.</div>';
+          return;
+        }
+        try {
+          const data = await fetchJson('/api/admin/sagwan/activity?limit=20');
+          renderSagwanActivity(data.events || []);
+        } catch (error) {
+          dom.sagwanActivityList.innerHTML = `<div class="locked-copy">${escapeHtml(error.message)}</div>`;
+        }
+      }
+
+      function renderSagwanCapsules(capsules) {
+        if (!dom.sagwanCapsulesList) return;
+        if (!capsules.length) {
+          dom.sagwanCapsulesList.innerHTML = '<div class="locked-copy">No Sagwan capsules yet.</div>';
+          return;
+        }
+        dom.sagwanCapsulesList.innerHTML = capsules.map((item) => {
+          const title = escapeHtml(item.title || item.path);
+          const href = item.href ? escapeHtml(item.href) : '';
+          const titleHtml = href ? `<a href="${href}" style="font-weight:700;color:var(--text);text-decoration:none;">${title}</a>` : `<span style="font-weight:700;">${title}</span>`;
+          const urls = Array.isArray(item.research_cited_urls) ? item.research_cited_urls : [];
+          return `
+            <div class="card" style="padding:14px 16px;display:grid;gap:6px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+                ${titleHtml}
+                <span class="badge">${escapeHtml(item.publication_status || 'none')}</span>
+              </div>
+              <div style="font-size:.78rem;color:var(--muted);">${escapeHtml(item.generated_by || '-')} · ${escapeHtml((item.updated_at || item.created_at || '').slice(0, 16).replace('T', ' '))} UTC${item.research_gap_topic ? ` · topic=${escapeHtml(item.research_gap_topic)}` : ''}</div>
+              <div style="font-size:.84rem;color:var(--muted);">${escapeHtml(item.body_excerpt || '(empty)')}</div>
+              ${urls.length ? `<div style="display:flex;flex-wrap:wrap;gap:6px;">${urls.slice(0, 4).map((url) => `<a href="${escapeHtml(url)}" target="_blank" rel="noreferrer" class="badge">${escapeHtml(shortExternalLabel(url))}</a>`).join('')}</div>` : ''}
+            </div>
+          `;
+        }).join('');
+      }
+
+      async function loadSagwanCapsules() {
+        if (!dom.sagwanCapsulesList) return;
+        if (!isAdminSession()) {
+          dom.sagwanCapsulesList.innerHTML = '<div class="locked-copy">Log in as admin to view Sagwan capsules.</div>';
+          return;
+        }
+        try {
+          const data = await fetchJson('/api/admin/sagwan/capsules?limit=30');
+          renderSagwanCapsules(data.capsules || []);
+        } catch (error) {
+          dom.sagwanCapsulesList.innerHTML = `<div class="locked-copy">${escapeHtml(error.message)}</div>`;
+        }
+      }
+
+      function renderSagwanResearch(entries) {
+        if (!dom.sagwanResearchList) return;
+        if (!entries.length) {
+          dom.sagwanResearchList.innerHTML = '<div class="locked-copy">No research cycles yet.</div>';
+          return;
+        }
+        dom.sagwanResearchList.innerHTML = entries.map((entry) => {
+          const queries = Array.isArray(entry.queries) ? entry.queries : [];
+          const cited = Array.isArray(entry.cited_urls) ? entry.cited_urls : [];
+          const capsuleLink = entry.capsule_path
+            ? `<div style="font-size:.8rem;color:var(--muted);">capsule: ${entry.capsule_href ? `<a href="${escapeHtml(entry.capsule_href)}">${escapeHtml(entry.capsule_path)}</a>` : escapeHtml(entry.capsule_path)}</div>`
+            : '';
+          return `
+            <div class="card" style="padding:14px 16px;display:grid;gap:8px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+                <span style="font-weight:700;">${escapeHtml(entry.topic || '(untitled topic)')}</span>
+                <span style="font-size:.78rem;color:var(--muted);">${escapeHtml(fmtTime(entry.ts))}</span>
+              </div>
+              <div style="display:flex;flex-wrap:wrap;gap:6px;">${queries.map((query) => `<span class="badge">${escapeHtml(query)}</span>`).join('')}</div>
+              <div style="font-size:.84rem;color:var(--muted);">${escapeHtml(entry.rationale || '-')}</div>
+              <div style="display:flex;flex-wrap:wrap;gap:6px;">${cited.map((url) => `<a href="${escapeHtml(url)}" target="_blank" rel="noreferrer" class="badge">${escapeHtml(shortExternalLabel(url))}</a>`).join('')}</div>
+              ${capsuleLink}
+              <div style="font-size:.78rem;color:var(--muted);">model=${escapeHtml(entry.model || '-')}</div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      async function loadSagwanResearch() {
+        if (!dom.sagwanResearchList) return;
+        if (!isAdminSession()) {
+          dom.sagwanResearchList.innerHTML = '<div class="locked-copy">Log in as admin to view research history.</div>';
+          return;
+        }
+        try {
+          const data = await fetchJson('/api/admin/sagwan/research?limit=20');
+          renderSagwanResearch(data.entries || []);
+        } catch (error) {
+          dom.sagwanResearchList.innerHTML = `<div class="locked-copy">${escapeHtml(error.message)}</div>`;
+        }
+      }
+
+      async function refreshSagwanActivityPanels() {
+        await Promise.all([loadSagwanActivity(), loadSagwanCapsules(), loadSagwanResearch()]);
       }
 
       // ── improvement requests ────────────────────
@@ -5494,7 +5707,7 @@ def closed_debug_html(route_prefix: str = "") -> str:
         dom.sessionStatus.textContent = session?.authenticated
           ? `${session.nickname || session.username} (${session.role}) session active.`
           : (window._t?.('admin.session_anon') ?? 'Anonymous. Log in as admin to unlock management features.');
-        await Promise.all([refresh(), refreshUsers(), refreshLibrarian(), refreshSagwanSchedule()]);
+        await Promise.all([refresh(), refreshUsers(), refreshLibrarian(), refreshSagwanSchedule(), refreshSagwanActivityPanels()]);
       }
 
       dom.refresh.addEventListener('click', refresh);
@@ -5523,6 +5736,9 @@ def closed_debug_html(route_prefix: str = "") -> str:
         if (event.key === 'Escape' && !dom.modal.hidden) closeRequestDetail();
       });
       document.addEventListener('closed-akashic-auth-change', refreshAll);
+      dom.sagwanActivityRefresh?.addEventListener('click', loadSagwanActivity);
+      dom.sagwanCapsulesRefresh?.addEventListener('click', loadSagwanCapsules);
+      dom.sagwanResearchRefresh?.addEventListener('click', loadSagwanResearch);
       [dom.q, dom.kind, dom.method, dom.statusMin, dom.limit, dom.sort, dom.order, dom.requestId]
         .forEach((element) => element.addEventListener('input', scheduleRefresh));
       dom.userSearch?.addEventListener('input', renderUsers);
@@ -5532,6 +5748,7 @@ def closed_debug_html(route_prefix: str = "") -> str:
       dom.sagwanSave?.addEventListener('click', saveSagwanSchedule);
       dom.sagwanRunApproval?.addEventListener('click', runSagwanApproval);
       dom.sagwanRunCurate?.addEventListener('click', runSagwanCurate);
+      dom.sagwanRunResearch?.addEventListener('click', runSagwanResearch);
       dom.impRefresh?.addEventListener('click', loadImprovementRequests);
       dom.impStatusFilter?.addEventListener('change', loadImprovementRequests);
       dom.impModalClose?.addEventListener('click', () => { if (dom.impModal) dom.impModal.hidden = true; });

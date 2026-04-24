@@ -337,8 +337,18 @@ def librarian_chat(
 
 def _invoke_claude_cli(prompt: str, model: str | None = None) -> str:
     """claude -p CLI를 subprocess로 호출해 응답 텍스트를 반환한다."""
+    return _invoke_claude_cli_with_tools(prompt, model=model, tools=[], timeout=180)
+
+
+def _invoke_claude_cli_with_tools(
+    prompt: str,
+    model: str | None = None,
+    tools: list[str] | None = None,
+    timeout: int = 180,
+) -> str:
+    """claude -p CLI를 subprocess로 호출해 응답 텍스트를 반환한다."""
     try:
-        cmd = ["claude", "-p", "--tools", "", "--output-format", "text"]
+        cmd = ["claude", "-p", "--tools", ",".join(tools or []), "--output-format", "text"]
         if model:
             cmd.extend(["--model", model])
         cmd.append(prompt)
@@ -346,7 +356,7 @@ def _invoke_claude_cli(prompt: str, model: str | None = None) -> str:
             cmd,
             capture_output=True,
             text=True,
-            timeout=180,
+            timeout=timeout,
             env={**os.environ},
         )
         if result.returncode == 0:
@@ -355,7 +365,7 @@ def _invoke_claude_cli(prompt: str, model: str | None = None) -> str:
     except FileNotFoundError:
         return "[CLI 오류] claude 명령어를 찾을 수 없다. PATH를 확인하라."
     except subprocess.TimeoutExpired:
-        return "[CLI 오류] 응답 시간 초과 (120초)"
+        return f"[CLI 오류] 응답 시간 초과 ({timeout}초)"
     except Exception as exc:
         return f"[CLI 오류] {exc}"
 
@@ -372,7 +382,7 @@ def _cli_tool_definitions(enabled_tools: list[str] | None = None) -> str:
         "request_publication": "request_publication(path: str, requester?: str, rationale?: str, evidence_paths?: list) — 공개 신청",
         "list_publication_requests": "list_publication_requests(status?: str) — 공개 신청 목록",
         "set_publication_status": "set_publication_status(path: str, status: str, reason?: str) — 공개 상태 변경 (status: requested|reviewing|approved|rejected|published|needs_merge|needs_evidence|superseded)",
-        "enqueue_task": 'enqueue_task(kind: str, payload: dict) — 부사관 태스크 큐에 추가. kind: crawl_url|sync_to_core_api|analyze_search_gaps|scan_stale_private_notes. crawl_url payload: {"url": "...", "folder": "..."}, sync_to_core_api payload: {"limit": 10}, analyze_search_gaps payload: {"max_new": 10}, scan_stale_private_notes payload: {"max_scan": 50}',
+        "enqueue_task": 'enqueue_task(kind: str, payload: dict) — 부사관 태스크 큐에 추가. kind: sync_to_core_api|analyze_search_gaps|analyze_search_quality_signals|scan_stale_private_notes. sync_to_core_api payload: {"limit": 10}, analyze_search_gaps payload: {"max_new": 10}, analyze_search_quality_signals payload: {"max_new": 10}, scan_stale_private_notes payload: {"owner": "aaron", "dry_run": false}',
     }
     lines = [
         "## 사용 가능한 도구",
@@ -617,7 +627,7 @@ def _librarian_instructions(relevant_notes: list[dict[str, Any]]) -> str:
             "새 개인 문서는 visibility=private으로 시작하고, 공개는 request_publication → 부사관 1차 리뷰 → 사서장 최종 결정 순서를 지킨다.",
             "scope는 폴더/맥락 선택일 뿐 권한 모델이 아니다.",
             "공개 결과는 raw source가 아니라 fact/evidence summary/capsule/know-how 형태여야 한다.",
-            "반복 작업(URL 크롤링, capsule 초안, Core API 동기화)은 enqueue_task로 부사관에게 위임하라.",
+            "반복 작업(Core API 동기화, gap/quality scan, stale scan)은 enqueue_task로 부사관에게 위임하라.",
             "답변은 짧고 실무적으로. 도구가 필요하면 사용하라. 중요 판단은 append_note_section으로 Working Memory에 남겨라.",
             f"## Profile\n{profile}",
             f"## Policy\n{policy}",
@@ -762,22 +772,22 @@ def _tool_registry(enabled_tools: list[str] | None = None) -> list[dict[str, Any
             },
         },
         {
-            "type": "function",
+                "type": "function",
             "name": "enqueue_task",
             "description": (
                 "Queue a background task for the subordinate agent (busagwan). "
-                "Busagwan only handles pure HTTP/file/aggregate tasks — capsule/claim drafting moved to Sagwan curation. "
-                "kind=crawl_url: payload requires 'url'; optional 'folder', 'project'. "
+                "Busagwan only handles pure file/aggregate tasks — capsule/claim drafting and web research moved to Sagwan curation. "
                 "kind=sync_to_core_api: payload optionally has 'limit' (default 10). "
                 "kind=analyze_search_gaps: payload optionally has 'max_new' (default 10) — processes gap-queries.jsonl and creates candidate gap notes. "
-                "kind=scan_stale_private_notes: payload optionally has 'max_scan' (default 50) — marks overdue private notes needing refresh."
+                "kind=analyze_search_quality_signals: payload optionally has 'max_new' (default 10) — promotes weak public-search signals into improvement requests. "
+                "kind=scan_stale_private_notes: payload optionally has 'owner' and 'dry_run' — marks overdue private notes needing refresh."
             ),
             "parameters": {
                 "type": "object",
                 "properties": {
                     "kind": {
                         "type": "string",
-                        "enum": ["crawl_url", "sync_to_core_api", "analyze_search_gaps", "scan_stale_private_notes"],
+                        "enum": ["sync_to_core_api", "analyze_search_gaps", "analyze_search_quality_signals", "scan_stale_private_notes"],
                     },
                     "payload": {"type": "object"},
                     "run_after": {"type": "string", "description": "ISO8601 datetime to delay execution"},

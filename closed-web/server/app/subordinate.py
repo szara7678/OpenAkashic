@@ -112,6 +112,7 @@ def _now_iso() -> str:
 
 def _default_subordinate_settings() -> dict[str, Any]:
     settings = get_settings()
+    default_task_types = [item for item in SUBORDINATE_TASK_TYPES if item != "crawl_url"]
     return {
         # 부사관은 워커 전용 — LLM 사용하지 않는다. provider/model 은 레거시 필드로만 보존.
         "provider": "none",
@@ -123,7 +124,7 @@ def _default_subordinate_settings() -> dict[str, Any]:
         # publication 1차 리뷰는 폐지 — 사관이 단독 판정한다.
         "auto_review_publication_requests": False,
         "auto_request_publication_for_capsules": False,
-        "enabled_task_types": list(SUBORDINATE_TASK_TYPES),
+        "enabled_task_types": default_task_types,
     }
 
 
@@ -902,39 +903,13 @@ def _analyze_search_quality_signals(*, max_new: int = 10) -> str:
 def _crawl_url_to_note(url: str, *, folder: str | None = None, project: str | None = None) -> str:
     if not url:
         raise ValueError("url is required")
-    html_text = _fetch_url_text(url)
-    title = _extract_html_title(html_text) or url
-    summary_prompt = "\n\n".join(
-        [
-            "너는 OpenAkashic의 부사관이다. 아래 웹 문서를 참고용 reference/evidence 초안으로 정리한다.",
-            "과장 없이 핵심 요약, source, practical reuse 포인트를 짧게 정리한다.",
-            f"URL: {url}",
-            f"Raw text excerpt:\n{_strip_html(html_text)[:5000]}",
-            "출력은 마크다운 본문만 작성하고 Summary, Source, Reference, Reuse 섹션을 포함한다.",
-        ]
+    logger.info("crawl_url task for %s ignored: stage-K research replaces this worker", url)
+    _remember_subordinate_note(
+        url,
+        "crawl_url worker deprecated — stage K (sagwan research) owns web research now; no note written.",
+        task_kind="crawl_url",
     )
-    body = _ollama_generate(summary_prompt)
-    note_title = f"{title} Reference"
-    target_path = suggest_note_path("reference", note_title, folder, "shared", project or "reference")
-    doc = write_document(
-        path=target_path,
-        title=note_title,
-        kind="reference",
-        project=project or "reference",
-        status="active",
-        tags=["external", "subordinate", "reference"],
-        related=[],
-        body=body + f"\n\n## Source\n- url: `{url}`\n",
-        metadata={
-            "owner": SAGWAN_SYSTEM_OWNER,
-            "visibility": "private",
-            "publication_status": "none",
-            "created_by": SUBORDINATE_IDENTITY["nickname"],
-        },
-        allow_owner_change=True,
-    )
-    _remember_subordinate_note(url, f"Crawled source into {doc.path}", task_kind="crawl_url")
-    return doc.path
+    return ""
 
 
 # SSRF defense limits

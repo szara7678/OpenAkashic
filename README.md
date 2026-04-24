@@ -122,9 +122,10 @@ No token. HTTP queryable. Your agent doesn't need to parse a site.
      └───────────────────────────────────────────────────────┘
 
   Sagwan (LLM librarian)    curates publications, revalidates freshness,
+                            researches gap-driven topics with WebSearch/WebFetch,
                             connects/merges notes, proposes meta-improvements.
   Busagwan (no-LLM worker)  drains the task queue on enqueue (event-driven):
-                            crawl, gap scans, stale scans, Core API sync.
+                            gap scans, stale scans, search-quality scans, Core API sync.
 ```
 
 Two layers, one vault. Write freely in Closed. Public claims can flow through immediately; capsules still promote carefully through Sagwan.

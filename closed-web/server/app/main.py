@@ -5,6 +5,7 @@ import ipaddress
 import json as _json
 import logging as _logging
 import os
+from pathlib import Path
 import threading
 import time
 import urllib.request as _urlrequest
@@ -170,6 +171,7 @@ from app.sagwan_loop import (
     pending_publication_request_count,
     run_sagwan_approval_cycle,
     run_sagwan_curation_cycle,
+    run_sagwan_research_cycle,
     save_sagwan_settings,
 )
 from app.subordinate import (
@@ -1081,6 +1083,11 @@ def api_admin_run_sagwan_curate(auth: AuthState = Depends(require_admin_token)) 
     return run_sagwan_curation_cycle(reason=f"manual:{auth.nickname}")
 
 
+@api.post("/api/admin/sagwan/research/run")
+def api_admin_run_sagwan_research(auth: AuthState = Depends(require_admin_token)) -> dict[str, Any]:
+    return run_sagwan_research_cycle(reason=f"manual:{auth.nickname}", force=True)
+
+
 _IMPROVEMENT_REQUEST_PREFIX = "personal_vault/meta/improvement-requests/"
 _IMPROVEMENT_PRIORITY_TAGS = {"low", "medium", "high"}
 _IMPROVEMENT_KIND_TAGS = {"code", "knowledge", "policy", "data"}
@@ -1154,6 +1161,164 @@ def api_admin_improvement_detail(
     if category_kind:
         fm["kind"] = category_kind
     return {"path": doc.path, "frontmatter": fm, "body": doc.body}
+
+
+_SAGWAN_ACTIVITY_ROOT = "personal_vault/projects/ops/librarian/activity"
+_SAGWAN_CAPSULE_PREFIX = "personal_vault/projects/ops/librarian/capsules/"
+_SAGWAN_RESEARCH_LOG_PATH = f"{_SAGWAN_ACTIVITY_ROOT}/research-log.md"
+
+
+def _admin_parse_h2_sections(body: str) -> list[tuple[str, str]]:
+    import re as _re
+
+    matches = list(_re.finditer(r"^##\s+(.+?)\s*$", body or "", _re.MULTILINE))
+    sections: list[tuple[str, str]] = []
+    for index, match in enumerate(matches):
+        start = match.end()
+        end = matches[index + 1].start() if index + 1 < len(matches) else len(body or "")
+        sections.append((match.group(1).strip(), (body or "")[start:end].strip()))
+    return sections
+
+
+def _admin_parse_bullet_value(block: str, field: str) -> str:
+    import re as _re
+
+    match = _re.search(rf"^-\s*{_re.escape(field)}:\s*(.+)$", block or "", _re.MULTILINE)
+    return match.group(1).strip() if match else ""
+
+
+def _admin_parse_jsonish_list(value: str) -> list[str]:
+    raw = str(value or "").strip()
+    if not raw:
+        return []
+    try:
+        parsed = _json.loads(raw)
+    except _json.JSONDecodeError:
+        parsed = None
+    if isinstance(parsed, list):
+        return [str(item).strip() for item in parsed if str(item).strip()]
+    return [item.strip() for item in raw.split(",") if item.strip()]
+
+
+def _admin_recent_sagwan_activity(limit: int) -> dict[str, Any]:
+    date_paths = [
+        path for path in list_note_paths()
+        if path.startswith(f"{_SAGWAN_ACTIVITY_ROOT}/")
+        and path.endswith(".md")
+        and Path(path).name != "research-log.md"
+    ]
+    date_paths.sort(reverse=True)
+    events: list[dict[str, Any]] = []
+    for path in date_paths[:3]:
+        try:
+            doc = load_document(path)
+        except Exception:
+            continue
+        for heading, block in _admin_parse_h2_sections(doc.body or ""):
+            parts = heading.split(" ", 1)
+            if len(parts) != 2:
+                continue
+            ts, actor_kind = parts
+            if actor_kind != "sagwan:curation":
+                continue
+            events.append(
+                {
+                    "ts": ts,
+                    "subject": _admin_parse_bullet_value(block, "subject") or "curation cycle",
+                    "outcome": _admin_parse_bullet_value(block, "outcome"),
+                    "actor": "sagwan",
+                }
+            )
+    events.sort(key=lambda item: str(item.get("ts") or ""), reverse=True)
+    return {"events": events[:limit], "cursor_next": None}
+
+
+def _admin_recent_sagwan_capsules(limit: int) -> dict[str, Any]:
+    capsules: list[dict[str, Any]] = []
+    for path in list_note_paths():
+        if not path.startswith(_SAGWAN_CAPSULE_PREFIX):
+            continue
+        try:
+            doc = load_document(path)
+        except Exception:
+            continue
+        fm = dict(doc.frontmatter or {})
+        note = get_closed_note(path, route_prefix="/closed", is_admin=True) or {}
+        capsules.append(
+            {
+                "path": path,
+                "slug": note.get("slug") or "",
+                "href": note.get("href") or "",
+                "title": str(fm.get("title") or Path(path).stem),
+                "created_at": str(fm.get("created_at") or ""),
+                "updated_at": str(fm.get("updated_at") or ""),
+                "publication_status": str(fm.get("publication_status") or "none"),
+                "generated_by": str(fm.get("generated_by") or ""),
+                "research_gap_topic": str(fm.get("research_gap_topic") or "") or None,
+                "research_cited_urls": [str(item) for item in (fm.get("research_cited_urls") or []) if str(item).strip()],
+                "body_excerpt": (doc.body or "").strip()[:300],
+            }
+        )
+    capsules.sort(
+        key=lambda item: (
+            str(item.get("updated_at") or ""),
+            str(item.get("created_at") or ""),
+        ),
+        reverse=True,
+    )
+    return {"capsules": capsules[:limit]}
+
+
+def _admin_recent_sagwan_research(limit: int) -> dict[str, Any]:
+    try:
+        doc = load_document(_SAGWAN_RESEARCH_LOG_PATH)
+    except Exception:
+        return {"entries": []}
+    entries: list[dict[str, Any]] = []
+    for heading, block in _admin_parse_h2_sections(doc.body or ""):
+        parts = heading.split(" ", 1)
+        if len(parts) != 2 or parts[1] != "research-gap":
+            continue
+        capsule_path = _admin_parse_bullet_value(block, "capsule_path")
+        capsule_note = get_closed_note(capsule_path, route_prefix="/closed", is_admin=True) if capsule_path else None
+        entries.append(
+            {
+                "ts": parts[0],
+                "topic": _admin_parse_bullet_value(block, "topic"),
+                "queries": _admin_parse_jsonish_list(_admin_parse_bullet_value(block, "queries")),
+                "rationale": _admin_parse_bullet_value(block, "rationale"),
+                "cited_urls": _admin_parse_jsonish_list(_admin_parse_bullet_value(block, "cited_urls")),
+                "capsule_path": capsule_path,
+                "capsule_href": (capsule_note or {}).get("href") or "",
+                "model": _admin_parse_bullet_value(block, "model"),
+            }
+        )
+    entries.sort(key=lambda item: str(item.get("ts") or ""), reverse=True)
+    return {"entries": entries[:limit]}
+
+
+@api.get("/api/admin/sagwan/activity")
+def api_admin_sagwan_activity(
+    limit: int = Query(default=20, ge=1, le=100),
+    auth: AuthState = Depends(require_admin_token),
+) -> dict[str, Any]:
+    return _admin_recent_sagwan_activity(limit)
+
+
+@api.get("/api/admin/sagwan/capsules")
+def api_admin_sagwan_capsules(
+    limit: int = Query(default=30, ge=1, le=100),
+    auth: AuthState = Depends(require_admin_token),
+) -> dict[str, Any]:
+    return _admin_recent_sagwan_capsules(limit)
+
+
+@api.get("/api/admin/sagwan/research")
+def api_admin_sagwan_research(
+    limit: int = Query(default=20, ge=1, le=100),
+    auth: AuthState = Depends(require_admin_token),
+) -> dict[str, Any]:
+    return _admin_recent_sagwan_research(limit)
 
 
 @api.post("/api/admin/core/resync")
