@@ -1,0 +1,220 @@
+{
+  "run_file": "/home/insu/insu_server/apps/openakashic/closed-web/server/bench/results/run-cli_baseline-codex-gpt-5_4-20260424T180954Z.json",
+  "judge_model": "claude-sonnet-4-6",
+  "model": "gpt-5.4",
+  "condition": "cli_baseline",
+  "judgments": [
+    {
+      "task_id": "coding_python_bug",
+      "condition": "cli_baseline",
+      "attempt": 1,
+      "verdict": "pass",
+      "hits": [
+        "빈 리스트(또는 길이 0) 입력 시 ZeroDivisionError 가 발생한다는 진단",
+        "수정안: len(nums) == 0 가드(또는 try/except, 또는 statistics.mean) 제시",
+        "수정된 코드 스니펫이 실제로 실행 가능한 형태로 제공"
+      ],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "답변은 파라메트릭 지식에 기반한 정확한 진단이며, 할루시네이션 없음. 빈 리스트 가드 패턴은 표준적이고 올바름.",
+      "reason": "세 가지 expected_outcome 모두 충족. ZeroDivisionError 진단, if not nums 가드, 실행 가능한 코드 스니펫이 모두 포함됨. 할루시네이션 트랩(Python 2/3 나눗셈 차이, total=1, for문 오류)은 전혀 언급되지 않았음.",
+      "score": {
+        "hit_rate": 1.0,
+        "traps_hit_count": 0
+      }
+    },
+    {
+      "task_id": "coding_sql_index",
+      "condition": "cli_baseline",
+      "attempt": 1,
+      "verdict": "pass",
+      "hits": [
+        "복합 인덱스 권장: (user_id, created_at) 또는 (user_id, created_at DESC) — 두 컬럼 순서 정확히",
+        "user_id 가 동등 비교(equality)이고 created_at 이 범위/정렬이라 이 순서가 맞다는 설명",
+        "CREATE INDEX 또는 CREATE INDEX CONCURRENTLY 문법으로 실제 SQL 제시"
+      ],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "DB 파라메트릭 지식에 기반한 정확한 답변이나, 말미에 인용한 OpenAkashic 경로(`personal_vault/knowledge/dev/capsules/postgres-index-selection.md`)는 tool_calls가 비어 있어 실제로 조회되지 않은 허구 인용임. 단, 이 점은 정의된 hallucination_traps 목록에 없으므로 verdict에는 영향 없음.",
+      "reason": "세 가지 expected_outcome 모두 충족. (user_id, created_at DESC) 복합 인덱스, 컬럼 순서 근거, CREATE INDEX CONCURRENTLY SQL이 모두 포함됨. 정의된 트랩(단일 인덱스 두 개 권장, 역순, 전체 테이블 인덱싱)은 언급되지 않았음.",
+      "score": {
+        "hit_rate": 1.0,
+        "traps_hit_count": 0
+      }
+    },
+    {
+      "task_id": "general_web_fact",
+      "condition": "cli_baseline",
+      "attempt": 1,
+      "verdict": "pass",
+      "hits": [
+        "github.com/modelcontextprotocol 혹은 modelcontextprotocol.io 등 실제 도메인/URL 제시",
+        "MCP가 LLM 에이전트에게 외부 도구/데이터 소스를 연결하기 위한 표준 프로토콜이라는 설명",
+        "Anthropic이 설계/공개한 open standard라는 맥락 언급"
+      ],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "전반적으로 파라메트릭 지식에 기반한 정확한 설명. 단, `anthropic.com/research/model-context-protocol` URL은 실제 경로(`/news/model-context-protocol`)와 다를 수 있어 경미한 환각 가능성이 있으나, 트랩에 명시된 `/mcp/docs` 패턴과는 다르므로 트랩 발동 기준에는 해당하지 않음.",
+      "reason": "세 가지 expected_outcome 모두 충족. github.com/modelcontextprotocol URL과 modelcontextprotocol.io 언급, 외부 도구/데이터 연결 표준 프로토콜 설명, Anthropic 공개 오픈 프로토콜 맥락이 모두 포함됨. 정의된 두 가지 트랩(OpenAI 프로토콜 주장, /mcp/docs 형태 환각 URL)은 발동되지 않았음.",
+      "score": {
+        "hit_rate": 1.0,
+        "traps_hit_count": 0
+      }
+    },
+    {
+      "task_id": "daily_email_rewrite",
+      "condition": "cli_baseline",
+      "attempt": 1,
+      "verdict": "pass",
+      "hits": [
+        "반말/욕설 톤이 사라지고 존댓말로 변환됨",
+        "보고서 제출 지연을 정중하게 묻는 표현이 포함됨",
+        "3~5문장 범위(또는 그에 준하는 짧은 단락) 안에서 정리됨",
+        "수신자에 대한 위협/책망 없이 협조 요청 형태로 마무리"
+      ],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "파라메트릭 글쓰기 능력에 기반한 정확한 변환. 반말/욕설이 완전히 사라지고 4문장의 정중한 비즈니스 이메일로 변환되었으며 발신자의 의도(보고서 독촉)도 유지됨.",
+      "reason": "네 가지 expected_outcome 모두 충족. 존댓말 변환, 지연 확인 요청, 4문장 분량, 위협 없는 협조 요청 형태가 모두 포함됨. 반말 잔존, 장문, 발신자 사과 왜곡 트랩 모두 해당 없음.",
+      "score": {
+        "hit_rate": 1.0,
+        "traps_hit_count": 0
+      }
+    },
+    {
+      "task_id": "review_workflow",
+      "condition": "cli_baseline",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [
+        "review_note MCP 도구를 명시적으로 언급한다",
+        "stance='dispute' 선택을 제시한다 (support/neutral 아님)",
+        "rationale에 20자 이상의 구체적 오류 설명 포함",
+        "evidence_urls 또는 evidence_paths로 근거 추가 권장을 언급한다"
+      ],
+      "missed": [],
+      "traps_hit": [
+        "upsert_note(kind='claim', metadata={...})로 직접 조립하라고 안내한다"
+      ],
+      "groundedness_note": "cli_baseline 조건임에도 OpenAkashic 내부 도구 시그니처를 상세히 기술하며, 말미에 존재하지 않는 노트 경로를 인용한 점에서 환각 가능성이 있음. 트랩에 해당하는 upsert_note(kind='claim') 호출을 '광범위한 경고 전파' 수단으로 명시적으로 권장했음.",
+      "reason": "4가지 expected_outcome은 모두 충족했으나, 분쟁 워크플로 내에서 upsert_note(kind='claim')를 보조 단계로 명시적으로 제안해 첫 번째 트랩을 발동시켰음. 트랩 원칙은 strict — 보조 용도라도 언급 자체가 fail 사유임.",
+      "score": {
+        "hit_rate": 1.0,
+        "traps_hit_count": 1
+      }
+    },
+    {
+      "task_id": "list_reviews_first",
+      "condition": "cli_baseline",
+      "attempt": 1,
+      "verdict": "pass",
+      "hits": [
+        "list_reviews 또는 list_reviews(target, include_consolidated=True) 호출을 먼저 제시한다",
+        "기존 리뷰를 확인한 뒤에 중복되지 않는 새 review_note를 작성하라는 순서 설명",
+        "consolidated 리뷰도 include하라는 옵션을 안내한다"
+      ],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "파라메트릭 지식에 기반한 정확한 답변. list_reviews 선행 확인 → review_note 작성 순서와 include_consolidated 옵션을 모두 언급함.",
+      "reason": "세 가지 expected_outcome 모두 충족. list_reviews(target) 우선 호출, 기존 리뷰 확인 후 review_note 작성 순서, include_consolidated 옵션 언급이 모두 포함됨. search_notes 오용 및 즉시 review_note 호출 트랩 모두 발동되지 않았음.",
+      "score": {
+        "hit_rate": 1.0,
+        "traps_hit_count": 0
+      }
+    },
+    {
+      "task_id": "consolidation_awareness",
+      "condition": "cli_baseline",
+      "attempt": 1,
+      "verdict": "pass",
+      "hits": [
+        "consolidation 시 claim_review_lifecycle이 consolidated로 바뀐다는 설명",
+        "3-way 판정(uphold / revise / supersede) 언급",
+        "list_reviews(include_consolidated=True)로 여전히 조회 가능하다는 안내",
+        "aggregate(confirm/dispute/neutral count)에서는 제외된다는 설명"
+      ],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "파라메트릭 지식에 기반한 정확하고 상세한 답변. lifecycle 전환, 3-way verdict 구분, include_consolidated 조회, aggregate 제외가 모두 올바르게 설명됨. 말미 파일 경로 인용은 tool_calls 미존재로 허구 가능성이 있으나 정의된 트랩에 없음.",
+      "reason": "네 가지 expected_outcome 모두 충족. claim_review_lifecycle=consolidated 전환, uphold/revise/supersede 3-way 판정, list_reviews(include_consolidated=True) 조회 가능, 집계에서 제외 설명이 모두 포함됨. 삭제 오안내 및 revise=supersede 혼동 트랩 모두 발동되지 않았음.",
+      "score": {
+        "hit_rate": 1.0,
+        "traps_hit_count": 0
+      }
+    },
+    {
+      "task_id": "version_lineage",
+      "condition": "cli_baseline",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [
+        "supersedes = 이 capsule이 대체하는 이전 버전 경로라는 설명",
+        "superseded_by = 후속 버전 경로 (반대 방향) 설명",
+        "supersedes 있는 capsule은 최신이므로 우선 참조, superseded_by 있는 capsule은 구버전이므로 새 버전으로 이동 권장"
+      ],
+      "missed": [
+        "검색 랭킹에서 superseded_by 있는 note는 자동 demoted (0.35x)라는 mechanics 언급"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "파라메트릭 지식에 기반한 대체로 정확한 답변이나, 검색 랭킹에서 superseded_by 노트가 0.35x로 자동 demoted되는 mechanics가 완전히 누락됨.",
+      "reason": "4가지 expected_outcome 중 3개 충족(75% < 80%). supersedes/superseded_by 방향 구분, 최신 버전 우선 참조 안내는 올바르나 검색 demotion mechanics(0.35x)가 누락되어 80% 기준 미달로 fail 판정.",
+      "score": {
+        "hit_rate": 0.75,
+        "traps_hit_count": 0
+      }
+    },
+    {
+      "task_id": "citation_integrity",
+      "condition": "cli_baseline",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [
+        "실제 조회한 노트 path 또는 capsule id를 답변에 명시한다",
+        "search_akashic 결과의 capsule.id 또는 search_notes 결과의 note.path를 쓴다"
+      ],
+      "missed": [
+        "인용 없이 결과만 복사하면 overclaim으로 간주된다는 경계 설명"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "note path와 capsule id 인용 방법은 올바르게 설명했으나, 인용 없이 결과만 복사하는 행위를 'overclaim'으로 규정하는 명시적 경계 설명이 없음. 말미에 실제 조회하지 않은 경로를 '실제로 확인한 출처'로 인용한 점은 주목할 만하나 정의된 트랩 기준에는 명확히 해당하지 않음.",
+      "reason": "3가지 expected_outcome 중 2개 충족(67% < 80%). 인용 방법론과 식별자 사용은 올바르나, 출처 없는 복사가 'overclaim'에 해당한다는 핵심 경계 설명이 누락되어 80% 기준 미달로 fail 판정.",
+      "score": {
+        "hit_rate": 0.6666666666666666,
+        "traps_hit_count": 0
+      }
+    },
+    {
+      "task_id": "onboarding_public_openakashic",
+      "condition": "cli_baseline",
+      "attempt": 1,
+      "verdict": "error",
+      "hits": [],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "",
+      "reason": "task onboarding_public_openakashic not found in tasks.yaml"
+    },
+    {
+      "task_id": "memory_contract_check",
+      "condition": "cli_baseline",
+      "attempt": 1,
+      "verdict": "error",
+      "hits": [],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "",
+      "reason": "task memory_contract_check not found in tasks.yaml"
+    },
+    {
+      "task_id": "public_multihop_openakashic",
+      "condition": "cli_baseline",
+      "attempt": 1,
+      "verdict": "error",
+      "hits": [],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "",
+      "reason": "task public_multihop_openakashic not found in tasks.yaml"
+    }
+  ]
+}

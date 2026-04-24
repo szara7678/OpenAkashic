@@ -1,0 +1,27 @@
+{
+  "model": "claude-haiku-4-5",
+  "condition": "cli_baseline",
+  "cli_harness": "claude",
+  "cli_model": "claude-haiku-4-5",
+  "timestamp": "20260424T174154Z",
+  "records": [
+    {
+      "task_id": "coding_python_bug",
+      "condition": "cli_baseline",
+      "model": "claude-haiku-4-5",
+      "attempt": 1,
+      "started_at": "2026-04-24T17:41:53+00:00",
+      "finished_at": "2026-04-24T17:41:54+00:00",
+      "duration_ms": 916.3,
+      "plan": "",
+      "tool_calls": [],
+      "answer": "Not logged in · Please run /login",
+      "raw_model_output_turn1": "Not logged in · Please run /login",
+      "raw_model_output_turn2": "",
+      "cli_harness": "claude",
+      "cli_model": "claude-haiku-4-5",
+      "error": "CLIExitError(1): no stderr",
+      "format_violation": false
+    }
+  ]
+}
