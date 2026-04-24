@@ -1,5 +1,6 @@
 import base64
 import json
+import os
 import threading
 import time
 from contextlib import contextmanager
@@ -1743,7 +1744,13 @@ def run_self_test(
         Path(__file__).resolve().parent.parent / "bench",
         Path(__file__).resolve().parent.parent.parent / "server" / "bench",
         Path(__file__).resolve().parent.parent.parent / "bench",
+        # Container deployment: server/app is bind-mounted at /app/app, and the
+        # rest of closed-web (including bench/) lives at /vault/closed/.
+        Path("/vault/closed/server/bench"),
     ]
+    env_dir = os.environ.get("CLOSED_AKASHIC_BENCH_DIR")
+    if env_dir:
+        bench_root_candidates.insert(0, Path(env_dir))
 
     tasks_file: Path | None = None
     for bench_dir in bench_root_candidates:
