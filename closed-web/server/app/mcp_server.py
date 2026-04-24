@@ -152,6 +152,10 @@ _TOOL_MANIFEST = {
             "optional": ["include_consolidated"],
             "failure_hint": "target은 capsule/claim path. 새 리뷰 전 중복 방지를 위해 먼저 호출.",
         },
+        "run_self_test": {
+            "required": ["task_id"],
+            "failure_hint": "task_id='list_tasks'로 목록 조회 후 하나 선택. tasks-public.yaml의 id 중에서.",
+        },
         "dispute_note": {
             "required": ["path"],
             "optional": ["reason"],
@@ -292,6 +296,7 @@ mcp = FastMCP(
         "- upsert_note                    — write new notes (use `tags:['agent-scratch']` for temporary memory).\n"
         "- review_note                    — attach an evidence-backed support/dispute to an existing claim or capsule; the natural verb for rebuttals.\n"
         "- list_reviews                   — read existing reviews on a target before adding another.\n"
+        "- run_self_test                  — check your own Akashic usage skill against canonical tasks; use when unsure if you're using tools correctly.\n"
         "- request_note_publication       — hand off capsules/syntheses to the librarian for curation.\n"
         "Ignore list_notes / list_folders / debug_* unless explicitly required — they return long payloads.\n\n"
 
@@ -305,6 +310,7 @@ mcp = FastMCP(
         "5b. Reviewing someone else's claim/capsule instead of writing your own?\n"
         "   → review_note(target=..., stance='support'|'dispute'|'neutral', rationale='...', evidence_urls=[...], evidence_paths=[...])\n"
         "   → Reviews are Closed-only; don't call request_note_publication on them.\n"
+        "5c. Self-check your usage: call run_self_test(task_id='list_tasks') to see canonical tasks; run one if you want to verify your Akashic skill.\n"
         "6. capsule일 때만 request_note_publication(path=<saved_path>, rationale='...', evidence_paths=[...])\n"
         "   → rationale must be ≥20 chars. evidence_paths should list supporting note paths or URLs.\n\n"
 
@@ -416,10 +422,10 @@ def search_notes(
     usage_hint = _search_notes_usage_hint(query=query, kind=kind, results=filtered, gap_info=gap_info)
     if usage_hint:
         response["usage_hint"] = usage_hint
-    # next-call affordance: 모델이 다음 뭘 호출할지 직접 보여줌
-    if filtered:
-        top_path = filtered[0]["path"]
-        response["_next"] = {"read_note": {"path": top_path}}
+    top_path = str(filtered[0].get("path") or "") if filtered else ""
+    response["_next"] = _build_search_notes_next(filtered, gap_info)
+    if top_path:
+        response["next_call"] = {"read_note": {"path": top_path}}
     if gap_info:
         response["gap"] = gap_info
     response["count"] = hit_count
@@ -536,6 +542,10 @@ def read_note(
         raise ValueError("Note not found")
     if not _can_read_note_payload(note, auth):
         raise ValueError("Note is not readable for this token")
+    note_frontmatter = load_document(note["path"]).frontmatter if note.get("path") else {}
+    next_hint = _build_read_note_next(note, note_frontmatter=note_frontmatter)
+    if next_hint:
+        note["_next"] = next_hint
     try:
         log_tool_event(
             "read_note",
@@ -1292,7 +1302,7 @@ def list_reviews(
         )
     except Exception:
         pass
-    return {
+    result = {
         "target": target,
         "count": len(visible_reviews),
         "reviews": [
@@ -1311,6 +1321,10 @@ def list_reviews(
             for review in visible_reviews
         ],
     }
+    next_hint = _build_list_reviews_next(len(visible_reviews))
+    if next_hint:
+        result["_next"] = next_hint
+    return result
 
 
 @mcp.tool(title="Snooze OpenAkashic Stale Reminder")
@@ -1501,6 +1515,9 @@ def search_akashic(
     try:
         with urlrequest.urlopen(req, timeout=10) as resp:
             response = json.loads(resp.read().decode("utf-8"))
+        _annotate_public_search_results(response)
+        if _public_result_count(response) == 0:
+            _record_gap_query(resolved_query)
         reasons = _detect_akashic_quality_issues(
             query=resolved_query,
             response=response,
@@ -1545,6 +1562,9 @@ def search_akashic(
                 "reasons": reasons,
                 "message": "Low-quality Akashic search signal recorded for Sagwan review.",
             }
+        next_hint = _build_search_akashic_next(response)
+        if next_hint:
+            response["_next"] = next_hint
         return response
     except urlerror.URLError as exc:
         response = {"error": f"Core API unreachable: {exc}", "query": resolved_query, "results": {}}
@@ -1631,11 +1651,17 @@ def read_raw_note(path: str, ctx: Context | None = None) -> dict[str, Any]:
         )
     except Exception:
         pass
-    return {
+    result = {
         "path": doc.path,
         "frontmatter": doc.frontmatter,
         "body": doc.body,
     }
+    note = get_closed_note(doc.path, viewer_owner=auth.nickname, is_admin=_is_admin(auth))
+    if note:
+        next_hint = _build_read_note_next(note, note_frontmatter=doc.frontmatter)
+        if next_hint:
+            result["_next"] = next_hint
+    return result
 
 
 @mcp.tool(title="Who Am I (OpenAkashic Profile)")
@@ -1684,6 +1710,82 @@ def get_openakashic_guidance() -> dict[str, Any]:
     """
 
     return openakashic_guidance_payload(public_base_url=settings.public_base_url)
+
+
+@mcp.tool(title="Self-test Your OpenAkashic Usage Skill")
+def run_self_test(
+    task_id: Annotated[
+        str,
+        Field(
+            description=(
+                "Task ID from OpenAkashicBench public subset. Example: 'review_workflow', "
+                "'list_reviews_first', 'consolidation_awareness', 'version_lineage', "
+                "'citation_integrity'. Full list: run_self_test(task_id='list_tasks')."
+            )
+        ),
+    ],
+    ctx: Context | None = None,
+) -> dict[str, Any]:
+    """Return one canonical bench task so the calling agent can self-test its Akashic usage skill.
+
+    The task returns: prompt, expected_outcome (what a correct answer covers),
+    hallucination_traps (what NOT to say), and rubric (judging notes).
+
+    The agent then answers the prompt using its normal tool usage, and compares
+    its answer against expected_outcome. This is self-assessment — no server-side
+    judgment happens here. The judge script at closed-web/server/bench/judge.py
+    can be run manually by an admin to score actual responses.
+    """
+    import yaml
+
+    _auth_from_ctx(ctx)
+    bench_root_candidates = [
+        Path(__file__).resolve().parent.parent / "bench",
+        Path(__file__).resolve().parent.parent.parent / "server" / "bench",
+        Path(__file__).resolve().parent.parent.parent / "bench",
+    ]
+
+    tasks_file: Path | None = None
+    for bench_dir in bench_root_candidates:
+        public_candidate = bench_dir / "tasks-public.yaml"
+        fallback_candidate = bench_dir / "tasks.yaml"
+        if public_candidate.exists():
+            tasks_file = public_candidate
+            break
+        if fallback_candidate.exists():
+            tasks_file = fallback_candidate
+            break
+
+    if tasks_file is None:
+        return {"error": "benchmark tasks not available on this instance"}
+
+    raw = yaml.safe_load(tasks_file.read_text(encoding="utf-8")) or {}
+    tasks = raw.get("tasks", [])
+
+    if task_id == "list_tasks":
+        return {
+            "tasks": [{"id": t["id"], "summary": str(t.get("rubric") or "")[:160]} for t in tasks if t.get("id")],
+            "usage": "call run_self_test(task_id=<pick one>) for full task.",
+        }
+
+    task = next((t for t in tasks if t.get("id") == task_id), None)
+    if not task:
+        return {
+            "error": f"task_id '{task_id}' not found",
+            "available": [t["id"] for t in tasks if t.get("id")][:20],
+        }
+
+    return {
+        "id": task["id"],
+        "prompt": task["prompt"],
+        "expected_outcome": task.get("expected_outcome", []),
+        "hallucination_traps": task.get("hallucination_traps", []),
+        "rubric": task.get("rubric", ""),
+        "_next": (
+            "Answer the prompt above using your normal MCP tool usage. Compare your answer against "
+            "expected_outcome; any hallucination_traps hit is a fail. Admin can score your run via bench/judge.py."
+        ),
+    }
 
 
 def _request_token_from_ctx(ctx: Context | None) -> str | None:
@@ -2002,6 +2104,163 @@ def _summarize_public_result(item: dict[str, Any] | None) -> dict[str, Any]:
         if value is not None:
             payload[key] = value
     return payload
+
+
+def _trust_hint_from_counts(item: dict[str, Any] | None) -> str:
+    if not item:
+        return ""
+    status = str(item.get("claim_review_status") or "").strip().lower()
+    confirm_count = int(item.get("confirm_count") or 0)
+    dispute_count = int(item.get("dispute_count") or 0)
+    if status == "superseded":
+        return "⚠ superseded"
+    if status == "merged":
+        return "merged"
+    if dispute_count > confirm_count and dispute_count > 0:
+        return f"⚠ disputed ({dispute_count}d / {confirm_count}c)"
+    if confirm_count >= 2:
+        return f"✓ confirmed ({confirm_count}c)"
+    return ""
+
+
+def _result_lineage_path(item: dict[str, Any] | None, key: str) -> str:
+    if not item:
+        return ""
+    direct = str(item.get(key) or "").strip()
+    if direct:
+        return direct
+    alt_map = {
+        "superseded_by": ("superseded_by_path", "superseded_by_note_path"),
+        "supersedes": ("supersedes_path", "supersedes_note_path"),
+    }
+    for alt in alt_map.get(key, ()):
+        value = str(item.get(alt) or "").strip()
+        if value:
+            return value
+    return ""
+
+
+def _top_public_result(response: dict[str, Any]) -> dict[str, Any] | None:
+    results = dict(response.get("results") or {})
+    ranked: list[tuple[float, int, dict[str, Any]]] = []
+    order = 0
+    for kind in ("capsules", "claims", "evidences"):
+        for item in results.get(kind) or []:
+            if not isinstance(item, dict):
+                continue
+            ranked.append((_score_of(item), order, item))
+            order += 1
+    if not ranked:
+        return None
+    ranked.sort(key=lambda row: (-row[0], row[1]))
+    return ranked[0][2]
+
+
+def _public_result_count(response: dict[str, Any]) -> int:
+    results = dict(response.get("results") or {})
+    total = 0
+    for kind in ("capsules", "claims", "evidences"):
+        items = results.get(kind) or []
+        if isinstance(items, list):
+            total += len(items)
+    return total
+
+
+def _annotate_public_search_results(response: dict[str, Any]) -> None:
+    results = dict(response.get("results") or {})
+    for kind in ("capsules", "claims", "evidences"):
+        items = results.get(kind) or []
+        if not isinstance(items, list):
+            continue
+        for item in items:
+            if isinstance(item, dict):
+                item["trust_hint"] = _trust_hint_from_counts(item)
+
+
+def _build_search_akashic_next(response: dict[str, Any]) -> str:
+    if _public_result_count(response) == 0:
+        return (
+            "No capsule found. Gap auto-logged. If you solve this, upsert_note(kind='claim', ...) "
+            "will fill the gap for future agents."
+        )
+    top = _top_public_result(response)
+    if not top:
+        return ""
+    confirm_count = int(top.get("confirm_count") or 0)
+    dispute_count = int(top.get("dispute_count") or 0)
+    superseded_by_path = _result_lineage_path(top, "superseded_by")
+    if superseded_by_path:
+        return f"Top result is superseded. See newer version at {superseded_by_path} via read_note."
+    if dispute_count > confirm_count:
+        return (
+            f"⚠ Top result has more disputes than confirms ({dispute_count}d / {confirm_count}c). "
+            "Check list_reviews before trusting."
+        )
+    if confirm_count == 0 and dispute_count == 0:
+        return (
+            "Top result has no reviews yet. If you use it and verify, confirm_note(path). "
+            "If you find it wrong, review_note(target, stance='dispute', rationale, evidence_urls)."
+        )
+    return ""
+
+
+def _build_search_notes_next(results: list[dict[str, Any]], gap_info: dict[str, Any] | None) -> str:
+    if not results:
+        return (
+            "No note found. Gap auto-logged. If you solve this, upsert_note(kind='claim', ...) "
+            "will fill the gap for future agents."
+        )
+    top = results[0]
+    confirm_count = int(top.get("confirm_count") or 0)
+    dispute_count = int(top.get("dispute_count") or 0)
+    superseded_by_path = _result_lineage_path(top, "superseded_by")
+    if superseded_by_path:
+        return f"Top result is superseded. See newer version at {superseded_by_path} via read_note."
+    if dispute_count > confirm_count:
+        return (
+            f"⚠ Top result has more disputes than confirms ({dispute_count}d / {confirm_count}c). "
+            "Check list_reviews before trusting."
+        )
+    if str(top.get("kind") or "").strip().lower() in {"claim", "capsule"} and confirm_count == 0 and dispute_count == 0:
+        return (
+            "Top result has no reviews yet. If you use it and verify, confirm_note(path). "
+            "If you find it wrong, review_note(target, stance='dispute', rationale, evidence_urls)."
+        )
+    top_path = str(top.get("path") or "").strip()
+    if top_path:
+        return f"Read the top note in full with read_note(path='{top_path}')."
+    if gap_info:
+        return str(gap_info.get("message") or "")
+    return ""
+
+
+def _build_read_note_next(note: dict[str, Any], *, note_frontmatter: dict[str, Any]) -> str:
+    kind = str(note.get("kind") or "").strip().lower()
+    parts: list[str] = []
+    if kind in {"capsule", "claim"} and not str(note.get("targets") or "").strip():
+        parts.append(
+            "Agree with this note? confirm_note(path). Disagree with rationale + evidence? "
+            f"review_note(target={note.get('path')!r}, stance='dispute', rationale, evidence_urls)."
+        )
+    superseded_by_path = _result_lineage_path(note, "superseded_by")
+    if superseded_by_path:
+        parts.append(f"This note is superseded. Read {superseded_by_path} for current version.")
+    supersedes_path = _result_lineage_path(note, "supersedes")
+    if supersedes_path:
+        revision_count = int(note_frontmatter.get("revision_count") or 0)
+        revision_label = revision_count if revision_count > 0 else 1
+        parts.append(
+            f"This is a successor note (revision_count={revision_label}). Previous version at {supersedes_path} if needed for history."
+        )
+    return " ".join(part for part in parts if part)
+
+
+def _build_list_reviews_next(count: int) -> str:
+    if count == 0:
+        return "No active reviews. If you have rationale+evidence about this target, review_note() would be the first signal."
+    if count >= 3:
+        return "Sagwan's stage L (consolidation) may fire on next cycle (6h cooldown). Watch /api/admin/sagwan/consolidations for verdict."
+    return ""
 
 
 def _detect_akashic_quality_issues(
