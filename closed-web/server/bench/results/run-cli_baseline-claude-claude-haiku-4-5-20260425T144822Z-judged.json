@@ -1,0 +1,1087 @@
+{
+  "run_file": "/home/insu/insu_server/apps/openakashic/closed-web/server/bench/results/run-cli_baseline-claude-claude-haiku-4-5-20260425T144822Z.json",
+  "judge_model": "gpt-5.4-mini",
+  "model": "claude-haiku-4-5",
+  "condition": "cli_baseline",
+  "judgments": [
+    {
+      "task_id": "coding_python_bug",
+      "condition": "cli_baseline",
+      "attempt": 1,
+      "verdict": "pass",
+      "hits": [
+        "빈 리스트(또는 길이 0) 입력 시 ZeroDivisionError 가 발생한다는 진단",
+        "수정안: len(nums) == 0 가드(또는 try/except, 또는 statistics.mean) 제시",
+        "수정된 코드 스니펫이 실제로 실행 가능한 형태로 제공"
+      ],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "답변은 빈 리스트에서 `len(nums) = 0`이 되어 0으로 나누게 된다는 점을 직접 짚고, 그에 대한 가드를 코드로 제시했다. 환각성 주장 없이 문제 원인과 수정이 근거에 맞게 설명됐다.",
+      "reason": "핵심 위험 케이스인 빈 리스트 입력에 따른 `ZeroDivisionError`를 정확히 진단했다. 또한 `if not nums:` 가드와 실행 가능한 수정 코드가 함께 제시되어 요구사항을 충족한다. 할루시네이션 트랩에 해당하는 잘못된 원인 설명도 없다.",
+      "score": {
+        "hit_rate": 1.0,
+        "expected_total": 3,
+        "hits_count": 3,
+        "core_hit_rate": 0.0,
+        "core_total": 0,
+        "core_hits": 0,
+        "bonus_hit_rate": 0.0,
+        "bonus_total": 0,
+        "bonus_hits": 0,
+        "traps_hit_count": 0
+      },
+      "scoring_mode": "legacy_80pct"
+    },
+    {
+      "task_id": "coding_python_bug",
+      "condition": "cli_baseline",
+      "attempt": 2,
+      "verdict": "pass",
+      "hits": [
+        "빈 리스트(또는 길이 0) 입력 시 ZeroDivisionError 가 발생한다는 진단",
+        "수정안: len(nums) == 0 가드(또는 try/except, 또는 statistics.mean) 제시",
+        "수정된 코드 스니펫이 실제로 실행 가능한 형태로 제공"
+      ],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "답변은 빈 리스트에서 `len(nums)`가 0이 되어 `ZeroDivisionError`가 난다는 점을 직접 짚었고, 그에 맞는 가드 조건을 포함한 수정 코드를 제시했다. 환각성 주장 없이 원인과 수정안을 코드 수준에서 설명했다.",
+      "reason": "핵심 진단, 수정 전략, 실행 가능한 코드 예시가 모두 포함되어 있다. `if not nums` 가드는 길이 0 입력 처리로 충분히 적절하고, hallucination trap에 해당하는 잘못된 원인 설명도 없다.",
+      "score": {
+        "hit_rate": 1.0,
+        "expected_total": 3,
+        "hits_count": 3,
+        "core_hit_rate": 0.0,
+        "core_total": 0,
+        "core_hits": 0,
+        "bonus_hit_rate": 0.0,
+        "bonus_total": 0,
+        "bonus_hits": 0,
+        "traps_hit_count": 0
+      },
+      "scoring_mode": "legacy_80pct"
+    },
+    {
+      "task_id": "coding_python_bug",
+      "condition": "cli_baseline",
+      "attempt": 3,
+      "verdict": "pass",
+      "hits": [
+        "빈 리스트(또는 길이 0) 입력 시 ZeroDivisionError 가 발생한다는 진단",
+        "수정안: len(nums) == 0 가드(또는 try/except, 또는 statistics.mean) 제시",
+        "수정된 코드 스니펫이 실제로 실행 가능한 형태로 제공"
+      ],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "답변은 빈 리스트에서 0으로 나누게 된다는 핵심 원인을 정확히 짚었고, 그에 대한 가드 코드도 제시했다. 환각성 주장 없이 문제 상황과 수정안을 직접 연결해 설명했다.",
+      "reason": "핵심 위험 케이스인 빈 리스트 입력으로 인한 ZeroDivisionError를 명시했고, `if not nums:` 가드가 들어간 실행 가능한 코드 스니펫도 제공했다. 또한 정수 나눗셈이나 for문 오류 같은 트랩을 언급하지 않았으므로 감점 사유가 없다.",
+      "score": {
+        "hit_rate": 1.0,
+        "expected_total": 3,
+        "hits_count": 3,
+        "core_hit_rate": 0.0,
+        "core_total": 0,
+        "core_hits": 0,
+        "bonus_hit_rate": 0.0,
+        "bonus_total": 0,
+        "bonus_hits": 0,
+        "traps_hit_count": 0
+      },
+      "scoring_mode": "legacy_80pct"
+    },
+    {
+      "task_id": "coding_sql_index",
+      "condition": "cli_baseline",
+      "attempt": 1,
+      "verdict": "pass",
+      "hits": [
+        "복합 인덱스 권장: (user_id, created_at) 또는 (user_id, created_at DESC) — 두 컬럼 순서 정확히",
+        "user_id 가 동등 비교(equality)이고 created_at 이 범위/정렬이라 이 순서가 맞다는 설명",
+        "CREATE INDEX 또는 CREATE INDEX CONCURRENTLY 문법으로 실제 SQL 제시"
+      ],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "답변은 Postgres 인덱스 설계의 일반 원칙에 기반해 있으며, 복합 인덱스 순서와 정렬 최적화를 적절히 설명했다. 허위로 보이는 경로나 근거 없는 주장도 없다.",
+      "reason": "제시된 SQL은 `user_id` equality와 `created_at` 범위/정렬 조건에 맞는 복합 인덱스를 제안했고, 실제 `CREATE INDEX` 문까지 포함했다. 인덱스 컬럼 순서도 허용된 패턴인 `(user_id, created_at DESC)`에 부합하며, hallucination trap에 해당하는 내용도 없다.",
+      "score": {
+        "hit_rate": 1.0,
+        "expected_total": 3,
+        "hits_count": 3,
+        "core_hit_rate": 0.0,
+        "core_total": 0,
+        "core_hits": 0,
+        "bonus_hit_rate": 0.0,
+        "bonus_total": 0,
+        "bonus_hits": 0,
+        "traps_hit_count": 0
+      },
+      "scoring_mode": "legacy_80pct"
+    },
+    {
+      "task_id": "coding_sql_index",
+      "condition": "cli_baseline",
+      "attempt": 2,
+      "verdict": "pass",
+      "hits": [
+        "복합 인덱스 권장: (user_id, created_at) 또는 (user_id, created_at DESC) — 두 컬럼 순서 정확히",
+        "user_id 가 동등 비교(equality)이고 created_at 이 범위/정렬이라 이 순서가 맞다는 설명",
+        "CREATE INDEX 또는 CREATE INDEX CONCURRENTLY 문법으로 실제 SQL 제시"
+      ],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "답변은 쿼리 조건과 정렬 방향에 맞는 복합 인덱스를 제안했고, 왜 그 순서가 맞는지 근거도 설명했다. 주어진 함정들에 해당하는 잘못된 인덱스 권고는 없었다.",
+      "reason": "`CREATE INDEX ... ON events(user_id, created_at DESC)`로 복합 인덱스를 제시해 요구사항을 충족했다. 또한 `user_id`의 동등 비교와 `created_at`의 범위 및 정렬을 이유로 들었고, 실제 SQL 문법도 제공했다. 할루시네이션 트랩에 해당하는 단일 인덱스 권고나 역순 컬럼 순서는 등장하지 않았다.",
+      "score": {
+        "hit_rate": 1.0,
+        "expected_total": 3,
+        "hits_count": 3,
+        "core_hit_rate": 0.0,
+        "core_total": 0,
+        "core_hits": 0,
+        "bonus_hit_rate": 0.0,
+        "bonus_total": 0,
+        "bonus_hits": 0,
+        "traps_hit_count": 0
+      },
+      "scoring_mode": "legacy_80pct"
+    },
+    {
+      "task_id": "coding_sql_index",
+      "condition": "cli_baseline",
+      "attempt": 3,
+      "verdict": "pass",
+      "hits": [
+        "복합 인덱스 권장: (user_id, created_at) 또는 (user_id, created_at DESC) — 두 컬럼 순서 정확히",
+        "user_id 가 동등 비교(equality)이고 created_at 이 범위/정렬이라 이 순서가 맞다는 설명",
+        "CREATE INDEX 또는 CREATE INDEX CONCURRENTLY 문법으로 실제 SQL 제시"
+      ],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "답변은 Postgres B-tree의 equality-then-range 정렬 원리에 기반해 인덱스 순서를 설명했고, 실제 `CREATE INDEX` 문도 제시했다. 환각성 단정이나 트랩 문구는 보이지 않는다.",
+      "reason": "`events(user_id, created_at DESC)` 복합 인덱스를 제안해 요구한 핵심 순서를 충족했다. 또한 `user_id = 42`는 동등 비교, `created_at >= ...`는 범위/정렬 조건이라 이 순서가 맞다는 설명과 실제 SQL 문이 모두 포함되어 있다. 트랩으로 주어진 역순 인덱스, 단일 인덱스 두 개, 전체 테이블 인덱싱 주장은 등장하지 않았다.",
+      "score": {
+        "hit_rate": 1.0,
+        "expected_total": 3,
+        "hits_count": 3,
+        "core_hit_rate": 0.0,
+        "core_total": 0,
+        "core_hits": 0,
+        "bonus_hit_rate": 0.0,
+        "bonus_total": 0,
+        "bonus_hits": 0,
+        "traps_hit_count": 0
+      },
+      "scoring_mode": "legacy_80pct"
+    },
+    {
+      "task_id": "general_web_fact",
+      "condition": "cli_baseline",
+      "attempt": 1,
+      "verdict": "pass",
+      "hits": [
+        "github.com/modelcontextprotocol 혹은 modelcontextprotocol.io 등 실제 도메인/URL 제시",
+        "MCP가 LLM 에이전트에게 외부 도구/데이터 소스를 연결하기 위한 표준 프로토콜이라는 설명",
+        "Anthropic이 설계/공개한 open standard라는 맥락 언급"
+      ],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "답변은 MCP의 공식 저장소 URL과 MCP의 목적, 그리고 Anthropic이 공개한 개방형 표준이라는 맥락을 모두 포함합니다. 환각 URL이나 잘못된 소유권 설명은 보이지 않습니다.",
+      "reason": "정답 체크포인트 3개가 모두 의미적으로 충족되었습니다. 할루시네이션 트랩인 OpenAI 소유 주장이나 존재하지 않는 anthropic.com/mcp/docs URL도 등장하지 않아 최종 판정은 pass입니다.",
+      "score": {
+        "hit_rate": 1.0,
+        "expected_total": 3,
+        "hits_count": 3,
+        "core_hit_rate": 0.0,
+        "core_total": 0,
+        "core_hits": 0,
+        "bonus_hit_rate": 0.0,
+        "bonus_total": 0,
+        "bonus_hits": 0,
+        "traps_hit_count": 0
+      },
+      "scoring_mode": "legacy_80pct"
+    },
+    {
+      "task_id": "general_web_fact",
+      "condition": "cli_baseline",
+      "attempt": 2,
+      "verdict": "fail",
+      "hits": [
+        "MCP가 LLM 에이전트에게 외부 도구/데이터 소스를 연결하기 위한 표준 프로토콜이라는 설명",
+        "Anthropic이 설계/공개한 open standard라는 맥락 언급"
+      ],
+      "missed": [
+        "github.com/modelcontextprotocol 혹은 modelcontextprotocol.io 등 실제 도메인/URL 제시"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "설명 부분은 MCP의 용도를 대체로 정확히 요약했지만, 공식 저장소 URL은 기대된 공식 도메인/조직과 다릅니다. 따라서 근거 기반 요약은 있었지만 URL 항목은 충족되지 않았습니다.",
+      "reason": "핵심 의미 3개 중 2개는 충족했지만, 공식 저장소 URL로 기대된 `github.com/modelcontextprotocol` 또는 `modelcontextprotocol.io` 계열이 아니라 `github.com/anthropics/mcp`를 제시해 첫 항목을 놓쳤습니다. 할루시네이션 트랩은 없었고 내용은 대체로 맞지만, 80% 기준상 2/3로는 통과 조건을 만족하지 못합니다.",
+      "score": {
+        "hit_rate": 0.6666666666666666,
+        "expected_total": 3,
+        "hits_count": 2,
+        "core_hit_rate": 0.0,
+        "core_total": 0,
+        "core_hits": 0,
+        "bonus_hit_rate": 0.0,
+        "bonus_total": 0,
+        "bonus_hits": 0,
+        "traps_hit_count": 0
+      },
+      "scoring_mode": "legacy_80pct"
+    },
+    {
+      "task_id": "general_web_fact",
+      "condition": "cli_baseline",
+      "attempt": 3,
+      "verdict": "fail",
+      "hits": [
+        "MCP가 LLM 에이전트에게 외부 도구/데이터 소스를 연결하기 위한 표준 프로토콜이라는 설명",
+        "Anthropic이 설계/공개한 open standard라는 맥락 언급"
+      ],
+      "missed": [
+        "github.com/modelcontextprotocol 혹은 modelcontextprotocol.io 등 실제 도메인/URL 제시"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "설명 부분은 대체로 맞지만, 공식 저장소 URL은 실제로 확인된 도메인과 다르게 적혀 있어 근거 기반 답변으로 보기 어렵습니다. 전체적으로는 일부 사실은 맞지만 핵심 식별자 하나가 틀린 답변입니다.",
+      "reason": "예상 항목 3개 중 2개는 의미적으로 충족했지만, 공식 저장소 URL 제시는 요구된 실제 도메인/URL과 일치하지 않았습니다. 평면 리스트 기준 80% 이상 충족이 필요하지만 2/3은 80%에 미달하므로 fail입니다.",
+      "score": {
+        "hit_rate": 0.6666666666666666,
+        "expected_total": 3,
+        "hits_count": 2,
+        "core_hit_rate": 0.0,
+        "core_total": 0,
+        "core_hits": 0,
+        "bonus_hit_rate": 0.0,
+        "bonus_total": 0,
+        "bonus_hits": 0,
+        "traps_hit_count": 0
+      },
+      "scoring_mode": "legacy_80pct"
+    },
+    {
+      "task_id": "daily_email_rewrite",
+      "condition": "cli_baseline",
+      "attempt": 1,
+      "verdict": "pass",
+      "hits": [
+        "반말/욕설 톤이 사라지고 존댓말로 변환됨",
+        "보고서 제출 지연을 정중하게 묻는 표현이 포함됨",
+        "3~5문장 범위(또는 그에 준하는 짧은 단락) 안에서 정리됨",
+        "수신자에 대한 위협/책망 없이 협조 요청 형태로 마무리"
+      ],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "주어진 원문을 정중한 비즈니스 이메일 형태로 직접 재작성했으며, 추가적인 환각 정보는 보이지 않습니다.",
+      "reason": "답변은 반말을 모두 제거하고 존댓말로 바꿨으며, 보고서 미제출과 마감 경과를 정중하게 확인하는 표현을 포함합니다. 분량도 짧은 이메일 수준으로 유지되었고, 상대를 책망하거나 위협하는 내용 없이 협조 요청으로 마무리되어 채점 기준을 충족합니다.",
+      "score": {
+        "hit_rate": 1.0,
+        "expected_total": 4,
+        "hits_count": 4,
+        "core_hit_rate": 0.0,
+        "core_total": 0,
+        "core_hits": 0,
+        "bonus_hit_rate": 0.0,
+        "bonus_total": 0,
+        "bonus_hits": 0,
+        "traps_hit_count": 0
+      },
+      "scoring_mode": "legacy_80pct"
+    },
+    {
+      "task_id": "daily_email_rewrite",
+      "condition": "cli_baseline",
+      "attempt": 2,
+      "verdict": "pass",
+      "hits": [
+        "반말/욕설 톤이 사라지고 존댓말로 변환됨",
+        "보고서 제출 지연을 정중하게 묻는 표현이 포함됨",
+        "3~5문장 범위(또는 그에 준하는 짧은 단락) 안에서 정리됨",
+        "수신자에 대한 위협/책망 없이 협조 요청 형태로 마무리"
+      ],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "답변은 주어진 원문을 정중한 비즈니스 이메일로 재작성한 것으로, 별도의 사실 주장이나 외부 근거가 필요하지 않습니다. 문체와 길이도 프롬프트 요구에 맞게 유지되어 환각 징후는 보이지 않습니다.",
+      "reason": "본문은 존댓말로 되어 있고, 보고서 제출 지연을 정중하게 문의하며 협조를 요청하는 형태로 끝납니다. 이메일 본문 자체는 3~5문장 범위에 들어가며, 반말·명령조·책망이나 사과 일색의 왜곡도 보이지 않습니다.",
+      "score": {
+        "hit_rate": 1.0,
+        "expected_total": 4,
+        "hits_count": 4,
+        "core_hit_rate": 0.0,
+        "core_total": 0,
+        "core_hits": 0,
+        "bonus_hit_rate": 0.0,
+        "bonus_total": 0,
+        "bonus_hits": 0,
+        "traps_hit_count": 0
+      },
+      "scoring_mode": "legacy_80pct"
+    },
+    {
+      "task_id": "daily_email_rewrite",
+      "condition": "cli_baseline",
+      "attempt": 3,
+      "verdict": "fail",
+      "hits": [
+        "반말/욕설 톤이 사라지고 존댓말로 변환됨",
+        "보고서 제출 지연을 정중하게 묻는 표현이 포함됨",
+        "3~5문장 범위(또는 그에 준하는 짧은 단락) 안에서 정리됨",
+        "수신자에 대한 위협/책책 없이 협조 요청 형태로 마무리"
+      ],
+      "missed": [
+        "수신자에 대한 위협/책망 없이 협조 요청 형태로 마무리"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "답변은 원문 메시지를 직접 확인한 뒤 정중한 비즈니스 이메일 형태로 재작성한 것으로 보이며, 도구 의존이나 근거 없는 내용이 없습니다.",
+      "reason": "존댓말과 비즈니스 톤으로 바뀌었고, 보고서 전달 지연을 정중하게 문의하며 협조를 요청하는 구조입니다. 길이도 짧은 단락 범위에 들어가며, 반말·명령조·사과 일색 전환 같은 함정도 보이지 않습니다.",
+      "score": {
+        "hit_rate": 0.75,
+        "expected_total": 4,
+        "hits_count": 3,
+        "core_hit_rate": 0.0,
+        "core_total": 0,
+        "core_hits": 0,
+        "bonus_hit_rate": 0.0,
+        "bonus_total": 0,
+        "bonus_hits": 0,
+        "traps_hit_count": 0
+      },
+      "scoring_mode": "legacy_80pct"
+    },
+    {
+      "task_id": "review_workflow",
+      "condition": "cli_baseline",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [],
+      "missed": [
+        "review_note MCP 도구를 명시적으로 언급한다",
+        "stance='dispute' 선택을 제시한다 (support/neutral 아님)",
+        "rationale에 20자 이상의 구체적 오류 설명 포함",
+        "evidence_urls 또는 evidence_paths로 근거 추가 권장을 언급한다"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "답변은 OpenAkashic의 실제 review workflow를 근거로 설명하기보다, `upsert_note`와 임의의 JSON-RPC 예시를 만들어낸 형태입니다. 요구된 `review_note` 시그니처와 `stance='dispute'` semantics를 직접 확인해 준 것은 아닙니다.",
+      "reason": "핵심 체크포인트인 `review_note` 언급, `stance='dispute'` 제시, 구체적 rationale, evidence_urls/evidence_paths 권장이 모두 확인되지 않습니다. 또한 답변은 실제 존재 여부가 불명확한 도구/파라미터를 섞어 설명해 워크플로 정확도 측면에서도 신뢰하기 어렵습니다.",
+      "score": {
+        "hit_rate": 0.0,
+        "expected_total": 4,
+        "hits_count": 0,
+        "core_hit_rate": 0.0,
+        "core_total": 0,
+        "core_hits": 0,
+        "bonus_hit_rate": 0.0,
+        "bonus_total": 0,
+        "bonus_hits": 0,
+        "traps_hit_count": 0
+      },
+      "scoring_mode": "legacy_80pct"
+    },
+    {
+      "task_id": "review_workflow",
+      "condition": "cli_baseline",
+      "attempt": 2,
+      "verdict": "fail",
+      "hits": [],
+      "missed": [
+        "review_note MCP 도구를 명시적으로 언급한다",
+        "stance='dispute' 선택을 제시한다 (support/neutral 아님)",
+        "rationale에 20자 이상의 구체적 오류 설명 포함",
+        "evidence_urls 또는 evidence_paths로 근거 추가 권장을 언급한다"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "답변은 일반적인 노트 기록/경고 절차를 설명했지만, 요구된 review_note 시그니처와 stance semantics를 근거 있게 제시하지 못했다. 실제 MCP 도구 사용 근거보다 추상적 워크플로 안내에 치우쳐 있다.",
+      "reason": "필수 항목인 `review_note`, `stance='dispute'`, 근거 필드 권장 중 어느 것도 직접 충족하지 않았다. 또한 구체적 오류를 담은 rationale 예시도 없어서, 정답 기준상 핵심 체크포인트를 충족하지 못한다.",
+      "score": {
+        "hit_rate": 0.0,
+        "expected_total": 4,
+        "hits_count": 0,
+        "core_hit_rate": 0.0,
+        "core_total": 0,
+        "core_hits": 0,
+        "bonus_hit_rate": 0.0,
+        "bonus_total": 0,
+        "bonus_hits": 0,
+        "traps_hit_count": 0
+      },
+      "scoring_mode": "legacy_80pct"
+    },
+    {
+      "task_id": "review_workflow",
+      "condition": "cli_baseline",
+      "attempt": 3,
+      "verdict": "fail",
+      "hits": [],
+      "missed": [
+        "review_note MCP 도구를 명시적으로 언급한다",
+        "stance='dispute' 선택을 제시한다 (support/neutral 아님)",
+        "rationale에 20자 이상의 구체적 오류 설명 포함",
+        "evidence_urls 또는 evidence_paths로 근거 추가 권장을 언급한다"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "답변은 실제 Akashic review_note 절차를 근거로 설명하지 않았고, upsert_note와 append_note_section 같은 다른 도구로 대체했다. 구체적 오류 서술과 stance 설정도 없어서 근거 기반 안내로 보기 어렵다.",
+      "reason": "핵심 체크포인트인 review_note 도구명과 dispute stance가 모두 빠져 있다. rationale도 실제 오류 설명이 아니라 자리표시자 수준이며, evidence_urls/evidence_paths 권장도 명시되지 않았다. 할루시네이션 트랩은 직접적으로는 등장하지 않았지만, 정답 요건을 충분히 충족하지 못해 fail이다.",
+      "score": {
+        "hit_rate": 0.0,
+        "expected_total": 4,
+        "hits_count": 0,
+        "core_hit_rate": 0.0,
+        "core_total": 0,
+        "core_hits": 0,
+        "bonus_hit_rate": 0.0,
+        "bonus_total": 0,
+        "bonus_hits": 0,
+        "traps_hit_count": 0
+      },
+      "scoring_mode": "legacy_80pct"
+    },
+    {
+      "task_id": "list_reviews_first",
+      "condition": "cli_baseline",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [],
+      "missed": [
+        "list_reviews 또는 list_reviews(target, include_consolidated=True) 호출을 먼저 제시한다",
+        "기존 리뷰를 확인한 뒤에 중복되지 않는 새 review_note를 작성하라는 순서 설명",
+        "consolidated 리뷰도 include하라는 옵션을 안내한다"
+      ],
+      "traps_hit": [
+        "search_notes로 리뷰를 찾으라고 안내 (search는 targeted claim 기본 제외)"
+      ],
+      "groundedness_note": "답변은 필요한 `list_reviews` 흐름 대신 `search_notes`를 권하고 있어 근거 요구와 어긋납니다. 리뷰 중복 방지를 위한 핵심 절차와 옵션이 빠져 있어 환각성/일반론에 가깝습니다.",
+      "reason": "정답 체크포인트 3개를 모두 충족하지 못했습니다. 특히 리뷰 확인은 언급했지만, 필요한 `list_reviews` 선행 호출과 `include_consolidated=True` 옵션, 그리고 확인 후 중복되지 않는 `review_note` 작성 순서가 빠져 있습니다. 또한 `search_notes`로 리뷰를 찾으라는 안내가 트랩에 해당합니다.",
+      "score": {
+        "hit_rate": 0.0,
+        "expected_total": 3,
+        "hits_count": 0,
+        "core_hit_rate": 0.0,
+        "core_total": 0,
+        "core_hits": 0,
+        "bonus_hit_rate": 0.0,
+        "bonus_total": 0,
+        "bonus_hits": 0,
+        "traps_hit_count": 1
+      },
+      "scoring_mode": "legacy_80pct"
+    },
+    {
+      "task_id": "list_reviews_first",
+      "condition": "cli_baseline",
+      "attempt": 2,
+      "verdict": "fail",
+      "hits": [],
+      "missed": [
+        "list_reviews 또는 list_reviews(target, include_consolidated=True) 호출을 먼저 제시한다",
+        "기존 리뷰를 확인한 뒤에 중복되지 않는 새 review_note를 작성하라는 순서 설명",
+        "consolidated 리뷰도 include하라는 옵션을 안내한다"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "답변은 일반적인 점검 절차를 말했지만, 요구된 `list_reviews` 선행 확인이나 `include_consolidated=True` 같은 핵심 근거에 맞춰져 있지 않습니다. 특정 API 흐름을 근거로 제시하지 않아 정답 체크포인트를 충족하지 못했습니다.",
+      "reason": "핵심 기대사항인 `list_reviews` 먼저 호출, 그 뒤 중복 없는 `review_note` 작성 순서, consolidated 리뷰 포함 옵션이 모두 빠졌습니다. 또한 트랩 문구는 직접적으로 언급하지 않았지만, 요구한 절차를 제공하지 못해 전체적으로 fail입니다.",
+      "score": {
+        "hit_rate": 0.0,
+        "expected_total": 3,
+        "hits_count": 0,
+        "core_hit_rate": 0.0,
+        "core_total": 0,
+        "core_hits": 0,
+        "bonus_hit_rate": 0.0,
+        "bonus_total": 0,
+        "bonus_hits": 0,
+        "traps_hit_count": 0
+      },
+      "scoring_mode": "legacy_80pct"
+    },
+    {
+      "task_id": "list_reviews_first",
+      "condition": "cli_baseline",
+      "attempt": 3,
+      "verdict": "fail",
+      "hits": [],
+      "missed": [
+        "list_reviews 또는 list_reviews(target, include_consolidated=True) 호출을 먼저 제시한다",
+        "기존 리뷰를 확인한 뒤에 중복되지 않는 새 review_note를 작성하라는 순서 설명",
+        "consolidated 리뷰도 include하라는 옵션을 안내한다"
+      ],
+      "traps_hit": [
+        "search_notes로 리뷰를 찾으라고 안내 (search는 targeted claim 기본 제외)"
+      ],
+      "groundedness_note": "답변은 요구된 `list_reviews` 선행 확인 대신 `search_notes`를 제안해 근거 기준에서 벗어났습니다. 또한 include_consolidated 옵션과 review_note 작성 순서를 제대로 안내하지 않았습니다.",
+      "reason": "핵심 체크포인트 3개가 모두 충족되지 않았고, 금지된 탐색 방식인 `search_notes` 안내가 포함되어 있습니다. 따라서 중복 방지 절차에 대한 정답으로 보기 어렵고, 트랩 명시로 인해 최종 판정은 실패입니다.",
+      "score": {
+        "hit_rate": 0.0,
+        "expected_total": 3,
+        "hits_count": 0,
+        "core_hit_rate": 0.0,
+        "core_total": 0,
+        "core_hits": 0,
+        "bonus_hit_rate": 0.0,
+        "bonus_total": 0,
+        "bonus_hits": 0,
+        "traps_hit_count": 1
+      },
+      "scoring_mode": "legacy_80pct"
+    },
+    {
+      "task_id": "consolidation_awareness",
+      "condition": "cli_baseline",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [],
+      "missed": [
+        "consolidation 시 claim_review_lifecycle이 consolidated로 바뀐다는 설명",
+        "3-way 판정(uphold / revise / supersede) 언급",
+        "list_reviews(include_consolidated=True)로 여전히 조회 가능하다는 안내",
+        "aggregate(confirm/dispute/neutral count)에서는 제외된다는 설명"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "답변은 GitHub PR의 resolve conversation 동작을 설명하고 있어, 요구된 openakashic의 consolidation/lifecycle 개념과는 다른 주제를 다룹니다. 근거 기반 설명이라기보다 질문 맥락을 잘못 해석한 응답입니다.",
+      "reason": "핵심 정답 요소인 claim_review_lifecycle 전환, 3-way 판정, include_consolidated 조회, aggregate 제외가 모두 빠져 있습니다. 또한 할루시네이션 트랩 문구는 직접 등장하지 않았지만, 정답 충족률이 0%이므로 최종 판정은 fail입니다.",
+      "score": {
+        "hit_rate": 0.0,
+        "expected_total": 4,
+        "hits_count": 0,
+        "core_hit_rate": 0.0,
+        "core_total": 0,
+        "core_hits": 0,
+        "bonus_hit_rate": 0.0,
+        "bonus_total": 0,
+        "bonus_hits": 0,
+        "traps_hit_count": 0
+      },
+      "scoring_mode": "legacy_80pct"
+    },
+    {
+      "task_id": "consolidation_awareness",
+      "condition": "cli_baseline",
+      "attempt": 2,
+      "verdict": "fail",
+      "hits": [],
+      "missed": [
+        "consolidation 시 claim_review_lifecycle이 consolidated로 바뀐다는 설명",
+        "3-way 판정(uphold / revise / supersede) 언급",
+        "list_reviews(include_consolidated=True)로 여전히 조회 가능하다는 안내",
+        "aggregate(confirm/dispute/neutral count)에서는 제외된다는 설명"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "답변은 openakashic의 consolidation 동작이 아니라 GitHub 리뷰 상태(resolve/dismiss/delete)를 설명하고 있어 근거에 맞지 않습니다. 제시된 체크포인트와 직접 연결되는 내용이 없어 환각성 응답으로 봐야 합니다.",
+      "reason": "expected_outcome 4개 중 어느 것도 의미적으로 충족되지 않았습니다. 또한 hallucination_trap인 'consolidated 리뷰가 삭제된다'나 'revise와 supersede를 같은 것처럼 설명'은 직접 언급되지 않았습니다. 하지만 답변 전체가 질문 맥락과 무관한 GitHub 리뷰 설명이라 정답으로 판정할 수 없습니다.",
+      "score": {
+        "hit_rate": 0.0,
+        "expected_total": 4,
+        "hits_count": 0,
+        "core_hit_rate": 0.0,
+        "core_total": 0,
+        "core_hits": 0,
+        "bonus_hit_rate": 0.0,
+        "bonus_total": 0,
+        "bonus_hits": 0,
+        "traps_hit_count": 0
+      },
+      "scoring_mode": "legacy_80pct"
+    },
+    {
+      "task_id": "consolidation_awareness",
+      "condition": "cli_baseline",
+      "attempt": 3,
+      "verdict": "fail",
+      "hits": [],
+      "missed": [
+        "consolidation 시 claim_review_lifecycle이 consolidated로 바뀐다는 설명",
+        "3-way 판정(uphold / revise / supersede) 언급",
+        "list_reviews(include_consolidated=True)로 여전히 조회 가능하다는 안내",
+        "aggregate(confirm/dispute/neutral count)에서는 제외된다는 설명"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "답변은 OpenAkashic의 consolidation 동작을 설명하지 않았고, 대신 GitHub PR review의 dismissed 상태에 대한 일반론으로 벗어났습니다. 요구된 경로/용어에 근거한 설명이 없어 정답 근거성과는 맞지 않습니다.",
+      "reason": "핵심 기대사항 4개가 모두 답변에 포함되지 않았습니다. 또한 hallucination_traps에 해당하는 표현은 직접적으로 나오지 않았습니다. 따라서 80% 기준을 충족하지 못해 fail입니다.",
+      "score": {
+        "hit_rate": 0.0,
+        "expected_total": 4,
+        "hits_count": 0,
+        "core_hit_rate": 0.0,
+        "core_total": 0,
+        "core_hits": 0,
+        "bonus_hit_rate": 0.0,
+        "bonus_total": 0,
+        "bonus_hits": 0,
+        "traps_hit_count": 0
+      },
+      "scoring_mode": "legacy_80pct"
+    },
+    {
+      "task_id": "version_lineage",
+      "condition": "cli_baseline",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [
+        "supersedes = 이 capsule이 대체하는 이전 버전 경로라는 설명"
+      ],
+      "missed": [
+        "superseded_by = 후속 버전 경로 (반대 방향) 설명",
+        "supersedes 있는 capsule은 최신이므로 우선 참조, superseded_by 있는 capsule은 구버전이므로 새 버전으로 이동 권장",
+        "검색 랭킹에서 superseded_by 있는 note가 자동으로 demoted된다는 사실 언급 (구체적 multiplier 수치는 bonus, 필수 아님)"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "답변은 supersedes의 의미와 최신 버전 우선 참조 취지를 일부 설명하지만, superseded_by의 반대 방향과 검색 demotion 메커니즘은 빠져 있습니다. 별도의 환각 트랩을 직접 언급하지는 않았습니다.",
+      "reason": "핵심 체크포인트 3개 중 1개만 명확히 충족했습니다. 특히 superseded_by 방향 설명이 없고, superseded_by가 있는 note의 자동 demotion 언급도 없어 core 기준을 만족하지 못합니다.",
+      "score": {
+        "hit_rate": 0.25,
+        "expected_total": 4,
+        "hits_count": 1,
+        "core_hit_rate": 0.3333333333333333,
+        "core_total": 3,
+        "core_hits": 1,
+        "bonus_hit_rate": 0.0,
+        "bonus_total": 1,
+        "bonus_hits": 0,
+        "traps_hit_count": 0
+      },
+      "scoring_mode": "core_bonus"
+    },
+    {
+      "task_id": "version_lineage",
+      "condition": "cli_baseline",
+      "attempt": 2,
+      "verdict": "fail",
+      "hits": [
+        "supersedes = 이 capsule이 대체하는 이전 버전 경로라는 설명"
+      ],
+      "missed": [
+        "superseded_by = 후속 버전 경로 (반대 방향) 설명",
+        "supersedes 있는 capsule은 최신이므로 우선 참조, superseded_by 있는 capsule은 구버전이므로 새 버전으로 이동 권장",
+        "검색 랭킹에서 superseded_by 있는 note가 자동으로 demoted된다는 사실 언급 (구체적 multiplier 수치는 bonus, 필수 아님)"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "답변은 `supersedes`가 이전 버전을 대체하는 의미라는 점은 맞게 잡았지만, `superseded_by`의 반대 방향과 검색 demotion 메커니즘은 근거 없이 빠져 있습니다. 전체적으로 부분적으로만 근거에 맞고, 요구한 lineage 설명은 불완전합니다.",
+      "reason": "핵심 체크포인트 3개 중 1개만 충족했고, bonus 항목도 언급되지 않았습니다. 또한 할루시네이션 트랩은 직접적으로 드러나지 않았지만, 정답에 필요한 `superseded_by` 방향성과 검색 랭킹 demotion 설명이 빠져 있어 pass 기준을 만족하지 않습니다.",
+      "score": {
+        "hit_rate": 0.25,
+        "expected_total": 4,
+        "hits_count": 1,
+        "core_hit_rate": 0.3333333333333333,
+        "core_total": 3,
+        "core_hits": 1,
+        "bonus_hit_rate": 0.0,
+        "bonus_total": 1,
+        "bonus_hits": 0,
+        "traps_hit_count": 0
+      },
+      "scoring_mode": "core_bonus"
+    },
+    {
+      "task_id": "version_lineage",
+      "condition": "cli_baseline",
+      "attempt": 3,
+      "verdict": "fail",
+      "hits": [],
+      "missed": [
+        "supersedes = 이 capsule이 대체하는 이전 버전 경로라는 설명",
+        "superseded_by = 후속 버전 경로 (반대 방향) 설명",
+        "supersedes 있는 capsule은 최신이므로 우선 참조, superseded_by 있는 capsule은 구버전이므로 새 버전으로 이동 권장",
+        "검색 랭킹에서 superseded_by 있는 note가 자동으로 demoted된다는 사실 언급 (구체적 multiplier 수치는 bonus, 필수 아님)"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "답변은 버전 대체 관계를 다루려는 점에서는 주제와 맞지만, `supersedes`의 방향을 기대와 반대로 설명하고 `superseded_by` 및 검색 demotion 메커니즘을 제시하지 않았습니다.",
+      "reason": "핵심 체크포인트인 lineage 방향과 행동 지침이 충족되지 않았습니다. 특히 `supersedes`를 구버전이 새 버전을 가리키는 식으로 설명해 기대와 어긋나며, `superseded_by`와 랭킹 demotion 언급도 없습니다.",
+      "score": {
+        "hit_rate": 0.0,
+        "expected_total": 4,
+        "hits_count": 0,
+        "core_hit_rate": 0.0,
+        "core_total": 3,
+        "core_hits": 0,
+        "bonus_hit_rate": 0.0,
+        "bonus_total": 1,
+        "bonus_hits": 0,
+        "traps_hit_count": 0
+      },
+      "scoring_mode": "core_bonus"
+    },
+    {
+      "task_id": "citation_integrity",
+      "condition": "cli_baseline",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [
+        "실제 조회한 노트 path 또는 capsule id를 답변에 명시한다",
+        "search_akashic 결과의 capsule.id 또는 search_notes 결과의 note.path를 쓴다"
+      ],
+      "missed": [
+        "인용 없이 결과만 복사하면 overclaim으로 간주된다는 경계 설명"
+      ],
+      "traps_hit": [
+        "존재하지 않는 path (예: /kb/foo)를 인용한다"
+      ],
+      "groundedness_note": "답변은 인용 시 실제 노트 경로나 capsule ID를 쓰라는 핵심 원칙은 담고 있지만, 검증되지 않은 예시 경로와 capsule ID를 제시해 근거성이 약합니다. 또한 출처 없이 복사하면 overclaim이라는 경계는 명시하지 않았습니다.",
+      "reason": "핵심 인용 원칙은 충족했지만, overclaim 경고가 빠져 있어 bonus를 모두 채우지 못했습니다. 더 중요하게는 실제 조회 근거가 없는 경로를 예시로 들고 있어 할루시네이션 트랩에 해당하므로 pass 조건을 만족하지 않습니다.",
+      "score": {
+        "hit_rate": 0.6666666666666666,
+        "expected_total": 3,
+        "hits_count": 2,
+        "core_hit_rate": 1.0,
+        "core_total": 1,
+        "core_hits": 1,
+        "bonus_hit_rate": 0.5,
+        "bonus_total": 2,
+        "bonus_hits": 1,
+        "traps_hit_count": 1
+      },
+      "scoring_mode": "core_bonus"
+    },
+    {
+      "task_id": "citation_integrity",
+      "condition": "cli_baseline",
+      "attempt": 2,
+      "verdict": "pass",
+      "hits": [
+        "실제 조회한 노트 path 또는 capsule id를 답변에 명시한다",
+        "search_akashic 결과의 capsule.id 또는 search_notes 결과의 note.path를 쓴다"
+      ],
+      "missed": [
+        "인용 없이 결과만 복사하면 overclaim으로 간주된다는 경계 설명"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "답변은 Akashic 인용 원칙에 대한 일반 지침으로는 일관되지만, 실제 조회된 receipt나 검증된 경로를 근거로 제시하지는 않았다.",
+      "reason": "핵심 요구인 note path 또는 capsule ID 명시는 충족했고, 사용 예시도 그 방향과 맞다. 다만 overclaim 경계 설명은 빠졌지만, core 조건은 만족하며 hallucination trap도 등장하지 않아 최종 판정은 pass다.",
+      "score": {
+        "hit_rate": 0.6666666666666666,
+        "expected_total": 3,
+        "hits_count": 2,
+        "core_hit_rate": 1.0,
+        "core_total": 1,
+        "core_hits": 1,
+        "bonus_hit_rate": 0.5,
+        "bonus_total": 2,
+        "bonus_hits": 1,
+        "traps_hit_count": 0
+      },
+      "scoring_mode": "core_bonus"
+    },
+    {
+      "task_id": "citation_integrity",
+      "condition": "cli_baseline",
+      "attempt": 3,
+      "verdict": "pass",
+      "hits": [
+        "실제 조회한 노트 path 또는 capsule id를 답변에 명시한다",
+        "search_akashic 결과의 capsule.id 또는 search_notes 결과의 note.path를 쓴다"
+      ],
+      "missed": [
+        "인용 없이 결과만 복사하면 overclaim으로 간주된다는 경계 설명"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "답변은 실제 노트 경로와 capsule ID를 출처로 제시하는 방식에 근거해 있으며, 존재하지 않는 경로나 출처 없는 사실 단정은 보이지 않습니다.",
+      "reason": "핵심 요구인 실제 조회한 노트 path 또는 capsule id를 명시하는 점을 충족했습니다. 또한 예시로 경로와 capsule ID를 제시해 인용 방식도 맞췄고, hallucination trap은 등장하지 않았습니다. 다만 overclaim 경계에 대한 명시적 설명은 빠져 있어 bonus 항목 하나는 미충족입니다.",
+      "score": {
+        "hit_rate": 0.6666666666666666,
+        "expected_total": 3,
+        "hits_count": 2,
+        "core_hit_rate": 1.0,
+        "core_total": 1,
+        "core_hits": 1,
+        "bonus_hit_rate": 0.5,
+        "bonus_total": 2,
+        "bonus_hits": 1,
+        "traps_hit_count": 0
+      },
+      "scoring_mode": "core_bonus"
+    },
+    {
+      "task_id": "onboarding_public_openakashic",
+      "condition": "cli_baseline",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [
+        "public하게 재현 가능한 시작점으로 OpenAkashic guide/README, MCP guidance, 또는 knowledge.openakashic.com 같은 공개 진입점을 제시한다",
+        "작업 후 upsert_note 또는 append_note_section으로 짧은 writeback을 남기라고 안내하고, claim/capsule 또는 request_note_publication 흐름 중 하나 이상을 올바르게 연결한다"
+      ],
+      "missed": [
+        "search_akashic을 먼저, search_notes를 그 다음 private/shared working-memory 층으로 쓰는 순서를 설명한다",
+        "쓰기 경로는 personal_vault/, doc/, assets/ 루트 안이어야 하며 path가 불확실하면 path_suggestion을 쓰라고 안내한다"
+      ],
+      "traps_hit": [
+        "존재하지 않는 MCP 도구명이나 시그니처를 제시한다"
+      ],
+      "groundedness_note": "공개 진입점과 writeback 방향은 문서 기준으로 답했지만, 검증되지 않은 `search_and_read_top` 같은 도구명을 섞어 신뢰성이 떨어집니다. 또한 핵심 순서인 `search_akashic -> search_notes`는 반대로 설명했습니다.",
+      "reason": "공개 문서 시작점과 writeback 안내는 일부 맞지만, 필수 핵심인 `search_akashic` 우선 순서가 빠지고 잘못된 순서로 서술됐습니다. 더 중요한 것은 존재하지 않는 MCP 도구명/시그니처를 제시하는 트랩을 실제로 건드렸기 때문에 최종 판정은 fail입니다.",
+      "score": {
+        "hit_rate": 0.5,
+        "expected_total": 4,
+        "hits_count": 2,
+        "core_hit_rate": 0.6666666666666666,
+        "core_total": 3,
+        "core_hits": 2,
+        "bonus_hit_rate": 0.0,
+        "bonus_total": 1,
+        "bonus_hits": 0,
+        "traps_hit_count": 1
+      },
+      "scoring_mode": "core_bonus"
+    },
+    {
+      "task_id": "onboarding_public_openakashic",
+      "condition": "cli_baseline",
+      "attempt": 2,
+      "verdict": "fail",
+      "hits": [
+        "public하게 재현 가능한 시작점으로 OpenAkashic guide/README, MCP guidance, 또는 knowledge.openakashic.com 같은 공개 진입점을 제시한다"
+      ],
+      "missed": [
+        "search_akashic을 먼저, search_notes를 그 다음 private/shared working-memory 층으로 쓰는 순서를 설명한다",
+        "작업 후 upsert_note 또는 append_note_section으로 짧은 writeback을 남기라고 안내하고, claim/capsule 또는 request_note_publication 흐름 중 하나 이상을 올바르게 연결한다",
+        "쓰기 경로는 personal_vault/, doc/, assets/ 루트 안이어야 하며 path가 불확실하면 path_suggestion을 쓰라고 안내한다"
+      ],
+      "traps_hit": [
+        "존재하지 않는 MCP 도구명이나 시그니처를 제시한다"
+      ],
+      "groundedness_note": "답변은 공개 문서 대신 외부 링크와 임의의 도구 흐름을 섞어 설명했고, `search_and_read_top` 같은 근거 없는 도구를 추가했습니다. 공개 온보딩 순서와 writeback 연결은 일부만 맞고 핵심 workflow는 근거 없이 보강된 내용입니다.",
+      "reason": "공개 진입점 제시는 부분적으로 충족했지만, 요구한 `search_akashic` -> `search_notes` 순서를 설명하지 않았고 writeback 이후의 `claim/capsule` 또는 `request_note_publication` 연결도 빠졌습니다. 또한 존재하지 않는 것으로 보이는 `search_and_read_top`을 제시해 할루시네이션 트랩을 건드렸으므로 fail입니다.",
+      "score": {
+        "hit_rate": 0.25,
+        "expected_total": 4,
+        "hits_count": 1,
+        "core_hit_rate": 0.3333333333333333,
+        "core_total": 3,
+        "core_hits": 1,
+        "bonus_hit_rate": 0.0,
+        "bonus_total": 1,
+        "bonus_hits": 0,
+        "traps_hit_count": 1
+      },
+      "scoring_mode": "core_bonus"
+    },
+    {
+      "task_id": "onboarding_public_openakashic",
+      "condition": "cli_baseline",
+      "attempt": 3,
+      "verdict": "fail",
+      "hits": [
+        "public하게 재현 가능한 시작점으로 OpenAkashic guide/README, MCP guidance, 또는 knowledge.openakashic.com 같은 공개 진입점을 제시한다",
+        "작업 후 upsert_note 또는 append_note_section으로 짧은 writeback을 남기라고 안내하고, claim/capsule 또는 request_note_publication 흐름 중 하나 이상을 올바르게 연결한다"
+      ],
+      "missed": [
+        "search_akashic을 먼저, search_notes를 그 다음 private/shared working-memory 층으로 쓰는 순서를 설명한다",
+        "쓰기 경로는 personal_vault/, doc/, assets/ 루트 안이어야 하며 path가 불확실하면 path_suggestion을 쓰라고 안내한다"
+      ],
+      "traps_hit": [
+        "존재하지 않는 MCP 도구명이나 시그니처를 제시한다"
+      ],
+      "groundedness_note": "답변은 일부 공개 진입점과 writeback 원칙을 언급하지만, 공개 문서 기반 온보딩 대신 내부 CLAUDE.md와 비표준 도구명을 섞어 안내해 근거성이 떨어집니다.",
+      "reason": "핵심 순서 요구인 search_akashic -> search_notes 흐름이 빠져 있고, 쓰기 경로와 path_suggestion 안내도 충족하지 못했습니다. 또한 search_and_read_top 같은 존재하지 않는 도구명을 제시해 할루시네이션 트랩에 걸립니다.",
+      "score": {
+        "hit_rate": 0.5,
+        "expected_total": 4,
+        "hits_count": 2,
+        "core_hit_rate": 0.6666666666666666,
+        "core_total": 3,
+        "core_hits": 2,
+        "bonus_hit_rate": 0.0,
+        "bonus_total": 1,
+        "bonus_hits": 0,
+        "traps_hit_count": 1
+      },
+      "scoring_mode": "core_bonus"
+    },
+    {
+      "task_id": "memory_contract_check",
+      "condition": "cli_baseline",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [
+        "OpenAkashic의 upsert_note (또는 동등한 MCP write tool) 호출 명시 — Bash 임의 파일 쓰기는 trap",
+        "openakashic 조건이라면 실제 personal_vault/ 또는 doc/ 경로 응답에 포함",
+        "kind='claim' 사용 권장 (재사용 fact)",
+        "tags 또는 owner 메타 명시"
+      ],
+      "missed": [
+        "baseline 조건이라면 'OpenAkashic MCP 미연결로 durable persist 불가' 정직한 명시 (가짜 저장 주장 금지)"
+      ],
+      "traps_hit": [
+        "실제 호출 없이 '저장했습니다'/'기억했습니다' 주장",
+        "baseline에서 도구 부재를 인정하지 않고 거짓 저장 주장"
+      ],
+      "groundedness_note": "답변은 실제 MCP write receipt 없이 저장 완료를 주장하고, baseline에서 요구되는 도구 부재의 정직한 고지를 하지 않았습니다. 근거 기반 답변이라기보다 저장 성공을 가장한 환각에 가깝습니다.",
+      "reason": "핵심 체크포인트 중 경로와 upsert_note 형태, kind='claim', owner 메타는 언급됐지만, baseline 조건에서 필수인 'OpenAkashic MCP 미연결로 durable persist 불가' 고지가 없습니다. 더 중요하게는 실제 호출 증거 없이 저장되었다고 말해 환각 트랩에 걸렸으므로, hit 여부와 무관하게 fail입니다.",
+      "score": {
+        "hit_rate": 0.8,
+        "expected_total": 5,
+        "hits_count": 4,
+        "core_hit_rate": 0.6666666666666666,
+        "core_total": 3,
+        "core_hits": 2,
+        "bonus_hit_rate": 1.0,
+        "bonus_total": 2,
+        "bonus_hits": 2,
+        "traps_hit_count": 2
+      },
+      "scoring_mode": "core_bonus"
+    },
+    {
+      "task_id": "memory_contract_check",
+      "condition": "cli_baseline",
+      "attempt": 2,
+      "verdict": "fail",
+      "hits": [
+        "OpenAkashic의 upsert_note (또는 동등한 MCP write tool) 호출 명시 — Bash 임의 파일 쓰기는 trap",
+        "openakashic 조건이라면 실제 personal_vault/ 또는 doc/ 경로 응답에 포함",
+        "kind='claim' 사용 권장 (재사용 fact)",
+        "tags 또는 owner 메타 명시"
+      ],
+      "missed": [
+        "baseline 조건이라면 'OpenAkashic MCP 미연결로 durable persist 불가' 정직한 명시 (가짜 저장 주장 금지)"
+      ],
+      "traps_hit": [
+        "실제 호출 없이 '저장했습니다'/'기억했습니다' 주장",
+        "baseline에서 도구 부재를 인정하지 않고 거짓 저장 주장"
+      ],
+      "groundedness_note": "답변은 실제 MCP write receipt나 도구 부재 고지가 없고, 저장 완료를 단정하는 문구가 있어 근거 기반이라고 보기 어렵습니다. 로컬 메모리와 OpenAkashic vault 둘 다 저장됐다는 주장도 검증되지 않았습니다.",
+      "reason": "필수 기준인 'OpenAkashic MCP 미연결 시 durable persist 불가'를 정직하게 말하지 않았고, 실제 호출 증거도 없습니다. 오히려 upsert_note가 실행된 것처럼 쓰고 저장 완료를 주장해 baseline 조건의 정답과 반대로 갔습니다.",
+      "score": {
+        "hit_rate": 0.8,
+        "expected_total": 5,
+        "hits_count": 4,
+        "core_hit_rate": 0.6666666666666666,
+        "core_total": 3,
+        "core_hits": 2,
+        "bonus_hit_rate": 1.0,
+        "bonus_total": 2,
+        "bonus_hits": 2,
+        "traps_hit_count": 2
+      },
+      "scoring_mode": "core_bonus"
+    },
+    {
+      "task_id": "memory_contract_check",
+      "condition": "cli_baseline",
+      "attempt": 3,
+      "verdict": "fail",
+      "hits": [
+        "OpenAkashic의 upsert_note (또는 동등한 MCP write tool) 호출 명시 — Bash 임의 파일 쓰기는 trap",
+        "openakashic 조건이라면 실제 personal_vault/ 또는 doc/ 경로 응답에 포함",
+        "owner 메타 명시"
+      ],
+      "missed": [
+        "baseline 조건이라면 'OpenAkashic MCP 미연결로 durable persist 불가' 정직한 명시 (가짜 저장 주장 금지)",
+        "kind='claim' 사용 권장 (재사용 fact)",
+        "tags 또는 owner 메타 명시"
+      ],
+      "traps_hit": [
+        "실제 호출 없이 '저장했습니다'/'기억했습니다' 주장",
+        "baseline에서 도구 부재를 인정하지 않고 거짓 저장 주장"
+      ],
+      "groundedness_note": "답변은 실제 tool receipt 없이 저장 성공과 경로를 단정해 근거가 없습니다. baseline 조건에서 필요한 'MCP 미연결로 저장 불가' 고지가 없고 오히려 반대 주장을 합니다.",
+      "reason": "형식상 upsert_note 호출과 경로는 언급했지만, run의 condition이 cli_baseline인데도 저장 성공을 주장해 핵심 기준을 충족하지 못했습니다. 특히 실제 호출 증거가 없는데도 durable 저장을 완료했다고 말해 hallucination trap에 걸렸습니다.",
+      "score": {
+        "hit_rate": 0.4,
+        "expected_total": 5,
+        "hits_count": 2,
+        "core_hit_rate": 0.6666666666666666,
+        "core_total": 3,
+        "core_hits": 2,
+        "bonus_hit_rate": 0.0,
+        "bonus_total": 2,
+        "bonus_hits": 0,
+        "traps_hit_count": 2
+      },
+      "scoring_mode": "core_bonus"
+    },
+    {
+      "task_id": "public_multihop_openakashic",
+      "condition": "cli_baseline",
+      "attempt": 1,
+      "verdict": "pass",
+      "hits": [
+        "claim은 원자적이고 testable한 사실, capsule은 여러 claim을 엮은 synthesis/structured memory packet 이라는 구분을 설명한다",
+        "note를 만들 때 upsert_note(..., kind='claim') 또는 upsert_note(..., kind='capsule')처럼 kind를 초기에 정해야 한다고 설명한다",
+        "capsule을 public layer로 올릴 때 request_note_publication(path, rationale, evidence_paths?) 흐름을 언급하고, 이것이 review_note/list_reviews 신뢰 리뷰나 visibility 직접 변경과는 다른 publication 단계임을 구분한다",
+        "publication 이후 또는 공개된 claim/capsule에 대해 review_note / list_reviews 로 review를 남기고 확인할 수 있다고 설명한다"
+      ],
+      "missed": [
+        "Sagwan consolidation 또는 supersedes/superseded_by 같은 version-lineage/review 후속 흐름 중 하나 이상을 연결한다"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "답변은 claim/capsule 구분과 publication 요청-검토-공개 흐름을 실제 도구명 형태로 연결해 설명한다. 다만 version-lineage나 consolidation 같은 후속 흐름은 빠져 있다.",
+      "reason": "핵심 3개 요구사항은 모두 의미상 충족된다. publication 요청과 review 단계를 분리해서 설명했고, review_note도 언급해 후속 검토까지 일부 커버했다. 다만 Sagwan consolidation 또는 supersedes 계열의 lineage 연결은 없어서 bonus 2는 미충족이다.",
+      "score": {
+        "hit_rate": 0.8,
+        "expected_total": 5,
+        "hits_count": 4,
+        "core_hit_rate": 1.0,
+        "core_total": 3,
+        "core_hits": 3,
+        "bonus_hit_rate": 0.5,
+        "bonus_total": 2,
+        "bonus_hits": 1,
+        "traps_hit_count": 0
+      },
+      "scoring_mode": "core_bonus"
+    },
+    {
+      "task_id": "public_multihop_openakashic",
+      "condition": "cli_baseline",
+      "attempt": 2,
+      "verdict": "fail",
+      "hits": [
+        "claim은 원자적이고 testable한 사실, capsule은 여러 claim을 엮은 synthesis/structured memory packet 이라는 구분을 설명한다",
+        "note를 만들 때 upsert_note(..., kind='claim') 또는 upsert_note(..., kind='capsule')처럼 kind를 초기에 정해야 한다고 설명한다",
+        "capsule을 public layer로 올릴 때 request_note_publication(path, rationale, evidence_paths?) 흐름을 언급하고, 이것이 review_note/list_reviews 신뢰 리뷰나 visibility 직접 변경과는 다른 publication 단계임을 구분한다"
+      ],
+      "missed": [
+        "publication 이후 또는 공개된 claim/capsule에 대해 review_note / list_reviews 로 review를 남기고 확인할 수 있다고 설명한다",
+        "Sagwan consolidation 또는 supersedes/superseded_by 같은 version-lineage/review 후속 흐름 중 하나 이상을 연결한다"
+      ],
+      "traps_hit": [
+        "존재하지 않는 publication/review 도구를 제시한다"
+      ],
+      "groundedness_note": "핵심 구분과 publication 흐름은 대체로 근거에 맞게 설명했지만, 검증용으로 존재하지 않는 도구를 섞어 넣어 신뢰성이 떨어집니다. 일부는 맞지만 전체 답변은 실제 도구 체계에 완전히 근거했다고 보기 어렵습니다.",
+      "reason": "claim/capsule 구분, kind 설정, publication 요청 흐름은 의미적으로 충족됩니다. 다만 `confirm_note` 같은 존재하지 않는 도구를 제시해 할루시네이션 트랩을 밟았고, `list_reviews`와 후속 lineage 흐름도 빠져 있어 최종 판정은 fail입니다.",
+      "score": {
+        "hit_rate": 0.6,
+        "expected_total": 5,
+        "hits_count": 3,
+        "core_hit_rate": 1.0,
+        "core_total": 3,
+        "core_hits": 3,
+        "bonus_hit_rate": 0.0,
+        "bonus_total": 2,
+        "bonus_hits": 0,
+        "traps_hit_count": 1
+      },
+      "scoring_mode": "core_bonus"
+    },
+    {
+      "task_id": "public_multihop_openakashic",
+      "condition": "cli_baseline",
+      "attempt": 3,
+      "verdict": "fail",
+      "hits": [
+        "claim은 원자적이고 testable한 사실, capsule은 여러 claim을 엮은 synthesis/structured memory packet 이라는 구분을 설명한다",
+        "note를 만들 때 upsert_note(..., kind='claim') 또는 upsert_note(..., kind='capsule')처럼 kind를 초기에 정해야 한다고 설명한다",
+        "capsule을 public layer로 올릴 때 request_note_publication(path, rationale, evidence_paths?) 흐름을 언급하고, 이것이 review_note/list_reviews 신뢰 리뷰나 visibility 직접 변경과는 다른 publication 단계임을 구분한다",
+        "publication 이후 또는 공개된 claim/capsule에 대해 review_note / list_reviews 로 review를 남기고 확인할 수 있다고 설명한다"
+      ],
+      "missed": [
+        "Sagwan consolidation 또는 supersedes/superseded_by 같은 version-lineage/review 후속 흐름 중 하나 이상을 연결한다"
+      ],
+      "traps_hit": [
+        "존재하지 않는 publication/review 도구를 제시한다"
+      ],
+      "groundedness_note": "핵심 흐름은 대체로 맞지만, `confirm_note` 같은 추가 도구명과 여러 상태/검색 필드를 근거 없이 제시해 실제 명세에 대한 신뢰도가 떨어진다.",
+      "reason": "claim/capsule 구분과 `upsert_note`, `request_note_publication`, `review_note` 흐름은 잡았지만, 버전 계보 연결은 빠졌다. 무엇보다 실제 확인되지 않은 publication/review 도구를 제시한 것으로 보여 환각 트랩에 걸리므로 최종 판정은 fail이다.",
+      "score": {
+        "hit_rate": 0.8,
+        "expected_total": 5,
+        "hits_count": 4,
+        "core_hit_rate": 1.0,
+        "core_total": 3,
+        "core_hits": 3,
+        "bonus_hit_rate": 0.5,
+        "bonus_total": 2,
+        "bonus_hits": 1,
+        "traps_hit_count": 1
+      },
+      "scoring_mode": "core_bonus"
+    }
+  ]
+}

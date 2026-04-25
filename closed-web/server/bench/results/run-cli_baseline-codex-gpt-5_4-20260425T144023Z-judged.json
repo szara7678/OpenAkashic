@@ -1,0 +1,158 @@
+{
+  "run_file": "/home/insu/insu_server/apps/openakashic/closed-web/server/bench/results/run-cli_baseline-codex-gpt-5_4-20260425T144023Z.json",
+  "judge_model": "gpt-5.4-mini",
+  "model": "gpt-5.4",
+  "condition": "cli_baseline",
+  "judgments": [
+    {
+      "task_id": "onboarding_openakashic",
+      "condition": "cli_baseline",
+      "attempt": 1,
+      "verdict": "pass",
+      "hits": [
+        "personal_vault/projects/personal/openakashic/README.md 등 실존하는 시작점 경로 제시",
+        "search_notes 또는 search_and_read_top 등 정보 탐색 도구 언급",
+        "작업 전 관련 노트 검색, 작업 후 writeback (upsert_note/append_note_section) 절차 설명",
+        "경로가 personal_vault/ 또는 doc/ 로 시작해야 한다는 제약 언급"
+      ],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "답변은 요구된 시작 경로와 작업 루프를 모두 제시했고, 금지된 트랩 표현은 보이지 않는다. 일부 보조 경로는 별도 검증 없이 제시됐지만, 판정 기준의 핵심 항목은 충족한다.",
+      "reason": "핵심 체크포인트 4개가 모두 의미적으로 포함되어 있다. hallucination_traps에 해당하는 표현은 없고, 작업 전 검색과 작업 후 writeback 절차 및 경로 제약도 명시했다.",
+      "score": {
+        "hit_rate": 1.0,
+        "expected_total": 4,
+        "hits_count": 4,
+        "core_hit_rate": 0.0,
+        "core_total": 0,
+        "core_hits": 0,
+        "bonus_hit_rate": 0.0,
+        "bonus_total": 0,
+        "bonus_hits": 0,
+        "traps_hit_count": 0
+      },
+      "scoring_mode": "legacy_80pct"
+    },
+    {
+      "task_id": "triage_ichimozzi_500",
+      "condition": "cli_baseline",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [
+        "insu-shared-caddy (리버스 프록시) 먼저 확인하라는 언급",
+        "insu-server-backend-prod-1 등 IchiMozzi 백엔드 컨테이너 이름 정확히 지목",
+        "Caddy → backend → DB 순서 (프록시 → 앱 → 의존성) 방향성 제시",
+        "docker logs 또는 compose 명령어로 상태 확인 절차 언급"
+      ],
+      "missed": [],
+      "traps_hit": [
+        "EC2, AWS, Lambda 등 클라우드 아키텍처 가정",
+        "nginx 기반 스택이라고 가정 (실제는 Caddy)",
+        "가상 컨테이너 이름 (예: ichimozzi-api-1 같은 존재하지 않는 이름)"
+      ],
+      "groundedness_note": "답변은 실제 토폴로지와 일치하는 컨테이너명과 점검 순서를 제시해 근거 기반으로 보입니다. 다만 OpenAkashic 노트 경로를 인용했지만 tool_calls 근거는 없어 그 출처 자체는 검증되지 않았습니다.",
+      "reason": "핵심 기대항목 4개는 모두 충족했습니다. 하지만 금지된 환각 트랩인 EC2/AWS/Lambda 가정, nginx 기반 스택 가정, 존재하지 않는 컨테이너명 언급이 포함되어 있어 strict 조건에서 fail입니다.",
+      "score": {
+        "hit_rate": 1.0,
+        "expected_total": 4,
+        "hits_count": 4,
+        "core_hit_rate": 0.0,
+        "core_total": 0,
+        "core_hits": 0,
+        "bonus_hit_rate": 0.0,
+        "bonus_total": 0,
+        "bonus_hits": 0,
+        "traps_hit_count": 3
+      },
+      "scoring_mode": "legacy_80pct"
+    },
+    {
+      "task_id": "ichimozzi_deploy",
+      "condition": "cli_baseline",
+      "attempt": 1,
+      "verdict": "pass",
+      "hits": [
+        "docker compose (production.yml 또는 동등) 명령어 제시",
+        "로컬 홈서버 Docker 스택에서 돌아간다는 점 명시 또는 그와 일관된 답변",
+        "GitHub webhook 자동 배포가 비활성/신뢰 불가 상태라는 언급 (또는 수동 절차 명시)"
+      ],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "답변은 홈서버 Docker Compose 기준의 수동 배포 절차와 `production.yml` 기반 명령어를 중심으로 구성되어 있습니다. EC2, CodeDeploy, systemd/PM2 같은 잘못된 배포 모델은 실제로 권장하지 않는다고만 언급해 환각 징후는 보이지 않습니다.",
+      "reason": "핵심 체크포인트 3개를 모두 충족합니다. `docker compose -f production.yml ...` 명령이 제시되었고, 홈서버 Docker 스택이라는 배경도 명시했으며, GitHub webhook 자동 배포가 신뢰 불가하여 수동 절차가 필요하다고 설명했습니다. hallucination trap에 해당하는 EC2 SSH, CodeDeploy 자동화, /home/ec2-user, PM2/systemd는 안내하지 않았습니다.",
+      "score": {
+        "hit_rate": 1.0,
+        "expected_total": 3,
+        "hits_count": 3,
+        "core_hit_rate": 0.0,
+        "core_total": 0,
+        "core_hits": 0,
+        "bonus_hit_rate": 0.0,
+        "bonus_total": 0,
+        "bonus_hits": 0,
+        "traps_hit_count": 0
+      },
+      "scoring_mode": "legacy_80pct"
+    },
+    {
+      "task_id": "busagwan_sagwan_roles",
+      "condition": "cli_baseline",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [],
+      "missed": [
+        "Sagwan은 Claude CLI 기반 high-quality/느린 주기 워커라는 설명 또는 그에 상응하는 구분",
+        "Busagwan은 Ollama gemma 기반 빠른/가벼운 주기 워커라는 설명 또는 그에 상응하는 구분",
+        "각자의 주기/트리거 (예: 10분/15분/1시간 같은 cadence 구분) 언급",
+        "두 워커가 서로 다른 종류의 task를 담당하며 gate 관계라는 구조 설명"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "답변은 OpenAkashic 내부 용어와 역할 구분을 제시하지만, 요청된 핵심 근거인 모델/주기/gate 구조는 포함하지 않았습니다. 환각적 단정은 없지만 정답 체크포인트에 비해 정보가 다르게 서술되었습니다.",
+      "reason": "평면 리스트 기준으로 필요한 4개 항목 중 충족한 항목이 없습니다. Busagwan과 Sagwan의 일반적 역할 설명만 있고, Claude CLI vs Ollama gemma, cadence, gate 관계라는 핵심 구분이 빠져 있어 80% 기준을 만족하지 못합니다.",
+      "score": {
+        "hit_rate": 0.0,
+        "expected_total": 4,
+        "hits_count": 0,
+        "core_hit_rate": 0.0,
+        "core_total": 0,
+        "core_hits": 0,
+        "bonus_hit_rate": 0.0,
+        "bonus_total": 0,
+        "bonus_hits": 0,
+        "traps_hit_count": 0
+      },
+      "scoring_mode": "legacy_80pct"
+    },
+    {
+      "task_id": "multihop_synthesis",
+      "condition": "cli_baseline",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [
+        "구체적 컨테이너/시스템 이름 3개 제시 (ex: insu-server-backend-prod-1, insu-server-ichimozzi-db-1, insu-shared-caddy 또는 동등 수준의 실명)",
+        "각 시스템에 대한 배포 전 점검 이유가 한 줄 수준으로 동반"
+      ],
+      "missed": [
+        "추상적이지 않고 실제 인프라 구성요소(Docker container/proxy/DB) 기반"
+      ],
+      "traps_hit": [
+        "AWS/EC2/Lambda/Kubernetes 가정"
+      ],
+      "groundedness_note": "실제처럼 보이는 컨테이너명과 경로를 제시해 근거를 붙였지만, 마지막 항목에서 EC2 전제를 추가해 답변 범위를 벗어났습니다. 전반적으로는 부분적으로 근거 기반이지만, 환경을 임의로 확장한 흔적이 있습니다.",
+      "reason": "백엔드 컨테이너와 DB 백업 시스템처럼 구체적인 실명은 제시했고, 각 항목마다 점검 이유도 붙였습니다. 다만 답변에 EC2 가정이 들어가 있어 트랩이 발동했고, 세 번째 항목은 Docker container/proxy/DB 같은 실제 인프라 구성요소로 보기 어려워 기대치와 완전히 일치하지 않습니다.",
+      "score": {
+        "hit_rate": 0.6666666666666666,
+        "expected_total": 3,
+        "hits_count": 2,
+        "core_hit_rate": 0.0,
+        "core_total": 0,
+        "core_hits": 0,
+        "bonus_hit_rate": 0.0,
+        "bonus_total": 0,
+        "bonus_hits": 0,
+        "traps_hit_count": 1
+      },
+      "scoring_mode": "legacy_80pct"
+    }
+  ]
+}
