@@ -14,6 +14,8 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import time
+import urllib.error
 import urllib.request
 from pathlib import Path
 from typing import Any
@@ -126,33 +128,43 @@ def llm_call(model: str, system: str, user: str, timeout: int = 180) -> str:
         },
         method="POST",
     )
-    chunks: list[str] = []
-    try:
-        r = urllib.request.urlopen(req, timeout=timeout)
-    except urllib.request.HTTPError as e:
-        body = e.read().decode(errors="replace")[:500]
-        raise RuntimeError(f"proxy HTTP {e.code}: {body}")
-    with r:
-        for raw_line in r:
-            line = raw_line.decode(errors="replace").strip()
-            if not line.startswith("data:"):
-                continue
-            data = line[5:].strip()
-            if data == "[DONE]":
-                break
-            try:
-                obj = json.loads(data)
-            except json.JSONDecodeError:
-                continue
-            choice = (obj.get("choices") or [{}])[0]
-            delta = choice.get("delta", {})
-            piece = delta.get("content")
-            if piece:
-                chunks.append(piece)
-    result = "".join(chunks).strip()
-    if not result:
-        raise RuntimeError(f"proxy returned empty stream for model={model}")
-    return result
+    last_err: Exception | None = None
+    for attempt in range(5):
+        chunks: list[str] = []
+        try:
+            r = urllib.request.urlopen(req, timeout=timeout)
+        except urllib.request.HTTPError as e:
+            body = e.read().decode(errors="replace")[:500]
+            last_err = RuntimeError(f"proxy HTTP {e.code}: {body}")
+            time.sleep(2 ** attempt)
+            continue
+        except urllib.error.URLError as e:
+            last_err = RuntimeError(f"URLError: {e}")
+            time.sleep(2 ** attempt)
+            continue
+        with r:
+            for raw_line in r:
+                line = raw_line.decode(errors="replace").strip()
+                if not line.startswith("data:"):
+                    continue
+                data = line[5:].strip()
+                if data == "[DONE]":
+                    break
+                try:
+                    obj = json.loads(data)
+                except json.JSONDecodeError:
+                    continue
+                choice = (obj.get("choices") or [{}])[0]
+                delta = choice.get("delta", {})
+                piece = delta.get("content")
+                if piece:
+                    chunks.append(piece)
+        result = "".join(chunks).strip()
+        if result:
+            return result
+        last_err = RuntimeError(f"proxy returned empty stream for model={model}")
+        time.sleep(2 ** attempt)
+    raise last_err or RuntimeError("judge proxy call failed after 5 attempts")
 
 
 def extract_json(text: str) -> dict[str, Any]:

@@ -52,7 +52,7 @@ def _trigger_wake() -> None:
         pass
 
 from app.config import get_settings
-from app.core_api_bridge import sync_published_note
+from app.core_api_bridge import get_last_sync_failure_reason, sync_published_note
 from app.site import SemanticDocument, get_closed_note, search_closed_notes, semantic_rank
 from app.users import SAGWAN_SYSTEM_OWNER
 from app.vault import (
@@ -96,6 +96,8 @@ _DEPRECATED_TASK_TYPES = frozenset({
     "draft_claim",
     "detect_conflicts",
 })
+_CORE_SYNC_BACKOFF_HOURS = 24
+_CORE_SYNC_FAILURE_THRESHOLD = 3
 
 
 def subordinate_settings_path() -> Path:
@@ -506,6 +508,8 @@ def _sync_published_notes_to_core_api(*, limit: int = 10) -> str:
 
     synced = []
     errors = []
+    skipped_backoff = []
+    blocked = []
     count = 0
     for note_path in list_note_paths():
         if count >= limit:
@@ -523,11 +527,32 @@ def _sync_published_notes_to_core_api(*, limit: int = 10) -> str:
             continue
         if fm.get("core_api_id"):
             continue
+        if fm.get("core_sync_blocked"):
+            blocked.append(note_path)
+            continue
+        failure_count = max(0, int(fm.get("core_sync_failure_count") or 0))
+        last_failure_at = str(fm.get("core_sync_last_failure_at") or "").strip()
+        retry_after_backoff = False
+        if failure_count >= _CORE_SYNC_FAILURE_THRESHOLD:
+            last_failure_dt = None
+            if last_failure_at:
+                try:
+                    last_failure_dt = datetime.fromisoformat(last_failure_at.replace("Z", "+00:00")).astimezone(UTC)
+                except ValueError:
+                    last_failure_dt = None
+            if last_failure_dt is not None and datetime.now(UTC) - last_failure_dt < timedelta(hours=_CORE_SYNC_BACKOFF_HOURS):
+                skipped_backoff.append(note_path)
+                continue
+            retry_after_backoff = True
         core_api_id = sync_published_note(frontmatter=fm, body=doc.body, note_path=note_path)
         count += 1
         if core_api_id:
             next_fm = dict(fm)
             next_fm["core_api_id"] = core_api_id
+            next_fm["core_sync_failure_count"] = 0
+            next_fm.pop("core_sync_last_failure_at", None)
+            next_fm.pop("core_sync_last_failure_reason", None)
+            next_fm.pop("core_sync_blocked", None)
             try:
                 write_document(path=note_path, body=doc.body, metadata=next_fm, allow_owner_change=True)
                 synced.append(note_path)
@@ -535,8 +560,22 @@ def _sync_published_notes_to_core_api(*, limit: int = 10) -> str:
                 logger.error("sync_to_core_api: failed to persist core_api_id for %s: %s", note_path, exc)
                 errors.append(note_path)
         else:
+            next_fm = dict(fm)
+            next_fm["core_sync_failure_count"] = failure_count + 1
+            next_fm["core_sync_last_failure_at"] = _now_iso()
+            next_fm["core_sync_last_failure_reason"] = (get_last_sync_failure_reason(note_path) or "sync_failed")[:200]
+            if retry_after_backoff:
+                next_fm["core_sync_blocked"] = True
+                blocked.append(note_path)
+            try:
+                write_document(path=note_path, body=doc.body, metadata=next_fm, allow_owner_change=True)
+            except Exception as exc:
+                logger.error("sync_to_core_api: failed to persist failure state for %s: %s", note_path, exc)
             errors.append(note_path)
-    result_summary = f"sync_to_core_api: {len(synced)} synced, {len(errors)} failed"
+    result_summary = (
+        f"sync_to_core_api: {len(synced)} synced, {len(errors)} failed"
+        f", {len(skipped_backoff)} skipped_backoff, {len(blocked)} blocked"
+    )
     _remember_subordinate_note("sync_to_core_api", result_summary, task_kind="sync_to_core_api")
     return result_summary
 
@@ -1375,6 +1414,21 @@ def _remember_subordinate_note(subject: str, result: str, *, task_kind: str) -> 
         _agent_remember("busagwan", subject=subject, outcome=result, kind=task_kind)
     except Exception as exc:
         logger.warning("busagwan agent_memory.remember failed, falling back: %s", exc)
+        try:
+            load_document(SUBORDINATE_MEMORY_PATH)
+        except Exception:
+            ensure_folder(str(Path(SUBORDINATE_MEMORY_PATH).parent))
+            write_document(
+                path=SUBORDINATE_MEMORY_PATH,
+                title="Subordinate Working Memory",
+                kind="reference",
+                project="ops/librarian",
+                status="active",
+                tags=["busagwan", "memory"],
+                body="## Summary\nFallback working memory for busagwan.\n",
+                metadata={"visibility": "private", "owner": "busagwan", "publication_status": "none"},
+                allow_owner_change=True,
+            )
         append_section(
             SUBORDINATE_MEMORY_PATH,
             f"{_now_iso()} {task_kind}",

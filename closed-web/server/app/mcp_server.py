@@ -938,13 +938,32 @@ def _post_internal_review(
     for review in _load_targeted_claims_for(target):
         if str(review.owner or "").strip() != SAGWAN_SYSTEM_OWNER:
             continue
-        if normalized_topic and str(review.topic or "").strip() != normalized_topic:
+        existing_topic = str(review.topic or "").strip() or None
+        if existing_topic != normalized_topic:
             continue
+        previous_rationale = str(review.body or "").strip()
+        if previous_rationale.startswith("## Rationale"):
+            previous_rationale = previous_rationale[len("## Rationale"):].strip()
+        refreshed_frontmatter = dict(review.frontmatter or {})
+        refreshed_frontmatter["claim_review_lifecycle"] = "active"
+        refreshed_frontmatter["stance"] = str(stance or refreshed_frontmatter.get("stance") or "").strip() or None
+        refreshed_frontmatter["evidence_urls"] = _dedupe_str_list(list(evidence_urls or []))
+        refreshed_frontmatter["evidence_paths"] = _dedupe_str_list(list(evidence_paths or []))
+        refreshed_frontmatter["topic"] = normalized_topic
+        write_document(
+            path=review.path,
+            body=f"## Rationale\n{str(rationale or '').strip()}",
+            metadata=refreshed_frontmatter,
+            metadata_replace=False,
+            allow_owner_change=True,
+        )
+        _recompute_parent_aggregate(target)
         return {
-            "status": "skipped_duplicate",
+            "status": "refreshed",
             "path": review.path,
             "target": target,
             "topic": normalized_topic,
+            "previous_rationale_chars": len(previous_rationale),
         }
 
     admin_auth = AuthState(
@@ -961,7 +980,7 @@ def _post_internal_review(
         auth=admin_auth,
         target=target,
         stance=stance,
-        rationale=rationale,
+        rationale=str(rationale or "").strip(),
         evidence_urls=evidence_urls,
         evidence_paths=evidence_paths,
         topic=normalized_topic,

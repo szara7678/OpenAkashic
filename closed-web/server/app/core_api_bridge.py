@@ -24,6 +24,7 @@ from app.config import get_settings
 logger = logging.getLogger(__name__)
 
 _SYNCABLE_KINDS = {"capsule", "claim"}
+_LAST_SYNC_FAILURES: dict[str, str] = {}
 
 # confidence 필드는 노트에서 "high"/"medium"/"low" 같은 라벨 또는 float으로 올 수 있다.
 # Core API 스키마는 [0, 1] float만 받으므로 라벨을 대표 숫자로 매핑한다.
@@ -35,6 +36,18 @@ _CONFIDENCE_LABELS = {
     "low": 0.5,
     "unknown": 0.5,
 }
+
+
+def _record_sync_failure(note_path: str, reason: str) -> None:
+    _LAST_SYNC_FAILURES[note_path] = str(reason or "sync_failed").strip()[:240] or "sync_failed"
+
+
+def _clear_sync_failure(note_path: str) -> None:
+    _LAST_SYNC_FAILURES.pop(note_path, None)
+
+
+def get_last_sync_failure_reason(note_path: str) -> str:
+    return str(_LAST_SYNC_FAILURES.get(note_path) or "").strip()
 
 
 def _coerce_confidence(value: Any, default: float = 0.75) -> float:
@@ -281,6 +294,7 @@ def _sync_capsule(frontmatter: dict[str, Any], body: str, note_path: str) -> str
     settings = get_settings()
     if not settings.core_api_write_key:
         logger.warning("core_api_bridge: OPENAKASHIC_CORE_WRITE_KEY not set, skipping capsule sync")
+        _record_sync_failure(note_path, "core_api_write_key_missing")
         return None
 
     title = str(frontmatter.get("title") or note_path).strip()
@@ -355,6 +369,7 @@ def _sync_claim(frontmatter: dict[str, Any], body: str, note_path: str, *, exist
     settings = get_settings()
     if not settings.core_api_write_key:
         logger.warning("core_api_bridge: OPENAKASHIC_CORE_WRITE_KEY not set, skipping claim sync")
+        _record_sync_failure(note_path, "core_api_write_key_missing")
         return None
 
     claim_text = _extract_section(body, "Claim", "주장", *_SUMMARY_HEADINGS)
@@ -365,6 +380,7 @@ def _sync_claim(frontmatter: dict[str, Any], body: str, note_path: str, *, exist
     bullets = _extract_bullets(claim_text)
     text = bullets[0] if bullets else claim_text.splitlines()[0].strip()
     if not text:
+        _record_sync_failure(note_path, "empty_claim_text")
         return None
 
     confidence = _coerce_confidence(frontmatter.get("confidence"))
@@ -452,23 +468,43 @@ def sync_published_note(frontmatter: dict[str, Any], body: str, note_path: str, 
     # 이미 동기화된 경우 건너뜀 (force 지정 시 우회)
     if kind == "claim" and frontmatter.get("core_api_id") and not force:
         try:
-            return _sync_claim(frontmatter, body, note_path, existing_id=str(frontmatter["core_api_id"]))
+            result = _sync_claim(frontmatter, body, note_path, existing_id=str(frontmatter["core_api_id"]))
+            if result:
+                _clear_sync_failure(note_path)
+                return result
+            _record_sync_failure(note_path, "sync_returned_none")
+            return None
         except urlerror.URLError as exc:
             logger.error("core_api_bridge: network error syncing %s: %s", note_path, exc)
+            _record_sync_failure(note_path, f"network_error: {exc}")
             return None
         except Exception as exc:
             logger.error("core_api_bridge: unexpected error syncing %s: %s", note_path, exc)
+            _record_sync_failure(note_path, f"unexpected_error: {type(exc).__name__}")
             return None
     if not force and frontmatter.get("core_api_id"):
+        _clear_sync_failure(note_path)
         return str(frontmatter["core_api_id"])
 
     try:
         if kind == "capsule":
-            return _sync_capsule(frontmatter, body, note_path)
+            result = _sync_capsule(frontmatter, body, note_path)
+            if result:
+                _clear_sync_failure(note_path)
+                return result
+            _record_sync_failure(note_path, "sync_returned_none")
+            return None
         if kind == "claim":
-            return _sync_claim(frontmatter, body, note_path)
+            result = _sync_claim(frontmatter, body, note_path)
+            if result:
+                _clear_sync_failure(note_path)
+                return result
+            _record_sync_failure(note_path, "sync_returned_none")
+            return None
     except urlerror.URLError as exc:
         logger.error("core_api_bridge: network error syncing %s: %s", note_path, exc)
+        _record_sync_failure(note_path, f"network_error: {exc}")
     except Exception as exc:
         logger.error("core_api_bridge: unexpected error syncing %s: %s", note_path, exc)
+        _record_sync_failure(note_path, f"unexpected_error: {type(exc).__name__}")
     return None

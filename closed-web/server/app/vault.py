@@ -894,7 +894,23 @@ def parse_yamlish(value: str) -> dict[str, Any]:
             else:
                 output[key.strip()] = raw.strip("\"'")
         else:
-            output[key.strip()] = raw.strip("\"'")
+            scalar = raw.strip("\"'")
+            if scalar.lower() == "true":
+                output[key.strip()] = True
+            elif scalar.lower() == "false":
+                output[key.strip()] = False
+            elif re.fullmatch(r"-?[0-9]+", scalar):
+                try:
+                    output[key.strip()] = int(scalar)
+                except ValueError:
+                    output[key.strip()] = scalar
+            elif re.fullmatch(r"-?[0-9]+\.[0-9]+", scalar):
+                try:
+                    output[key.strip()] = float(scalar)
+                except ValueError:
+                    output[key.strip()] = scalar
+            else:
+                output[key.strip()] = scalar
     return output
 
 
