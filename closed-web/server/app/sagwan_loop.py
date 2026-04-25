@@ -1187,7 +1187,10 @@ def _inventory_knowledge_state() -> dict[str, Any]:
     }
 
 
-def _build_gap_selection_prompt(inventory: dict[str, Any], memory_snippet: str) -> str:
+def _build_gap_selection_prompt(
+    inventory: dict[str, Any],
+    memory_snippet: str,
+) -> str:
     top_thin = inventory.get("top_thin") or []
     gap_queries = inventory.get("recent_gap_queries") or []
     inventory_block = json.dumps(
@@ -1285,7 +1288,7 @@ def _parse_gap_selection(raw: str) -> dict[str, Any] | None:
     }
 
 
-def _build_research_prompt(gap: dict[str, Any]) -> str:
+def _build_research_prompt(gap: dict[str, Any], *, require_web_citations: bool = False) -> str:
     queries = gap.get("queries") or []
     max_fetches = int(gap.get("max_fetches") or 3)
     lines = [
@@ -1305,9 +1308,96 @@ def _build_research_prompt(gap: dict[str, Any]) -> str:
         "## Search Queries",
         *[f"- {query}" for query in queries],
     ]
+    if require_web_citations:
+        lines[1:1] = [
+            "이번 시도는 재검증이다. 반드시 WebSearch 와 WebFetch 를 실제로 호출해 웹 근거를 확보하라.",
+            "웹에서 확인한 URL이 Sources 섹션에 1개도 없으면 이 답변은 거부된다.",
+        ]
     if gap.get("rationale"):
         lines.extend(["", "## Why This Gap Matters", str(gap.get("rationale"))])
     return "\n".join(lines)
+
+
+def _build_dedup_check_prompt(gap: dict[str, Any]) -> str:
+    return "\n".join(
+        [
+            "너는 OpenAkashic 사관이다. 새 capsule을 쓰기 전 기존 지식과의 겹침을 검사한다.",
+            "",
+            "제안된 주제:",
+            f"- topic: {gap.get('topic')}",
+            f"- queries: {json.dumps(gap.get('queries') or [], ensure_ascii=False)}",
+            f"- rationale: {str(gap.get('rationale') or '').strip() or '(none)'}",
+            "",
+            "제공된 도구:",
+            "- mcp__openakashic__search_akashic(query: str) — 검증된 public capsule 검색",
+            "- mcp__openakashic__search_notes(query: str) — 전체 vault 검색 (private 포함)",
+            "- mcp__openakashic__read_note(path: str) — 특정 노트 본문 읽기",
+            "",
+            "판정 형식 (JSON 한 줄):",
+            '- {"verdict":"proceed","rationale":"..."}',
+            '- {"verdict":"skip","rationale":"...","existing_path":"..."}',
+            '- {"verdict":"refine","new_topic":"...","new_queries":["...","..."],"rationale":"..."}',
+            '- {"verdict":"supplement","extend_path":"...","rationale":"..."}',
+            "",
+            "총 도구 호출은 4-7회 이내로 제한하라. 최종 출력은 JSON만 작성한다.",
+        ]
+    )
+
+
+def _parse_dedup_decision(raw: str) -> dict[str, Any]:
+    text = str(raw or "").strip()
+    fallback = {"verdict": "proceed", "rationale": ""}
+    if not text:
+        return fallback
+
+    candidates = [text]
+    fenced = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", text, re.DOTALL)
+    if fenced:
+        candidates.insert(0, fenced.group(1).strip())
+    brace = re.search(r"(\{.*\})", text, re.DOTALL)
+    if brace:
+        candidates.append(brace.group(1).strip())
+
+    payload: dict[str, Any] | None = None
+    for candidate in candidates:
+        try:
+            parsed = json.loads(candidate)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(parsed, dict):
+            payload = parsed
+            break
+
+    if payload is None:
+        verdict_match = re.search(r'"?verdict"?\s*[:=]\s*"?(proceed|skip|refine|supplement)"?', text, re.IGNORECASE)
+        if not verdict_match:
+            return fallback
+        payload = {"verdict": verdict_match.group(1).lower()}
+
+    verdict = str(payload.get("verdict") or "").strip().lower()
+    if verdict not in {"proceed", "skip", "refine", "supplement"}:
+        return fallback
+
+    raw_new_queries = payload.get("new_queries")
+    if isinstance(raw_new_queries, list):
+        new_queries = [str(item).strip() for item in raw_new_queries if str(item).strip()]
+    elif isinstance(raw_new_queries, str):
+        new_queries = [item.strip() for item in re.split(r"[,\n;]+", raw_new_queries) if item.strip()]
+    else:
+        new_queries = []
+
+    decision: dict[str, Any] = {
+        "verdict": verdict,
+        "rationale": str(payload.get("rationale") or "").strip()[:600],
+    }
+    if verdict == "skip":
+        decision["existing_path"] = str(payload.get("existing_path") or "").strip()
+    elif verdict == "supplement":
+        decision["extend_path"] = str(payload.get("extend_path") or "").strip()
+    elif verdict == "refine":
+        decision["new_topic"] = str(payload.get("new_topic") or "").strip()
+        decision["new_queries"] = list(dict.fromkeys(new_queries))[:5]
+    return decision
 
 
 def _extract_source_urls(capsule_body: str) -> list[str]:
@@ -1326,6 +1416,11 @@ def _extract_source_urls(capsule_body: str) -> list[str]:
         seen.add(cleaned)
         deduped.append(cleaned)
     return deduped
+
+
+def _research_response_is_usable(raw_capsule: str) -> bool:
+    text = str(raw_capsule or "")
+    return len(text) >= 400 and "## Summary" in text and "## Sources" in text
 
 
 def _ensure_research_log_document() -> None:
@@ -1358,9 +1453,13 @@ def _append_research_log_entry(
     queries: list[str],
     rationale: str,
     cited_urls: list[str],
-    capsule_path: str,
+    capsule_path: str | None,
     model: str,
     max_fetches: int,
+    status: str = "ok",
+    existing_path: str | None = None,
+    grounding: str | None = None,
+    retry_count: int = 0,
 ) -> None:
     _ensure_research_log_document()
     ts = _now_iso()
@@ -1374,7 +1473,11 @@ def _append_research_log_entry(
                 f"- rationale: {rationale or '(none)'}",
                 f"- model: {model or '-'}",
                 f"- max_fetches: {max_fetches}",
-                f"- capsule_path: {capsule_path}",
+                f"- status: {status}",
+                f"- capsule_path: {capsule_path or '-'}",
+                f"- existing_path: {existing_path or '-'}",
+                f"- grounding: {grounding or '-'}",
+                f"- retry_count: {retry_count}",
                 f"- cited_urls: {json.dumps(cited_urls, ensure_ascii=False)}",
             ]
         ),
@@ -1845,12 +1948,60 @@ def _curate_research_gaps(force: bool = False) -> dict[str, Any]:
     if not gap:
         return {"status": "llm_parse_error", "raw": raw_selection[:500]}
 
+    dedup_raw = _invoke_claude_cli_with_tools(
+        _build_dedup_check_prompt(gap),
+        model=model,
+        tools=[
+            "mcp__openakashic__search_akashic",
+            "mcp__openakashic__search_notes",
+            "mcp__openakashic__read_note",
+        ],
+        timeout=180,
+    )
+    dedup_decision = _parse_dedup_decision(dedup_raw)
+    if dedup_decision["verdict"] == "skip":
+        now_iso = _now_iso()
+        existing_path = str(dedup_decision.get("existing_path") or "").strip() or None
+        rationale = str(dedup_decision.get("rationale") or "")
+        _append_research_log_entry(
+            topic=gap["topic"],
+            queries=gap["queries"],
+            rationale=rationale or str(gap.get("rationale") or ""),
+            cited_urls=[],
+            capsule_path=None,
+            model=str(model or ""),
+            max_fetches=int(settings.get("research_max_fetches") or 3),
+            status="skipped_duplicate",
+            existing_path=existing_path,
+        )
+        _touch_research_state(now_iso)
+        return {
+            "status": "skip_existing_coverage",
+            "existing_path": existing_path,
+            "rationale": rationale,
+            "gap": gap,
+        }
+    if dedup_decision["verdict"] == "refine":
+        prior_topic = str(gap.get("topic") or "").strip()
+        new_topic = str(dedup_decision.get("new_topic") or "").strip()
+        new_queries = [str(item).strip() for item in (dedup_decision.get("new_queries") or []) if str(item).strip()]
+        if new_topic:
+            gap["topic"] = new_topic
+            current_title = str(gap.get("target_capsule_title") or "").strip()
+            if not current_title or current_title == f"{prior_topic} Capsule":
+                gap["target_capsule_title"] = f"{new_topic} Capsule"
+        if new_queries:
+            gap["queries"] = list(dict.fromkeys(new_queries))[:5]
+    elif dedup_decision["verdict"] == "supplement":
+        extend_path = str(dedup_decision.get("extend_path") or "").strip()
+        if extend_path:
+            gap["supplement_extend_path"] = extend_path
+
     gap["topic_slug"] = _topic_slug(gap["topic"])
     gap["max_fetches"] = int(settings.get("research_max_fetches") or 3)
 
-    research_prompt = _build_research_prompt(gap)
     raw_capsule = _invoke_claude_cli_with_tools(
-        research_prompt,
+        _build_research_prompt(gap),
         model=model,
         tools=["WebSearch", "WebFetch", "Read"],
         timeout=300,
@@ -1858,10 +2009,27 @@ def _curate_research_gaps(force: bool = False) -> dict[str, Any]:
     if not raw_capsule or raw_capsule.startswith("[CLI 오류"):
         return {"status": "llm_error", "detail": (raw_capsule or "")[:200], "gap": gap}
 
-    if len(raw_capsule) < 400 or "## Summary" not in raw_capsule or "## Sources" not in raw_capsule:
-        return {"status": "response_too_weak", "detail": raw_capsule[:200], "gap": gap}
-
-    cited_urls = _extract_source_urls(raw_capsule)
+    final_capsule = raw_capsule
+    cited_urls = _extract_source_urls(final_capsule)
+    retry_attempted = False
+    retry_count = 0
+    grounding = "web_grounded"
+    if not cited_urls and gap["max_fetches"] > 0:
+        retry_attempted = True
+        retry_count = 1
+        retry_capsule = _invoke_claude_cli_with_tools(
+            _build_research_prompt(gap, require_web_citations=True),
+            model=model,
+            tools=["WebSearch", "WebFetch", "Read"],
+            timeout=300,
+        )
+        if retry_capsule and not retry_capsule.startswith("[CLI 오류") and _research_response_is_usable(retry_capsule):
+            final_capsule = retry_capsule
+            cited_urls = _extract_source_urls(final_capsule)
+        if not cited_urls:
+            grounding = "training_only"
+    if not _research_response_is_usable(final_capsule):
+        return {"status": "response_too_weak", "detail": final_capsule[:200], "gap": gap}
     capsule_title = str(gap.get("target_capsule_title") or "").strip() or f"{gap['topic']} Capsule"
 
     from app.subordinate import SUBORDINATE_IDENTITY
@@ -1874,7 +2042,7 @@ def _curate_research_gaps(force: bool = False) -> dict[str, Any]:
         project="ops/librarian",
         status="draft",
         tags=["capsule", "sagwan-generated", "research-gap", gap["topic_slug"]],
-        body=raw_capsule,
+        body=final_capsule,
         metadata={
             "visibility": "private",
             "publication_status": "none",
@@ -1884,6 +2052,9 @@ def _curate_research_gaps(force: bool = False) -> dict[str, Any]:
             "research_gap_topic": gap["topic"],
             "research_queries": gap["queries"],
             "research_cited_urls": cited_urls,
+            "research_grounding": grounding,
+            "research_retry_count": retry_count,
+            "research_supplement_to": str(gap.get("supplement_extend_path") or "").strip() or None,
             "evidence_urls": cited_urls,
             "evidence_paths": [],
         },
@@ -1898,6 +2069,10 @@ def _curate_research_gaps(force: bool = False) -> dict[str, Any]:
         capsule_path=doc.path,
         model=str(model or ""),
         max_fetches=gap["max_fetches"],
+        status="supplement" if gap.get("supplement_extend_path") else "ok",
+        existing_path=str(gap.get("supplement_extend_path") or "").strip() or None,
+        grounding=grounding,
+        retry_count=retry_count,
     )
     now_iso = _now_iso()
     _touch_research_state(now_iso)
@@ -1908,6 +2083,9 @@ def _curate_research_gaps(force: bool = False) -> dict[str, Any]:
         "queries": gap["queries"],
         "capsule_path": doc.path,
         "cited_urls": cited_urls,
+        "research_grounding": grounding,
+        "retry_attempted": retry_attempted,
+        "research_supplement_to": str(gap.get("supplement_extend_path") or "").strip() or None,
         "inventory_summary": {
             "total_capsules": inventory.get("total_capsules", 0),
             "total_claims": inventory.get("total_claims", 0),
@@ -2369,6 +2547,61 @@ _META_STATE_PATH = "personal_vault/projects/ops/librarian/activity/meta-curation
 _META_MIN_INTERVAL_HOURS = 24
 _SYSTEM_HEALTH_FOLDER = "personal_vault/meta/system-health"
 _IMPROVEMENT_REQUEST_FOLDER = "personal_vault/meta/improvement-requests"
+_CORE_SYNC_BLOCKED_REQUEST_PATH = f"{_IMPROVEMENT_REQUEST_FOLDER}/core-sync-blocked-notes.md"
+
+
+def _collect_core_sync_blocked_notes(*, limit: int = 10) -> list[dict[str, str]]:
+    blocked: list[dict[str, str]] = []
+    for path in list_note_paths():
+        try:
+            doc = load_document(path)
+        except Exception:
+            continue
+        fm = dict(doc.frontmatter or {})
+        if not fm.get("core_sync_blocked"):
+            continue
+        blocked.append(
+            {
+                "path": path,
+                "reason": str(fm.get("core_sync_last_failure_reason") or "sync_failed").strip() or "sync_failed",
+                "last_failure_at": str(fm.get("core_sync_last_failure_at") or "").strip(),
+            }
+        )
+        if len(blocked) >= limit:
+            break
+    return blocked
+
+
+def _upsert_core_sync_blocked_request(blocked_notes: list[dict[str, str]]) -> str | None:
+    if not blocked_notes:
+        return None
+    lines = [
+        "## Summary",
+        "Busagwan Core API sync has one or more notes blocked after repeated failures. Human investigation is required.",
+        "",
+        "## Blocked Notes",
+    ]
+    for item in blocked_notes:
+        lines.append(
+            f"- {item['path']} — {item['reason']}"
+            + (f" (last_failure_at={item['last_failure_at']})" if item.get("last_failure_at") else "")
+        )
+    write_document(
+        path=_CORE_SYNC_BLOCKED_REQUEST_PATH,
+        body="\n".join(lines),
+        metadata={
+            "title": "Improvement Request: core sync blocked notes",
+            "kind": "improvement-request",
+            "project": "ops/librarian",
+            "status": "proposed",
+            "tags": ["meta", "improvement-request", "core-sync", "blocked", "sagwan-generated"],
+            "visibility": "private",
+            "owner": "sagwan",
+            "review_status": "pending_human_review",
+        },
+        allow_owner_change=True,
+    )
+    return _CORE_SYNC_BLOCKED_REQUEST_PATH
 
 
 def _curate_system_health() -> dict[str, Any]:
@@ -2438,6 +2671,14 @@ def _curate_system_health() -> dict[str, Any]:
     except Exception:
         pass
     gap_block = "\n".join(gap_sample) or "(없음)"
+    blocked_core_sync = _collect_core_sync_blocked_notes(limit=10)
+    blocked_core_sync_block = "\n".join(
+        [
+            f"- {item['path']}: {item['reason']}"
+            + (f" @ {item['last_failure_at']}" if item.get("last_failure_at") else "")
+            for item in blocked_core_sync
+        ]
+    ) or "(없음)"
 
     ctx = before_task_context("sagwan", "system health meta-curation", current_note_path=None)
 
@@ -2462,6 +2703,8 @@ def _curate_system_health() -> dict[str, Any]:
         f"## 미해결 충돌 샘플\n{conflicts_sample}",
         "",
         f"## 최근 gap queries\n{gap_block}",
+        "",
+        f"## Blocked core sync notes\n{blocked_core_sync_block}",
         "",
         ctx["combined"] or "",
         "",
@@ -2498,6 +2741,9 @@ def _curate_system_health() -> dict[str, Any]:
     import re as _re
     section_match = _re.search(r"##\s*IMPROVEMENTS\s*\n(.*)", reply, _re.DOTALL | _re.IGNORECASE)
     requests_created: list[str] = []
+    blocked_request_path = _upsert_core_sync_blocked_request(blocked_core_sync)
+    if blocked_request_path:
+        requests_created.append(Path(blocked_request_path).stem)
     if section_match:
         body_section = section_match.group(1)
         # 각 ### <slug> 블록 추출
