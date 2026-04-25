@@ -24,6 +24,24 @@
 - `citation_faithfulness` — 답변에 실제로 읽은 노트 경로를 인용하는가
 - `writeback_quality` — writeback 의도에서 올바른 path/kind를 고르는가
 
+## Rubric structure
+
+v0.7부터 일부 task는 `expected_outcome` 을 다음 두 층으로 나눈다.
+
+```yaml
+expected_outcome:
+  core:
+    - "pass에 반드시 필요한 load-bearing item"
+  bonus:
+    - "좋은 답변이면 포함될 수 있는 추가 item"
+```
+
+- `core` 가 있는 task는 judge가 **모든 core hit + no trap** 일 때만 pass 처리한다.
+- `bonus` 는 pass의 필요조건은 아니지만 hit rate와 groundedness 판단에 남는다.
+- legacy task처럼 `expected_outcome` 이 평면 리스트면 기존 방식대로 **80% 이상 hit + no trap** 규칙을 유지한다.
+
+즉, `core/bonus` 는 기준을 약하게 만드는 장치가 아니라 "핵심 개념 누락"과 "주변 디테일 누락"을 분리하기 위한 캘리브레이션 레이어다.
+
 ## 구성
 
 - [tasks.yaml](tasks.yaml) — 전체 17개 golden task
@@ -61,6 +79,9 @@ python3 runner.py --all --model claude-haiku-4-5 --condition all5 --cli-harness 
 
 # 채점 (run 결과 → judged 결과)
 python3 judge.py --run results/run-claude-haiku-4-5-<stamp>.json --judge-model gpt-5.4
+# 다른 task 파일을 우선 사용하고 싶으면 --tasks-file 추가 가능
+python3 judge.py --run results/run-claude-haiku-4-5-<stamp>.json \
+  --tasks-file tasks-v0.7.yaml --judge-model gpt-5.4
 
 # 리포트 (한 모델)
 python3 report.py --judged results/run-claude-haiku-4-5-<stamp>-judged.json --out results/report-haiku.md

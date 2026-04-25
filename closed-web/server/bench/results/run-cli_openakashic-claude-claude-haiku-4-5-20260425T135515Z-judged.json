@@ -1,0 +1,152 @@
+{
+  "run_file": "/home/insu/insu_server/apps/openakashic/closed-web/server/bench/results/run-cli_openakashic-claude-claude-haiku-4-5-20260425T135515Z.json",
+  "judge_model": "claude-sonnet-4-6",
+  "model": "claude-haiku-4-5",
+  "condition": "cli_openakashic",
+  "judgments": [
+    {
+      "task_id": "onboarding_openakashic",
+      "condition": "cli_openakashic",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [
+        "search_notes 또는 search_and_read_top 등 정보 탐색 도구 언급",
+        "작업 전 관련 노트 검색, 작업 후 writeback (upsert_note/append_note_section) 절차 설명"
+      ],
+      "missed": [
+        "personal_vault/projects/personal/openakashic/README.md 등 실존하는 시작점 경로 제시",
+        "경로가 personal_vault/ 또는 doc/ 로 시작해야 한다는 제약 언급"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "cli_openakashic 조건임에도 tool_calls가 없어 실제 Akashic에서 README.md를 읽지 않았으며, 로컬 파일시스템 경로(bench/README.md, TASK-AUDIT.md 등)와 bench-v05-stage1-2026-04-17.md 같은 구체적 파일명을 도구 확인 없이 제시했다. hallucination_traps의 /vault/closed/ 또는 /kb/ 패턴은 등장하지 않았다.",
+      "reason": "4개 항목 중 2개(50%)만 충족해 80% 기준 미달로 fail이다. Akashic 경로(personal_vault/projects/personal/openakashic/README.md)를 시작점으로 제시하지 않았고, personal_vault/ 또는 doc/ 경로 제약도 명시되지 않았다. openakashic 조건에서 실제 도구 호출 없이 로컬 경로 중심으로 답변한 점이 핵심 결함이다.",
+      "score": {
+        "hit_rate": 0.5,
+        "expected_total": 4,
+        "hits_count": 2,
+        "core_hit_rate": 0.0,
+        "core_total": 0,
+        "core_hits": 0,
+        "bonus_hit_rate": 0.0,
+        "bonus_total": 0,
+        "bonus_hits": 0,
+        "traps_hit_count": 0
+      },
+      "scoring_mode": "legacy_80pct"
+    },
+    {
+      "task_id": "triage_ichimozzi_500",
+      "condition": "cli_openakashic",
+      "attempt": 1,
+      "verdict": "pass",
+      "hits": [
+        "insu-shared-caddy (리버스 프록시) 먼저 확인하라는 언급",
+        "insu-server-backend-prod-1 등 IchiMozzi 백엔드 컨테이너 이름 정확히 지목",
+        "Caddy → backend → DB 순서 (프록시 → 앱 → 의존성) 방향성 제시",
+        "docker logs 또는 compose 명령어로 상태 확인 절차 언급"
+      ],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "tool_calls가 없어 Akashic 노트 조회 없이 파라메트릭 지식으로 답했지만, 컨테이너 이름(insu-shared-caddy, insu-server-backend-prod-1)과 triage 순서 모두 expected_outcome과 일치한다. EC2/nginx/역순 등 트랩은 없다.",
+      "reason": "4개 항목 모두 충족(100%)하고 트랩도 없어 pass다. Caddy→backend→DB 순서를 정확히 지켰고, 구체적인 docker logs/compose 명령까지 제공했다. openakashic 조건에서 도구 없이 답했으나 내용 정확도가 기준을 충족한다.",
+      "score": {
+        "hit_rate": 1.0,
+        "expected_total": 4,
+        "hits_count": 4,
+        "core_hit_rate": 0.0,
+        "core_total": 0,
+        "core_hits": 0,
+        "bonus_hit_rate": 0.0,
+        "bonus_total": 0,
+        "bonus_hits": 0,
+        "traps_hit_count": 0
+      },
+      "scoring_mode": "legacy_80pct"
+    },
+    {
+      "task_id": "ichimozzi_deploy",
+      "condition": "cli_openakashic",
+      "attempt": 1,
+      "verdict": "pass",
+      "hits": [
+        "docker compose (production.yml 또는 동등) 명령어 제시",
+        "로컬 홈서버 Docker 스택에서 돌아간다는 점 명시 또는 그와 일관된 답변",
+        "GitHub webhook 자동 배포가 비활성/신뢰 불가 상태라는 언급 (또는 수동 절차 명시)"
+      ],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "tool_calls 없이 파라메트릭 지식으로 작성되었으나 docker compose -f production.yml, 홈서버 스택, 수동 절차 등 모든 핵심 요소를 정확히 포함했다. EC2/PM2/AWS 등 트랩은 없다.",
+      "reason": "3개 항목 모두 충족(100%)하고 트랩도 없어 pass다. production.yml을 명시한 docker compose 명령어, 홈서버 Docker 스택 맥락, 수동 배포 절차가 모두 제시되었다.",
+      "score": {
+        "hit_rate": 1.0,
+        "expected_total": 3,
+        "hits_count": 3,
+        "core_hit_rate": 0.0,
+        "core_total": 0,
+        "core_hits": 0,
+        "bonus_hit_rate": 0.0,
+        "bonus_total": 0,
+        "bonus_hits": 0,
+        "traps_hit_count": 0
+      },
+      "scoring_mode": "legacy_80pct"
+    },
+    {
+      "task_id": "busagwan_sagwan_roles",
+      "condition": "cli_openakashic",
+      "attempt": 1,
+      "verdict": "pass",
+      "hits": [
+        "Sagwan은 Claude CLI 기반 high-quality/느린 주기 워커라는 설명 또는 그에 상응하는 구분",
+        "Busagwan은 Ollama gemma 기반 빠른/가벼운 주기 워커라는 설명 또는 그에 상응하는 구분",
+        "각자의 주기/트리거 (예: 10분/15분/1시간 같은 cadence 구분) 언급",
+        "두 워커가 서로 다른 종류의 task를 담당하며 gate 관계라는 구조 설명"
+      ],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "tool_calls 없이 시스템 컨텍스트 기반으로 답했으며 Ollama/Claude CLI 모델명은 누락됐으나, Sagwan 고품질 결정자 vs. Busagwan 15분 자동화 워커 구분과 gate 관계는 '상응하는 구분'으로 충족된다. 트랩(도구명, 동일 모델, Sagwan=gemma) 모두 없다.",
+      "reason": "'그에 상응하는 구분' 허용 기준 하에 4개 항목 모두 충족(100%)하여 pass다. Busagwan 15분 주기와 Sagwan 명시적 요청 트리거로 cadence 구분이 명확하고, '처리한 작업이 Sagwan의 최종 결정을 기다린다'는 gate 관계 설명도 포함됐다.",
+      "score": {
+        "hit_rate": 1.0,
+        "expected_total": 4,
+        "hits_count": 4,
+        "core_hit_rate": 0.0,
+        "core_total": 0,
+        "core_hits": 0,
+        "bonus_hit_rate": 0.0,
+        "bonus_total": 0,
+        "bonus_hits": 0,
+        "traps_hit_count": 0
+      },
+      "scoring_mode": "legacy_80pct"
+    },
+    {
+      "task_id": "multihop_synthesis",
+      "condition": "cli_openakashic",
+      "attempt": 1,
+      "verdict": "pass",
+      "hits": [
+        "구체적 컨테이너/시스템 이름 3개 제시 (ex: insu-server-backend-prod-1, insu-server-ichimozzi-db-1, insu-shared-caddy 또는 동등 수준의 실명)",
+        "각 시스템에 대한 배포 전 점검 이유가 한 줄 수준으로 동반",
+        "추상적이지 않고 실제 인프라 구성요소(Docker container/proxy/DB) 기반"
+      ],
+      "missed": [],
+      "traps_hit": [],
+      "groundedness_note": "tool_calls 없이 파라메트릭 지식으로 작성됐으나 insu-server-ichimozzi-db-1, insu-shared-caddy 두 컨테이너명은 expected 예시와 정확히 일치하고 세 번째 항목(.env 환경변수)도 '동등 수준의 실명'으로 인정 가능하다. AWS/EC2/존재하지 않는 컨테이너명 등 트랩 없음.",
+      "reason": "3개 항목 모두 충족(100%)하여 pass다. 예시로 제시된 컨테이너 2개(ichimozzi-db-1, insu-shared-caddy)를 정확히 지목했고 각 항목에 배포 전 이유가 구체적으로 동반됐다. 추상적 일반론 없이 실제 Docker container/proxy/DB 기반이다.",
+      "score": {
+        "hit_rate": 1.0,
+        "expected_total": 3,
+        "hits_count": 3,
+        "core_hit_rate": 0.0,
+        "core_total": 0,
+        "core_hits": 0,
+        "bonus_hit_rate": 0.0,
+        "bonus_total": 0,
+        "bonus_hits": 0,
+        "traps_hit_count": 0
+      },
+      "scoring_mode": "legacy_80pct"
+    }
+  ]
+}

@@ -1,0 +1,158 @@
+{
+  "run_file": "/home/insu/insu_server/apps/openakashic/closed-web/server/bench/results/run-cli_baseline-claude-claude-haiku-4-5-20260425T135306Z.json",
+  "judge_model": "claude-sonnet-4-6",
+  "model": "claude-haiku-4-5",
+  "condition": "cli_baseline",
+  "judgments": [
+    {
+      "task_id": "onboarding_openakashic",
+      "condition": "cli_baseline",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [
+        "personal_vault/projects/personal/openakashic/README.md 등 실존하는 시작점 경로 제시",
+        "search_notes 또는 search_and_read_top 등 정보 탐색 도구 언급",
+        "작업 전 관련 노트 검색, 작업 후 writeback (upsert_note/append_note_section) 절차 설명"
+      ],
+      "missed": [
+        "경로가 personal_vault/ 또는 doc/ 로 시작해야 한다는 제약 언급"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "답변은 도구 호출 없이 파라메트릭 지식만으로 작성되었으며, /home/insu/insu_server/apps/openakashic/AGENTS.md, closed-web/server/bench/TASK-AUDIT.md 등 구체적인 로컬 경로와 파일을 확인 없이 제시했다는 점에서 환각 위험이 있다. 트랩에 명시된 /vault/closed/ 또는 /kb/ 패턴은 등장하지 않았다.",
+      "reason": "4개 항목 중 3개(75%)만 충족되어 80% 기준 미달로 fail이다. personal_vault/ 또는 doc/ 경로 제약이 명시적 규칙으로 언급되지 않고 예시로만 등장했다. 할루시네이션 트랩 3개는 모두 해당 없다.",
+      "score": {
+        "hit_rate": 0.75,
+        "expected_total": 4,
+        "hits_count": 3,
+        "core_hit_rate": 0.0,
+        "core_total": 0,
+        "core_hits": 0,
+        "bonus_hit_rate": 0.0,
+        "bonus_total": 0,
+        "bonus_hits": 0,
+        "traps_hit_count": 0
+      },
+      "scoring_mode": "legacy_80pct"
+    },
+    {
+      "task_id": "triage_ichimozzi_500",
+      "condition": "cli_baseline",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [
+        "insu-server-backend-prod-1 등 IchiMozzi 백엔드 컨테이너 이름 정확히 지목",
+        "docker logs 또는 compose 명령어로 상태 확인 절차 언급"
+      ],
+      "missed": [
+        "insu-shared-caddy (리버스 프록시) 먼저 확인하라는 언급",
+        "Caddy → backend → DB 순서 (프록시 → 앱 → 의존성) 방향성 제시"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "도구 없이 파라메트릭 지식만으로 작성되어 컨테이너 이름 일부는 맞았으나, triage 순서가 backend→DB→Caddy로 실제 권장 순서(Caddy→backend→DB)와 역방향이다. EC2/nginx 등 트랩은 등장하지 않았다.",
+      "reason": "4개 항목 중 2개(50%)만 충족해 80% 기준 미달로 fail이다. Caddy를 마지막(4단계)에 배치하고 backend를 1단계로 시작해 '프록시 먼저' 원칙과 순서 방향성 모두 틀렸다. 백엔드 컨테이너 이름과 docker logs 언급은 정확했다.",
+      "score": {
+        "hit_rate": 0.5,
+        "expected_total": 4,
+        "hits_count": 2,
+        "core_hit_rate": 0.0,
+        "core_total": 0,
+        "core_hits": 0,
+        "bonus_hit_rate": 0.0,
+        "bonus_total": 0,
+        "bonus_hits": 0,
+        "traps_hit_count": 0
+      },
+      "scoring_mode": "legacy_80pct"
+    },
+    {
+      "task_id": "ichimozzi_deploy",
+      "condition": "cli_baseline",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [
+        "로컬 홈서버 Docker 스택에서 돌아간다는 점 명시 또는 그와 일관된 답변",
+        "GitHub webhook 자동 배포가 비활성/신뢰 불가 상태라는 언급 (또는 수동 절차 명시)"
+      ],
+      "missed": [
+        "docker compose (production.yml 또는 동등) 명령어 제시"
+      ],
+      "traps_hit": [
+        "PM2, systemd service로 관리된다는 안내 (실제는 Docker)"
+      ],
+      "groundedness_note": "도구 없이 파라메트릭 지식으로 작성되었으며, PM2를 '기존 방식'으로 제시하고 pm2 start/restart 명령을 구체적으로 안내해 PM2 트랩을 명백히 발동시켰다. docker compose production.yml 방식은 전혀 언급되지 않았다.",
+      "reason": "PM2 트랩이 발동되어 traps_hit 기준으로 즉시 fail이다. 또한 docker compose(production.yml) 명령어가 없고 대신 docker run/build로 대체되어 핵심 항목도 누락됐다. 로컬 경로 일관성과 수동 절차 언급은 인정되나 트랩 발동으로 전체 판정은 fail.",
+      "score": {
+        "hit_rate": 0.6666666666666666,
+        "expected_total": 3,
+        "hits_count": 2,
+        "core_hit_rate": 0.0,
+        "core_total": 0,
+        "core_hits": 0,
+        "bonus_hit_rate": 0.0,
+        "bonus_total": 0,
+        "bonus_hits": 0,
+        "traps_hit_count": 1
+      },
+      "scoring_mode": "legacy_80pct"
+    },
+    {
+      "task_id": "busagwan_sagwan_roles",
+      "condition": "cli_baseline",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [
+        "Sagwan은 Claude CLI 기반 high-quality/느린 주기 워커라는 설명 또는 그에 상응하는 구분",
+        "각자의 주기/트리거 (예: 10분/15분/1시간 같은 cadence 구분) 언급"
+      ],
+      "missed": [
+        "Busagwan은 Ollama gemma 기반 빠른/가벼운 주기 워커라는 설명 또는 그에 상응하는 구분",
+        "두 워커가 서로 다른 종류의 task를 담당하며 gate 관계라는 구조 설명"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "도구 없이 파라메트릭 지식으로 작성된 답변으로, Busagwan을 'LLM 없는 순수 코드 워커'로 기술했으나 실제로는 Ollama gemma 기반 경량 LLM 워커다. gate 관계를 '폐지됨'으로 서술한 것도 예상 구조와 불일치한다.",
+      "reason": "4개 항목 중 2개(50%)만 충족해 80% 기준 미달로 fail이다. Busagwan을 Ollama gemma 기반이 아닌 '모델 없음'으로 오기술하고, gate 관계를 현행 구조로 설명하지 못했다. 할루시네이션 트랩은 발동되지 않았다.",
+      "score": {
+        "hit_rate": 0.5,
+        "expected_total": 4,
+        "hits_count": 2,
+        "core_hit_rate": 0.0,
+        "core_total": 0,
+        "core_hits": 0,
+        "bonus_hit_rate": 0.0,
+        "bonus_total": 0,
+        "bonus_hits": 0,
+        "traps_hit_count": 0
+      },
+      "scoring_mode": "legacy_80pct"
+    },
+    {
+      "task_id": "multihop_synthesis",
+      "condition": "cli_baseline",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [
+        "각 시스템에 대한 배포 전 점검 이유가 한 줄 수준으로 동반",
+        "추상적이지 않고 실제 인프라 구성요소(Docker container/proxy/DB) 기반"
+      ],
+      "missed": [
+        "구체적 컨테이너/시스템 이름 3개 제시 (ex: insu-server-backend-prod-1, insu-server-ichimozzi-db-1, insu-shared-caddy 또는 동등 수준의 실명)"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "도구 없이 파라메트릭 지식으로 작성되었으며 insu-server-ichimozzi-db-1, insu-server-backend-prod-1 두 컨테이너명은 정확하나, 세 번째 항목이 컨테이너/시스템 이름이 아닌 TypeScript 빌드 프로세스로 대체됐다. insu-shared-caddy(프록시) 등 세 번째 실제 시스템이 누락됐다.",
+      "reason": "'3개 컨테이너/시스템 이름 제시' 항목이 미충족으로 2/3 = 66.7% < 80% 기준 미달 fail이다. 2개의 정확한 컨테이너명(DB, 백엔드)은 인정되지만 TypeScript 컴파일은 컨테이너/시스템 이름이 아니며 proxy(insu-shared-caddy) 점검이 빠졌다. 트랩은 없다.",
+      "score": {
+        "hit_rate": 0.6666666666666666,
+        "expected_total": 3,
+        "hits_count": 2,
+        "core_hit_rate": 0.0,
+        "core_total": 0,
+        "core_hits": 0,
+        "bonus_hit_rate": 0.0,
+        "bonus_total": 0,
+        "bonus_hits": 0,
+        "traps_hit_count": 0
+      },
+      "scoring_mode": "legacy_80pct"
+    }
+  ]
+}
