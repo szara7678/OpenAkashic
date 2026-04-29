@@ -6,7 +6,10 @@ import os
 import re
 from pathlib import Path
 import subprocess
+import time
 from typing import Any
+from urllib import error as urlerror
+from urllib import request as urlrequest
 
 from app.auth import librarian_identity_dict
 from app.config import get_settings
@@ -38,15 +41,28 @@ SUBORDINATE_MEMORY_PATH = "personal_vault/projects/ops/librarian/memory/Subordin
 LIBRARIAN_TOOL_NAMES = (
     "exec_command",
     "search_notes",
+    "search_akashic",
     "read_note",
+    "read_raw_note",
     "append_note_section",
     "upsert_note",
+    "review_note",
+    "list_reviews",
+    "confirm_note",
+    "dispute_note",
+    "resolve_conflict",
     "request_publication",
     "list_publication_requests",
     "set_publication_status",
+    "delete_note",
+    "move_note",
     "enqueue_task",
+    "WebSearch",
+    "WebFetch",
 )
 LIBRARIAN_DEFAULT_ENABLED_TOOLS = tuple(name for name in LIBRARIAN_TOOL_NAMES if name != "exec_command")
+
+_PROXY_AUTH_KEY = "claude-code-local"
 
 
 def librarian_settings_path() -> Path:
@@ -374,19 +390,133 @@ def _invoke_claude_cli_with_tools(
         return f"[CLI 오류] {exc}"
 
 
+def _proxy_chat_urls() -> list[str]:
+    explicit = str(os.environ.get("CLOSED_AKASHIC_LLM_PROXY") or "").strip()
+    if explicit:
+        return [explicit]
+    container_url = "http://host.docker.internal:18796/v1/chat/completions"
+    local_url = "http://127.0.0.1:18796/v1/chat/completions"
+    if Path("/.dockerenv").exists():
+        return [container_url, local_url]
+    return [local_url, container_url]
+
+
+def _invoke_proxy_chat(
+    prompt: str,
+    model: str = "gpt-5.4",
+    tools: list[dict] | None = None,
+    timeout: int = 120,
+    system: str | None = None,
+) -> str:
+    """Call the host-side proxy through the OpenAI-compatible chat completions API."""
+    messages: list[dict[str, Any]] = []
+    if system:
+        messages.append({"role": "system", "content": system})
+    messages.append({"role": "user", "content": prompt})
+
+    payload: dict[str, Any] = {
+        "model": model,
+        "messages": messages,
+        "stream": True,
+        "max_completion_tokens": 4000,
+    }
+    if tools is not None:
+        payload["tools"] = tools
+        payload["tool_choice"] = "auto"
+
+    body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+    last_err: Exception | None = None
+    for url in _proxy_chat_urls():
+        for attempt in range(5):
+            chunks: list[str] = []
+            tool_calls: dict[int, dict[str, Any]] = {}
+            req = urlrequest.Request(
+                url,
+                data=body,
+                headers={
+                    "Authorization": f"Bearer {_PROXY_AUTH_KEY}",
+                    "Content-Type": "application/json",
+                    "Accept": "text/event-stream",
+                },
+                method="POST",
+            )
+            try:
+                response = urlrequest.urlopen(req, timeout=timeout)
+            except urlrequest.HTTPError as exc:
+                err_body = exc.read().decode(errors="replace")[:500]
+                last_err = RuntimeError(f"proxy HTTP {exc.code}: {err_body}")
+                time.sleep(2 ** attempt)
+                continue
+            except urlerror.URLError as exc:
+                last_err = RuntimeError(f"URLError: {exc}")
+                time.sleep(2 ** attempt)
+                continue
+
+            with response:
+                for raw_line in response:
+                    line = raw_line.decode(errors="replace").strip()
+                    if not line.startswith("data:"):
+                        continue
+                    data = line[5:].strip()
+                    if data == "[DONE]":
+                        break
+                    try:
+                        obj = json.loads(data)
+                    except json.JSONDecodeError:
+                        continue
+                    choice = (obj.get("choices") or [{}])[0]
+                    delta = choice.get("delta", {}) or {}
+                    content = delta.get("content")
+                    if isinstance(content, str) and content:
+                        chunks.append(content)
+                    elif isinstance(content, list):
+                        for part in content:
+                            if isinstance(part, dict) and part.get("text"):
+                                chunks.append(str(part["text"]))
+                    for tool_delta in delta.get("tool_calls") or []:
+                        index = int(tool_delta.get("index") or 0)
+                        slot = tool_calls.setdefault(index, {"id": tool_delta.get("id"), "type": "function", "function": {}})
+                        function = slot.setdefault("function", {})
+                        func_delta = tool_delta.get("function") or {}
+                        if func_delta.get("name"):
+                            function["name"] = func_delta["name"]
+                        if func_delta.get("arguments"):
+                            function["arguments"] = function.get("arguments", "") + func_delta["arguments"]
+            result = "".join(chunks).strip()
+            if result:
+                return result
+            if tool_calls:
+                ordered = [tool_calls[index] for index in sorted(tool_calls)]
+                return json.dumps({"tool_calls": ordered}, ensure_ascii=False)
+            last_err = RuntimeError(f"proxy returned empty stream for model={model}")
+            time.sleep(2 ** attempt)
+    raise last_err or RuntimeError("proxy chat call failed after retries")
+
+
 def _cli_tool_definitions(enabled_tools: list[str] | None = None) -> str:
     """사관이 사용할 수 있는 도구 목록과 호출 형식을 반환한다."""
     allowed = set(enabled_tools or LIBRARIAN_TOOL_NAMES)
     signatures = {
         "exec_command": "exec_command(command: str, cwd?: str, timeout_sec?: int) — 서버 명령 실행",
         "search_notes": "search_notes(query: str, limit?: int) — 노트 검색",
+        "search_akashic": "search_akashic(query: str, top_k?: int, mode?: str) — 검증된 public capsule/claim 검색",
         "read_note": "read_note(path: str) — 노트 읽기",
+        "read_raw_note": "read_raw_note(path: str) — frontmatter 포함 raw 노트 읽기",
         "append_note_section": "append_note_section(path: str, heading: str, content: str) — 노트에 섹션 추가",
         "upsert_note": "upsert_note(path: str, body: str, title?: str, kind?: str, project?: str) — 노트 생성/수정",
+        "review_note": "review_note(target: str, stance: str, rationale: str, evidence_urls?: list, evidence_paths?: list, topic?: str) — 근거 기반 review 작성",
+        "list_reviews": "list_reviews(target: str, include_consolidated?: bool) — review 목록 조회",
+        "confirm_note": "confirm_note(path: str, comment?: str) — 검증된 노트 endorse",
+        "dispute_note": "dispute_note(path: str, reason?: str) — 노트 stale/incorrect 표시",
+        "resolve_conflict": "resolve_conflict(path: str, verdict: str, comment?: str) — conflict verdict 기록",
         "request_publication": "request_publication(path: str, requester?: str, rationale?: str, evidence_paths?: list) — 공개 신청",
         "list_publication_requests": "list_publication_requests(status?: str) — 공개 신청 목록",
         "set_publication_status": "set_publication_status(path: str, status: str, reason?: str) — 공개 상태 변경 (status: requested|reviewing|approved|rejected|published|needs_merge|needs_evidence|superseded)",
+        "delete_note": "delete_note(path: str) — 노트 삭제",
+        "move_note": "move_note(path: str, new_path: str) — 노트 이동",
         "enqueue_task": 'enqueue_task(kind: str, payload: dict) — 부사관 태스크 큐에 추가. kind: sync_to_core_api|analyze_search_gaps|analyze_search_quality_signals|scan_stale_private_notes. sync_to_core_api payload: {"limit": 10}, analyze_search_gaps payload: {"max_new": 10}, analyze_search_quality_signals payload: {"max_new": 10}, scan_stale_private_notes payload: {"owner": "aaron", "dry_run": false}',
+        "WebSearch": "WebSearch(query: str) — claude-cli native web search (proxy 함수호출 모드에서는 직접 실행되지 않음)",
+        "WebFetch": "WebFetch(url: str) — claude-cli native web fetch (proxy 함수호출 모드에서는 직접 실행되지 않음)",
     }
     lines = [
         "## 사용 가능한 도구",
@@ -687,8 +817,34 @@ def _tool_registry(enabled_tools: list[str] | None = None) -> list[dict[str, Any
         },
         {
             "type": "function",
+            "name": "search_akashic",
+            "description": "Search validated public capsules and claims from the Core API.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string"},
+                    "top_k": {"type": "integer", "minimum": 1, "maximum": 12},
+                    "mode": {"type": "string", "enum": ["compact", "standard", "full"]},
+                },
+                "required": ["query"],
+                "additionalProperties": False,
+            },
+        },
+        {
+            "type": "function",
             "name": "read_note",
             "description": "Read a note by path.",
+            "parameters": {
+                "type": "object",
+                "properties": {"path": {"type": "string"}},
+                "required": ["path"],
+                "additionalProperties": False,
+            },
+        },
+        {
+            "type": "function",
+            "name": "read_raw_note",
+            "description": "Read the raw frontmatter and body for a note.",
             "parameters": {
                 "type": "object",
                 "properties": {"path": {"type": "string"}},
@@ -725,6 +881,84 @@ def _tool_registry(enabled_tools: list[str] | None = None) -> list[dict[str, Any
                     "project": {"type": "string"},
                 },
                 "required": ["path", "body"],
+                "additionalProperties": False,
+            },
+        },
+        {
+            "type": "function",
+            "name": "review_note",
+            "description": "Create a support, dispute, or neutral review for a capsule or claim.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "target": {"type": "string"},
+                    "stance": {"type": "string", "enum": ["support", "dispute", "neutral"]},
+                    "rationale": {"type": "string"},
+                    "evidence_urls": {"type": "array", "items": {"type": "string"}},
+                    "evidence_paths": {"type": "array", "items": {"type": "string"}},
+                    "topic": {"type": "string"},
+                },
+                "required": ["target", "stance", "rationale"],
+                "additionalProperties": False,
+            },
+        },
+        {
+            "type": "function",
+            "name": "list_reviews",
+            "description": "List reviews attached to a capsule or claim.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "target": {"type": "string"},
+                    "include_consolidated": {"type": "boolean"},
+                },
+                "required": ["target"],
+                "additionalProperties": False,
+            },
+        },
+        {
+            "type": "function",
+            "name": "confirm_note",
+            "description": "Endorse a note after verification.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "path": {"type": "string"},
+                    "comment": {"type": "string"},
+                },
+                "required": ["path"],
+                "additionalProperties": False,
+            },
+        },
+        {
+            "type": "function",
+            "name": "dispute_note",
+            "description": "Flag a note as stale or incorrect.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "path": {"type": "string"},
+                    "reason": {"type": "string"},
+                },
+                "required": ["path"],
+                "additionalProperties": False,
+            },
+        },
+        {
+            "type": "function",
+            "name": "resolve_conflict",
+            "description": "Record the verdict for a conflicting note.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "path": {"type": "string"},
+                    "verdict": {
+                        "type": "string",
+                        "enum": ["keep", "supersede", "merge", "clear", "pending_review"],
+                    },
+                    "comment": {"type": "string"},
+                },
+                "required": ["path", "verdict"],
                 "additionalProperties": False,
             },
         },
@@ -767,11 +1001,36 @@ def _tool_registry(enabled_tools: list[str] | None = None) -> list[dict[str, Any
                     "path": {"type": "string"},
                     "status": {
                         "type": "string",
-                        "enum": ["requested", "reviewing", "approved", "rejected", "published"],
+                        "enum": ["requested", "reviewing", "approved", "rejected", "published", "needs_merge", "needs_evidence", "superseded"],
                     },
                     "reason": {"type": "string"},
                 },
                 "required": ["path", "status"],
+                "additionalProperties": False,
+            },
+        },
+        {
+            "type": "function",
+            "name": "delete_note",
+            "description": "Delete an existing note.",
+            "parameters": {
+                "type": "object",
+                "properties": {"path": {"type": "string"}},
+                "required": ["path"],
+                "additionalProperties": False,
+            },
+        },
+        {
+            "type": "function",
+            "name": "move_note",
+            "description": "Move a note to another allowed path.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "path": {"type": "string"},
+                    "new_path": {"type": "string"},
+                },
+                "required": ["path", "new_path"],
                 "additionalProperties": False,
             },
         },
@@ -809,9 +1068,21 @@ def _run_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
         return _tool_exec_command(arguments)
     if name == "search_notes":
         return search_closed_notes(arguments.get("query", ""), limit=int(arguments.get("limit", 6)))
+    if name == "search_akashic":
+        from app.mcp_server import search_akashic
+
+        return search_akashic(
+            query=arguments.get("query", ""),
+            top_k=int(arguments.get("top_k", 6)),
+            mode=str(arguments.get("mode") or "compact"),
+        )
     if name == "read_note":
         note = get_closed_note(arguments.get("path", ""))
         return note or {"error": "Note not found"}
+    if name == "read_raw_note":
+        from app.mcp_server import read_raw_note
+
+        return read_raw_note(arguments.get("path", ""))
     if name == "append_note_section":
         doc = append_section(
             arguments["path"],
@@ -829,6 +1100,40 @@ def _run_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
             metadata={"owner": SAGWAN_SYSTEM_OWNER, "created_by": SAGWAN_SYSTEM_OWNER},
         )
         return {"path": doc.path, "title": doc.frontmatter.get("title")}
+    if name == "review_note":
+        from app.mcp_server import review_note
+
+        return review_note(
+            target=arguments["target"],
+            stance=arguments["stance"],
+            rationale=arguments["rationale"],
+            evidence_urls=arguments.get("evidence_urls") or [],
+            evidence_paths=arguments.get("evidence_paths") or [],
+            topic=arguments.get("topic"),
+        )
+    if name == "list_reviews":
+        from app.mcp_server import list_reviews
+
+        return list_reviews(
+            target=arguments["target"],
+            include_consolidated=bool(arguments.get("include_consolidated", False)),
+        )
+    if name == "confirm_note":
+        from app.mcp_server import confirm_note
+
+        return confirm_note(path=arguments["path"], comment=arguments.get("comment"))
+    if name == "dispute_note":
+        from app.mcp_server import dispute_note
+
+        return dispute_note(path=arguments["path"], reason=arguments.get("reason"))
+    if name == "resolve_conflict":
+        from app.mcp_server import resolve_conflict
+
+        return resolve_conflict(
+            path=arguments["path"],
+            verdict=arguments["verdict"],
+            comment=arguments.get("comment"),
+        )
     if name == "request_publication":
         request = request_publication(
             path=arguments["path"],
@@ -849,6 +1154,14 @@ def _run_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
             reason=arguments.get("reason"),
         )
         return {"path": doc.path, "frontmatter": doc.frontmatter}
+    if name == "delete_note":
+        from app.vault import delete_document
+
+        return {"deleted": delete_document(arguments["path"])}
+    if name == "move_note":
+        from app.vault import move_document
+
+        return {"path": move_document(arguments["path"], arguments["new_path"])}
     if name == "enqueue_task":
         from app.subordinate import enqueue_subordinate_task
         task = enqueue_subordinate_task(
@@ -858,6 +1171,13 @@ def _run_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
             run_after=arguments.get("run_after"),
         )
         return {"queued": True, "task_id": task["id"], "kind": task["kind"], "status": task["status"]}
+    if name in {"WebSearch", "WebFetch"}:
+        return {
+            "error": (
+                f"{name} is only available through claude-cli native tool mode. "
+                "Use a Sagwan stage routed with web_tools=True instead of the proxy function-calling runtime."
+            )
+        }
     return {"error": f"Unknown tool: {name}"}
 
 

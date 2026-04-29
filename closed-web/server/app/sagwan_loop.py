@@ -19,6 +19,7 @@ import json
 import logging
 from pathlib import Path
 import re
+import time
 from typing import Any
 
 from app.agent_memory import (
@@ -31,7 +32,12 @@ from app.agent_memory import (
     render_context_snippet,
 )
 from app.config import get_settings
-from app.librarian import _invoke_claude_cli, _invoke_claude_cli_with_tools, load_librarian_settings
+from app.librarian import (
+    _invoke_claude_cli,
+    _invoke_claude_cli_with_tools,
+    _invoke_proxy_chat,
+    load_librarian_settings,
+)
 from app.vault import (
     PUBLICATION_REQUEST_FOLDER,
     append_section,
@@ -44,6 +50,19 @@ from app.vault import (
 )
 
 logger = logging.getLogger(__name__)
+
+_SAGWAN_STAGE_MODEL_DEFAULTS = {
+    "research": "claude-cli:claude-sonnet-4-6",
+    "maintenance": "claude-cli:claude-sonnet-4-6",
+    "conflict": "proxy:gpt-5.4",
+    "publication_judge": "proxy:gpt-5.4",
+    "revalidate": "proxy:gpt-5.4",
+    "distill": "proxy:gpt-5.4-mini",
+    "topic_proposal": "proxy:gpt-5.4",
+    "meta_curation": "proxy:gpt-5.4",
+    "profile_update": "proxy:gpt-5.4",
+}
+_LLM_CALL_HISTORY: list[dict[str, Any]] = []
 
 SAGWAN_DECIDER = "sagwan"
 # 공개 승격이 가능한 source note 의 kind. personal_vault/knowledge/** 내부는
@@ -81,9 +100,28 @@ def _default_sagwan_settings() -> dict[str, Any]:
         "bench_enabled": False,
         "bench_interval_sec": 604800,  # 1주
         "bench_model": "",
+        "maintenance_enabled": True,
+        "maintenance_interval_sec": 1800,
+        "stage_models": dict(_SAGWAN_STAGE_MODEL_DEFAULTS),
+        "llm_call_hourly_cap": 50,
+        "llm_call_ceiling_action": "skip_stage",
+        "distill_min_interval_sec": 21600,
+        "distill_min_episodes": 5,
+        "profile_update_min_interval_hours": 24,
         "topic_min_interval_hours": 12,
         "meta_min_interval_hours": 12,
     }
+
+
+def _normalize_stage_models(raw: Any, defaults: dict[str, str]) -> dict[str, str]:
+    merged = dict(defaults)
+    if isinstance(raw, dict):
+        for key, value in raw.items():
+            stage = str(key or "").strip()
+            chosen = str(value or "").strip()
+            if stage and chosen and ":" in chosen:
+                merged[stage] = chosen
+    return merged
 
 
 def load_sagwan_settings() -> dict[str, Any]:
@@ -119,6 +157,30 @@ def load_sagwan_settings() -> dict[str, Any]:
         "research_max_fetches": min(
             6,
             max(1, int(raw.get("research_max_fetches") or defaults["research_max_fetches"])),
+        ),
+        "maintenance_enabled": bool(raw.get("maintenance_enabled", defaults["maintenance_enabled"])),
+        "maintenance_interval_sec": min(
+            86400,
+            max(1800, int(raw.get("maintenance_interval_sec") or defaults["maintenance_interval_sec"])),
+        ),
+        "stage_models": _normalize_stage_models(raw.get("stage_models"), defaults["stage_models"]),
+        "llm_call_hourly_cap": min(
+            500,
+            max(1, int(raw.get("llm_call_hourly_cap") or defaults["llm_call_hourly_cap"])),
+        ),
+        "llm_call_ceiling_action": str(raw.get("llm_call_ceiling_action") or defaults["llm_call_ceiling_action"]).strip()
+        or defaults["llm_call_ceiling_action"],
+        "distill_min_interval_sec": min(
+            86400,
+            max(1800, int(raw.get("distill_min_interval_sec") or defaults["distill_min_interval_sec"])),
+        ),
+        "distill_min_episodes": min(
+            50,
+            max(1, int(raw.get("distill_min_episodes") or defaults["distill_min_episodes"])),
+        ),
+        "profile_update_min_interval_hours": min(
+            168,
+            max(1, int(raw.get("profile_update_min_interval_hours") or defaults["profile_update_min_interval_hours"])),
         ),
         "consolidate_enabled": bool(raw.get("consolidate_enabled", defaults["consolidate_enabled"])),
         "consolidate_interval_sec": min(
@@ -173,6 +235,30 @@ def save_sagwan_settings(payload: dict[str, Any]) -> dict[str, Any]:
             6,
             max(1, int(payload.get("research_max_fetches") or current["research_max_fetches"])),
         ),
+        "maintenance_enabled": bool(payload.get("maintenance_enabled", current["maintenance_enabled"])),
+        "maintenance_interval_sec": min(
+            86400,
+            max(1800, int(payload.get("maintenance_interval_sec") or current["maintenance_interval_sec"])),
+        ),
+        "stage_models": _normalize_stage_models(payload.get("stage_models"), current["stage_models"]),
+        "llm_call_hourly_cap": min(
+            500,
+            max(1, int(payload.get("llm_call_hourly_cap") or current["llm_call_hourly_cap"])),
+        ),
+        "llm_call_ceiling_action": str(payload.get("llm_call_ceiling_action") or current["llm_call_ceiling_action"]).strip()
+        or current["llm_call_ceiling_action"],
+        "distill_min_interval_sec": min(
+            86400,
+            max(1800, int(payload.get("distill_min_interval_sec") or current["distill_min_interval_sec"])),
+        ),
+        "distill_min_episodes": min(
+            50,
+            max(1, int(payload.get("distill_min_episodes") or current["distill_min_episodes"])),
+        ),
+        "profile_update_min_interval_hours": min(
+            168,
+            max(1, int(payload.get("profile_update_min_interval_hours") or current["profile_update_min_interval_hours"])),
+        ),
         "consolidate_enabled": bool(payload.get("consolidate_enabled", current["consolidate_enabled"])),
         "consolidate_interval_sec": min(
             86400,
@@ -211,6 +297,90 @@ def _now_iso_minus_hours(hours: int) -> str:
     from datetime import timedelta
     t = datetime.now(UTC) - timedelta(hours=hours)
     return t.replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
+class StageRateLimitExceeded(RuntimeError):
+    def __init__(self, stage: str) -> None:
+        super().__init__(f"sagwan hourly LLM cap exceeded for stage={stage}")
+        self.stage = stage
+
+
+def _web_tools_list() -> list[str]:
+    return [
+        "WebSearch",
+        "WebFetch",
+        "Read",
+        "mcp__openakashic__search_akashic",
+        "mcp__openakashic__search_notes",
+        "mcp__openakashic__read_note",
+        "mcp__openakashic__read_raw_note",
+        "mcp__openakashic__list_reviews",
+    ]
+
+
+def _record_llm_call(stage: str, backend: str, model: str, *, duration_s: float, response_text: str) -> None:
+    _LLM_CALL_HISTORY.append(
+        {
+            "ts": _now_iso(),
+            "stage": stage,
+            "backend": backend,
+            "model": model,
+            "duration_s": round(float(duration_s), 3),
+            "estimated_tokens": max(1, len(response_text or "") // 4),
+        }
+    )
+
+
+def _recent_llm_calls(*, since: timedelta) -> list[dict[str, Any]]:
+    cutoff = datetime.now(UTC) - since
+    fresh: list[dict[str, Any]] = []
+    kept: list[dict[str, Any]] = []
+    for event in _LLM_CALL_HISTORY:
+        event_dt = _parse_iso_datetime(str(event.get("ts") or ""))
+        if event_dt is None:
+            continue
+        if event_dt >= cutoff - timedelta(hours=24):
+            kept.append(event)
+        if event_dt >= cutoff:
+            fresh.append(event)
+    if len(kept) != len(_LLM_CALL_HISTORY):
+        _LLM_CALL_HISTORY[:] = kept
+    return fresh
+
+
+def _check_rate_limit(stage: str) -> None:
+    settings = load_sagwan_settings()
+    cap = int(settings.get("llm_call_hourly_cap") or 50)
+    ceiling_action = str(settings.get("llm_call_ceiling_action") or "skip_stage").strip().lower()
+    if ceiling_action not in {"skip_stage", "queue_to_next_cycle", "warn_only"}:
+        ceiling_action = "skip_stage"
+    current_hour_calls = len(_recent_llm_calls(since=timedelta(hours=1)))
+    if current_hour_calls < cap:
+        return
+    if ceiling_action == "warn_only":
+        logger.warning("sagwan llm cap exceeded but continuing: stage=%s cap=%d", stage, cap)
+        return
+    raise StageRateLimitExceeded(stage)
+
+
+def _invoke_for_stage(stage: str, prompt: str, *, web_tools: bool = False, system: str | None = None) -> str:
+    settings = load_sagwan_settings()
+    stage_models = settings.get("stage_models") or {}
+    default_choice = "claude-cli:claude-sonnet-4-6" if web_tools else "proxy:gpt-5.4"
+    chosen = str(stage_models.get(stage) or default_choice).strip()
+    if ":" not in chosen:
+        chosen = default_choice
+    backend, model = chosen.split(":", 1)
+    backend = backend.strip()
+    model = model.strip()
+    _check_rate_limit(stage)
+    started = time.monotonic()
+    if backend == "claude-cli":
+        result = _invoke_claude_cli_with_tools(prompt, model=model or None, tools=_web_tools_list() if web_tools else [])
+    else:
+        result = _invoke_proxy_chat(prompt, model=model or "gpt-5.4", system=system)
+    _record_llm_call(stage, backend, model or "", duration_s=time.monotonic() - started, response_text=result)
+    return result
 
 
 def _evaluate_gates(request_doc: Any, source_doc: Any, *, require_subordinate_review: bool) -> tuple[bool, list[str]]:
@@ -669,6 +839,12 @@ def run_sagwan_curation_cycle(*, reason: str = "scheduled") -> dict[str, Any]:
         logger.error("sagwan curation L (consolidate reviews) failed: %s", exc)
         l_consolidate = {"error": str(exc)}
 
+    try:
+        m_maintenance = _curate_maintenance()
+    except Exception as exc:
+        logger.error("sagwan curation M (maintenance) failed: %s", exc)
+        m_maintenance = {"error": str(exc)}
+
     if settings.get("bench_enabled"):
         try:
             m_bench = _curate_run_bench(settings)
@@ -679,7 +855,7 @@ def run_sagwan_curation_cycle(*, reason: str = "scheduled") -> dict[str, Any]:
         m_bench = {"status": "disabled"}
 
     try:
-        distill = distill_memory("sagwan", llm_invoke=_invoke_claude_cli)
+        distill = _maybe_distill_sagwan()
     except Exception as exc:
         logger.error("sagwan distill failed: %s", exc)
         distill = {"error": str(exc)}
@@ -692,9 +868,14 @@ def run_sagwan_curation_cycle(*, reason: str = "scheduled") -> dict[str, Any]:
         "meta_curation": i_meta,
         "research_gaps": k_research,
         "consolidate_reviews": l_consolidate,
+        "maintenance": m_maintenance,
         "bench": m_bench,
         "distill_sagwan": distill,
     }
+    try:
+        _write_llm_telemetry_cycle(summary)
+    except Exception as exc:
+        logger.warning("sagwan telemetry write failed: %s", exc)
     try:
         remember(
             "sagwan",
@@ -712,6 +893,7 @@ def run_sagwan_curation_cycle(*, reason: str = "scheduled") -> dict[str, Any]:
                 f"research_status={k_research.get('status', '?')} "
                 f"research_capsule={k_research.get('capsule_path', '-')} "
                 f"consolidate={l_consolidate.get('verdict', l_consolidate.get('status', '?'))} "
+                f"maintenance={m_maintenance.get('verdict', m_maintenance.get('status', '?'))} "
                 f"bench={m_bench.get('status', '?')} "
                 f"distill_sagwan={distill.get('status')}"
             ),
@@ -808,7 +990,6 @@ def _curate_revalidate_published(*, max_per_cycle: int = 5) -> dict[str, Any]:
     stale = 0
     refresh = 0
     results: list[dict[str, Any]] = []
-    model = (load_librarian_settings() or {}).get("model") or None
     cycle_date = datetime.now(UTC).date().isoformat()
 
     for path in targets:
@@ -819,7 +1000,17 @@ def _curate_revalidate_published(*, max_per_cycle: int = 5) -> dict[str, Any]:
             continue
         fm = dict(doc.frontmatter or {})
         prompt = _build_revalidation_prompt(path, fm, doc.body or "")
-        raw = _invoke_claude_cli(prompt, model=model)
+        try:
+            raw = _invoke_for_stage("revalidate", prompt)
+        except StageRateLimitExceeded:
+            return {
+                "status": "rate_limit_skipped",
+                "checked": checked - 1,
+                "revalidated": ok,
+                "stale": stale,
+                "refresh_enqueued": refresh,
+                "results": results,
+            }
         verdict, note = _parse_revalidation_response(raw)
         fm["last_validated_at"] = _now_iso()
         fm["sagwan_validation_count"] = int(fm.get("sagwan_validation_count") or 0) + 1
@@ -1035,6 +1226,10 @@ _SAGWAN_CAPSULE_CREATOR = "sagwan"
 _CAPSULE_GEN_MAX_PER_CYCLE = 1  # 안전상 사이클당 1개만 생성
 _RESEARCH_LOG_PATH = "personal_vault/projects/ops/librarian/activity/research-log.md"
 _CONSOLIDATION_LOG_PATH = "personal_vault/projects/ops/librarian/activity/consolidation-log.md"
+_MAINTENANCE_LOG_PATH = "personal_vault/projects/ops/librarian/activity/maintenance-log.md"
+_LLM_TELEMETRY_LOG_PATH = "personal_vault/projects/ops/librarian/activity/llm-telemetry.md"
+_MAINTENANCE_QUEUE_SIZE = 1
+_LIBRARIAN_PREFIX = "personal_vault/projects/ops/librarian/"
 
 
 def _parse_iso_datetime(value: str) -> datetime | None:
@@ -1045,6 +1240,26 @@ def _parse_iso_datetime(value: str) -> datetime | None:
         return datetime.fromisoformat(raw.replace("Z", "+00:00")).astimezone(UTC)
     except ValueError:
         return None
+
+
+def _extract_json_dict(text: str) -> dict[str, Any]:
+    raw = str(text or "").strip()
+    if raw.startswith("```"):
+        lines = raw.splitlines()
+        if len(lines) >= 2:
+            lines = lines[1:]
+            if lines and lines[-1].strip().startswith("```"):
+                lines = lines[:-1]
+            raw = "\n".join(lines).strip()
+    start = raw.find("{")
+    end = raw.rfind("}")
+    if start == -1 or end == -1 or end <= start:
+        return {}
+    try:
+        payload = json.loads(raw[start:end + 1])
+    except Exception:
+        return {}
+    return payload if isinstance(payload, dict) else {}
 
 
 def _topic_slug(value: str) -> str:
@@ -1845,10 +2060,11 @@ def _curate_consolidate_reviews(force: bool = False) -> dict[str, Any]:
 
     candidates.sort(key=lambda item: (item["last_consolidated_at"] or "", -len(item["reviews"])))
     picked = candidates[0]
-    librarian_settings = load_librarian_settings() or {}
-    model = librarian_settings.get("model") or None
     prompt = _build_consolidation_prompt(capsule=picked["doc"], reviews=picked["reviews"])
-    raw = _invoke_claude_cli(prompt, model=model)
+    try:
+        raw = _invoke_for_stage("consolidate_reviews", prompt)
+    except StageRateLimitExceeded:
+        return {"status": "rate_limit_skipped", "target": picked["path"]}
     decision = _parse_consolidation_decision(raw)
     if not decision:
         return {"status": "llm_parse_error", "raw": raw[:500], "target": picked["path"]}
@@ -1896,7 +2112,7 @@ def _curate_consolidate_reviews(force: bool = False) -> dict[str, Any]:
         review_count=len(picked["reviews"]),
         rationale=str(decision.get("rationale") or ""),
         new_path=new_path,
-        model=str(model or ""),
+        model="stage-routed",
     )
     _touch_consolidation_state(now_iso)
     _recompute_parent_aggregate(picked["path"])
@@ -1941,16 +2157,17 @@ def _curate_research_gaps(force: bool = False) -> dict[str, Any]:
         block for block in [memory.get("distilled", ""), recent_memory_tail("sagwan", max_sections=4, char_budget=1000)] if block
     )
     selection_prompt = _build_gap_selection_prompt(inventory, memory_snippet)
-    librarian_settings = load_librarian_settings() or {}
-    model = librarian_settings.get("model") or None
-    raw_selection = _invoke_claude_cli(selection_prompt, model=model)
+    try:
+        raw_selection = _invoke_for_stage("research_selection", selection_prompt)
+    except StageRateLimitExceeded:
+        return {"status": "rate_limit_skipped"}
     gap = _parse_gap_selection(raw_selection)
     if not gap:
         return {"status": "llm_parse_error", "raw": raw_selection[:500]}
 
     dedup_raw = _invoke_claude_cli_with_tools(
         _build_dedup_check_prompt(gap),
-        model=model,
+        model="claude-sonnet-4-6",
         tools=[
             "mcp__openakashic__search_akashic",
             "mcp__openakashic__search_notes",
@@ -2000,12 +2217,10 @@ def _curate_research_gaps(force: bool = False) -> dict[str, Any]:
     gap["topic_slug"] = _topic_slug(gap["topic"])
     gap["max_fetches"] = int(settings.get("research_max_fetches") or 3)
 
-    raw_capsule = _invoke_claude_cli_with_tools(
-        _build_research_prompt(gap),
-        model=model,
-        tools=["WebSearch", "WebFetch", "Read"],
-        timeout=300,
-    )
+    try:
+        raw_capsule = _invoke_for_stage("research", _build_research_prompt(gap), web_tools=True)
+    except StageRateLimitExceeded:
+        return {"status": "rate_limit_skipped", "gap": gap}
     if not raw_capsule or raw_capsule.startswith("[CLI 오류"):
         return {"status": "llm_error", "detail": (raw_capsule or "")[:200], "gap": gap}
 
@@ -2017,12 +2232,10 @@ def _curate_research_gaps(force: bool = False) -> dict[str, Any]:
     if not cited_urls and gap["max_fetches"] > 0:
         retry_attempted = True
         retry_count = 1
-        retry_capsule = _invoke_claude_cli_with_tools(
-            _build_research_prompt(gap, require_web_citations=True),
-            model=model,
-            tools=["WebSearch", "WebFetch", "Read"],
-            timeout=300,
-        )
+        try:
+            retry_capsule = _invoke_for_stage("research", _build_research_prompt(gap, require_web_citations=True), web_tools=True)
+        except StageRateLimitExceeded:
+            retry_capsule = ""
         if retry_capsule and not retry_capsule.startswith("[CLI 오류") and _research_response_is_usable(retry_capsule):
             final_capsule = retry_capsule
             cited_urls = _extract_source_urls(final_capsule)
@@ -2034,6 +2247,28 @@ def _curate_research_gaps(force: bool = False) -> dict[str, Any]:
 
     from app.subordinate import SUBORDINATE_IDENTITY
 
+    publication_status = "none"
+    publication_rationale = ""
+    try:
+        publication_raw = _invoke_for_stage(
+            "publication_judge",
+            _build_publication_judge_prompt(
+                capsule_title=capsule_title,
+                capsule_body=final_capsule,
+                cited_urls=cited_urls,
+                research_grounding=grounding,
+            ),
+        )
+        publication_decision = _parse_publication_decision(publication_raw)
+        publication_status = str(publication_decision.get("publication_status") or "none")
+        publication_rationale = str(publication_decision.get("rationale") or "").strip()
+    except StageRateLimitExceeded:
+        publication_status = "none"
+        publication_rationale = "hourly_llm_cap_exceeded"
+
+    visibility = "public" if publication_status == "published" else "private"
+    owner = "sagwan" if publication_status == "published" else SUBORDINATE_IDENTITY.get("nickname", "busagwan")
+
     suggested_path = suggest_note_path("capsule", capsule_title, _SAGWAN_CAPSULE_FOLDER, None, "ops/librarian")
     doc = write_document(
         path=suggested_path,
@@ -2044,9 +2279,10 @@ def _curate_research_gaps(force: bool = False) -> dict[str, Any]:
         tags=["capsule", "sagwan-generated", "research-gap", gap["topic_slug"]],
         body=final_capsule,
         metadata={
-            "visibility": "private",
-            "publication_status": "none",
-            "owner": SUBORDINATE_IDENTITY.get("nickname", "busagwan"),
+            "visibility": visibility,
+            "publication_status": publication_status,
+            "owner": owner,
+            "original_owner": SUBORDINATE_IDENTITY.get("nickname", "busagwan"),
             "created_by": _SAGWAN_CAPSULE_CREATOR,
             "generated_by": "sagwan-research",
             "research_gap_topic": gap["topic"],
@@ -2055,6 +2291,9 @@ def _curate_research_gaps(force: bool = False) -> dict[str, Any]:
             "research_grounding": grounding,
             "research_retry_count": retry_count,
             "research_supplement_to": str(gap.get("supplement_extend_path") or "").strip() or None,
+            "publication_decided_by": "sagwan",
+            "publication_decided_at": _now_iso(),
+            "publication_decision_reason": publication_rationale,
             "evidence_urls": cited_urls,
             "evidence_paths": [],
         },
@@ -2067,7 +2306,7 @@ def _curate_research_gaps(force: bool = False) -> dict[str, Any]:
         rationale=str(gap.get("rationale") or ""),
         cited_urls=cited_urls,
         capsule_path=doc.path,
-        model=str(model or ""),
+        model="stage-routed",
         max_fetches=gap["max_fetches"],
         status="supplement" if gap.get("supplement_extend_path") else "ok",
         existing_path=str(gap.get("supplement_extend_path") or "").strip() or None,
@@ -2084,12 +2323,53 @@ def _curate_research_gaps(force: bool = False) -> dict[str, Any]:
         "capsule_path": doc.path,
         "cited_urls": cited_urls,
         "research_grounding": grounding,
+        "publication_status": publication_status,
+        "publication_rationale": publication_rationale,
         "retry_attempted": retry_attempted,
         "research_supplement_to": str(gap.get("supplement_extend_path") or "").strip() or None,
         "inventory_summary": {
             "total_capsules": inventory.get("total_capsules", 0),
             "total_claims": inventory.get("total_claims", 0),
         },
+    }
+
+
+def _build_publication_judge_prompt(
+    *,
+    capsule_title: str,
+    capsule_body: str,
+    cited_urls: list[str],
+    research_grounding: str,
+) -> str:
+    return f"""당신은 OpenAkashic 사관입니다. 방금 생성한 capsule을 검토하고 publication 단계를 결정합니다.
+
+Capsule title: {capsule_title}
+Capsule body (excerpt):
+{capsule_body[:2000]}
+
+Cited sources: {cited_urls}
+Research grounding: {research_grounding}
+
+사관 페르소나 규칙:
+- 차분/규칙/근거/공개가능성/재사용성 우선
+- 출처가 명확하고 일반화 가능한 사실이면 공개
+- IchiMozzi/insu-server 같은 internal 환경 의존이 있으면 private 유지
+
+다음 3가지 중 하나로 답하세요 (JSON):
+{{"publication_status": "published", "rationale": "..."}}
+{{"publication_status": "requested", "rationale": "..."}}
+{{"publication_status": "none", "rationale": "..."}}
+"""
+
+
+def _parse_publication_decision(raw: str) -> dict[str, str]:
+    payload = _extract_json_dict(raw)
+    status = str(payload.get("publication_status") or "").strip().lower()
+    if status not in {"published", "requested", "none"}:
+        status = "none"
+    return {
+        "publication_status": status,
+        "rationale": str(payload.get("rationale") or "").strip(),
     }
 
 
@@ -2205,156 +2485,421 @@ def _curate_generate_capsules() -> dict[str, Any]:
     return {"generated": 1, "path": doc.path, "seed": seed_path, "related": len(related_paths)}
 
 
-def _curate_detect_conflicts(*, max_per_cycle: int = 3) -> dict[str, Any]:
-    """(F) 최근 갱신된 public-bound 캡슐에 대해 의미 중복 후보를 찾고 사관 LLM 으로
-    실제 충돌 여부를 판정한다.  부사관에서 이관된 기능이다.
+def _curate_detect_conflicts(*, max_per_cycle: int = 1) -> dict[str, Any]:
+    """(F) 신규 capsule/claim 을 사관이 자율적으로 conflict/duplicate/clear 판정한다."""
+    from app.mcp_server import _post_internal_review
 
-    정책:
-    - 대상: kind ∈ {capsule, claim} 이고 publication_status != "rejected" 인 노트 중
-      conflict_status 가 비어있거나 "pending_review" 인 것 top-N (updated desc).
-    - 후보 수집: semantic_rank 상위 5개 중 score ≥ 0.86 (또는 ≥ 0.74 + 같은 project/tag).
-    - 판정: claude-cli 가 CONFLICT | CLEAR 결정.  실패 시 pending_review 로 남김.
-    """
-    from app.site import SemanticDocument, semantic_rank
-
-    scanned = 0
-    checked = 0
-    flagged = 0
-    errors = 0
-
-    # 대상 노트 수집
-    candidates: list[tuple[str, Any]] = []
+    cutoff = datetime.now(UTC) - timedelta(hours=24)
+    candidates: list[Any] = []
     for path in list_note_paths():
         try:
             doc = load_document(path)
         except Exception:
             continue
-        fm = doc.frontmatter or {}
-        kind = str(fm.get("kind") or "").lower()
+        fm = dict(doc.frontmatter or {})
+        kind = str(fm.get("kind") or "").strip().lower()
         if kind not in {"capsule", "claim"}:
             continue
-        pub_status = str(fm.get("publication_status") or "").lower()
-        if pub_status == "rejected":
+        created_at = _parse_iso_datetime(str(fm.get("created_at") or fm.get("updated_at") or ""))
+        if created_at is None or created_at < cutoff:
             continue
-        conflict_status = str(fm.get("conflict_status") or "").lower()
-        if conflict_status in {"clear", "flagged"}:
-            continue  # 이미 판정됨 (재판정은 별도 trigger)
-        candidates.append((path, doc))
+        if str(fm.get("conflict_check_at") or "").strip():
+            continue
+        if str(fm.get("targets") or "").strip():
+            continue
+        candidates.append(doc)
 
-    scanned = len(candidates)
-    # updated desc 정렬
-    def _updated_key(item: tuple[str, Any]) -> str:
-        fm = item[1].frontmatter or {}
-        return str(fm.get("updated_at") or fm.get("updated") or fm.get("created") or "")
-    candidates.sort(key=_updated_key, reverse=True)
+    if not candidates:
+        return {"checked": 0, "flagged": 0, "status": "no_new_candidates"}
 
-    # 전체 vault 로 SemanticDocument 한번만 구성 (비용 절감)
-    all_documents: list[SemanticDocument] = []
-    doc_by_path: dict[str, Any] = {}
-    for p in list_note_paths():
+    candidates.sort(
+        key=lambda doc: str(doc.frontmatter.get("created_at") or doc.frontmatter.get("updated_at") or ""),
+        reverse=True,
+    )
+    candidate = candidates[0]
+    try:
+        raw = _invoke_for_stage("conflict", _build_conflict_check_prompt(candidate), web_tools=True)
+    except StageRateLimitExceeded:
+        return {"checked": 0, "flagged": 0, "status": "rate_limit_skipped"}
+    decision = _parse_conflict_decision(raw)
+    verdict = str(decision.get("verdict") or "clear")
+    flagged = 0
+
+    if verdict == "conflict" and decision.get("target_path"):
+        flagged = 1
+        _post_internal_review(
+            target=str(decision["target_path"]),
+            stance="dispute",
+            rationale=str(decision.get("rationale") or "Sagwan autonomous conflict check flagged this note."),
+            evidence_paths=[candidate.path],
+            topic="sagwan-conflict-detect",
+        )
+    elif verdict == "duplicate" and decision.get("target_path"):
+        flagged = 1
+        _enqueue_maintenance(candidate.path, reason=f"duplicate_with_{decision['target_path']}")
+
+    next_fm = dict(candidate.frontmatter or {})
+    next_fm["conflict_check_at"] = _now_iso()
+    next_fm["conflict_status"] = "flagged" if verdict in {"conflict", "duplicate"} else "clear"
+    next_fm["conflict_check_verdict"] = verdict
+    if decision.get("target_path"):
+        next_fm["conflict_target_path"] = decision["target_path"]
+    if decision.get("rationale"):
+        next_fm["conflict_check_note"] = str(decision["rationale"])[:500]
+    write_document(path=candidate.path, body=candidate.body, metadata=next_fm, allow_owner_change=True)
+    return {"checked": 1, "flagged": flagged, "verdict": verdict, "status": "ok", "target": candidate.path}
+
+
+def _build_conflict_check_prompt(doc: Any) -> str:
+    fm = dict(doc.frontmatter or {})
+    return "\n\n".join(
+        [
+            "너는 OpenAkashic 사관이다. 신규 note/capsule의 충돌·중복·정합성을 자율 점검한다.",
+            "사용 가능한 도구:",
+            "- mcp__openakashic__search_akashic",
+            "- mcp__openakashic__search_notes",
+            "- mcp__openakashic__read_note",
+            "- mcp__openakashic__read_raw_note",
+            "- mcp__openakashic__list_reviews",
+            "- WebSearch",
+            "- WebFetch",
+            "",
+            f"대상 path: {doc.path}",
+            f"title: {fm.get('title') or doc.path}",
+            f"kind: {fm.get('kind') or 'reference'}",
+            f"created_at: {fm.get('created_at') or '(none)'}",
+            f"tags: {fm.get('tags') or []}",
+            "",
+            "## Body",
+            (doc.body or "")[:2500] or "(empty)",
+            "",
+            "작업:",
+            "1. 관련/유사 문서를 vault와 public knowledge에서 찾는다.",
+            "2. 명백한 모순이면 conflict, 거의 같은 내용이면 duplicate, 아니면 clear로 판정한다.",
+            "3. 마지막에는 JSON만 출력한다.",
+            '{"verdict":"clear|conflict|duplicate","target_path":"...", "rationale":"..."}',
+        ]
+    )
+
+
+def _parse_conflict_decision(raw: str) -> dict[str, str]:
+    payload = _extract_json_dict(raw)
+    verdict = str(payload.get("verdict") or "").strip().lower()
+    if verdict not in {"clear", "conflict", "duplicate"}:
+        verdict = "clear"
+    return {
+        "verdict": verdict,
+        "target_path": str(payload.get("target_path") or payload.get("merge_into") or "").strip(),
+        "rationale": str(payload.get("rationale") or "").strip(),
+    }
+
+
+def _ensure_activity_log(path: str, *, title: str, tags: list[str]) -> None:
+    try:
+        load_document(path)
+    except Exception:
+        write_document(
+            path=path,
+            body="## Summary\nSagwan activity log.\n",
+            metadata={
+                "title": title,
+                "kind": "activity",
+                "project": "ops/librarian",
+                "status": "active",
+                "tags": tags,
+                "visibility": "private",
+                "owner": "sagwan",
+            },
+            allow_owner_change=True,
+        )
+
+
+def _enqueue_maintenance(path: str, *, reason: str) -> None:
+    doc = load_document(path)
+    fm = dict(doc.frontmatter or {})
+    fm["maintenance_priority_reason"] = reason
+    fm["maintenance_priority_at"] = _now_iso()
+    write_document(path=path, body=doc.body, metadata=fm, allow_owner_change=True)
+
+
+def _maintenance_system_owners() -> set[str]:
+    return {"sagwan", "admin", "system", "busagwan", SAGWAN_DECIDER}
+
+
+def _find_maintenance_candidate() -> Any | None:
+    candidates: list[dict[str, Any]] = []
+    for path in list_note_paths():
+        if not path.startswith("personal_vault/"):
+            continue
         try:
-            d = load_document(p)
+            doc = load_document(path)
         except Exception:
             continue
-        fm = d.frontmatter or {}
-        all_documents.append(SemanticDocument(
-            key=d.path, path=d.path,
-            title=str(fm.get("title") or d.path),
-            kind=str(fm.get("kind") or "reference"),
-            project=str(fm.get("project") or "openakashic"),
-            status=str(fm.get("status") or "active"),
-            summary=str(fm.get("summary") or ""),
-            body=d.body,
-        ))
-        doc_by_path[d.path] = d
-
-    for source_path, source in candidates[:max_per_cycle]:
-        checked += 1
-        source_fm = source.frontmatter or {}
-        query = "\n".join([
-            str(source_fm.get("title") or source_path),
-            str(source_fm.get("kind") or ""),
-            " ".join(str(t) for t in (source_fm.get("tags") or [])),
-            source.body,
-        ])
-        source_tags = set(str(t) for t in (source_fm.get("tags") or []))
-        source_project = str(source_fm.get("project") or "")
-
-        conflict_candidates: list[dict[str, Any]] = []
-        for cand_key, score in semantic_rank(query, all_documents, limit=8)[:5]:
-            if cand_key == source_path:
-                continue
-            cand = doc_by_path.get(cand_key)
-            if not cand:
-                continue
-            if score >= 0.86:
-                conflict_candidates.append({"path": cand_key, "score": round(float(score), 4)})
-            elif score >= 0.74:
-                cand_fm = cand.frontmatter or {}
-                cand_tags = set(str(t) for t in (cand_fm.get("tags") or []))
-                cand_project = str(cand_fm.get("project") or "")
-                if (source_tags & cand_tags) or (source_project and source_project == cand_project):
-                    conflict_candidates.append({"path": cand_key, "score": round(float(score), 4)})
-
-        next_fm = dict(source_fm)
-        if not conflict_candidates:
-            next_fm["conflict_candidates"] = []
-            next_fm["conflict_status"] = "clear"
-            try:
-                from app.vault import write_document as _wd
-                _wd(path=source_path, body=source.body, metadata=next_fm, allow_owner_change=True)
-            except Exception as exc:
-                logger.warning("conflict detect: write clear failed for %s: %s", source_path, exc)
-                errors += 1
+        fm = dict(doc.frontmatter or {})
+        kind = str(fm.get("kind") or "").strip().lower()
+        if kind not in {"capsule", "claim"}:
             continue
-
-        # LLM 판정
-        snippet_block = "\n---\n".join(
-            f"Path: {cc['path']} (score={cc['score']})\n{doc_by_path[cc['path']].body[:600]}"
-            for cc in conflict_candidates[:3] if cc['path'] in doc_by_path
+        if str(fm.get("targets") or "").strip():
+            continue
+        if str(fm.get("claim_review_status") or "").strip().lower() in {"superseded", "merged"}:
+            continue
+        if str(fm.get("status") or "").strip().lower() == "archived":
+            continue
+        last_at = str(fm.get("maintenance_priority_at") or fm.get("last_maintained_at") or fm.get("created_at") or "")
+        candidates.append(
+            {
+                "doc": doc,
+                "priority": 0 if fm.get("maintenance_priority_at") else 1,
+                "last_at": last_at,
+            }
         )
-        prompt = "\n\n".join([
-            "너는 OpenAkashic 사관이다. 소스 노트와 후보들이 실제로 모순되는지 판정한다.",
-            f"소스 ({source_path}):\n{source.body[:1500]}",
-            f"후보:\n{snippet_block}",
-            "같은 주제라는 이유만으로 충돌이 아니다. 서로 다른 주장이어야 충돌이다.",
-            "출력:\nVerdict: <CONFLICT|CLEAR>\nReason:\n- ...",
-        ])
-        model = (load_librarian_settings() or {}).get("model") or None
-        reply = _invoke_claude_cli(prompt, model=model)
-        import re as _re
-        # Verdict 라인은 **bold** 마크업이 섞일 수 있으므로 별표/공백을 관대하게 처리
-        # 허용 예: "Verdict: CLEAR", "**Verdict: CLEAR**", "**Verdict:** CLEAR", "Verdict: **CLEAR**"
-        m = _re.search(
-            r"^[\s\*#>\-]*Verdict:[\s\*`_]*(CONFLICT|CLEAR)\b",
-            reply,
-            _re.MULTILINE | _re.IGNORECASE,
-        )
-        if not m or reply.startswith("[CLI 오류"):
-            logger.warning(
-                "conflict detect: verdict parse failed for %s. reply[:400]=%r",
-                source_path,
-                (reply or "")[:400],
-            )
-            next_fm["conflict_candidates"] = conflict_candidates
-            next_fm["conflict_status"] = "pending_review"
-            errors += 1
-        elif m.group(1).upper() == "CONFLICT":
-            next_fm["conflict_candidates"] = conflict_candidates
-            next_fm["conflict_status"] = "flagged"
-            flagged += 1
-        else:
-            next_fm["conflict_candidates"] = conflict_candidates
-            next_fm["conflict_status"] = "clear"
+    if not candidates:
+        return None
+    candidates.sort(key=lambda item: (item["priority"], item["last_at"]))
+    return candidates[0]["doc"]
 
+
+def _build_maintenance_prompt(doc: Any) -> str:
+    fm = dict(doc.frontmatter or {})
+    return "\n\n".join(
+        [
+            "너는 OpenAkashic 사관이다. 다음 capsule/claim을 자율 점검하라.",
+            "사용 가능한 도구:",
+            "- mcp__openakashic__search_akashic",
+            "- mcp__openakashic__search_notes",
+            "- mcp__openakashic__read_note",
+            "- mcp__openakashic__read_raw_note",
+            "- mcp__openakashic__list_reviews",
+            "- WebSearch",
+            "- WebFetch",
+            "",
+            f"path: {doc.path}",
+            f"title: {fm.get('title') or doc.path}",
+            f"created_at: {fm.get('created_at') or '(none)'}",
+            f"last_maintained_at: {fm.get('last_maintained_at') or '없음'}",
+            "",
+            "## Body",
+            (doc.body or "")[:3000] or "(empty)",
+            "",
+            "작업:",
+            "1. 관련 문서 / 비슷한 문서 검색 (vault + public web)",
+            "2. 정보 진위와 정합성 확인",
+            "3. 5-way 판정: keep | revise | supersede | merge | archive",
+            "도구 호출은 5~15회 이내를 목표로 한다.",
+            '마지막에는 JSON만 출력: {"verdict":"keep|revise|supersede|merge|archive","rationale":"...","new_title":"...","new_body":"...","merge_into":"..."}',
+        ]
+    )
+
+
+def _parse_maintenance_decision(raw: str) -> dict[str, str]:
+    payload = _extract_json_dict(raw)
+    verdict = str(payload.get("verdict") or "").strip().lower()
+    if verdict not in {"keep", "revise", "supersede", "merge", "archive"}:
+        verdict = "keep"
+    return {
+        "verdict": verdict,
+        "rationale": str(payload.get("rationale") or "").strip(),
+        "new_title": str(payload.get("new_title") or "").strip(),
+        "new_body": str(payload.get("new_body") or "").strip(),
+        "merge_into": str(payload.get("merge_into") or payload.get("target_path") or "").strip(),
+    }
+
+
+def _touch_maintenance_state(path: str, verdict: str, rationale: str) -> None:
+    doc = load_document(path)
+    fm = dict(doc.frontmatter or {})
+    fm["last_maintained_at"] = _now_iso()
+    fm["last_maintenance_verdict"] = verdict
+    fm["last_maintenance_note"] = rationale[:500]
+    fm.pop("maintenance_priority_reason", None)
+    fm.pop("maintenance_priority_at", None)
+    write_document(path=path, body=doc.body, metadata=fm, allow_owner_change=True)
+
+
+def _write_maintenance_dispute(target_path: str, rationale: str) -> None:
+    from app.mcp_server import _post_internal_review
+
+    _post_internal_review(
+        target=target_path,
+        stance="dispute",
+        rationale=rationale[:1800],
+        topic="sagwan-maintenance-owner-guard",
+    )
+
+
+def _write_revised(candidate: Any, new_body: str, rationale: str) -> dict[str, Any]:
+    owner = str(candidate.frontmatter.get("owner") or "").strip().lower()
+    if owner and owner not in _maintenance_system_owners():
+        _write_maintenance_dispute(
+            candidate.path,
+            f"Sagwan maintenance wanted to revise this note but owner guard blocked direct body edits: {rationale}",
+        )
+        _touch_maintenance_state(candidate.path, "revise_blocked_owner_guard", rationale)
+        return {"status": "owner_guard_dispute"}
+    fm = dict(candidate.frontmatter or {})
+    fm["revision_count"] = int(fm.get("revision_count") or 0) + 1
+    fm["last_maintained_at"] = _now_iso()
+    fm["last_maintenance_verdict"] = "revise"
+    fm["last_maintenance_note"] = rationale[:500]
+    fm.pop("maintenance_priority_reason", None)
+    fm.pop("maintenance_priority_at", None)
+    write_document(path=candidate.path, body=new_body, metadata=fm, allow_owner_change=True)
+    return {"status": "revised"}
+
+
+def _write_superseding(candidate: Any, new_title: str, new_body: str, rationale: str) -> str:
+    now_iso = _now_iso()
+    new_path = _write_superseding_capsule(
+        old_doc=candidate,
+        new_title=new_title or f"{candidate.frontmatter.get('title') or candidate.path} (Superseded)",
+        new_body=new_body,
+        now_iso=now_iso,
+    )
+    _mark_parent_superseded_by(candidate.path, new_path, now_iso)
+    _touch_maintenance_state(candidate.path, "supersede", rationale)
+    return new_path
+
+
+def _mark_parent_merged_into(old_path: str, target_path: str, rationale: str) -> None:
+    old_doc = load_document(old_path)
+    fm = dict(old_doc.frontmatter or {})
+    fm["superseded_by"] = target_path
+    fm["claim_review_status"] = "merged"
+    fm["last_maintained_at"] = _now_iso()
+    fm["last_maintenance_verdict"] = "merge"
+    fm["last_maintenance_note"] = rationale[:500]
+    fm.pop("maintenance_priority_reason", None)
+    fm.pop("maintenance_priority_at", None)
+    write_document(path=old_path, body=old_doc.body, metadata=fm, allow_owner_change=True)
+
+
+def _archive_capsule(path: str, rationale: str) -> dict[str, Any]:
+    if path.startswith(_LIBRARIAN_PREFIX):
+        logger.warning("sagwan maintenance archive blocked for protected path: %s", path)
+        return {"status": "guard_blocked"}
+    doc = load_document(path)
+    fm = dict(doc.frontmatter or {})
+    fm["visibility"] = "private"
+    fm["status"] = "archived"
+    fm["last_maintained_at"] = _now_iso()
+    fm["last_maintenance_verdict"] = "archive"
+    fm["last_maintenance_note"] = rationale[:500]
+    fm.pop("maintenance_priority_reason", None)
+    fm.pop("maintenance_priority_at", None)
+    write_document(path=path, body=doc.body, metadata=fm, allow_owner_change=True)
+    return {"status": "archived"}
+
+
+def _trim_maintenance_log(max_entries: int = 100) -> None:
+    try:
+        doc = load_document(_MAINTENANCE_LOG_PATH)
+    except Exception:
+        return
+    matches = list(re.finditer(r"^##\s+", doc.body or "", re.MULTILINE))
+    if len(matches) <= max_entries + 1:
+        return
+    summary_end = matches[1].start()
+    keep_from = matches[-max_entries].start()
+    archived_body = (doc.body[summary_end:keep_from]).strip()
+    if archived_body:
+        archive_path = _MAINTENANCE_LOG_PATH.replace(".md", "-archive.md")
         try:
-            from app.vault import write_document as _wd
-            _wd(path=source_path, body=source.body, metadata=next_fm, allow_owner_change=True)
-        except Exception as exc:
-            logger.warning("conflict detect: write verdict failed for %s: %s", source_path, exc)
-            errors += 1
+            archive_doc = load_document(archive_path)
+            archive_text = archive_doc.body.rstrip() + "\n\n" + archived_body + "\n"
+            archive_fm = dict(archive_doc.frontmatter or {})
+        except Exception:
+            archive_text = "## Summary\nArchived maintenance entries.\n\n" + archived_body + "\n"
+            archive_fm = {
+                "title": "Sagwan Maintenance Archive",
+                "kind": "activity",
+                "project": "ops/librarian",
+                "status": "active",
+                "tags": ["sagwan", "activity", "maintenance", "archive"],
+                "visibility": "private",
+                "owner": "sagwan",
+            }
+        write_document(path=archive_path, body=archive_text, metadata=archive_fm, allow_owner_change=True)
+    next_body = doc.body[:summary_end].rstrip() + "\n\n" + doc.body[keep_from:].lstrip()
+    write_document(path=_MAINTENANCE_LOG_PATH, body=next_body, metadata=dict(doc.frontmatter or {}), allow_owner_change=True)
 
-    return {"scanned": scanned, "checked": checked, "flagged": flagged, "errors": errors}
+
+def _append_maintenance_log_entry(candidate_path: str, decision: dict[str, str]) -> None:
+    _ensure_activity_log(
+        _MAINTENANCE_LOG_PATH,
+        title="Sagwan Maintenance Log",
+        tags=["sagwan", "activity", "maintenance"],
+    )
+    append_section(
+        _MAINTENANCE_LOG_PATH,
+        f"{_now_iso()} maintenance",
+        "\n".join(
+            [
+                f"- target: {candidate_path}",
+                f"- verdict: {decision.get('verdict')}",
+                f"- rationale: {str(decision.get('rationale') or '')[:800]}",
+                f"- merge_into: {decision.get('merge_into') or '-'}",
+                f"- new_title: {decision.get('new_title') or '-'}",
+            ]
+        ),
+    )
+    _trim_maintenance_log()
+
+
+def _touch_maintenance_state_global(now_iso: str) -> None:
+    _ensure_activity_log(
+        _MAINTENANCE_LOG_PATH,
+        title="Sagwan Maintenance Log",
+        tags=["sagwan", "activity", "maintenance"],
+    )
+    doc = load_document(_MAINTENANCE_LOG_PATH)
+    fm = dict(doc.frontmatter or {})
+    fm["last_run_at"] = now_iso
+    write_document(path=_MAINTENANCE_LOG_PATH, body=doc.body, metadata=fm, allow_owner_change=True)
+
+
+def _curate_maintenance(force: bool = False) -> dict[str, Any]:
+    settings = load_sagwan_settings()
+    if not settings.get("maintenance_enabled", True):
+        return {"status": "disabled"}
+    _ensure_activity_log(
+        _MAINTENANCE_LOG_PATH,
+        title="Sagwan Maintenance Log",
+        tags=["sagwan", "activity", "maintenance"],
+    )
+    state_doc = load_document(_MAINTENANCE_LOG_PATH)
+    last_run_at = str(state_doc.frontmatter.get("last_run_at") or "").strip()
+    interval_sec = int(settings.get("maintenance_interval_sec") or 1800)
+    if last_run_at and not force:
+        last_dt = _parse_iso_datetime(last_run_at)
+        if last_dt is not None and datetime.now(UTC) < last_dt + timedelta(seconds=interval_sec):
+            return {"status": "cooldown", "last_run_at": last_run_at}
+
+    candidate = _find_maintenance_candidate()
+    if candidate is None:
+        return {"status": "no_candidates"}
+
+    try:
+        raw = _invoke_for_stage("maintenance", _build_maintenance_prompt(candidate), web_tools=True)
+    except StageRateLimitExceeded:
+        return {"status": "rate_limit_skipped"}
+    decision = _parse_maintenance_decision(raw)
+    verdict = decision["verdict"]
+    result: dict[str, Any] = {"status": "ok", "target": candidate.path, "verdict": verdict}
+
+    if verdict == "keep":
+        _touch_maintenance_state(candidate.path, "keep", decision["rationale"])
+    elif verdict == "revise":
+        result.update(_write_revised(candidate, decision["new_body"] or candidate.body, decision["rationale"]))
+    elif verdict == "supersede":
+        result["new_path"] = _write_superseding(candidate, decision["new_title"], decision["new_body"] or candidate.body, decision["rationale"])
+    elif verdict == "merge":
+        _mark_parent_merged_into(candidate.path, decision["merge_into"], decision["rationale"])
+    elif verdict == "archive":
+        result.update(_archive_capsule(candidate.path, decision["rationale"]))
+
+    _append_maintenance_log_entry(candidate.path, decision)
+    _touch_maintenance_state_global(_now_iso())
+    return result
 
 
 def _curate_enqueue_signal_scans() -> dict[str, Any]:
@@ -2484,8 +3029,10 @@ def _curate_propose_topics() -> dict[str, Any]:
         "TOPIC 3: <...>",
     ])
 
-    model = (load_librarian_settings() or {}).get("model") or None
-    reply = _invoke_claude_cli(prompt, model=model)
+    try:
+        reply = _invoke_for_stage("topic_proposal", prompt)
+    except StageRateLimitExceeded:
+        return {"status": "rate_limit_skipped"}
     if not reply or reply.startswith("[CLI 오류"):
         return {"status": "llm_error", "detail": (reply or "")[:200]}
 
@@ -2604,6 +3151,151 @@ def _upsert_core_sync_blocked_request(blocked_notes: list[dict[str, str]]) -> st
     return _CORE_SYNC_BLOCKED_REQUEST_PATH
 
 
+def _count_new_memory_episodes(actor: str) -> int:
+    from app.agent_memory import _distilled_path, _memory_path, _split_sections, _segment_ts
+
+    try:
+        mem_doc = load_document(_memory_path(actor))
+    except Exception:
+        return 0
+    segments = _split_sections(mem_doc.body or "")
+    if not segments:
+        return 0
+    last_distilled_at = ""
+    try:
+        distilled_doc = load_document(_distilled_path(actor))
+        last_distilled_at = str(distilled_doc.frontmatter.get("last_distilled_at") or "")
+    except Exception:
+        pass
+    if not last_distilled_at:
+        return len(segments)
+    return sum(1 for segment in segments if _segment_ts(segment) > last_distilled_at)
+
+
+def _maybe_distill_sagwan() -> dict[str, Any]:
+    settings = load_sagwan_settings()
+    min_interval_sec = int(settings.get("distill_min_interval_sec") or 21600)
+    min_episodes = int(settings.get("distill_min_episodes") or 5)
+    last_distilled_at = ""
+    try:
+        distilled_doc = load_document("personal_vault/projects/ops/librarian/memory/Sagwan Distilled Memory.md")
+        last_distilled_at = str(distilled_doc.frontmatter.get("last_distilled_at") or "")
+    except Exception:
+        pass
+    if last_distilled_at:
+        last_dt = _parse_iso_datetime(last_distilled_at)
+        if last_dt is not None and datetime.now(UTC) < last_dt + timedelta(seconds=min_interval_sec):
+            return {"status": "skip", "reason": "cooldown", "last_distilled_at": last_distilled_at}
+    new_episodes = _count_new_memory_episodes("sagwan")
+    if new_episodes < min_episodes:
+        return {"status": "skip", "reason": "insufficient_new_episodes", "new_episodes": new_episodes}
+    prompt_invoke = lambda prompt, *, model=None: _invoke_for_stage("distill", prompt)
+    return distill_memory("sagwan", llm_invoke=prompt_invoke, force=True)
+
+
+def _write_llm_telemetry_cycle(summary: dict[str, Any]) -> None:
+    _ensure_activity_log(
+        _LLM_TELEMETRY_LOG_PATH,
+        title="Sagwan LLM Telemetry",
+        tags=["sagwan", "activity", "llm-telemetry"],
+    )
+    hour_events = _recent_llm_calls(since=timedelta(hours=1))
+    day_events = _recent_llm_calls(since=timedelta(days=1))
+    counts: dict[str, dict[str, int]] = {}
+    durations: dict[str, list[float]] = {}
+    for event in hour_events:
+        backend = str(event.get("backend") or "unknown")
+        stage = str(event.get("stage") or "unknown")
+        counts.setdefault(backend, {})
+        counts[backend][stage] = counts[backend].get(stage, 0) + 1
+        durations.setdefault(backend, []).append(float(event.get("duration_s") or 0.0))
+    rate_limit_skipped = sum(
+        1
+        for item in summary.values()
+        if isinstance(item, dict) and str(item.get("status") or "").strip().lower() == "rate_limit_skipped"
+    )
+    append_section(
+        _LLM_TELEMETRY_LOG_PATH,
+        f"{_now_iso()} cycle",
+        "\n".join(
+            [
+                f"- claude_cli_calls: {sum(counts.get('claude-cli', {}).values())}",
+                f"- proxy_calls: {sum(counts.get('proxy', {}).values())}",
+                f"- rate_limit_skipped: {rate_limit_skipped}",
+                f"- stages: {json.dumps(counts, ensure_ascii=False)}",
+            ]
+        ),
+    )
+    day_counts: dict[str, dict[str, int]] = {}
+    day_durations: dict[str, list[float]] = {}
+    for event in day_events:
+        backend = str(event.get("backend") or "unknown")
+        stage = str(event.get("stage") or "unknown")
+        day_counts.setdefault(backend, {})
+        day_counts[backend][stage] = day_counts[backend].get(stage, 0) + 1
+        day_durations.setdefault(backend, []).append(float(event.get("duration_s") or 0.0))
+    day_key = datetime.now(UTC).strftime("%Y-%m-%dT00:00:00Z")
+    rollup_lines = [
+        f"- claude_cli_calls: {sum(day_counts.get('claude-cli', {}).values())} ({', '.join(f'{k}: {v}' for k, v in sorted(day_counts.get('claude-cli', {}).items())) or 'none'})",
+        f"- proxy_calls: {sum(day_counts.get('proxy', {}).values())} ({', '.join(f'{k}: {v}' for k, v in sorted(day_counts.get('proxy', {}).items())) or 'none'})",
+        f"- avg_response_time_s: claude_cli={round(sum(day_durations.get('claude-cli', [0.0])) / max(1, len(day_durations.get('claude-cli', []))), 2)}"
+        f", proxy={round(sum(day_durations.get('proxy', [0.0])) / max(1, len(day_durations.get('proxy', []))), 2)}",
+        f"- rate_limit_skipped: {rate_limit_skipped}",
+    ]
+    doc = load_document(_LLM_TELEMETRY_LOG_PATH)
+    body = doc.body or "## Summary\nSagwan LLM telemetry.\n"
+    rollup_heading = f"## {day_key} daily-rollup"
+    rollup_block = rollup_heading + "\n" + "\n".join(rollup_lines)
+    if rollup_heading in body:
+        body = re.sub(
+            rf"^##\s+{re.escape(day_key)} daily-rollup\s*\n.*?(?=^##\s+|\Z)",
+            rollup_block + "\n",
+            body,
+            flags=re.MULTILINE | re.DOTALL,
+        )
+    else:
+        body = body.rstrip() + "\n\n" + rollup_block + "\n"
+    write_document(path=_LLM_TELEMETRY_LOG_PATH, body=body, metadata=dict(doc.frontmatter or {}), allow_owner_change=True)
+
+
+def _maybe_update_librarian_profile(state_fm: dict[str, Any]) -> dict[str, Any]:
+    settings = load_sagwan_settings()
+    min_hours = int(settings.get("profile_update_min_interval_hours") or 24)
+    last_run = str(state_fm.get("last_profile_update_at") or "").strip()
+    if last_run:
+        last_dt = _parse_iso_datetime(last_run)
+        if last_dt is not None and datetime.now(UTC) < last_dt + timedelta(hours=min_hours):
+            return {"status": "cooldown"}
+    try:
+        profile_doc = load_document("personal_vault/projects/ops/librarian/profile/Librarian Profile.md")
+    except Exception:
+        return {"status": "missing_profile"}
+    prompt = "\n\n".join(
+        [
+            "현재 자기 페르소나 (Librarian Profile.md)와 새 권한/역할이 일치하는가? 새 도구 / 변경된 정책 반영이 필요한지 판단하라.",
+            "필요 없으면 JSON만 출력: {\"needs_update\": false, \"rationale\": \"...\"}",
+            "필요하면 JSON만 출력: {\"needs_update\": true, \"rationale\": \"...\", \"body\": \"## Summary ...\"}",
+            "",
+            "## Current Profile",
+            profile_doc.body or "",
+        ]
+    )
+    try:
+        raw = _invoke_for_stage("profile_update", prompt)
+    except StageRateLimitExceeded:
+        return {"status": "rate_limit_skipped"}
+    payload = _extract_json_dict(raw)
+    if not payload or not bool(payload.get("needs_update")):
+        return {"status": "no_change", "rationale": str(payload.get("rationale") or "").strip()}
+    body = str(payload.get("body") or "").strip()
+    if "## Summary" not in body:
+        return {"status": "invalid_body"}
+    fm = dict(profile_doc.frontmatter or {})
+    fm["updated_at"] = _now_iso()
+    write_document(path=profile_doc.path, body=body, metadata=fm, allow_owner_change=True)
+    return {"status": "updated", "rationale": str(payload.get("rationale") or "").strip()}
+
+
 def _curate_system_health() -> dict[str, Any]:
     """(I) 24시간 1회. 운영 데이터 분석 → 헬스 리포트 + 개선 요청 노트 작성."""
     from app.vault import write_document, load_document as _ld
@@ -2711,8 +3403,10 @@ def _curate_system_health() -> dict[str, Any]:
         "형식을 반드시 지켜라. 불필요한 서두 금지.",
     ])
 
-    model = (load_librarian_settings() or {}).get("model") or None
-    reply = _invoke_claude_cli(prompt, model=model)
+    try:
+        reply = _invoke_for_stage("meta_curation", prompt)
+    except StageRateLimitExceeded:
+        return {"status": "rate_limit_skipped"}
     if not reply or reply.startswith("[CLI 오류"):
         return {"status": "llm_error", "detail": (reply or "")[:200]}
 
@@ -2791,6 +3485,8 @@ def _curate_system_health() -> dict[str, Any]:
             except Exception as exc:
                 logger.warning("meta curation: request write failed for %s: %s", slug, exc)
 
+    profile_update = _maybe_update_librarian_profile(state_fm)
+
     # 6) state 업데이트
     now_iso = _now_iso()
     try:
@@ -2808,6 +3504,7 @@ def _curate_system_health() -> dict[str, Any]:
                 "visibility": "private",
                 "owner": "sagwan",
                 "last_run_at": now_iso,
+                "last_profile_update_at": now_iso if profile_update.get("status") != "cooldown" else state_fm.get("last_profile_update_at"),
             },
             allow_owner_change=True,
         )
@@ -2818,6 +3515,7 @@ def _curate_system_health() -> dict[str, Any]:
         "status": "ok",
         "health_path": health_path,
         "requests_created": requests_created,
+        "profile_update": profile_update,
     }
 
 
