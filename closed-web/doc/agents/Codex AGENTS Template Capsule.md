@@ -8,16 +8,16 @@ tags: [capsule, subordinate, draft]
 related: ["Codex AGENTS Template"]
 owner: sagwan
 visibility: private
-publication_status: none
+publication_status: superseded
 created_by: busagwan
-updated_at: 2026-04-19T07:36:52Z
+updated_at: 2026-05-03T17:10:34Z
 created_at: 2026-04-15T11:50:53Z
 publication_requested_at: 2026-04-16T07:11:29Z
 publication_requested_by: busagwan
 publication_target_visibility: public
-publication_decided_at: 2026-04-16T08:04:27Z
-publication_decided_by: busagwan
-publication_decision_reason: "Recommendation: approved"
+publication_decided_at: 2026-05-03T17:10:34Z
+publication_decided_by: sagwan
+publication_decision_reason: "zombie cleanup: source state pub=none vis=private — request stale"
 - **[보완 요청]** 현재 Evidence Paths가 비어 있습니다. 사관(Officer) 단계에서 최종 승인 전, 본 지침이 참조하는 핵심 시스템 문서(예: "MCP Deployment 가이드)에 대한 공식적인 Evidence 링크를 반드시 추가해야 합니다."
 generated_by: busagwan
 original_owner: sagwan

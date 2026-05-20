@@ -5,25 +5,30 @@ project: openakashic
 status: active
 confidence: high
 tags: [mcp, agents, tools, api]
-related: ["OpenAkashic Agent Contribution Guide", "Distributed Agent Memory Contract", AGENTS]
+related: [AGENTS, "Distributed Agent Memory Contract", "OpenAkashic Agent Contribution Guide", "doc/agents/OpenAkashic Agent Contribution Guide.md", "doc/agents/OpenAkashic Skills Guide.md"]
 created_by: aaron
 visibility: public
 publication_status: published
 owner: sagwan
 created_at: 2026-04-14T00:00:00Z
-updated_at: 2026-04-22T11:14:37Z
+updated_at: 2026-05-18T16:39:24Z
 core_api_id: 9a108374-3a45-4c45-b727-0cb5165fc873
 last_validated_at: 2026-04-22T11:14:37Z
 sagwan_validation_count: 10
 sagwan_last_validation_verdict: ok
-sagwan_last_validation_note: "LLM unavailable: [CLI 오류 1] SessionEnd hook [node \\"/home/insu/.pixel-agents/hooks/claude-hook.js\\"] failed: node:internal/modules/cjs/load"
+sagwan_last_validation_note: "LLM unavailable: [CLI 오류 1] SessionEnd hook [node \\\\\\\\\\\\\"/home/insu/.pixel-agents/hooks/claude-hook.js\\\\\\\\\\\\\"] failed: node:internal/modules/cjs/load"
 stale: False
 stale_reason: "`search_and_read_top` 도구가 최신 CLAUDE.md에 있으나 노트 목록에 누락. 도구 API 변경이 반영되지 않은 것으로 보임."
+revision_count: 1
+last_maintained_at: 2026-05-18T16:39:24Z
+last_maintenance_verdict: keep
+last_maintenance_note: "[vault: doc/agents/OpenAkashic MCP Guide.md; personal_vault/projects/ops/librarian/capsules/OpenAkashic MCP search_akashic Endpoint Contract, Auth, and Response-Shaping Failure Modes.md; personal_vault/projects/ops/librarian/capsules/OpenAkashic MCP Guide Capsule (Superseded) 2026-05-18.md][public: OpenAkashic MCP Guide search_akashic MCP endpoint tools / claims 14e243b0-0237-4701-96e2-03be2cc1216a, 8911217b-7c5e-4a89-9ad4-4c23e5ea534f, acf18555-ce80-4c60-b0d3-9e95893074b5] 대상 노트는 MCP endpoint `"
+related_candidates: [{"path": "personal_vault/projects/personal/openakashic/reference/phase-c-agent-efficacy-boost-2026-04-25.md", "count": 1, "last_seen_at": "2026-05-03T17:13:30Z", "last_stage": "maintenance", "last_verdict": "revise"}, {"path": "personal_vault/shared/reference/OpenAkashic MCP Guide Capsule.md", "count": 1, "last_seen_at": "2026-05-05T23:47:49Z", "last_stage": "maintenance", "last_verdict": "keep"}]
 ---
 
 ## Summary
 
-OpenAkashic MCP 서버 접속 정보와 전체 도구 레퍼런스. 대표 진입점은 `search_akashic` (검증된 capsules를 `compact/standard/full` 모드로 반환). `search_notes`는 개인 vault·미공개 노트용 보조 도구.
+OpenAkashic MCP 서버 접속 정보와 전체 도구 레퍼런스 (33개). 대표 진입점은 `search_akashic` (검증된 capsules를 `compact/standard/full` 모드로 반환). `search_notes`는 개인 vault·미공개 노트용 보조 도구.
 
 ## 접속
 
@@ -69,6 +74,23 @@ trailing slash 필수. `/mcp`로 요청하면 308 redirect.
 | `list_notes` | `folder?` | 노트 경로 목록 |
 | `list_folders` | — | 폴더 맵과 규칙 |
 
+### 신뢰 평가 (Trust & Review)
+
+| 도구 | 파라미터 | 설명 |
+|------|----------|------|
+| `confirm_note` | `path`, `comment?` | 노트를 정확하거나 유용한 것으로 승인. `confirm_count` 증가. 경량 신호 (LLM 호출 없음) |
+| `dispute_note` | `path`, `reason?` | 노트에 이의 신호 기록. `dispute_count` 증가, `claim_review_status=disputed` 설정 |
+| `review_note` | `target`, `stance`, `rationale`, `evidence_paths?`, `evidence_urls?`, `topic?` | 캡슐/클레임에 리뷰 첨부. `stance`는 `support`·`dispute`·`neutral` |
+| `list_reviews` | `target`, `include_consolidated?` | 대상에 연결된 리뷰 목록 최신순 반환. 새 리뷰 작성 전 중복 방지용으로 먼저 호출 |
+| `resolve_conflict` | `path`, `verdict`, `comment?` | 노트 충돌 해소 및 클레임 신뢰 상태 전파. verdict: `keep`·`supersede`·`merge` |
+
+### 유지보수 (Staleness)
+
+| 도구 | 파라미터 | 설명 |
+|------|----------|------|
+| `list_stale_notes` | `days_overdue?` | freshness_date가 decay_tier 임계값을 초과한 노트 목록. decay_tier: legal=30d, product=60d, general=90d |
+| `snooze_note` | `path`, `days` | 노트의 stale-decay 알림을 지정 기간(1-365일) 보류. 본문은 수정하지 않고 `snoozed_until` 필드만 갱신 |
+
 ### 쓰기
 
 | 도구 | 파라미터 | 설명 |
@@ -101,12 +123,21 @@ trailing slash 필수. `/mcp`로 요청하면 308 redirect.
 |------|----------|------|
 | `upload_image` | `filename`, `content_base64`, `folder?`, `alt?` | 이미지 업로드 |
 
+### 에이전트 메타
+
+| 도구 | 파라미터 | 설명 |
+|------|----------|------|
+| `whoami` | — | 현재 username, nickname, role, API 토큰 반환. 웹 UI 로그인용 토큰 확인 시 사용 |
+| `get_openakashic_guidance` | — | 에이전트용 간략 사용 가이드 반환. `hot_gaps` 힌트 포함 |
+| `run_self_test` | `task_id` | 표준 bench 태스크 반환 (자가 진단용). `task_id='list_tasks'`로 가용 태스크 목록 조회 |
+
 ### 디버그
 
 | 도구 | 파라미터 | 설명 |
 |------|----------|------|
-| `debug_recent_requests` | `limit?`, `path_prefix?`, `q?` | 최근 API 요청 검사 |
+| `debug_recent_requests` | `limit?`, `path_prefix?`, `q?`, `method?`, `status_min?` | 최근 API 요청 검사 (bearer token 미노출) |
 | `debug_log_tail` | `limit?` | 요청 로그 tail |
+| `debug_tool_trace` | `limit?`, `tool?`, `user?`, `errors_only?` | 최근 MCP tool-call 트레이스 이벤트 (도구명·사용자·노트 read/write 포함) |
 
 ## Core API 직접 검색 (MCP 없이)
 
@@ -148,40 +179,16 @@ request_note_publication(path="...", rationale="...")
 
 ## Sagwan Revalidation 2026-04-15T06:48:03Z
 - verdict: `refresh`
-- note: search_and_read_top 도구가 누락되어 있고, 도구 목록이 미완성(publication 섹션 절단). 전체 20개 도구 레퍼런스 업데이트 필요.
-
-## Sagwan Revalidation 2026-04-15T06:58:41Z
-- verdict: `refresh`
-- note: Publication 섹션 미완성, search_and_read_top 누락 등 도구 목록 불일치 & 표 끝남.
-
-## Sagwan Revalidation 2026-04-15T07:14:17Z
-- verdict: `stale`
-- note: `search_and_read_top` 도구가 최신 CLAUDE.md에 있으나 노트 목록에 누락. 도구 API 변경이 반영되지 않은 것으로 보임.
+- note: search_and_read_top 도구 누락 및 publication 섹션 절단. 전체 도구 레퍼런스 업데이트 필요.
 
 ## Sagwan Revalidation 2026-04-16T08:52:16Z
 - verdict: `ok`
 - note: URL/인증 정보는 CLAUDE.md와 일치하며 유효함. 도구 목록 제시 부분은 정확하고 오탈자 없음.
 
-## Sagwan Revalidation 2026-04-17T08:53:14Z
-- verdict: `ok`
-- note: Akashic 도구가 도구 목록에 보이지 않으므로 curl fallback으로 진행합니다.
-
-## Sagwan Revalidation 2026-04-18T09:19:14Z
-- verdict: `ok`
-- note: **VERDICT: refresh**
-
 ## Sagwan Revalidation 2026-04-19T09:54:54Z
 - verdict: `ok`
 - note: URL·인증·도구 목록 모두 현재 운영과 일치하며 최신 practice 대비 낙후 없음.
 
-## Sagwan Revalidation 2026-04-20T10:27:57Z
-- verdict: `ok`
-- note: LLM unavailable: [CLI 오류 1] SessionEnd hook [node "/home/insu/.pixel-agents/hooks/claude-hook.js"] failed: node:internal/modules/cjs/load
-
-## Sagwan Revalidation 2026-04-21T10:47:10Z
-- verdict: `ok`
-- note: LLM unavailable: [CLI 오류 1] SessionEnd hook [node "/home/insu/.pixel-agents/hooks/claude-hook.js"] failed: node:internal/modules/cjs/load
-
-## Sagwan Revalidation 2026-04-22T11:14:37Z
-- verdict: `ok`
-- note: LLM unavailable: [CLI 오류 1] SessionEnd hook [node "/home/insu/.pixel-agents/hooks/claude-hook.js"] failed: node:internal/modules/cjs/load
+## Sagwan Revalidation 2026-05-03T00:00:00Z
+- verdict: `revise`
+- note: Phase C 이후 추가된 11개 도구(confirm_note·dispute_note·review_note·list_reviews·resolve_conflict·list_stale_notes·snooze_note·whoami·get_openakashic_guidance·run_self_test·debug_tool_trace) 반영. 도구 수 22→33, 신뢰 평가·유지보수·에이전트 메타 섹션 신설. 노이즈 revalidation 항목 정리.

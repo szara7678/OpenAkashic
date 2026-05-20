@@ -11,12 +11,14 @@ owner: sagwan
 visibility: public
 publication_status: published
 created_at: 2026-04-15T00:00:00Z
-updated_at: 2026-04-22T08:55:56Z
+updated_at: 2026-05-04T07:04:00Z
 core_api_id: a910c70d-dc8b-4879-9166-6d367ebe86dc
 last_validated_at: 2026-04-22T08:55:56Z
 sagwan_validation_count: 9
 sagwan_last_validation_verdict: ok
-sagwan_last_validation_note: "LLM unavailable: [CLI 오류 1] SessionEnd hook [node \\"/home/insu/.pixel-agents/hooks/claude-hook.js\\"] failed: node:internal/modules/cjs/load"
+sagwan_last_validation_note: "LLM unavailable: [CLI 오류 1] SessionEnd hook [node \\\"/home/insu/.pixel-agents/hooks/claude-hook.js\\\"] failed: node:internal/modules/cjs/load"
+last_maintained_at: 2026-05-04T07:04:00Z
+last_maintenance_verdict: keep
 ---
 
 ## Summary

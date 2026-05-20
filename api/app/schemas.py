@@ -78,6 +78,7 @@ class QueryFilters(BaseModel):
 class QueryOptions(BaseModel):
     expand_mentions: bool = True
     expand_related_claims: bool = True
+    include_related_capsules: bool = False
 
 
 QueryMode = Literal["compact", "standard", "full"]
@@ -86,6 +87,7 @@ QueryMode = Literal["compact", "standard", "full"]
 class QueryRequest(BaseModel):
     query: str = Field(min_length=1)
     top_k: int = Field(default=8, ge=1, le=50)
+    include_related_capsules: bool = False
     include: list[Literal["claims", "evidences", "evidence", "capsules"]] = Field(
         default_factory=lambda: ["capsules", "claims"]
     )

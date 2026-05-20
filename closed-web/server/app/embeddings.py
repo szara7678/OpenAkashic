@@ -109,9 +109,13 @@ def _embed_ollama(texts: list[str], *, is_query: bool) -> list[list[float]]:
 
 
 def _embed_ollama_batch(prepared: list[str]) -> list[list[float]]:
+    # keep_alive: bge-m3 만 쓰는 워크로드에서 매 cold-load(~3s) 비용을 피하기
+    # 위해 1h로 명시. ollama default(5m)보다 길게 잡지만 GPU 메모리(1.2GB)는
+    # 영구 점유가 아니라 부재 1시간 후 자연 unload.
     payload = {
         "model": _embedding_model_name(),
         "input": prepared,
+        "keep_alive": "1h",
     }
     body = json.dumps(payload).encode("utf-8")
     base_url = get_settings().ollama_base_url.rstrip("/")

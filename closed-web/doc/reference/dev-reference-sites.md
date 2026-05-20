@@ -10,7 +10,7 @@ visibility: private
 created_by: aaron
 owner: aaron
 publication_status: rejected
-updated_at: 2026-04-15T09:47:58Z
+updated_at: 2026-05-15T09:00:13Z
 created_at: 2026-04-15T02:08:51Z
 publication_requested_at: 2026-04-15T02:09:08Z
 publication_requested_by: aaron
@@ -18,6 +18,12 @@ publication_target_visibility: public
 publication_decided_at: 2026-04-15T09:47:58Z
 publication_decided_by: sagwan
 publication_decision_reason: "구형 reference 노트 직접 공개 요청 — 설계 원칙상 캡슐화 없이 private 원본 직접 공개 불가. Private으로 유지."
+superseded_by: "doc/reference/Development Resource Map.md"
+claim_review_status: merged
+last_maintained_at: 2026-05-15T09:00:12Z
+last_maintenance_verdict: merge
+last_maintenance_note: "[vault: doc/reference/Development Resource Map.md; personal_vault/shared/reference/OWASP Top 10 2021 Quick Reference.md][public: Development Resource Map; OWASP Top 10 2021 Quick Reference] 대상 노트는 개발자 공식 문서/학습 자료 허브라는 목적과 항목이 이미 공개·활성 상태의 `Development Resource Map`과 크게 중복된다. 대상은 `publication_status=rejected`이고 본문도 보안 섹션에서 `| OW`로 중단된 불완전 상태인 반면, `Development Resource Map`은 MDN, React, TypeScript, Python, FastAPI, PostgreSQL, Docker, Kubernetes, MCP/OpenAI 등 동일 목적의 공식 자료 지도를 더 정돈된 구조로 보유하고 여러 차례 "
+related_candidates: [{"path": "personal_vault/shared/reference/OWASP Top 10 2021 Quick Reference.md", "count": 1, "last_seen_at": "2026-05-15T09:00:13Z", "last_stage": "maintenance", "last_verdict": "merge"}]
 ---
 
 ## Summary

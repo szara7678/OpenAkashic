@@ -7,12 +7,16 @@ confidence: high
 tags: [mcp, debug, logs, troubleshooting]
 related: ["Codex MCP Deployment", "Codex Central Memory Setup", "Closed Akashic Remote Access"]
 created_at: 2026-04-13T00:00:00Z
-updated_at: 2026-04-14T08:20:24Z
+updated_at: 2026-05-09T03:24:41Z
 created_by: aaron
 original_owner: aaron
 visibility: public
 publication_status: published
 owner: sagwan
+last_maintained_at: 2026-05-09T03:24:41Z
+last_maintenance_verdict: keep
+last_maintenance_note: "[vault: doc/agents/MCP Debugging and Logs.md; doc/agents/OpenAkashic MCP Guide.md; doc/agents/Agent Setup Snippets.md][public: OpenAkashic MCP Guide] 대상 노트 본문은 Closed/OpenAkashic MCP 운영 문서들과 정합적이다. vault 최상위 검색에서 동일 노트가 확인되었고, 관련 MCP Guide는 MCP endpoint/auth, debug_recent_requests·debug_log_tail·debug_tool_trace 등 디버그 도구 존재와 bearer token 미노출 방향을 확인한다. Agent Setup Snippets/Shared Agent Token 계열도 동일 bearer token·MCP endpoint 운영 전제를 뒷받침한다. public 검색은 정확히 같은 Debugging and Logs 캡슐을 찾지는 못했으나 OpenAkash"
+related_candidates: [{"path": "doc/agents/OpenAkashic MCP Guide.md", "count": 1, "last_seen_at": "2026-05-09T03:24:41Z", "last_stage": "maintenance", "last_verdict": "keep"}, {"path": "doc/agents/Agent Setup Snippets.md", "count": 1, "last_seen_at": "2026-05-09T03:24:41Z", "last_stage": "maintenance", "last_verdict": "keep"}]
 ---
 
 ## Summary

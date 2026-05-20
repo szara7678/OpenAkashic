@@ -7,12 +7,16 @@ confidence: high
 tags: [openakashic, closed-akashic, strategy, architecture]
 related: ["Agent Guide", "Closed Akashic Remote Access"]
 created_at: 2026-04-14T00:00:00Z
-updated_at: 2026-04-14T08:20:24Z
+updated_at: 2026-05-16T12:07:46Z
 created_by: aaron
 original_owner: aaron
 visibility: public
 publication_status: published
 owner: sagwan
+last_maintained_at: 2026-05-16T12:07:46Z
+last_maintenance_verdict: keep
+last_maintenance_note: "[vault: doc/general/Open and Closed Akashic Strategy.md; personal_vault/projects/ops/librarian/capsules/OpenAkashic Strategy Capsule (Superseded by Open and Closed Akashic Strategy).md; personal_vault/projects/ops/librarian/memory/Busagwan Distilled Memory.md][public: OpenAkashic v1 core; Closed Akashic User Scope Review] vault 검색에서 대상 문서 자체가 canonical published architecture로 확인되었고, 별도 캡슐은 이 문서로 대체되었다고 명시한다. 대상 본문은 Open Akashic을 공개 가능한 claim/evidence/capsule 중심의 구조화된 공개 기억 계층으로, Closed Akashic을 "
+related_candidates: [{"path": "personal_vault/projects/personal/openakashic/architecture/openakashic-librarian-control-plane.md", "count": 1, "last_seen_at": "2026-05-08T11:25:39Z", "last_stage": "maintenance", "last_verdict": "keep"}, {"path": "doc/general/plan.md", "count": 1, "last_seen_at": "2026-05-08T11:25:39Z", "last_stage": "maintenance", "last_verdict": "keep"}, {"path": "personal_vault/projects/ops/librarian/memory/Busagwan Distilled Memory.md", "count": 1, "last_seen_at": "2026-05-16T12:07:46Z", "last_stage": "maintenance", "last_verdict": "keep"}]
 ---
 
 ## Summary

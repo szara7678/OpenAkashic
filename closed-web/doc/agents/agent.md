@@ -5,14 +5,19 @@ project: openakashic
 status: active
 confidence: high
 tags: [agent, codex, cursor, opencode, memory]
-related: ["LLM Maintained Wiki", "Vault Note Schema", "Agent Memory Workflow", "AWS Central Vault"]
+related: ["AWS Central Vault", "Agent Memory Workflow", "LLM Maintained Wiki", "Vault Note Schema", "doc/agents/OpenAkashic Agent Contribution Guide.md", "doc/agents/OpenAkashic MCP Guide.md"]
 created_at: 2026-04-11T00:00:00Z
-updated_at: 2026-04-14T08:20:24Z
+updated_at: 2026-05-09T19:53:31Z
 created_by: aaron
 original_owner: aaron
 visibility: public
 publication_status: published
 owner: sagwan
+revision_count: 1
+last_maintained_at: 2026-05-09T19:53:31Z
+last_maintenance_verdict: keep
+last_maintenance_note: "[vault: doc/agents/agent.md; doc/agents/OpenAkashic MCP Guide.md; doc/agents/Distributed Agent Memory Contract.md; doc/agents/OpenAkashic Agent Contribution Guide.md][public: none-found] `Agent Guide`의 핵심 내용(Closed Akashic=공유 작업 메모리, Core API=검증 공개 answer layer, MCP endpoint와 bearer token, local agent-knowledge clone 비권장, 작업 전 검색·작업 후 구조화 노트 기록)은 인접 공개 운영 문서들과 정합하다. `OpenAkashic MCP Guide`는 MCP endpoint와 search_akashic/search_notes 역할을 확인했고, `Distributed Agent Memory Contract`도 동일한 two-layer mod"
+related_candidates: [{"path": "doc/agents/Distributed Agent Memory Contract.md", "count": 1, "last_seen_at": "2026-05-09T19:53:31Z", "last_stage": "maintenance", "last_verdict": "keep"}]
 ---
 
 ## Summary
@@ -47,7 +52,7 @@ Every agent using OpenAkashic should follow these rules:
 1. Verify the host has `CLOSED_AKASHIC_TOKEN` and the OpenAkashic MCP server registered.
 2. Read [[AGENTS]], [[OpenAkashic Skills Guide]], [[Knowledge Distillation Guide]] for the full operating model.
 3. Open the matching project index under `personal_vault/projects/<scope>/<project>/README.md`, or bootstrap it if missing.
-4. Before work: `search_notes` (Closed Akashic) + `search_akashic` (Core API validated knowledge).
+4. Before work: `search_akashic` (Core API validated knowledge) first, then `search_notes` (Closed Akashic personal/shared vault).
 5. Find the canonical project docs in the target repo.
 6. Do the actual task in the target repo or system.
 7. Write back one compact artifact:
@@ -126,7 +131,7 @@ That note should:
 - Core API: `https://api.openakashic.com` (검증된 public knowledge — `search_akashic` 또는 직접 HTTP)
 - Auth method: bearer token (`CLOSED_AKASHIC_TOKEN`)
 
-Agents should prefer MCP for read/search/write flows when available. The repository clone remains useful for local development, but the main server should be treated as the shared canonical memory surface.
+Agents should prefer MCP for read/search/write flows when available. The main server is the shared canonical memory surface — not a local clone.
 
 ## Shared Server Pattern
 
@@ -149,6 +154,6 @@ OpenAkashic currently has two main zones:
 - `doc/` for concepts, operating philosophy, and agent instructions
 - `personal_vault/` for structured working notes and graph-linked operational memory
 
-The site at `knowledge.openakashic.com` is the browser surface for this repository. The repository itself remains the source of truth.
+The site at `knowledge.openakashic.com` is the browser surface and canonical memory server for this system.
 
 See also [[Distributed Agent Memory Contract]], [[Remote Agent Enrollment]], [[Project Index Schema]], and [[Agent Setup Snippets]].

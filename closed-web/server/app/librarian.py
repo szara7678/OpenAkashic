@@ -41,6 +41,7 @@ SUBORDINATE_MEMORY_PATH = "personal_vault/projects/ops/librarian/memory/Subordin
 LIBRARIAN_TOOL_NAMES = (
     "exec_command",
     "search_notes",
+    "search_and_read_top",
     "search_akashic",
     "read_note",
     "read_raw_note",
@@ -160,6 +161,8 @@ def ensure_librarian_workspace() -> dict[str, Any]:
                 "## Tools",
                 "- exec_command",
                 "- search_notes",
+                "- search_and_read_top",
+                "- search_akashic",
                 "- read_note",
                 "- append_note_section",
                 "- upsert_note",
@@ -356,6 +359,25 @@ def _invoke_claude_cli(prompt: str, model: str | None = None) -> str:
     return _invoke_claude_cli_with_tools(prompt, model=model, tools=[], timeout=180)
 
 
+def _claude_cli_mcp_config_path() -> str | None:
+    """Return a path to a JSON file with `mcpServers` for `claude --mcp-config`.
+
+    `claude -p` does NOT auto-load mcpServers from `~/.claude/settings.json` —
+    it must be passed explicitly. Reuse the user's settings.json since it already
+    has `mcpServers.openakashic`.
+    """
+    candidate = Path(os.environ.get("HOME", "/home/insu")) / ".claude" / "settings.json"
+    if not candidate.exists():
+        return None
+    try:
+        data = json.loads(candidate.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+    if not isinstance(data, dict) or not data.get("mcpServers"):
+        return None
+    return str(candidate)
+
+
 def _invoke_claude_cli_with_tools(
     prompt: str,
     model: str | None = None,
@@ -369,6 +391,10 @@ def _invoke_claude_cli_with_tools(
         if tool_list:
             # `claude -p` cannot complete interactive tool approvals.
             cmd.extend(["--permission-mode", "bypassPermissions"])
+            # Wire up MCP servers (otherwise mcp__* tools resolve to "not loaded").
+            mcp_cfg = _claude_cli_mcp_config_path()
+            if mcp_cfg and any(t.startswith("mcp__") for t in tool_list):
+                cmd.extend(["--mcp-config", mcp_cfg, "--strict-mcp-config"])
         if model:
             cmd.extend(["--model", model])
         cmd.append(prompt)
@@ -399,6 +425,457 @@ def _proxy_chat_urls() -> list[str]:
     if Path("/.dockerenv").exists():
         return [container_url, local_url]
     return [local_url, container_url]
+
+
+# ─── ChatGPT Plus subscription direct (Responses API) ──────────────────────
+# Sagwan can route stages to this backend via stage_models entry "chatgpt:<model>".
+# Uses ChatGPT subscription's OAuth tokens from ~/.codex/auth.json (mounted r/o
+# into the container). Endpoint: https://chatgpt.com/backend-api/codex/responses
+# (officially supported for codex CLI). Required: store=false, stream=true.
+
+_CHATGPT_RESPONSES_URL = "https://chatgpt.com/backend-api/codex/responses"
+_CODEX_AUTH_PATH = Path(os.environ.get("HOME", "/home/insu")) / ".codex" / "auth.json"
+
+
+def _read_codex_oauth() -> tuple[str, str] | None:
+    """Returns (access_token, account_id) or None if auth missing/expired."""
+    try:
+        data = json.loads(_CODEX_AUTH_PATH.read_text(encoding="utf-8"))
+    except Exception as exc:
+        logger.warning("chatgpt backend: cannot read %s: %s", _CODEX_AUTH_PATH, exc)
+        return None
+    tokens = data.get("tokens") or {}
+    access_token = str(tokens.get("access_token") or "").strip()
+    account_id = str(tokens.get("account_id") or "").strip()
+    if not access_token or not account_id:
+        logger.warning("chatgpt backend: auth.json missing tokens.access_token or account_id")
+        return None
+    return access_token, account_id
+
+
+def _invoke_chatgpt_responses(
+    prompt: str,
+    model: str = "gpt-5.5",
+    timeout: int = 180,
+    system: str | None = None,
+) -> str:
+    """POST to ChatGPT subscription Responses API with OAuth bearer + account_id.
+    SSE streaming; concatenates response.output_text.delta events.
+    """
+    creds = _read_codex_oauth()
+    if creds is None:
+        return "[chatgpt 오류] OAuth tokens unavailable (run codex CLI to refresh)"
+    access_token, account_id = creds
+
+    # Responses API: `instructions` is required (system-level guidance);
+    # `input` carries the user message(s).
+    payload = {
+        "model": model,
+        "instructions": system or "You are a helpful assistant.",
+        "input": [{
+            "role": "user",
+            "content": [{"type": "input_text", "text": prompt}],
+        }],
+        "store": False,
+        "stream": True,
+    }
+    body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+    req = urlrequest.Request(
+        _CHATGPT_RESPONSES_URL,
+        data=body,
+        headers={
+            "Authorization": f"Bearer {access_token}",
+            "chatgpt-account-id": account_id,
+            "Content-Type": "application/json",
+            "Accept": "text/event-stream",
+        },
+        method="POST",
+    )
+    chunks: list[str] = []
+    try:
+        response = urlrequest.urlopen(req, timeout=timeout)
+    except urlrequest.HTTPError as exc:
+        err_body = exc.read().decode(errors="replace")[:400]
+        return f"[chatgpt HTTP {exc.code}] {err_body}"
+    except urlerror.URLError as exc:
+        return f"[chatgpt URLError] {exc}"
+    except Exception as exc:
+        return f"[chatgpt 오류] {exc}"
+
+    with response:
+        event_name = ""
+        for raw_line in response:
+            line = raw_line.decode(errors="replace").rstrip("\n").rstrip("\r")
+            if not line:
+                event_name = ""
+                continue
+            if line.startswith("event:"):
+                event_name = line[6:].strip()
+                continue
+            if not line.startswith("data:"):
+                continue
+            data = line[5:].strip()
+            if data == "[DONE]":
+                break
+            try:
+                obj = json.loads(data)
+            except json.JSONDecodeError:
+                continue
+            # Responses API: streaming yields typed events. We collect text deltas.
+            obj_type = str(obj.get("type") or event_name or "")
+            if obj_type == "response.output_text.delta":
+                delta = obj.get("delta")
+                if isinstance(delta, str):
+                    chunks.append(delta)
+            elif obj_type == "response.completed":
+                # Some servers also embed final text in response.output[*].content[*].text
+                resp = obj.get("response") or {}
+                if not chunks and isinstance(resp.get("output"), list):
+                    for item in resp["output"]:
+                        for piece in (item.get("content") or []):
+                            if piece.get("type") == "output_text" and isinstance(piece.get("text"), str):
+                                chunks.append(piece["text"])
+                break
+            elif obj_type in ("response.failed", "response.error", "error"):
+                err = obj.get("error") or obj
+                return f"[chatgpt event_error] {json.dumps(err, ensure_ascii=False)[:300]}"
+
+    return "".join(chunks).strip()
+
+
+def _invoke_chatgpt_responses_with_tools(
+    prompt: str,
+    model: str = "gpt-5.5",
+    tools: list[str] | None = None,
+    timeout: int = 240,
+    system: str | None = None,
+    max_iterations: int = 10,
+) -> str:
+    if not tools:
+        return _invoke_chatgpt_responses(prompt, model=model, timeout=timeout, system=system)
+
+    chatgpt_tool_defs = {
+        "search_notes": {
+            "type": "function",
+            "name": "search_notes",
+            "description": "Search OpenAkashic vault notes by title/tags/summary/body.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string"},
+                    "limit": {"type": "integer", "default": 8},
+                    "kind": {"type": "string"},
+                    "tags": {"type": "array", "items": {"type": "string"}},
+                },
+                "required": ["query"],
+            },
+        },
+        "search_and_read_top": {
+            "type": "function",
+            "name": "search_and_read_top",
+            "description": "Search vault and return the highest-scoring note's full body inline.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string"},
+                    "kind": {"type": "string"},
+                },
+                "required": ["query"],
+            },
+        },
+        "search_akashic": {
+            "type": "function",
+            "name": "search_akashic",
+            "description": "Search the validated public Akashic Core API for capsules/claims.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string"},
+                    "top_k": {"type": "integer", "default": 8},
+                    "include": {"type": "array", "items": {"type": "string"}},
+                    "mode": {"type": "string"},
+                },
+                "required": ["query"],
+            },
+        },
+        "read_note": {
+            "type": "function",
+            "name": "read_note",
+            "description": "Read a vault note by path or slug.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "path": {"type": "string"},
+                    "slug": {"type": "string"},
+                },
+            },
+        },
+        "list_reviews": {
+            "type": "function",
+            "name": "list_reviews",
+            "description": "List review claims targeting a specific note.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "target_path": {"type": "string"},
+                    "stance": {"type": "string"},
+                },
+                "required": ["target_path"],
+            },
+        },
+    }
+    allowed_defs = [chatgpt_tool_defs[name] for name in tools if name in chatgpt_tool_defs]
+    if not allowed_defs:
+        return _invoke_chatgpt_responses(prompt, model=model, timeout=timeout, system=system)
+
+    def _execute_chatgpt_tool_call(name: str, arguments: dict[str, Any]) -> str:
+        """Returns JSON-string result for tool output."""
+        try:
+            if name == "search_notes":
+                result = search_closed_notes(
+                    arguments.get("query", ""),
+                    limit=int(arguments.get("limit") or 8),
+                    kind=arguments.get("kind"),
+                    tags=arguments.get("tags"),
+                )
+                return json.dumps(result, ensure_ascii=False)[:8000]
+            if name == "search_and_read_top":
+                from app.mcp_server import search_and_read_top
+
+                result = search_and_read_top(
+                    query=arguments.get("query", ""),
+                    kind=arguments.get("kind"),
+                )
+                return json.dumps(result, ensure_ascii=False)[:8000]
+            if name == "search_akashic":
+                from app.mcp_server import search_akashic
+
+                result = search_akashic(
+                    query=arguments.get("query", ""),
+                    top_k=int(arguments.get("top_k") or 8),
+                    include=arguments.get("include"),
+                    mode=arguments.get("mode") or "standard",
+                )
+                return json.dumps(result, ensure_ascii=False)[:8000]
+            if name == "read_note":
+                from app.site import get_closed_note_by_slug
+
+                if arguments.get("path"):
+                    result = get_closed_note(arguments["path"], viewer_owner="sagwan", is_admin=True)
+                else:
+                    result = get_closed_note_by_slug(arguments.get("slug", ""), viewer_owner="sagwan", is_admin=True)
+                return json.dumps(result, ensure_ascii=False)[:8000]
+            if name == "list_reviews":
+                from app.mcp_server import list_reviews
+
+                result = list_reviews(
+                    target=arguments.get("target_path", ""),
+                    include_consolidated=False,
+                )
+                if arguments.get("stance"):
+                    wanted = str(arguments["stance"]).strip().lower()
+                    reviews = result.get("reviews")
+                    if isinstance(reviews, list):
+                        result = {
+                            **result,
+                            "reviews": [
+                                review for review in reviews
+                                if str(review.get("stance", "")).strip().lower() == wanted
+                            ],
+                        }
+                        result["count"] = len(result["reviews"])
+                return json.dumps(result, ensure_ascii=False)[:8000]
+            return json.dumps({"error": f"unknown tool {name}"}, ensure_ascii=False)
+        except Exception as exc:
+            return json.dumps({"error": f"tool_exception: {str(exc)[:200]}"}, ensure_ascii=False)
+
+    def _build_payload(input_items: list[dict[str, Any]]) -> dict[str, Any]:
+        # NOTE: store=False mode means we cannot rely on previous_response_id
+        # (server has no state). We must pass the cumulative conversation
+        # history as input every iteration.
+        return {
+            "model": model,
+            "instructions": system or "You are a helpful assistant.",
+            "input": input_items,
+            "tools": allowed_defs,
+            "tool_choice": "auto",
+            "store": False,
+            "stream": True,
+        }
+
+    creds = _read_codex_oauth()
+    if creds is None:
+        return "[chatgpt 오류] OAuth tokens unavailable (run codex CLI to refresh)"
+    access_token, account_id = creds
+
+    text_chunks: list[str] = []
+    # Cumulative conversation history. We re-send all turns each iteration
+    # because store=False means the server keeps no state.
+    history: list[dict[str, Any]] = [{
+        "role": "user",
+        "content": [{"type": "input_text", "text": prompt}],
+    }]
+    payload = _build_payload(history)
+    for _ in range(max_iterations):
+        body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+        req = urlrequest.Request(
+            _CHATGPT_RESPONSES_URL,
+            data=body,
+            headers={
+                "Authorization": f"Bearer {access_token}",
+                "chatgpt-account-id": account_id,
+                "Content-Type": "application/json",
+                "Accept": "text/event-stream",
+            },
+            method="POST",
+        )
+        try:
+            response = urlrequest.urlopen(req, timeout=timeout)
+        except urlrequest.HTTPError as exc:
+            err_body = exc.read().decode(errors="replace")[:400]
+            return f"[chatgpt HTTP {exc.code}] {err_body}"
+        except urlerror.URLError as exc:
+            return f"[chatgpt URLError] {exc}"
+        except Exception as exc:
+            return f"[chatgpt 오류] {exc}"
+
+        event_name = ""
+        response_id = ""
+        completed = False
+        pending_calls: dict[str, dict[str, str]] = {}
+        pending_order: list[str] = []
+
+        def _slot_key(obj: dict[str, Any]) -> str:
+            return str(
+                obj.get("item_id")
+                or obj.get("call_id")
+                or obj.get("output_index")
+                or obj.get("id")
+                or ""
+            )
+
+        def _ensure_slot(key: str, *, call_id: str = "", name: str = "") -> dict[str, str]:
+            slot = pending_calls.setdefault(key, {"call_id": call_id or key, "name": name, "arguments": ""})
+            if call_id:
+                slot["call_id"] = call_id
+            if name:
+                slot["name"] = name
+            if key not in pending_order:
+                pending_order.append(key)
+            return slot
+
+        with response:
+            for raw_line in response:
+                line = raw_line.decode(errors="replace").rstrip("\n").rstrip("\r")
+                if not line:
+                    event_name = ""
+                    continue
+                if line.startswith("event:"):
+                    event_name = line[6:].strip()
+                    continue
+                if not line.startswith("data:"):
+                    continue
+                data = line[5:].strip()
+                if data == "[DONE]":
+                    break
+                try:
+                    obj = json.loads(data)
+                except json.JSONDecodeError:
+                    continue
+                obj_type = str(obj.get("type") or event_name or "")
+                if obj_type == "response.output_text.delta":
+                    delta = obj.get("delta")
+                    if isinstance(delta, str):
+                        text_chunks.append(delta)
+                    continue
+                if obj_type in ("response.output_item.added", "response.output_item.done"):
+                    item = obj.get("item") or {}
+                    if item.get("type") == "function_call":
+                        slot = _ensure_slot(
+                            _slot_key(item) or _slot_key(obj) or str(item.get("call_id") or ""),
+                            call_id=str(item.get("call_id") or ""),
+                            name=str(item.get("name") or ""),
+                        )
+                        if isinstance(item.get("arguments"), str):
+                            slot["arguments"] = item["arguments"]
+                    continue
+                if obj_type == "response.function_call_arguments.delta":
+                    key = _slot_key(obj)
+                    if key:
+                        slot = _ensure_slot(key)
+                        delta = obj.get("delta")
+                        if isinstance(delta, str):
+                            slot["arguments"] += delta
+                    continue
+                if obj_type == "response.function_call_arguments.done":
+                    key = _slot_key(obj)
+                    if key:
+                        slot = _ensure_slot(key)
+                        if isinstance(obj.get("arguments"), str):
+                            slot["arguments"] = obj["arguments"]
+                    continue
+                if obj_type == "response.completed":
+                    completed = True
+                    resp = obj.get("response") or {}
+                    response_id = str(resp.get("id") or "")
+                    output = resp.get("output")
+                    if isinstance(output, list):
+                        for item in output:
+                            if item.get("type") == "function_call":
+                                slot = _ensure_slot(
+                                    _slot_key(item) or str(item.get("call_id") or ""),
+                                    call_id=str(item.get("call_id") or ""),
+                                    name=str(item.get("name") or ""),
+                                )
+                                if isinstance(item.get("arguments"), str):
+                                    slot["arguments"] = item["arguments"]
+                            for piece in (item.get("content") or []):
+                                if piece.get("type") == "output_text" and isinstance(piece.get("text"), str):
+                                    if not text_chunks:
+                                        text_chunks.append(piece["text"])
+                    break
+                if obj_type in ("response.failed", "response.error", "error"):
+                    err = obj.get("error") or obj
+                    return f"[chatgpt event_error] {json.dumps(err, ensure_ascii=False)[:300]}"
+
+        if not pending_order:
+            return "".join(text_chunks).strip()
+        if not completed:
+            return "[chatgpt 오류] Missing response.completed for tool continuation"
+
+        # Append assistant function_calls + their outputs to history for next turn.
+        # Skip slots with empty name (parser orphan) — they'd be rejected by API.
+        executed_count = 0
+        for key in pending_order:
+            slot = pending_calls[key]
+            name = (slot.get("name") or "").strip()
+            call_id = slot.get("call_id") or key
+            if not name:
+                # orphan function_call (no name received via stream); skip
+                continue
+            history.append({
+                "type": "function_call",
+                "call_id": call_id,
+                "name": name,
+                "arguments": slot.get("arguments") or "{}",
+            })
+            raw_arguments = slot.get("arguments") or "{}"
+            try:
+                parsed_arguments = json.loads(raw_arguments)
+            except json.JSONDecodeError as exc:
+                return f"[chatgpt 오류] Invalid function arguments for {name}: {exc}"
+            history.append({
+                "type": "function_call_output",
+                "call_id": call_id,
+                "output": _execute_chatgpt_tool_call(name, parsed_arguments),
+            })
+            executed_count += 1
+        if executed_count == 0:
+            # All slots were orphans — treat as completion to avoid infinite loop.
+            return "".join(text_chunks).strip() + "[chatgpt 경고] all_function_calls_orphan"
+        payload = _build_payload(history)
+
+    return f"{''.join(text_chunks).strip()}[chatgpt 오류] tool_iter_cap_exceeded"
 
 
 def _invoke_proxy_chat(

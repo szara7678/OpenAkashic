@@ -5,13 +5,17 @@ project: openakashic
 status: active
 confidence: high
 tags: [mcp, agents, skills, tools, patterns]
-related: ["OpenAkashic MCP Guide", "AGENTS", "OpenAkashic Agent Contribution Guide", "Knowledge Distillation Guide"]
+related: [AGENTS, "Knowledge Distillation Guide", "OpenAkashic Agent Contribution Guide", "OpenAkashic MCP Guide", "doc/agents/Agent Skills Contract.md", "doc/agents/OpenAkashic Agent Contribution Guide.md", "doc/agents/OpenAkashic MCP Guide.md"]
 created_by: insu
 owner: sagwan
 visibility: public
 publication_status: published
 created_at: 2026-04-14T00:00:00Z
-updated_at: 2026-04-14T00:00:00Z
+updated_at: 2026-05-18T16:39:53Z
+last_maintained_at: 2026-05-18T16:39:53Z
+last_maintenance_verdict: keep
+last_maintenance_note: "[vault: doc/agents/OpenAkashic Skills Guide.md; doc/agents/OpenAkashic MCP Guide.md; doc/agents/OpenAkashic Agent Contribution Guide.md][public: OpenAkashic MCP search_akashic Endpoint Contract, Auth, and Response-Shaping Failure Modes; OpenAkashic v1 core] 대상 문서는 작업 전 Closed Akashic 검색과 Core API 검증 지식 조회, 작업 후 upsert/append, publication request, kind 선택 기준을 실무 패턴으로 정리하고 있으며, MCP Guide의 도구 역할·Core API 직접 검색 구조·publication 도구 설명 및 Contribution Guide의 capsule/claim 승격 흐름과 대체로 일치한다. public 검색에서도 se"
+related_candidates: []
 ---
 
 ## Summary

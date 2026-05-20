@@ -207,17 +207,130 @@ def _filter_notes_for_viewer(
     return [note for note in notes if _viewer_can_open_note(note, viewer_owner, is_admin)]
 
 
+# Folders that hold operational backlog / logs / queues — not knowledge
+# nodes. Excluded from the graph by default so the visualization shows the
+# actual knowledge network, not the agent's scratch space.
+_GRAPH_META_FOLDER_PREFIXES = (
+    "doc/knowledge-gaps/",
+    "personal_vault/meta/improvement-requests/",
+    "personal_vault/meta/system-health/",
+    "personal_vault/projects/ops/librarian/activity/",
+)
+
+
+def _is_meta_node(note: Any) -> bool:
+    path = str(getattr(note, "path", "") or "")
+    return any(path.startswith(p) for p in _GRAPH_META_FOLDER_PREFIXES)
+
+
+def _relink_title_tokens(value: str) -> set[str]:
+    return {token.lower() for token in re.findall(r"[\w가-힣]+", value, flags=re.UNICODE) if len(token) >= 2}
+
+
+def _suggest_orphan_relink(notes: list[ClosedNote], graph_nodes: list[dict[str, Any]] | dict[str, dict[str, Any]]) -> None:
+    node_items = list(graph_nodes.values()) if isinstance(graph_nodes, dict) else graph_nodes
+    node_by_slug = {str(node.get("slug") or node.get("id") or ""): node for node in node_items}
+    orphan_notes = [
+        note
+        for note in notes
+        if note.kind in {"capsule", "claim"}
+        and note.slug in node_by_slug
+        and int(node_by_slug[note.slug].get("inbound") or 0) + int(node_by_slug[note.slug].get("outbound") or 0) == 0
+    ]
+    if not orphan_notes:
+        return
+
+    visible_candidate_slugs = set(node_by_slug)
+    candidates = [
+        note
+        for note in notes
+        if note.slug in visible_candidate_slugs and note.slug in node_by_slug
+    ]
+
+    candidate_docs = {
+        note.slug: SemanticDocument(
+            key=note.slug,
+            path=note.path,
+            title=note.title,
+            kind=note.kind,
+            project=note.project,
+            status=note.status,
+            summary=note.summary,
+            body=note.body,
+        )
+        for note in candidates
+    }
+
+    title_tokens = {note.slug: _relink_title_tokens(note.title) for note in candidates}
+
+    for orphan in orphan_notes:
+        suggestions: list[dict[str, Any]] = []
+        semantic_candidates = [doc for slug, doc in candidate_docs.items() if slug != orphan.slug]
+        semantic_scores = semantic_rank(
+            "\n".join([orphan.title, orphan.kind, orphan.project, orphan.summary, orphan.body]).strip(),
+            semantic_candidates,
+            limit=3,
+        )
+        for slug, score in semantic_scores:
+            if score < 0.45:
+                continue
+            node = node_by_slug.get(slug)
+            if node:
+                suggestions.append({
+                    "slug": slug,
+                    "title": str(node.get("title") or ""),
+                    "score": round(float(score), 4),
+                })
+
+        if not suggestions:
+            source_tokens = title_tokens.get(orphan.slug, set())
+            fallback_scores: list[tuple[str, float]] = []
+            if source_tokens:
+                for candidate in candidates:
+                    if candidate.slug == orphan.slug:
+                        continue
+                    target_tokens = title_tokens.get(candidate.slug, set())
+                    if not target_tokens:
+                        continue
+                    score = len(source_tokens & target_tokens) / len(source_tokens | target_tokens)
+                    if score >= 0.15:
+                        fallback_scores.append((candidate.slug, score))
+            fallback_scores.sort(key=lambda item: (-item[1], str(node_by_slug.get(item[0], {}).get("title") or "")))
+            for slug, score in fallback_scores[:3]:
+                node = node_by_slug.get(slug)
+                if node:
+                    suggestions.append({
+                        "slug": slug,
+                        "title": str(node.get("title") or ""),
+                        "score": round(float(score), 4),
+                    })
+
+        if suggestions:
+            node_by_slug[orphan.slug]["relink_suggestions"] = suggestions[:3]
+
+
 def get_closed_graph(
     *,
     viewer_owner: str | None = None,
     is_admin: bool = False,
+    include_orphans: bool = False,
+    include_archived: bool = False,
+    include_meta: bool = False,
+    slim: bool = False,
+    suggest_relink: bool = False,
 ) -> dict[str, Any]:
     all_notes = _load_notes()
+    if not include_archived:
+        _hidden_states = {"archived", "resolved"}
+        all_notes = [n for n in all_notes if str(getattr(n, "status", "") or "").lower() not in _hidden_states]
+    if not include_meta:
+        all_notes = [n for n in all_notes if not _is_meta_node(n)]
     notes = _filter_notes_for_viewer(all_notes, viewer_owner=viewer_owner, is_admin=is_admin)
     visible_slugs = {note.slug for note in notes}
     # 전체 인덱스(참조 해석용) — 비공개 노트도 조회 가능해야 "공개 노트가 비공개를 참조"를 식별할 수 있음
     all_by_title = {note.title.lower(): note for note in all_notes}
     all_by_slug = {note.slug.lower(): note for note in all_notes}
+    all_by_claim_id = {str(note.claim_id).strip(): note for note in all_notes if str(note.claim_id or "").strip()}
 
     restricted_notes: dict[str, ClosedNote] = {}
     inbound_count: dict[str, int] = {note.slug: 0 for note in notes}
@@ -225,75 +338,112 @@ def get_closed_graph(
     edges: list[dict[str, str]] = []
     seen: set[tuple[str, str]] = set()
 
+    # `related` may contain a vault path (sagwan helper / IR resolver writes
+    # paths) — index notes by path so we can resolve those too.
+    all_by_path = {note.path: note for note in all_notes}
+
+    def add_edge(note: ClosedNote, target: ClosedNote | None, edge_type: str) -> None:
+        if not target or target.slug == note.slug:
+            return
+        # 공개 노트가 참조하는 비공개 노트는 redacted 자리표시자 노드로 포함.
+        # (렌더된 본문의 [[wikilink]]가 이미 제목을 노출하므로 엣지 자체는 숨기지 않고,
+        #  대신 민감 필드는 서버에서 걸러서 전달)
+        if target.slug not in visible_slugs:
+            if not is_admin:
+                restricted_notes[target.slug] = target
+                inbound_count.setdefault(target.slug, 0)
+                outbound_count.setdefault(target.slug, 0)
+            else:
+                return
+        edge = (note.slug, target.slug)
+        if edge in seen:
+            return
+        seen.add(edge)
+        inbound_count[target.slug] = inbound_count.get(target.slug, 0) + 1
+        outbound_count[note.slug] = outbound_count.get(note.slug, 0) + 1
+        edges.append({"source": note.slug, "target": target.slug, "type": edge_type})
+
     for note in notes:
         for target_name in [*note.links, *note.related]:
-            target = all_by_title.get(target_name.lower()) or all_by_slug.get(_slugify(target_name).lower())
-            if not target or target.slug == note.slug:
-                continue
-            # 공개 노트가 참조하는 비공개 노트는 redacted 자리표시자 노드로 포함.
-            # (렌더된 본문의 [[wikilink]]가 이미 제목을 노출하므로 엣지 자체는 숨기지 않고,
-            #  대신 민감 필드는 서버에서 걸러서 전달)
-            if target.slug not in visible_slugs:
-                if not is_admin:
-                    restricted_notes[target.slug] = target
-                    inbound_count.setdefault(target.slug, 0)
-                    outbound_count.setdefault(target.slug, 0)
-                else:
-                    continue
-            edge = (note.slug, target.slug)
-            if edge in seen:
-                continue
-            seen.add(edge)
-            inbound_count[target.slug] = inbound_count.get(target.slug, 0) + 1
-            outbound_count[note.slug] = outbound_count.get(note.slug, 0) + 1
-            edges.append({"source": note.slug, "target": target.slug, "type": "wiki"})
+            tn = target_name.strip()
+            target = (
+                all_by_path.get(tn)
+                or all_by_title.get(tn.lower())
+                or all_by_slug.get(_slugify(tn).lower())
+            )
+            add_edge(note, target, "wiki")
+
+        if note.targets:
+            tn = note.targets.strip()
+            target = (
+                all_by_path.get(tn)
+                or all_by_title.get(tn.lower())
+                or all_by_slug.get(_slugify(tn).lower())
+            )
+            add_edge(note, target, "review")
+
+        claim_id = str(note.claim_id or "").strip()
+        if claim_id:
+            add_edge(note, all_by_claim_id.get(claim_id), "evidence")
 
     nodes = []
     for note in notes:
         degree = inbound_count[note.slug] + outbound_count[note.slug]
-        nodes.append(
-            {
-                "id": note.slug,
-                "slug": note.slug,
-                "path": note.path,
-                "title": note.title,
-                "kind": note.kind,
-                "project": note.project,
-                "status": note.status,
-                "owner": note.owner,
-                "visibility": note.visibility,
-                "publication_status": note.publication_status,
+        if not include_orphans and degree == 0:
+            continue
+        node: dict[str, Any] = {
+            "id": note.slug,
+            "slug": note.slug,
+            "path": note.path,
+            "title": note.title,
+            "kind": note.kind,
+            "project": note.project,
+            "owner": note.owner,
+            "status": note.status,
+            "visibility": note.visibility,
+            "publication_status": note.publication_status,
+            "inbound": inbound_count[note.slug],
+            "outbound": outbound_count[note.slug],
+            "degree": degree,
+            "can_open": _viewer_can_open_note(note, viewer_owner, is_admin),
+            "can_write": bool(
+                is_admin or (note.visibility != "public" and viewer_owner and note.owner == viewer_owner)
+            ),
+        }
+        if not slim:
+            node.update({
                 "claim_review_status": note.claim_review_status,
                 "claim_review_badge": _claim_trust_badge(note.claim_review_status),
                 "confirm_count": note.confirm_count,
                 "dispute_count": note.dispute_count,
                 "tags": note.tags,
                 "summary": note.summary,
-                "inbound": inbound_count[note.slug],
-                "outbound": outbound_count[note.slug],
-                "degree": degree,
                 "size": len(note.body),
-                "can_open": _viewer_can_open_note(note, viewer_owner, is_admin),
-                "can_write": bool(
-                    is_admin or (note.visibility != "public" and viewer_owner and note.owner == viewer_owner)
-                ),
-            }
-        )
+            })
+        nodes.append(node)
 
     for slug, note in restricted_notes.items():
         degree = inbound_count.get(slug, 0) + outbound_count.get(slug, 0)
-        nodes.append(
-            {
-                "id": note.slug,
-                "slug": note.slug,
-                # 자리표시자: 제목은 공개 본문의 [[wikilink]]로 이미 노출되므로 노출하되
-                # path/owner/project/summary/tags/status 등은 일체 숨김.
-                "title": note.title,
-                "kind": "restricted",
-                "project": "",
+        if not include_orphans and degree == 0:
+            continue
+        node: dict[str, Any] = {
+            "id": note.slug,
+            "slug": note.slug,
+            "title": note.title,
+            "kind": "restricted",
+            "project": "",
+            "visibility": "private",
+            "inbound": inbound_count.get(slug, 0),
+            "outbound": outbound_count.get(slug, 0),
+            "degree": degree,
+            "can_open": False,
+            "restricted": True,
+            "path": "",
+        }
+        if not slim:
+            node.update({
                 "status": "",
                 "owner": "",
-                "visibility": "private",
                 "publication_status": "",
                 "claim_review_status": "",
                 "claim_review_badge": "",
@@ -301,26 +451,32 @@ def get_closed_graph(
                 "dispute_count": 0,
                 "tags": [],
                 "summary": "",
-                "path": "",
-                "inbound": inbound_count.get(slug, 0),
-                "outbound": outbound_count.get(slug, 0),
-                "degree": degree,
                 "size": 0,
-                "can_open": False,
                 "can_write": False,
-                "restricted": True,
-            }
-        )
+            })
+        nodes.append(node)
+
+    visible_ids = {node["id"] for node in nodes}
+    visible_edges = [e for e in edges if e["source"] in visible_ids and e["target"] in visible_ids]
+    if suggest_relink:
+        _suggest_orphan_relink(notes, nodes)
 
     return {
         "nodes": sorted(nodes, key=lambda item: (-item["degree"], item["title"])),
-        "links": edges,
-        "edges": edges,  # alias for graph-convention clients
+        "links": visible_edges,
+        "edges": visible_edges,  # alias for graph-convention clients
         "meta": {
             "vault": "openakashic",
             "note_count": len(nodes),
-            "link_count": len(edges),
-            "edge_count": len(edges),  # alias for graph-convention clients
+            "link_count": len(visible_edges),
+            "edge_count": len(visible_edges),  # alias for graph-convention clients
+            "total_nodes": len(notes) + len(restricted_notes),
+            "hidden_orphan_count": (len(notes) + len(restricted_notes)) - len(nodes) if not include_orphans else 0,
+            "include_orphans": include_orphans,
+            "include_archived": include_archived,
+            "include_meta": include_meta,
+            "slim": slim,
+            "suggest_relink": suggest_relink,
             "source": get_settings().closed_akashic_path,
         },
     }
@@ -1419,14 +1575,27 @@ def closed_note_html(
     #wiki-preview strong {{ display: block; color: var(--ink); font-size: .92rem; margin-bottom: 4px; }}
     #wiki-preview small {{ color: var(--muted); display: block; }}
     .meta-copy {{ color: var(--muted); font-size: .92rem; line-height: 1.65; }}
-    @media (max-width: 1180px) {{
-      .layout {{ grid-template-columns: var(--closed-sidebar-width) minmax(0, 1fr); }}
-      body.left-collapsed .layout {{ grid-template-columns: minmax(0, 1fr); }}
-      body.left-collapsed .sidebar {{ display: none; }}
+    @media (min-width: 821px) and (max-width: 1180px) {{
+      .layout {{
+        grid-template-columns: var(--closed-sidebar-width) minmax(0, 1fr);
+        transition: grid-template-columns .24s ease;
+      }}
+      body.left-collapsed .layout {{ grid-template-columns: 0 minmax(0, 1fr); }}
+      /* keep desktop opacity/transform fade — avoid display:none snap */
+      body.left-collapsed .sidebar {{
+        width: 0;
+        min-width: 0;
+        padding-left: 0;
+        padding-right: 0;
+        border-right-color: transparent;
+      }}
     }}
     @media (max-width: 820px) {{
-      .layout {{ grid-template-columns: 1fr; }}
+      html, body {{ overflow-x: hidden; }}
+      .layout {{ grid-template-columns: 1fr; min-width: 0; }}
+      body.left-collapsed .layout {{ grid-template-columns: 1fr; }}
       .sidebar-resizer {{ display: none; }}
+      .sidebar-tabs {{ margin-left: -20px; margin-right: -20px; padding-left: 20px; padding-right: 20px; }}
       .sidebar {{
         position: fixed;
         top: var(--closed-header-height);
@@ -1435,7 +1604,9 @@ def closed_note_html(
         bottom: 0;
         z-index: 70;
         width: 100%;
+        max-width: 100vw;
         height: calc(100svh - var(--closed-header-height));
+        overflow-x: hidden;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
         overscroll-behavior: contain;
@@ -1444,7 +1615,10 @@ def closed_note_html(
         padding: 20px 20px 32px;
         transform: translateX(0);
         transition: transform .24s ease;
+        box-sizing: border-box;
       }}
+      .sidebar * {{ max-width: 100%; }}
+      .sidebar input, .sidebar .search {{ min-width: 0; max-width: 100%; }}
       body.left-collapsed .sidebar {{
         display: block;
         transform: translateX(-100vw);
@@ -1962,14 +2136,14 @@ def closed_note_html(
       document.body.classList.toggle('left-collapsed', collapsed);
       leftToggle?.setAttribute('aria-pressed', String(collapsed));
       window.localStorage.setItem(leftCollapsedKey, collapsed ? '1' : '0');
-      if (window.matchMedia('(max-width: 820px)').matches) {{
+      if (window.matchMedia('(max-width: 1180px)').matches) {{
         sidebar?.setAttribute('aria-hidden', collapsed ? 'true' : 'false');
       }}
     }}
 
     sidebar?.addEventListener('click', (e) => {{
       const link = e.target.closest('a[href]');
-      if (link && window.matchMedia('(max-width: 820px)').matches) setLeftCollapsed(true);
+      if (link && window.matchMedia('(max-width: 1180px)').matches) setLeftCollapsed(true);
     }});
 
     function setSidebarTab(tab, options = {{}}) {{
@@ -1986,8 +2160,8 @@ def closed_note_html(
 
     {{
       const _sc = window.localStorage.getItem(leftCollapsedKey);
-      const _isMobile = window.matchMedia('(max-width: 820px)').matches;
-      if (_sc === '1' || (_sc === null && _isMobile)) {{
+      const _isNarrow = window.matchMedia('(max-width: 1180px)').matches;
+      if (_sc === '1' || (_sc === null && _isNarrow)) {{
         setLeftCollapsed(true);
       }}
     }}
@@ -4897,8 +5071,8 @@ def closed_debug_html(route_prefix: str = "") -> str:
               </div>
               <div class="actions">
                 <select class="input" id="pub-status-filter" style="width:160px;">
-                  <option value="">All statuses</option>
-                  <option value="requested" selected>Requested</option>
+                  <option value="" selected>All statuses</option>
+                  <option value="requested">Requested</option>
                   <option value="reviewing">Reviewing</option>
                   <option value="rejected">Rejected</option>
                   <option value="published">Published</option>

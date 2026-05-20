@@ -1,0 +1,28 @@
+{
+  "run_file": "/home/insu/insu_server/apps/openakashic/closed-web/server/bench/results/run-openakashic-gpt-5_4-mini-20260422T175034Z.json",
+  "judge_model": "gpt-5.4",
+  "model": "gpt-5.4-mini",
+  "condition": "openakashic",
+  "judgments": [
+    {
+      "task_id": "multihop_synthesis",
+      "condition": "openakashic",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [
+        "각 시스템에 대한 배포 전 점검 이유가 한 줄 수준으로 동반"
+      ],
+      "missed": [
+        "구체적 컨테이너/시스템 이름 3개 제시 (ex: insu-server-backend-prod-1, insu-server-ichimozzi-db-1, insu-shared-caddy 또는 동등 수준의 실명)",
+        "추상적이지 않고 실제 인프라 구성요소(Docker container/proxy/DB) 기반"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "답변 일부는 receipt에 나온 `backend-prod`와 `ichimozzi-migration-backend-prod-1`에 근거해 작성되어 있다. 하지만 세 번째 축을 실제 시스템명이 아닌 `https://ichimozzi.com/health` 엔드포인트로 대체해, 인프라 실명 3개를 요구한 기준에는 미달한다.",
+      "reason": "세 항목 모두에 이유를 붙인 점은 충족했다. 그러나 요구사항의 핵심인 실제 인프라 구성요소 3개의 실명을 제시하지 못했고, `health` URL은 컨테이너/proxy/DB 같은 시스템명으로 보기 어렵다. 따라서 expected_outcome 충족률이 80%에 못 미쳐 fail이다.",
+      "score": {
+        "hit_rate": 0.3333333333333333,
+        "traps_hit_count": 0
+      }
+    }
+  ]
+}

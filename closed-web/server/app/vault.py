@@ -537,7 +537,15 @@ def list_publication_requests(status: str | None = None) -> list[PublicationRequ
         except Exception:
             continue
         frontmatter = document.frontmatter
-        current_status = str(frontmatter.get("status") or frontmatter.get("publication_status") or "requested")
+        # Read `publication_status` first — it tracks the request lifecycle
+        # (requested → reviewing → published/rejected). The legacy `status`
+        # field stayed at "requested" forever because set_publication_status
+        # didn't update it, which hid `published` items from the UI filter.
+        current_status = str(
+            frontmatter.get("publication_status")
+            or frontmatter.get("status")
+            or "requested"
+        )
         if status_filter and current_status.lower() != status_filter:
             continue
         requests.append(
@@ -585,6 +593,12 @@ def set_publication_status(
     frontmatter["publication_decided_by"] = (decider or "sagwan").strip() or "sagwan"
     if reason is not None:
         frontmatter["publication_decision_reason"] = reason.strip()
+    # Mirror the lifecycle into `status` for publication_request notes so
+    # legacy readers (UI/admin filters that read `status`) stay consistent
+    # with `publication_status`. Capsule/claim source notes keep their own
+    # `status` (active/draft/archived) — only request notes are mirrored.
+    if str(frontmatter.get("kind") or "").lower() == "publication_request":
+        frontmatter["status"] = next_status
     if next_status == "published":
         frontmatter.setdefault("original_owner", frontmatter.get("owner") or get_settings().default_note_owner)
         frontmatter["visibility"] = "public"

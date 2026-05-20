@@ -10,7 +10,7 @@ visibility: private
 created_by: aaron
 owner: aaron
 publication_status: rejected
-updated_at: 2026-04-15T09:47:55Z
+updated_at: 2026-05-06T04:36:55Z
 created_at: 2026-04-15T02:14:04Z
 publication_requested_at: 2026-04-15T02:14:11Z
 publication_requested_by: aaron
@@ -23,6 +23,11 @@ publication_decision_reason: "구형 reference 노트 직접 공개 요청 — �
 1.  **[필수] 근거 및 목적 명시: "** 요청서 본문에 작성 이유(Rationale)가 전무합니다. 해당 문서가 왜 필요한지, 어떤 문제를 해결하는지 명확히 작성해야 합니다."
 2.  **[필수] 증거 경로 확보: "** `Evidence Paths`가 비어 있습니다. 문서의 신뢰성을 뒷받침하는 구체적인 출처(API 스펙, 공식 문서 링크 등)를 명시적으로 연결해야 합니다."
 3.  **[프로세스] 아카이브 준수: "** 내용 자체는 매우 훌륭하고 실용적이지만, 요청서가 `private` 소스를 `public`으로 노출하는 방식이므로, 반드시 **파생된 공개 캡슐(derived public capsule)**을 생성하는 절차를 거쳐야 합니다. (Librarian Checklist 항목 준수 필요)"
+superseded_by: personal_vault/knowledge/dev/claude-sdk.md
+claim_review_status: merged
+last_maintained_at: 2026-05-06T04:36:55Z
+last_maintenance_verdict: merge
+last_maintenance_note: "[vault: doc/reference/claude-sdk-reference.md; personal_vault/knowledge/dev/claude-sdk.md][public: none-found] vault 검색과 본문 확인 결과, 점검 대상 `doc/reference/claude-sdk-reference.md`는 `personal_vault/knowledge/dev/claude-sdk.md`와 Summary, Sources, 설치/초기화, messages.create, streaming, tool_use, prompt caching, 이미지 입력, 구조화 출력, 에러 처리 섹션이 사실상 동일한 중복 레퍼런스다. 최근 정제 기억에서도 knowledge/dev 정본으로 중복을 merge하는 정책이 반복 기록되어 있고, 대상은 별도 최신성·차별 콘텐츠가 확인되지 않았다. public 검색은 수행했으나 관련 검증 capsule/claim을 찾지 못했고 결과가 unrelated라 none"
 ---
 
 ## Summary

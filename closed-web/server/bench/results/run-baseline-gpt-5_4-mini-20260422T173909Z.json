@@ -1,0 +1,22 @@
+{
+  "model": "gpt-5.4-mini",
+  "condition": "baseline",
+  "timestamp": "20260422T173909Z",
+  "records": [
+    {
+      "task_id": "onboarding_openakashic",
+      "condition": "baseline",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "started_at": "2026-04-22T17:38:27+00:00",
+      "finished_at": "2026-04-22T17:39:09+00:00",
+      "plan": "",
+      "tool_calls": [],
+      "answer": "처음 들어온 에이전트라면 아래 순서로 시작하면 됩니다.\n\n1. 먼저 현재 작업 규칙부터 읽기\n- 이 프로젝트의 최상위 지침: `AGENTS.md`\n- 지금 대화에 포함된 규칙을 우선 준수하세요.\n- 핵심만 요약하면, 장기 기억은 `Closed Akashic MCP`만 사용하고, 로컬 `agent-knowledge`는 쓰지 않습니다.\n\n2. 프로젝트별 시작점 찾기\n- 해당 프로젝트가 속한 경로를 확인한 뒤, 아래 파일을 먼저 엽니다.\n- `personal_vault/projects/<scope>/<project>/README.md`\n- 여기서 `<scope>`는 보통 `personal`, `company`, `client`, `research`, `ops` 중 하나입니다.\n- `<project>`는 실제 프로젝트 이름입니다.\n\n3. 그다음 읽을 곳의 우선순위\n- `personal_vault/projects/<scope>/<project>/README.md`\n- `doc/` 아래의 프로젝트 문서\n- `personal_vault/` 아래의 관련 하위 폴더들\n  - 예: `architecture/`, `playbooks/`, `incidents/`, `decisions/`, `experiments/`, `reference/`\n- `assets/images/`는 이미지 자료가 필요할 때만 확인합니다.\n\n4. 작업 시작 방식\n- 먼저 기존 노트를 찾습니다.\n- 이미 같은 주제의 노트가 있으면 새로 만들지 말고 그 노트를 업데이트합니다.\n- 필요한 경우에만 새 노트를 추가합니다.\n- 작업이 의미 있게 진행되면, 짧고 연결된 형태로 하나의 노트를 쓰거나 기존 노트에 섹션을 덧붙입니다.\n\n5. 기억과 기록 규칙\n- 장기 메모리는 `Closed Akashic MCP`만 사용합니다.\n- 로컬 `agent-knowledge`는 읽거나 갱신하지 않습니다.\n- 기록은 `doc/`, `personal_vault/` 하위 폴더, 또는 업로드가 필요한 경우 `assets/images/` 안에서만 관리합니다.\n\n6. 주의사항\n- 프로젝트 루트가 아직 불명확하면, 임의로 경로를 만들지 말고 먼저 `scope`와 `project`를 식별해야 합니다.\n- 문서가 여러 개면 가장 최근의 `README.md`와 결정 문서부터 봅니다.\n- 작업 전에 관련 노트를 찾고, 작업 후에는 요약을 남기는 흐름을 유지하세요.\n- 기존 노트가 맞는 컨테이너면 새 파일을 만들지 않는 것이 원칙입니다.\n\n실무적으로는 이렇게 시작하면 됩니다.\n- 1) `AGENTS.md` 확인\n- 2) `personal_vault/projects/<scope>/<project>/README.md` 확인\n- 3) 관련 `doc/` 문서 확인\n- 4) 기존 노트 검색\n- 5) 필요한 업데이트 또는 새 노트 작성\n\n원하면 다음 답변에서 제가 바로 쓸 수 있게, \"첫 진입용 체크리스트\" 형태로 더 짧게 정리해드릴게요.",
+      "raw_model_output_turn1": "{\"answer\":\"처음 들어온 에이전트라면 아래 순서로 시작하면 됩니다.\\n\\n1. 먼저 현재 작업 규칙부터 읽기\\n- 이 프로젝트의 최상위 지침: `AGENTS.md`\\n- 지금 대화에 포함된 규칙을 우선 준수하세요.\\n- 핵심만 요약하면, 장기 기억은 `Closed Akashic MCP`만 사용하고, 로컬 `agent-knowledge`는 쓰지 않습니다.\\n\\n2. 프로젝트별 시작점 찾기\\n- 해당 프로젝트가 속한 경로를 확인한 뒤, 아래 파일을 먼저 엽니다.\\n- `personal_vault/projects/<scope>/<project>/README.md`\\n- 여기서 `<scope>`는 보통 `personal`, `company`, `client`, `research`, `ops` 중 하나입니다.\\n- `<project>`는 실제 프로젝트 이름입니다.\\n\\n3. 그다음 읽을 곳의 우선순위\\n- `personal_vault/projects/<scope>/<project>/README.md`\\n- `doc/` 아래의 프로젝트 문서\\n- `personal_vault/` 아래의 관련 하위 폴더들\\n  - 예: `architecture/`, `playbooks/`, `incidents/`, `decisions/`, `experiments/`, `reference/`\\n- `assets/images/`는 이미지 자료가 필요할 때만 확인합니다.\\n\\n4. 작업 시작 방식\\n- 먼저 기존 노트를 찾습니다.\\n- 이미 같은 주제의 노트가 있으면 새로 만들지 말고 그 노트를 업데이트합니다.\\n- 필요한 경우에만 새 노트를 추가합니다.\\n- 작업이 의미 있게 진행되면, 짧고 연결된 형태로 하나의 노트를 쓰거나 기존 노트에 섹션을 덧붙입니다.\\n\\n5. 기억과 기록 규칙\\n- 장기 메모리는 `Closed Akashic MCP`만 사용합니다.\\n- 로컬 `agent-knowledge`는 읽거나 갱신하지 않습니다.\\n- 기록은 `doc/`, `personal_vault/` 하위 폴더, 또는 업로드가 필요한 경우 `assets/images/` 안에서만 관리합니다.\\n\\n6. 주의사항\\n- 프로젝트 루트가 아직 불명확하면, 임의로 경로를 만들지 말고 먼저 `scope`와 `project`를 식별해야 합니다.\\n- 문서가 여러 개면 가장 최근의 `README.md`와 결정 문서부터 봅니다.\\n- 작업 전에 관련 노트를 찾고, 작업 후에는 요약을 남기는 흐름을 유지하세요.\\n- 기존 노트가 맞는 컨테이너면 새 파일을 만들지 않는 것이 원칙입니다.\\n\\n실무적으로는 이렇게 시작하면 됩니다.\\n- 1) `AGENTS.md` 확인\\n- 2) `personal_vault/projects/<scope>/<project>/README.md` 확인\\n- 3) 관련 `doc/` 문서 확인\\n- 4) 기존 노트 검색\\n- 5) 필요한 업데이트 또는 새 노트 작성\\n\\n원하면 다음 답변에서 제가 바로 쓸 수 있게, \\\"첫 진입용 체크리스트\\\" 형태로 더 짧게 정리해드릴게요.\"}",
+      "raw_model_output_turn2": "",
+      "error": null,
+      "format_violation": false
+    }
+  ]
+}

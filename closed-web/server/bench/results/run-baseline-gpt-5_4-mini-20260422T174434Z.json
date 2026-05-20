@@ -1,0 +1,22 @@
+{
+  "model": "gpt-5.4-mini",
+  "condition": "baseline",
+  "timestamp": "20260422T174434Z",
+  "records": [
+    {
+      "task_id": "onboarding_openakashic",
+      "condition": "baseline",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "started_at": "2026-04-22T17:44:16+00:00",
+      "finished_at": "2026-04-22T17:44:34+00:00",
+      "plan": "",
+      "tool_calls": [],
+      "answer": "시작 순서는 이렇게 보면 됩니다.\n\n1. 먼저 공통 규칙을 읽으세요.\n- 이 대화에 포함된 `AGENTS.md`의 Codex Memory Rules가 최우선입니다.\n- 핵심은 `Closed Akashic MCP`만 장기 메모리로 쓰고, 로컬 `agent-knowledge`는 사용하지 않는 것입니다.\n\n2. 그다음 프로젝트 인덱스를 찾으세요.\n- 경로: `personal_vault/projects/<scope>/<project>/README.md`\n- `<scope>`는 보통 `personal`, `company`, `client`, `research`, `ops` 중 하나입니다.\n- 여기 파일이 있으면 그 프로젝트의 진짜 출발점입니다.\n\n3. README 다음에는 관련 노트를 읽으세요.\n- 우선순위는 보통 아래 순서가 좋습니다.\n- `personal_vault/projects/<scope>/<project>/README.md`\n- `personal_vault/projects/<scope>/<project>/architecture/`\n- `personal_vault/projects/<scope>/<project>/decisions/`\n- `personal_vault/projects/<scope>/<project>/playbooks/`\n- `personal_vault/projects/<scope>/<project>/reference/`\n- `personal_vault/projects/<scope>/<project>/incidents/`\n- `personal_vault/projects/<scope>/<project>/experiments/`\n\n4. 읽는 순서는 이렇게 잡으면 안전합니다.\n- `README.md`에서 프로젝트 목적, 현재 상태, 링크된 문서 확인\n- `decisions/`에서 이미 정해진 방침 확인\n- `architecture/`에서 구조와 경계 확인\n- `playbooks/`에서 실제 작업 절차 확인\n- `reference/`에서 배경 지식 확인\n- `incidents/`와 `experiments/`는 문제 재현이나 검증이 필요할 때만 확인\n\n5. 작업을 시작할 때 주의할 점입니다.\n- 기존 노트가 맞는 컨테이너면 새로 만들지 말고 그 노트를 갱신하세요.\n- 불필요하게 여러 노트를 중복 생성하지 마세요.\n- 작업 후에는 짧고 연결된 노트 1개만 남기거나, 기존 노트에 필요한 섹션만 추가하세요.\n- 노트는 `doc/`, `personal_vault/` 하위, 또는 이미지면 `assets/images/`에만 두세요.\n- 관련 없는 파일이나 메모는 건드리지 마세요.\n\n6. 실제 작업 흐름은 이렇게 하면 됩니다.\n- 프로젝트 범위 파악\n- `README.md` 읽기\n- 관련 기존 노트 검색\n- 필요한 정보만 정리\n- 구현/분석 진행\n- 끝나면 결과를 `Closed Akashic`에 짧게 기록\n\n7. 처음 들어온 에이전트라면 가장 중요한 체크포인트입니다.\n- 이 프로젝트의 정답은 보통 README와 기존 결정 노트에 있습니다.\n- 처음부터 새 규칙을 만들기보다, 이미 있는 문서를 우선 신뢰하세요.\n- `agent-knowledge`는 참고하지 마세요.\n\n프로젝트의 정확한 이름과 scope를 알면, 내가 그에 맞는 실제 시작 경로를 더 구체적으로 좁혀서 안내할 수 있습니다.",
+      "raw_model_output_turn1": "{\"answer\":\"시작 순서는 이렇게 보면 됩니다.\\n\\n1. 먼저 공통 규칙을 읽으세요.\\n- 이 대화에 포함된 `AGENTS.md`의 Codex Memory Rules가 최우선입니다.\\n- 핵심은 `Closed Akashic MCP`만 장기 메모리로 쓰고, 로컬 `agent-knowledge`는 사용하지 않는 것입니다.\\n\\n2. 그다음 프로젝트 인덱스를 찾으세요.\\n- 경로: `personal_vault/projects/<scope>/<project>/README.md`\\n- `<scope>`는 보통 `personal`, `company`, `client`, `research`, `ops` 중 하나입니다.\\n- 여기 파일이 있으면 그 프로젝트의 진짜 출발점입니다.\\n\\n3. README 다음에는 관련 노트를 읽으세요.\\n- 우선순위는 보통 아래 순서가 좋습니다.\\n- `personal_vault/projects/<scope>/<project>/README.md`\\n- `personal_vault/projects/<scope>/<project>/architecture/`\\n- `personal_vault/projects/<scope>/<project>/decisions/`\\n- `personal_vault/projects/<scope>/<project>/playbooks/`\\n- `personal_vault/projects/<scope>/<project>/reference/`\\n- `personal_vault/projects/<scope>/<project>/incidents/`\\n- `personal_vault/projects/<scope>/<project>/experiments/`\\n\\n4. 읽는 순서는 이렇게 잡으면 안전합니다.\\n- `README.md`에서 프로젝트 목적, 현재 상태, 링크된 문서 확인\\n- `decisions/`에서 이미 정해진 방침 확인\\n- `architecture/`에서 구조와 경계 확인\\n- `playbooks/`에서 실제 작업 절차 확인\\n- `reference/`에서 배경 지식 확인\\n- `incidents/`와 `experiments/`는 문제 재현이나 검증이 필요할 때만 확인\\n\\n5. 작업을 시작할 때 주의할 점입니다.\\n- 기존 노트가 맞는 컨테이너면 새로 만들지 말고 그 노트를 갱신하세요.\\n- 불필요하게 여러 노트를 중복 생성하지 마세요.\\n- 작업 후에는 짧고 연결된 노트 1개만 남기거나, 기존 노트에 필요한 섹션만 추가하세요.\\n- 노트는 `doc/`, `personal_vault/` 하위, 또는 이미지면 `assets/images/`에만 두세요.\\n- 관련 없는 파일이나 메모는 건드리지 마세요.\\n\\n6. 실제 작업 흐름은 이렇게 하면 됩니다.\\n- 프로젝트 범위 파악\\n- `README.md` 읽기\\n- 관련 기존 노트 검색\\n- 필요한 정보만 정리\\n- 구현/분석 진행\\n- 끝나면 결과를 `Closed Akashic`에 짧게 기록\\n\\n7. 처음 들어온 에이전트라면 가장 중요한 체크포인트입니다.\\n- 이 프로젝트의 정답은 보통 README와 기존 결정 노트에 있습니다.\\n- 처음부터 새 규칙을 만들기보다, 이미 있는 문서를 우선 신뢰하세요.\\n- `agent-knowledge`는 참고하지 마세요.\\n\\n프로젝트의 정확한 이름과 scope를 알면, 내가 그에 맞는 실제 시작 경로를 더 구체적으로 좁혀서 안내할 수 있습니다.\"}",
+      "raw_model_output_turn2": "",
+      "error": null,
+      "format_violation": false
+    }
+  ]
+}

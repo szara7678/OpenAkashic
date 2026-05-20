@@ -5,19 +5,24 @@ project: openakashic
 status: active
 confidence: high
 tags: [japanese, learning, grammar, vocabulary, jlpt, japan-foundation]
-related: ["Japanese Learning Capsules", "Development Resource Map"]
+related: ["Development Resource Map", "Japanese Learning Capsules", "personal_vault/projects/personal/japanese-class-notes/reference/Japanese Class Document Map.md", "personal_vault/shared/reference/Japanese Learning Capsules.md"]
 owner: sagwan
 visibility: public
 publication_status: published
 created_by: aaron
 original_owner: aaron
 created_at: 2026-04-14T00:00:00Z
-updated_at: 2026-04-22T08:56:01Z
+updated_at: 2026-05-09T06:55:22Z
 core_api_id: 2ab1861c-1cfd-4135-883b-3753179012c6
 last_validated_at: 2026-04-22T08:56:01Z
 sagwan_validation_count: 9
 sagwan_last_validation_verdict: ok
-sagwan_last_validation_note: "LLM unavailable: [CLI 오류 1] SessionEnd hook [node \\"/home/insu/.pixel-agents/hooks/claude-hook.js\\"] failed: node:internal/modules/cjs/load"
+sagwan_last_validation_note: "LLM unavailable: [CLI 오류 1] SessionEnd hook [node \\\\\\"/home/insu/.pixel-agents/hooks/claude-hook.js\\\\\\"] failed: node:internal/modules/cjs/load"
+revision_count: 1
+last_maintained_at: 2026-05-09T06:55:22Z
+last_maintenance_verdict: keep
+last_maintenance_note: "[vault: doc/reference/Japanese Learning Resource Map.md; personal_vault/shared/reference/Japanese Learning Capsules.md; personal_vault/projects/personal/japanese-class-notes/reference/Japanese Class Document Map.md; personal_vault/projects/personal/ichimozzi/reference/IchiMozzi Class Material Absorption Map 2026-04-23.md][public: Japanese Learning Resource Map; Japanese Learning Capsules; Public JLPT materials provide level summaries and sample-question formats, but they do not provide a complet"
+related_candidates: [{"path": "personal_vault/projects/personal/ichimozzi/reference/IchiMozzi Class Material Absorption Map 2026-04-23.md", "count": 1, "last_seen_at": "2026-05-09T06:55:22Z", "last_stage": "maintenance", "last_verdict": "keep"}]
 ---
 
 ## Summary
@@ -98,41 +103,9 @@ sagwan_last_validation_note: "LLM unavailable: [CLI 오류 1] SessionEnd hook [n
 - Irodori는 일본 생활 장면 중심으로 학습 목표를 잡기 좋다.
 - NHK Easy Japanese는 입문자의 듣기/표현 루틴에 쓰기 좋다.
 
+## Related Notes
+- [[Japanese Learning Capsules]]: 이 맵을 바탕으로 실제 재사용 가능한 루틴 capsule을 제공한다.
+- [[Japanese Class Document Map]]: 개인 일본어 수업 노트와 IchiMozzi 쪽 일본어 학습 문서 탐색에 사용한다.
+
 ## Reuse
-일본어 관련 요청은 이 문서로 레벨을 먼저 정하고, 관련 capsule을 찾아 응답한다. 새 단어장이나 문법 정리는 `Japanese Learning Capsules`에 추가한다.
-
-## Sagwan Revalidation 2026-04-15T06:50:19Z
-- verdict: `refresh`
-- note: anime-manga.jp URL 신뢰도 낮고, 2025년 이후 자료 업데이트 여부 불명. 핵심 공식 링크(JLPT/JF/NHK)는 유효하나 전체 재검증 권장.
-
-## Sagwan Revalidation 2026-04-15T06:59:52Z
-- verdict: `refresh`
-- note: 공식 자료(JLPT, JF) 구조는 유효하나, 1년 경과로 URL 정확성 미검증, anime-manga.jp 도메인 의심, 최신 AI 학습 도구 누락.
-
-## Sagwan Revalidation 2026-04-16T07:10:16Z
-- verdict: `refresh`
-- note: 마지막 문장 미완성("vocabulary list는 비공식" 뒤 끝남), anime-manga.jp URL 유효성 확인 필요, 2026년 최신 자료 통합 권장.
-
-## Sagwan Revalidation 2026-04-17T07:17:37Z
-- verdict: `ok`
-- note: 공식 출처 기반(JLPT/JF), 어제 검증, 학습 루틴은 현대적, 명백한 오류 없음.
-
-## Sagwan Revalidation 2026-04-18T07:36:50Z
-- verdict: `refresh`
-- note: JLPT 트랙 섹션 마지막 문장이 불완전하고, anime-manga.jp 링크의 공신력을 확인 필요.
-
-## Sagwan Revalidation 2026-04-19T08:09:23Z
-- verdict: `ok`
-- note: 전일(2026-04-18) 재검증 완료, 공식 기관(JLPT·JF·NHK·문화청) URL 구조 안정적이며 CEFR 기반 레벨 기술도 현행 practice와 일치.
-
-## Sagwan Revalidation 2026-04-20T08:11:15Z
-- verdict: `ok`
-- note: LLM unavailable: [CLI 오류 1] SessionEnd hook [node "/home/insu/.pixel-agents/hooks/claude-hook.js"] failed: node:internal/modules/cjs/load
-
-## Sagwan Revalidation 2026-04-21T08:27:17Z
-- verdict: `ok`
-- note: LLM unavailable: [CLI 오류 1] SessionEnd hook [node "/home/insu/.pixel-agents/hooks/claude-hook.js"] failed: node:internal/modules/cjs/load
-
-## Sagwan Revalidation 2026-04-22T08:56:01Z
-- verdict: `ok`
-- note: LLM unavailable: [CLI 오류 1] SessionEnd hook [node "/home/insu/.pixel-agents/hooks/claude-hook.js"] failed: node:internal/modules/cjs/load
+일본어 학습 관련 새 노트를 만들 때는 먼저 이 맵에서 레벨과 자료 유형을 정한 뒤, 세부 내용은 `can-do`, `vocab`, `grammar`, `listening`, `reading`, `jlpt` 중 하나의 작은 capsule로 분리한다. 공개 노트에는 공식 자료의 URL, 공개 가능한 요약, 직접 만든 예문과 루틴만 남기고, 교재·수업자료·개인 기록의 원문 대량 복제는 피한다.

@@ -10,7 +10,7 @@ visibility: private
 created_by: aaron
 owner: aaron
 publication_status: rejected
-updated_at: 2026-04-15T09:47:57Z
+updated_at: 2026-05-05T05:53:01Z
 created_at: 2026-04-15T02:08:58Z
 publication_requested_at: 2026-04-15T02:09:15Z
 publication_requested_by: aaron
@@ -21,6 +21,12 @@ publication_decision_reason: "구형 reference 노트 직접 공개 요청 — �
 **Recommendation: "** reviewing"
 **Reason: "**"
 **Review Summary: "**"
+superseded_by: personal_vault/knowledge/dev/github-actions.md
+claim_review_status: merged
+last_maintained_at: 2026-05-05T05:53:00Z
+last_maintenance_verdict: merge
+last_maintenance_note: "[vault: doc/reference/github-actions-guide.md; personal_vault/knowledge/dev/github-actions.md; personal_vault/knowledge/dev/cicd-deployment.md; personal_vault/projects/ops/librarian/capsules/GitHub Actions CI/CD Capsule.md][public: OpenAkashic public search returned no directly relevant GitHub Actions capsule; target/source references GitHub Actions Documentation https://docs.github.com/en/actions] 대상 노트와 personal_vault/knowledge/dev/github-actions.md는 Summary, 본문 구조, 예제, Reuse/References까지 사실상 "
+related_candidates: [{"path": "personal_vault/knowledge/dev/cicd-deployment.md", "count": 1, "last_seen_at": "2026-05-05T05:53:01Z", "last_stage": "maintenance", "last_verdict": "merge"}, {"path": "personal_vault/projects/ops/librarian/capsules/GitHub Actions CI/CD Capsule.md", "count": 1, "last_seen_at": "2026-05-05T05:53:01Z", "last_stage": "maintenance", "last_verdict": "merge"}]
 ---
 
 ## Summary

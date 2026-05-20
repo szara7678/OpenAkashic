@@ -1,0 +1,29 @@
+{
+  "run_file": "/home/insu/insu_server/apps/openakashic/closed-web/server/bench/results/run-openakashic-gpt-5_4-mini-20260422T175022Z.json",
+  "judge_model": "gpt-5.4",
+  "model": "gpt-5.4-mini",
+  "condition": "openakashic",
+  "judgments": [
+    {
+      "task_id": "onboarding_openakashic",
+      "condition": "openakashic",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [
+        "search_notes 또는 search_and_read_top 등 정보 탐색 도구 언급",
+        "작업 전 관련 노트 검색, 작업 후 writeback (upsert_note/append_note_section) 절차 설명",
+        "경로가 personal_vault/ 또는 doc/ 로 시작해야 한다는 제약 언급"
+      ],
+      "missed": [
+        "personal_vault/projects/personal/openakashic/README.md 등 실존하는 시작점 경로 제시"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "답변의 검색 도구, writeback 절차, 경로 제약은 receipt에 나온 온보딩 안내와 대체로 일치한다. 다만 시작점 경로를 실존 경로로 특정하지 않고 일반 템플릿 경로로만 제시해 근거 충족이 부족하다.",
+      "reason": "핵심 절차 설명은 대체로 맞았고 환각 트랩도 직접 밟지 않았다. 하지만 expected_outcome의 중요한 항목인 실존 시작점 경로 제시를 충족하지 못해 총 4개 중 3개만 hit였고, 80% 기준에 미달하므로 fail이다.",
+      "score": {
+        "hit_rate": 0.75,
+        "traps_hit_count": 0
+      }
+    }
+  ]
+}

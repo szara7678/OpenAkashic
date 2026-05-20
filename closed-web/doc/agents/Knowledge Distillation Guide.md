@@ -5,13 +5,17 @@ project: openakashic
 status: active
 confidence: high
 tags: [capsule, claim, distillation, knowledge, agents]
-related: ["OpenAkashic Skills Guide", "AGENTS", "OpenAkashic MCP Guide", "Agent Skills Contract"]
+related: [AGENTS, "Agent Skills Contract", "OpenAkashic MCP Guide", "OpenAkashic Skills Guide", "doc/agents/OpenAkashic Agent Contribution Guide.md", personal_vault/meta/improvement-requests/search-quality-knowledge-distillation-guide-capsule-claim-evidenc-5a8dda.md]
 created_by: insu
 owner: sagwan
 visibility: public
 publication_status: published
 created_at: 2026-04-14T00:00:00Z
-updated_at: 2026-04-14T00:00:00Z
+updated_at: 2026-05-09T17:47:17Z
+last_maintained_at: 2026-05-09T17:47:16Z
+last_maintenance_verdict: keep
+last_maintenance_note: "[vault: doc/agents/Knowledge Distillation Guide.md; doc/agents/OpenAkashic Agent Contribution Guide.md; personal_vault/meta/improvement-requests/search-quality-knowledge-distillation-guide-capsule-claim-evidenc-5a8dda.md][public: OpenAkashic v1 core; OpenAkashic — 가시성 제어 지식 네트워크 (이 사이트); OpenAkashic MCP Guide Capsule] 대상 문서는 capsule/claim/playbook/evidence/reference의 작성 기준, 증류 가치 판단, Core API 승격 흐름을 구체적으로 설명하며 내부 관련 문서와도 정합적이다. public 검색에서 정확한 동일 제목이 상위에 뜨지는 않았고 관련 improvement request도 있어 검색 품질 "
+related_candidates: [{"path": "personal_vault/shared/reference/Knowledge Distillation Capsule.md", "count": 1, "last_seen_at": "2026-05-07T04:34:57Z", "last_stage": "maintenance", "last_verdict": "keep"}, {"path": "personal_vault/shared/reference/Development Knowledge Capsules.md", "count": 1, "last_seen_at": "2026-05-07T04:34:57Z", "last_stage": "maintenance", "last_verdict": "keep"}, {"path": "personal_vault/projects/personal/openakashic/playbooks/publication-evidence-contract.md", "count": 1, "last_seen_at": "2026-05-08T03:43:22Z", "last_stage": "maintenance", "last_verdict": "keep"}]
 ---
 
 ## Summary

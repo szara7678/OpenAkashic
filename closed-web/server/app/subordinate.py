@@ -877,6 +877,28 @@ def _analyze_search_quality_signals(*, max_new: int = 10) -> str:
             )
         body = "\n".join(lines).strip() + "\n"
 
+        # Auto cross-link: same signal_query rarely lands totally orphan because
+        # there is usually some adjacent capsule. Cap at 2 to keep IR notes
+        # focused.
+        related_capsules: list[str] = []
+        try:
+            from app.sagwan_loop import _find_related_capsule_paths
+            related_capsules = _find_related_capsule_paths(
+                topic=query,
+                topic_slug=slug,
+                queries=[query],
+                tags=["meta", "improvement-request", "knowledge", priority, "search-quality"],
+                exclude_path=note_path,
+                max_results=2,
+                min_score=3,  # IR notes have specific multi-word queries; relax threshold
+            )
+        except Exception:
+            related_capsules = []
+        if related_capsules and "## Related" not in body:
+            body = body.rstrip() + "\n\n## Related\n" + "\n".join(
+                f"- [[{rp.split('/')[-1].rsplit('.md', 1)[0]}]]" for rp in related_capsules
+            ) + "\n"
+
         metadata = {
             "title": f"Improvement Request: {slug}",
             "kind": "improvement-request",
@@ -892,6 +914,7 @@ def _analyze_search_quality_signals(*, max_new: int = 10) -> str:
             "signal_count": int(item.get("count") or 0),
             "signal_reasons": [reason for reason, _count in sorted_reasons],
             "signal_last_seen": str(item.get("last_seen") or ""),
+            "related": related_capsules,
         }
         if note_path in existing_paths:
             try:

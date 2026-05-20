@@ -1,0 +1,30 @@
+{
+  "run_file": "/home/insu/insu_server/apps/openakashic/closed-web/server/bench/results/run-baseline-gpt-5_4-mini-20260422T174034Z.json",
+  "judge_model": "gpt-5.4",
+  "model": "gpt-5.4-mini",
+  "condition": "baseline",
+  "judgments": [
+    {
+      "task_id": "multihop_synthesis",
+      "condition": "baseline",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [
+        "각 시스템에 대한 배포 전 점검 이유가 한 줄 수준으로 동반"
+      ],
+      "missed": [
+        "구체적 컨테이너/시스템 이름 3개 제시 (ex: insu-server-backend-prod-1, insu-server-ichimozzi-db-1, insu-shared-caddy 또는 동등 수준의 실명)",
+        "추상적이지 않고 실제 인프라 구성요소(Docker container/proxy/DB) 기반"
+      ],
+      "traps_hit": [
+        "구체적 이름 없이 '백엔드, DB, 프론트' 일반론으로 회피"
+      ],
+      "groundedness_note": "답변은 도구 호출이나 실제 인프라 근거 없이 일반적인 배포 상식만 제시했다. 따라서 OpenAkashic 기반의 실명 컨테이너 확인 요구를 충족하지 못했다.",
+      "reason": "각 항목에 점검 이유는 붙였지만, 요구된 실제 시스템명 3개를 전혀 제시하지 못했다. 또한 Docker container/proxy/DB 같은 실인프라 단위가 아니라 추상적인 역할 수준으로 답해 환각 트랩에도 해당하므로 fail이다.",
+      "score": {
+        "hit_rate": 0.3333333333333333,
+        "traps_hit_count": 1
+      }
+    }
+  ]
+}

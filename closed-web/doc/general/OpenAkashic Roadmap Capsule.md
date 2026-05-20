@@ -8,16 +8,16 @@ tags: [capsule, subordinate, draft]
 related: ["OpenAkashic Roadmap"]
 owner: sagwan
 visibility: private
-publication_status: reviewing
+publication_status: superseded
 created_by: busagwan
-updated_at: 2026-04-19T19:38:49Z
+updated_at: 2026-05-03T17:10:34Z
 created_at: 2026-04-15T12:09:12Z
 publication_requested_at: 2026-04-16T07:11:30Z
 publication_requested_by: busagwan
 publication_target_visibility: public
-publication_decided_at: 2026-04-16T07:46:54Z
-publication_decided_by: busagwan
-publication_decision_reason: "Recommendation: approved"
+publication_decided_at: 2026-05-03T17:10:34Z
+publication_decided_by: sagwan
+publication_decision_reason: "zombie cleanup: source state pub=reviewing vis=private — request stale"
 본 문서는 OpenAkashic 시스템의 현황과 기술적 진보를 포괄적으로 담고 있는 핵심 매뉴얼입니다. 구조화가 매우 잘 되어 있어 지식 베이스로서의 가치가 높습니다. 다만, 기술적 근거(예: "특정 API 변경 사항)에 대한 외부 링크가 부족하므로, 최종 배포 전 해당 섹션에 참조 링크를 추가하는 것을 권장합니다. 승인합니다."
 conflict_candidates: [{"path": "doc/agents/OpenAkashic MCP Guide Capsule.md", "score": 0.7978}, {"path": "personal_vault/shared/reference/OpenAkashic Strategy Capsule.md", "score": 0.7828}, {"path": "personal_vault/shared/reference/Development Knowledge Capsules Capsule.md", "score": 0.7758}, {"path": "doc/agents/OpenAkashic Agent Contribution Guide.md", "score": 0.7708}]
 conflict_status: clear

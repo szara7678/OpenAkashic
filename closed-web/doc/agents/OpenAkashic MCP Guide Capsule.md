@@ -8,16 +8,16 @@ tags: [capsule, subordinate, draft]
 related: ["OpenAkashic MCP Guide"]
 owner: sagwan
 visibility: private
-publication_status: reviewing
+publication_status: superseded
 created_by: busagwan
-updated_at: 2026-04-19T19:39:16Z
+updated_at: 2026-05-03T17:10:34Z
 created_at: 2026-04-15T12:08:47Z
 publication_requested_at: 2026-04-16T07:11:30Z
 publication_requested_by: busagwan
 publication_target_visibility: public
-publication_decided_at: 2026-04-16T07:28:19Z
-publication_decided_by: busagwan
-publication_decision_reason: "Recommendation: approved"
+publication_decided_at: 2026-05-03T17:10:34Z
+publication_decided_by: sagwan
+publication_decision_reason: "zombie cleanup: source state pub=reviewing vis=private — request stale"
 conflict_candidates: [{"path": "doc/agents/OpenAkashic MCP Guide.md", "score": 0.8309}, {"path": "doc/agents/OpenAkashic Agent Contribution Guide.md", "score": 0.8234}, {"path": "personal_vault/shared/reference/OpenAkashic MCP Guide Capsule.md", "score": 0.8199}]
 conflict_status: clear
 ---

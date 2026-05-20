@@ -1,0 +1,22 @@
+{
+  "model": "gpt-5.4-mini",
+  "condition": "standard",
+  "timestamp": "20260422T174502Z",
+  "records": [
+    {
+      "task_id": "onboarding_openakashic",
+      "condition": "standard",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "started_at": "2026-04-22T17:44:34+00:00",
+      "finished_at": "2026-04-22T17:45:02+00:00",
+      "plan": "OpenAkashic에서는 먼저 프로젝트 인덱스인 `personal_vault/projects/<scope>/<project>/README.md`를 확인하고, 그다음 관련 노트들을 `search_notes`/`read_note` 순서로 좁혀 들어가며 작업을 시작한다. 초기 작업 결과는 기존에 맞는 노트에 이어 붙이거나, 새 노트가 필요하면 프로젝트 폴더 아래에 한 개의 짧은 기록으로 남기고, 로컬 `agent-knowledge`는 사용하지 않는다.",
+      "tool_calls": [],
+      "answer": "작업 시작 순서는 이렇게 잡으면 됩니다.\n\n1. 먼저 루트의 `AGENTS.md`를 읽어 현재 작업 규칙을 확인합니다.\n2. 프로젝트가 있으면 바로 `personal_vault/projects/<scope>/<project>/README.md`를 읽습니다.\n   - 보통 `<scope>`는 `personal`, `company`, `client`, `research`, `ops` 중 하나입니다.\n   - README가 프로젝트의 진입점입니다. 여기서 목적, 현재 상태, 관련 문서 링크를 먼저 파악합니다.\n3. 그 다음 Closed Akashic에서 관련 노트를 검색합니다.\n   - 우선 `search_notes` 또는 `search_akashic` 계열로 프로젝트명, 핵심 키워드, 최근 결정/이슈를 찾습니다.\n   - 새로 들어온 에이전트라면 “무엇이 이미 정리돼 있는지”를 먼저 확인하는 게 중요합니다.\n4. 관련 노트를 찾으면 읽기 순서는 보통 이렇습니다.\n   - `README.md`\n   - `decisions/` 또는 결정 노트\n   - `reference/` 또는 배경 자료\n   - `playbooks/` 또는 작업 절차\n   - `incidents/` 또는 장애/리스크 기록\n   - `experiments/` 또는 검증 결과\n5. 그다음 작업을 시작합니다.\n   - 아직 프로젝트 메모리가 없으면 `bootstrap_project`로 프로젝트 뼈대를 만듭니다.\n   - 기존 노트가 맞는 컨테이너면 새로 만들지 말고 그 노트에 이어서 적습니다.\n   - 의미 있는 작업을 마치면 `upsert_note` 또는 `append_note_section`으로 짧고 연결된 기록을 남깁니다.\n\n실무적으로는 이 순서를 추천합니다.\n- 1차: `AGENTS.md`\n- 2차: `personal_vault/projects/<scope>/<project>/README.md`\n- 3차: Closed Akashic 검색\n- 4차: 관련 결정/참조 문서 읽기\n- 5차: 필요한 경우 프로젝트 구조 정리 또는 노트 추가\n- 6차: 코드/문서 작업 시작\n\n주의사항도 중요합니다.\n- `agent-knowledge` 같은 로컬 메모리 부트스트랩은 쓰지 않습니다. Closed Akashic만 공유 메모리로 사용합니다.\n- 기존 노트가 있으면 새 노트를 남발하지 말고 그 노트를 갱신합니다.\n- 메모리는 `personal_vault/` 아래나 `doc/` 아래처럼 정해진 위치에만 둡니다.\n- 의미 없는 큰 변경보다, 작고 추적 가능한 변경과 짧은 노트가 좋습니다.\n- 다른 사람이 만든 변경은 되돌리지 말고, 현재 상태를 기준으로 이어서 작업합니다.\n\n처음 진입할 때의 실제 체크리스트는 이 정도면 충분합니다.\n- 프로젝트명 확인\n- `README.md` 확인\n- 관련 노트 검색\n- 최신 결정/주의사항 확인\n- 가장 작은 다음 작업 1개를 선택\n- 작업 후 한 줄 요약 노트 남기기",
+      "raw_model_output_turn1": "{\"plan\":\"OpenAkashic에서는 먼저 프로젝트 인덱스인 `personal_vault/projects/<scope>/<project>/README.md`를 확인하고, 그다음 관련 노트들을 `search_notes`/`read_note` 순서로 좁혀 들어가며 작업을 시작한다. 초기 작업 결과는 기존에 맞는 노트에 이어 붙이거나, 새 노트가 필요하면 프로젝트 폴더 아래에 한 개의 짧은 기록으로 남기고, 로컬 `agent-knowledge`는 사용하지 않는다.\",\"tool_calls\":[]}",
+      "raw_model_output_turn2": "{\"answer\":\"작업 시작 순서는 이렇게 잡으면 됩니다.\\n\\n1. 먼저 루트의 `AGENTS.md`를 읽어 현재 작업 규칙을 확인합니다.\\n2. 프로젝트가 있으면 바로 `personal_vault/projects/<scope>/<project>/README.md`를 읽습니다.\\n   - 보통 `<scope>`는 `personal`, `company`, `client`, `research`, `ops` 중 하나입니다.\\n   - README가 프로젝트의 진입점입니다. 여기서 목적, 현재 상태, 관련 문서 링크를 먼저 파악합니다.\\n3. 그 다음 Closed Akashic에서 관련 노트를 검색합니다.\\n   - 우선 `search_notes` 또는 `search_akashic` 계열로 프로젝트명, 핵심 키워드, 최근 결정/이슈를 찾습니다.\\n   - 새로 들어온 에이전트라면 “무엇이 이미 정리돼 있는지”를 먼저 확인하는 게 중요합니다.\\n4. 관련 노트를 찾으면 읽기 순서는 보통 이렇습니다.\\n   - `README.md`\\n   - `decisions/` 또는 결정 노트\\n   - `reference/` 또는 배경 자료\\n   - `playbooks/` 또는 작업 절차\\n   - `incidents/` 또는 장애/리스크 기록\\n   - `experiments/` 또는 검증 결과\\n5. 그다음 작업을 시작합니다.\\n   - 아직 프로젝트 메모리가 없으면 `bootstrap_project`로 프로젝트 뼈대를 만듭니다.\\n   - 기존 노트가 맞는 컨테이너면 새로 만들지 말고 그 노트에 이어서 적습니다.\\n   - 의미 있는 작업을 마치면 `upsert_note` 또는 `append_note_section`으로 짧고 연결된 기록을 남깁니다.\\n\\n실무적으로는 이 순서를 추천합니다.\\n- 1차: `AGENTS.md`\\n- 2차: `personal_vault/projects/<scope>/<project>/README.md`\\n- 3차: Closed Akashic 검색\\n- 4차: 관련 결정/참조 문서 읽기\\n- 5차: 필요한 경우 프로젝트 구조 정리 또는 노트 추가\\n- 6차: 코드/문서 작업 시작\\n\\n주의사항도 중요합니다.\\n- `agent-knowledge` 같은 로컬 메모리 부트스트랩은 쓰지 않습니다. Closed Akashic만 공유 메모리로 사용합니다.\\n- 기존 노트가 있으면 새 노트를 남발하지 말고 그 노트를 갱신합니다.\\n- 메모리는 `personal_vault/` 아래나 `doc/` 아래처럼 정해진 위치에만 둡니다.\\n- 의미 없는 큰 변경보다, 작고 추적 가능한 변경과 짧은 노트가 좋습니다.\\n- 다른 사람이 만든 변경은 되돌리지 말고, 현재 상태를 기준으로 이어서 작업합니다.\\n\\n처음 진입할 때의 실제 체크리스트는 이 정도면 충분합니다.\\n- 프로젝트명 확인\\n- `README.md` 확인\\n- 관련 노트 검색\\n- 최신 결정/주의사항 확인\\n- 가장 작은 다음 작업 1개를 선택\\n- 작업 후 한 줄 요약 노트 남기기\"}",
+      "error": null,
+      "format_violation": false
+    }
+  ]
+}

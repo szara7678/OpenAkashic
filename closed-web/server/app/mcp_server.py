@@ -925,6 +925,14 @@ def _review_note_impl(
     }
 
 
+def _can_post_internal_review(target_path: str) -> tuple[bool, str]:
+    target_doc = load_document(target_path)
+    kind = str(target_doc.frontmatter.get("kind") or "").strip().lower()
+    if kind in {"capsule", "claim"}:
+        return True, "ok"
+    return False, f"kind={kind}"
+
+
 def _post_internal_review(
     *,
     target: str,
@@ -934,6 +942,16 @@ def _post_internal_review(
     evidence_paths: list[str] | None = None,
     topic: str | None = None,
 ) -> dict[str, Any]:
+    can_post, reason = _can_post_internal_review(target)
+    if not can_post:
+        kind = reason.removeprefix("kind=")
+        return {
+            "status": "skipped",
+            "reason": "non-reviewable-target",
+            "kind": kind,
+            "target": target,
+        }
+
     normalized_topic = str(topic or "").strip() or None
     for review in _load_targeted_claims_for(target):
         if str(review.owner or "").strip() != SAGWAN_SYSTEM_OWNER:
@@ -1495,6 +1513,114 @@ def upload_image(
     }
 
 
+_SEARCH_AKASHIC_RRF_K = 60
+
+
+def _rerank_text_for_item(item: dict, section: str) -> str:
+    """Build a single text blob per item for embedding."""
+    if section == "capsules":
+        title = str(item.get("title") or "")
+        summary = item.get("summary")
+        if isinstance(summary, list):
+            summary = " ".join(str(s) for s in summary[:5])
+        elif not isinstance(summary, str):
+            summary = ""
+        return (title + " " + (summary or "")).strip()
+    if section == "claims":
+        return str(item.get("text") or item.get("title") or "").strip()
+    if section == "evidences":
+        return (str(item.get("title") or "") + " " + str(item.get("snippet") or item.get("summary") or "")).strip()
+    return ""
+
+
+def _apply_search_akashic_semantic_rerank(
+    *, response: dict, query: str, top_k: int
+) -> None:
+    """Re-rank capsules/claims/evidences using bge-m3 cosine + lexical RRF.
+
+    Core API returns lexical-ranked candidates. We over-fetched the pool;
+    here we compute a semantic score for each candidate and combine the two
+    rankings via reciprocal rank fusion, then trim to `top_k` per section.
+    Failures (ollama down, embed error) silently keep lexical order.
+    """
+    results = response.get("results")
+    if not isinstance(results, dict):
+        return
+    sections = ("capsules", "claims", "evidences")
+
+    # Collect all candidate texts + index back-references
+    cand_texts: list[str] = []
+    cand_index: list[tuple[str, int]] = []
+    for sec in sections:
+        items = results.get(sec) or []
+        if not isinstance(items, list):
+            continue
+        for i, it in enumerate(items):
+            if not isinstance(it, dict):
+                continue
+            txt = _rerank_text_for_item(it, sec)
+            if txt:
+                cand_texts.append(txt)
+                cand_index.append((sec, i))
+    if not cand_texts:
+        return
+
+    from app.embeddings import embed_texts
+    # Embed query as a query (e5 prefix awareness handled in embeddings.py)
+    # and candidates as documents.
+    q_vec = embed_texts([query], is_query=True)
+    if not q_vec or len(q_vec[0]) == 0:
+        return
+    cand_vecs = embed_texts(cand_texts, is_query=False)
+    if not cand_vecs or len(cand_vecs) != len(cand_texts):
+        return
+    qv = q_vec[0]
+
+    semantic_scores: dict[tuple[str, int], float] = {}
+    for vec, key in zip(cand_vecs, cand_index):
+        # Normalized vectors → cosine == dot product
+        cs = sum(a * b for a, b in zip(qv, vec))
+        semantic_scores[key] = cs
+
+    # Per-section: lexical rank (current order) + semantic rank → RRF
+    for sec in sections:
+        items = results.get(sec) or []
+        if not isinstance(items, list) or not items:
+            continue
+        n = len(items)
+        lex_rank = {i: i for i in range(n)}  # already lexical-sorted
+        # Semantic rank from highest cosine
+        sem_pairs = sorted(
+            ((i, semantic_scores.get((sec, i), -1.0)) for i in range(n)),
+            key=lambda p: -p[1],
+        )
+        sem_rank = {i: r for r, (i, _s) in enumerate(sem_pairs)}
+        # RRF combine
+        rrf = sorted(
+            (
+                (1.0 / (_SEARCH_AKASHIC_RRF_K + lex_rank[i])
+                 + 1.0 / (_SEARCH_AKASHIC_RRF_K + sem_rank[i]),
+                 i)
+                for i in range(n)
+            ),
+            key=lambda p: -p[0],
+        )
+        new_items = []
+        for rrf_score, i in rrf[: max(top_k, 1)]:
+            it = dict(items[i])
+            it["semantic_score"] = round(float(semantic_scores.get((sec, i), 0.0)), 4)
+            it["rrf_score"] = round(float(rrf_score), 6)
+            new_items.append(it)
+        results[sec] = new_items
+
+    meta = response.get("meta") or {}
+    meta["retrieval"] = "postgres_fts+semantic_rerank+rrf"
+    meta["semantic_provider"] = "ollama"
+    meta["semantic_model"] = "bge-m3"
+    meta["rrf_k"] = _SEARCH_AKASHIC_RRF_K
+    response["meta"] = meta
+
+
 @mcp.tool(title="Search Akashic (validated public knowledge)")
 def search_akashic(
     query: Annotated[str | None, Field(description="Search terms for validated public knowledge. Example: 'Python list comprehension performance'")] = None,
@@ -1520,6 +1646,8 @@ def search_akashic(
         raise ValueError("query is required")
     settings_obj = get_settings()
     url = settings_obj.core_api_url.rstrip("/") + "/query"
+    # Core API now runs true hybrid (postgres_fts + pgvector_hnsw + RRF)
+    # so we just forward top_k as-is. No client-side rerank needed.
     payload: dict[str, Any] = {"query": resolved_query, "top_k": top_k, "mode": mode}
     if include:
         payload["include"] = include
@@ -1533,7 +1661,7 @@ def search_akashic(
         method="POST",
     )
     try:
-        with urlrequest.urlopen(req, timeout=10) as resp:
+        with urlrequest.urlopen(req, timeout=15) as resp:
             response = json.loads(resp.read().decode("utf-8"))
         _annotate_public_search_results(response)
         if _public_result_count(response) == 0:
@@ -1586,19 +1714,70 @@ def search_akashic(
         if next_hint:
             response["_next"] = next_hint
         return response
-    except urlerror.URLError as exc:
-        response = {"error": f"Core API unreachable: {exc}", "query": resolved_query, "results": {}}
+    except urlerror.HTTPError as exc:
+        # 4xx = caller schema/validation error. Don't pollute IR backlog —
+        # surface the validation detail back to the caller so the agent can
+        # correct its next request. 5xx = real server outage, keep as
+        # vault-gap signal candidate.
+        try:
+            err_body = exc.read().decode("utf-8", errors="replace")
+        except Exception:
+            err_body = ""
+        if 400 <= exc.code < 500:
+            try:
+                err_detail = json.loads(err_body) if err_body else {}
+            except Exception:
+                err_detail = {"raw": err_body[:400]}
+            response = {
+                "error": f"Core API rejected the request ({exc.code}). Fix the schema and retry — this was NOT recorded as a vault gap.",
+                "validation_error": err_detail,
+                "schema_hint": {
+                    "query": "non-empty string (required)",
+                    "top_k": "integer 1~50",
+                    "include": "array of: 'capsules' | 'claims' | 'evidences' (singular 'evidence' also accepted)",
+                    "mode": "'compact' | 'standard' | 'full'",
+                    "fields": "optional array of field names — overrides mode",
+                },
+                "directive": "Validation error. Adjust the payload and retry. Do not retry with the same fields unchanged.",
+                "query": resolved_query,
+                "results": {},
+            }
+            # No module-level logger here; the validation_error payload itself
+            # carries enough detail and goes back to the caller.
+            return response
+        # 5xx — real outage, log as vault-gap candidate
+        response = {"error": f"Core API server error ({exc.code}): {err_body[:200]}", "query": resolved_query, "results": {}}
         _record_search_quality_signal(
             tool="search_akashic",
             query=resolved_query,
-            reasons=["core_api_error"],
+            reasons=["core_api_5xx"],
             include=include,
             mode=mode,
             response=response,
         )
         try:
             from app.subordinate import enqueue_subordinate_task
-
+            enqueue_subordinate_task(
+                kind="analyze_search_quality_signals",
+                payload={"max_new": 10},
+                created_by="signal-monitor",
+            )
+        except Exception:
+            pass
+        return response
+    except urlerror.URLError as exc:
+        # Network unreachable — distinct from server-side errors.
+        response = {"error": f"Core API unreachable: {exc}", "query": resolved_query, "results": {}}
+        _record_search_quality_signal(
+            tool="search_akashic",
+            query=resolved_query,
+            reasons=["core_api_unreachable"],
+            include=include,
+            mode=mode,
+            response=response,
+        )
+        try:
+            from app.subordinate import enqueue_subordinate_task
             enqueue_subordinate_task(
                 kind="analyze_search_quality_signals",
                 payload={"max_new": 10},
@@ -1619,7 +1798,6 @@ def search_akashic(
         )
         try:
             from app.subordinate import enqueue_subordinate_task
-
             enqueue_subordinate_task(
                 kind="analyze_search_quality_signals",
                 payload={"max_new": 10},

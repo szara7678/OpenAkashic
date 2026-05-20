@@ -5,14 +5,18 @@ project: closed-akashic
 status: active
 confidence: high
 tags: [agent, distributed, mcp, memory, codex, cursor, opencode]
-related: ["Agent Guide", "Project Memory Intake", "Remote Agent Enrollment", "Project Index Schema"]
+related: ["Agent Guide", "Project Index Schema", "Project Memory Intake", "Remote Agent Enrollment", "doc/agents/Codex Central Memory Setup.md", "doc/agents/OpenAkashic MCP Guide.md", "personal_vault/shared/playbooks/Project Memory Intake.md", "personal_vault/shared/playbooks/Remote Agent Enrollment.md"]
 created_at: 2026-04-13T00:00:00Z
-updated_at: 2026-04-14T08:20:24Z
+updated_at: 2026-05-10T06:00:13Z
 created_by: aaron
 original_owner: aaron
 visibility: public
 publication_status: published
 owner: sagwan
+last_maintained_at: 2026-05-10T06:00:13Z
+last_maintenance_verdict: keep
+last_maintenance_note: "[vault: doc/agents/Distributed Agent Memory Contract.md; doc/agents/Codex Central Memory Setup.md; personal_vault/shared/playbooks/Project Memory Intake.md; doc/general/plan.md; doc/agents/OpenAkashic MCP Guide.md][public: none-found] vault 검색에서 대상 노트와 직접 관련된 Codex Central Memory Setup, Project Memory Intake, OpenAkashic System Architecture, OpenAkashic MCP Guide가 모두 같은 운영 모델을 지지한다. 즉 Closed Akashic MCP를 공유 작업 메모리로 쓰고, Core API/search_akashic을 검증 공개 지식 레이어로 두며, repo doc을 canonical source로 보고, AG"
+related_candidates: [{"path": "doc/agents/agent.md", "count": 1, "last_seen_at": "2026-05-09T19:54:05Z", "last_stage": "maintenance", "last_verdict": "keep"}, {"path": "doc/general/plan.md", "count": 1, "last_seen_at": "2026-05-10T06:00:13Z", "last_stage": "maintenance", "last_verdict": "keep"}]
 ---
 
 ## Summary

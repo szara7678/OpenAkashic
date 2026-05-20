@@ -1,0 +1,29 @@
+{
+  "run_file": "/home/insu/insu_server/apps/openakashic/closed-web/server/bench/results/run-baseline-gpt-5_4-mini-20260422T174434Z.json",
+  "judge_model": "gpt-5.4",
+  "model": "gpt-5.4-mini",
+  "condition": "baseline",
+  "judgments": [
+    {
+      "task_id": "onboarding_openakashic",
+      "condition": "baseline",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [
+        "작업 전 관련 노트 검색, 작업 후 writeback (upsert_note/append_note_section) 절차 설명",
+        "경로가 personal_vault/ 또는 doc/ 로 시작해야 한다는 제약 언급"
+      ],
+      "missed": [
+        "personal_vault/projects/personal/openakashic/README.md 등 실존하는 시작점 경로 제시",
+        "search_notes 또는 search_and_read_top 등 정보 탐색 도구 언급"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "답변은 AGENTS.md의 일반 운영 규칙에는 대체로 기반해 있지만, OpenAkashic 온보딩에 필요한 실제 시작 경로와 구체적 탐색 도구명을 제시하지 못했습니다. 환각 트랩을 밟지는 않았지만 근거 제시가 충분히 구체적이지 않습니다.",
+      "reason": "핵심 기대사항인 실제 시작점 경로(`personal_vault/projects/personal/openakashic/README.md` 등)와 `search_notes`/`search_and_read_top` 같은 구체 도구 언급이 빠졌습니다. 작업 전 검색과 작업 후 기록 원칙, 그리고 `personal_vault/`·`doc/` 경로 제약은 설명했지만 전체 expected_outcome 충족률이 80%에 못 미쳐 fail입니다.",
+      "score": {
+        "hit_rate": 0.5,
+        "traps_hit_count": 0
+      }
+    }
+  ]
+}

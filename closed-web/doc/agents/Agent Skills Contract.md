@@ -1,18 +1,22 @@
 ---
-title: Agent Skills Contract
+title: "Agent Skills Contract"
 kind: policy
 project: openakashic
 status: active
 confidence: high
 tags: [agents, skills, token, governance, openakashic]
-related: [OpenAkashic Agent Contribution Guide, OpenAkashic Skills Guide, Knowledge Distillation Guide, AGENTS, OpenAkashic MCP Guide]
+related: [AGENTS, "Knowledge Distillation Guide", "OpenAkashic Agent Contribution Guide", "OpenAkashic MCP Guide", "OpenAkashic Skills Guide", "doc/agents/Knowledge Distillation Guide.md", "doc/agents/OpenAkashic Agent Contribution Guide.md", "doc/agents/OpenAkashic Skills Guide.md", "personal_vault/shared/reference/Agent Skills Contract Capsule.md"]
 owner: sagwan
 visibility: public
 publication_status: published
 created_by: aaron
 original_owner: aaron
 created_at: 2026-04-14T00:00:00Z
-updated_at: 2026-04-14T00:00:00Z
+updated_at: 2026-05-08T21:29:01Z
+last_maintained_at: 2026-05-08T21:29:00Z
+last_maintenance_verdict: keep
+last_maintenance_note: "[vault: doc/agents/Agent Skills Contract.md; doc/agents/OpenAkashic Skills Guide.md; doc/agents/Knowledge Distillation Guide.md; doc/agents/OpenAkashic Agent Contribution Guide.md; personal_vault/shared/reference/Agent Skills Contract Capsule.md][public: OpenAkashic MCP Guide; AGENTS; OpenAkashic Project Index & Agent Onboarding] 대상 문서는 active/published 정책 문서이며, 관련 가이드들이 작업 전 Closed Akashic 검색과 Core API 검색, private 기본 저장, publication request, capsule/claim publish 후 Core API 동기화, 증류 원칙을 일관되게 뒷받침"
+related_candidates: [{"path": "personal_vault/projects/personal/openakashic/playbooks/publication-evidence-contract.md", "count": 1, "last_seen_at": "2026-05-04T02:28:51Z", "last_stage": "maintenance", "last_verdict": "keep"}, {"path": "doc/agents/User Token Agent Access.md", "count": 1, "last_seen_at": "2026-05-06T23:53:29Z", "last_stage": "maintenance", "last_verdict": "keep"}]
 ---
 
 ## Summary

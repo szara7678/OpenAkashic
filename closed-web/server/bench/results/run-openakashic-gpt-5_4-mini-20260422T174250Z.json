@@ -1,0 +1,32 @@
+{
+  "model": "gpt-5.4-mini",
+  "condition": "openakashic",
+  "timestamp": "20260422T174250Z",
+  "records": [
+    {
+      "task_id": "onboarding_openakashic",
+      "condition": "openakashic",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "started_at": "2026-04-22T17:40:29+00:00",
+      "finished_at": "2026-04-22T17:42:50+00:00",
+      "plan": "Closed Akashic에서 OpenAkashic 온보딩/프로젝트 인덱스/README 관련 노트를 먼저 찾아 현재 시작점과 읽기 순서를 확인하겠습니다. 그 다음, 찾은 노트를 바탕으로 경로, 작업 순서, 주의사항을 구체적으로 정리하겠습니다.",
+      "tool_calls": [
+        {
+          "tool": "search_and_read_top",
+          "arguments": {
+            "query": "OpenAkashic onboarding README project index start here"
+          },
+          "result": null,
+          "error": "TimeoutError: The read operation timed out",
+          "duration_ms": 60153.3
+        }
+      ],
+      "answer": "실패했습니다. 첫 번째 조회는 `TimeoutError: The read operation timed out`로 끝나서, 이번에는 OpenAkashic의 프로젝트별 노트를 실제로 확인하지 못했습니다.\n\n작업 시작 순서는 이렇게 잡으면 됩니다.\n\n1. Closed Akashic에서 먼저 관련 노트를 검색합니다. 키워드는 `onboarding`, `README`, `project index`, `start here`, `decisions`, `incidents`처럼 시작용 문서를 우선 찾는 쪽이 좋습니다.\n2. 프로젝트가 확인되면 `personal_vault/projects/<scope>/<project>/README.md`를 가장 먼저 엽니다. 이 파일이 프로젝트 진입점입니다.\n3. 그 다음에는 README가 안내하는 순서대로 `reference/`, `decisions/`, `playbooks/`, `incidents/`, `experiments/`를 봅니다. README에 우선순위가 있으면 그 순서를 따릅니다.\n4. 실제 작업 전에는 최근 결정사항과 진행 중인 이슈가 있는지 확인합니다. 특히 `decisions/`와 `incidents/`를 먼저 보면 충돌을 줄일 수 있습니다.\n5. 작업을 시작한 뒤에는 의미 있는 진전이 있을 때만 노트를 한 번 정리해서 되돌려 씁니다. 노트는 `personal_vault/` 아래 프로젝트 폴더나 `doc/` 계열에 둡니다.\n\n주의사항도 있습니다.\n\n- `agent-knowledge`는 사용하거나 갱신하지 않습니다.\n- README가 없다고 가정하지 말고, 먼저 검색으로 존재 여부를 확인합니다.\n- 프로젝트 스코프와 이름을 모르면 `personal_vault/projects/<scope>/<project>/README.md` 형태로 찾아가야 합니다. 일반적인 스코프는 `personal`, `company`, `client`, `research`, `ops`입니다.\n- 이번처럼 검색이 타임아웃되면, 특정 파일이 있다고 단정하지 말고 다시 검색하거나 범위를 좁혀야 합니다.\n\n원하면 다음 단계로 바로 이어서, 제가 실제로 찾아야 할 검색 키워드와 읽기 순서를 더 구체적으로 정리해 드릴 수 있습니다.",
+      "raw_model_output_turn1": "{\"plan\":\"Closed Akashic에서 OpenAkashic 온보딩/프로젝트 인덱스/README 관련 노트를 먼저 찾아 현재 시작점과 읽기 순서를 확인하겠습니다. 그 다음, 찾은 노트를 바탕으로 경로, 작업 순서, 주의사항을 구체적으로 정리하겠습니다.\",\"tool_calls\":[{\"tool\":\"search_and_read_top\",\"arguments\":{\"query\":\"OpenAkashic onboarding README project index start here\"}}]}",
+      "raw_model_output_turn2": "{\"answer\":\"실패했습니다. 첫 번째 조회는 `TimeoutError: The read operation timed out`로 끝나서, 이번에는 OpenAkashic의 프로젝트별 노트를 실제로 확인하지 못했습니다.\\n\\n작업 시작 순서는 이렇게 잡으면 됩니다.\\n\\n1. Closed Akashic에서 먼저 관련 노트를 검색합니다. 키워드는 `onboarding`, `README`, `project index`, `start here`, `decisions`, `incidents`처럼 시작용 문서를 우선 찾는 쪽이 좋습니다.\\n2. 프로젝트가 확인되면 `personal_vault/projects/<scope>/<project>/README.md`를 가장 먼저 엽니다. 이 파일이 프로젝트 진입점입니다.\\n3. 그 다음에는 README가 안내하는 순서대로 `reference/`, `decisions/`, `playbooks/`, `incidents/`, `experiments/`를 봅니다. README에 우선순위가 있으면 그 순서를 따릅니다.\\n4. 실제 작업 전에는 최근 결정사항과 진행 중인 이슈가 있는지 확인합니다. 특히 `decisions/`와 `incidents/`를 먼저 보면 충돌을 줄일 수 있습니다.\\n5. 작업을 시작한 뒤에는 의미 있는 진전이 있을 때만 노트를 한 번 정리해서 되돌려 씁니다. 노트는 `personal_vault/` 아래 프로젝트 폴더나 `doc/` 계열에 둡니다.\\n\\n주의사항도 있습니다.\\n\\n- `agent-knowledge`는 사용하거나 갱신하지 않습니다.\\n- README가 없다고 가정하지 말고, 먼저 검색으로 존재 여부를 확인합니다.\\n- 프로젝트 스코프와 이름을 모르면 `personal_vault/projects/<scope>/<project>/README.md` 형태로 찾아가야 합니다. 일반적인 스코프는 `personal`, `company`, `client`, `research`, `ops`입니다.\\n- 이번처럼 검색이 타임아웃되면, 특정 파일이 있다고 단정하지 말고 다시 검색하거나 범위를 좁혀야 합니다.\\n\\n원하면 다음 단계로 바로 이어서, 제가 실제로 찾아야 할 검색 키워드와 읽기 순서를 더 구체적으로 정리해 드릴 수 있습니다.\"}",
+      "error": null,
+      "format_violation": false
+    }
+  ]
+}

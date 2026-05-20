@@ -1,0 +1,28 @@
+{
+  "run_file": "/home/insu/insu_server/apps/openakashic/closed-web/server/bench/results/run-standard-gpt-5_4-mini-20260422T174118Z.json",
+  "judge_model": "gpt-5.4",
+  "model": "gpt-5.4-mini",
+  "condition": "standard",
+  "judgments": [
+    {
+      "task_id": "busagwan_sagwan_roles",
+      "condition": "standard",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [],
+      "missed": [
+        "Sagwan은 Claude CLI 기반 high-quality/느린 주기 워커라는 설명 또는 그에 상응하는 구분",
+        "Busagwan은 Ollama gemma 기반 빠른/가벼운 주기 워커라는 설명 또는 그에 상응하는 구분",
+        "각자의 주기/트리거 (예: 10분/15분/1시간 같은 cadence 구분) 언급",
+        "두 워커가 서로 다른 종류의 task를 담당하며 gate 관계라는 구조 설명"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "답변은 OpenAkashic 고유 용어를 확인하지 못한 채 한국어 일반어인 부사관/사관 의미로 오해해 설명했습니다. 인용한 링크도 질문과 무관한 WhatsApp 포럼이라 근거성이 없습니다.",
+      "reason": "기대된 핵심 내용인 Claude CLI 기반 Sagwan, Ollama gemma 기반 Busagwan, 각자의 cadence, 그리고 두 워커의 gate 구조가 전혀 언급되지 않았습니다. 명시된 hallucination trap을 직접 밟지는 않았지만, 답변 전체가 과제의 대상 개념을 잘못 해석한 비근거성 응답이므로 fail입니다.",
+      "score": {
+        "hit_rate": 0.0,
+        "traps_hit_count": 0
+      }
+    }
+  ]
+}

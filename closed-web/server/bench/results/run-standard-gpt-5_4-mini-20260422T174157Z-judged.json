@@ -1,0 +1,30 @@
+{
+  "run_file": "/home/insu/insu_server/apps/openakashic/closed-web/server/bench/results/run-standard-gpt-5_4-mini-20260422T174157Z.json",
+  "judge_model": "gpt-5.4",
+  "model": "gpt-5.4-mini",
+  "condition": "standard",
+  "judgments": [
+    {
+      "task_id": "multihop_synthesis",
+      "condition": "standard",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [
+        "각 시스템에 대한 배포 전 점검 이유가 한 줄 수준으로 동반"
+      ],
+      "missed": [
+        "구체적 컨테이너/시스템 이름 3개 제시 (ex: insu-server-backend-prod-1, insu-server-ichimozzi-db-1, insu-shared-caddy 또는 동등 수준의 실명)",
+        "추상적이지 않고 실제 인프라 구성요소(Docker container/proxy/DB) 기반"
+      ],
+      "traps_hit": [
+        "구체적 이름 없이 '백엔드, DB, 프론트' 일반론으로 회피"
+      ],
+      "groundedness_note": "답변은 구체적 인프라 실명이나 tool receipt 근거 없이 일반적인 배포 체크리스트만 제시했다. OpenAkashic 기반 회수 흔적도 없어 근거성이 약하다.",
+      "reason": "기대된 핵심은 IchiMozzi 실제 배포 인프라의 실명 컨테이너/시스템 3개를 짚는 것이었는데, 답변은 API 서버·DB·캐시/큐라는 일반론에 머물렀다. 각 항목의 점검 이유는 제시했지만, 실제 구성요소 기반 답변이 아니고 일반론 회피 트랩에도 걸려 전체 판정은 fail이다.",
+      "score": {
+        "hit_rate": 0.3333333333333333,
+        "traps_hit_count": 1
+      }
+    }
+  ]
+}

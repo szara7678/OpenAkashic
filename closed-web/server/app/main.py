@@ -626,14 +626,43 @@ def prefixed_debug_page(request: Request):
 
 
 @api.get("/graph-data")
-def graph_data(request: Request) -> dict[str, Any]:
+def graph_data(
+    request: Request,
+    include_orphans: bool = Query(default=False),
+    include_archived: bool = Query(default=False),
+    include_meta: bool = Query(default=False),
+    slim: bool = Query(default=False),
+    suggest_relink: bool = Query(default=False),
+) -> dict[str, Any]:
     auth = _auth_from_request(request)
-    return get_closed_graph(viewer_owner=auth.nickname, is_admin=_is_admin(auth))
+    return get_closed_graph(
+        viewer_owner=auth.nickname,
+        is_admin=_is_admin(auth),
+        include_orphans=include_orphans,
+        include_archived=include_archived,
+        include_meta=include_meta,
+        slim=slim,
+        suggest_relink=suggest_relink,
+    )
 
 
 @api.get("/closed/graph-data")
-def prefixed_graph_data(request: Request) -> dict[str, Any]:
-    return graph_data(request)
+def prefixed_graph_data(
+    request: Request,
+    include_orphans: bool = Query(default=False),
+    include_archived: bool = Query(default=False),
+    include_meta: bool = Query(default=False),
+    slim: bool = Query(default=False),
+    suggest_relink: bool = Query(default=False),
+) -> dict[str, Any]:
+    return graph_data(
+        request,
+        include_orphans=include_orphans,
+        include_archived=include_archived,
+        include_meta=include_meta,
+        slim=slim,
+        suggest_relink=suggest_relink,
+    )
 
 
 @api.get("/search")
@@ -1092,6 +1121,128 @@ def api_admin_run_sagwan_research(auth: AuthState = Depends(require_admin_token)
 @api.post("/api/admin/sagwan/consolidate/run")
 def api_admin_run_sagwan_consolidate(auth: AuthState = Depends(require_admin_token)) -> dict[str, Any]:
     return run_sagwan_consolidation_cycle(reason=f"manual:{auth.nickname}", force=True)
+
+
+# ─── Sagwan v5: task queue / agenda / policy admin surface ─────────────────
+from app import sagwan_agenda as _sagwan_agenda
+from app import sagwan_self_edit as _sagwan_self_edit
+from app import sagwan_sweep as _sagwan_sweep
+from app import sagwan_tasks as _sagwan_tasks
+
+
+@api.get("/api/admin/sagwan/tasks")
+def api_admin_sagwan_tasks(
+    status: str | None = None,
+    limit: int = 50,
+    auth: AuthState = Depends(require_admin_token),
+) -> dict[str, Any]:
+    return {
+        "stats": _sagwan_tasks.queue_stats(),
+        "tasks": _sagwan_tasks.list_tasks(status=status, limit=max(1, min(200, int(limit)))),
+    }
+
+
+@api.post("/api/admin/sagwan/tasks/enqueue")
+def api_admin_sagwan_enqueue_task(
+    payload: dict[str, Any],
+    auth: AuthState = Depends(require_admin_token),
+) -> dict[str, Any]:
+    """Human-driven enqueue. Required: kind, payload.path. Optional: reason, priority."""
+    kind = str((payload or {}).get("kind") or "").strip()
+    if kind not in _sagwan_tasks.SAGWAN_TASK_KINDS:
+        raise HTTPException(status_code=400, detail=f"unsupported kind {kind!r}")
+    inner = dict((payload or {}).get("payload") or {})
+    path = str(inner.get("path") or "").strip()
+    if not path:
+        raise HTTPException(status_code=400, detail="payload.path is required")
+    try:
+        doc = load_document(path)
+    except Exception as exc:
+        raise HTTPException(status_code=404, detail=f"path not found: {exc}") from exc
+    fm = dict(doc.frontmatter or {})
+    freshness = _sagwan_tasks.compute_freshness_key(
+        updated_at=str(fm.get("updated_at") or ""),
+        body=doc.body,
+    )
+    return _sagwan_tasks.enqueue_task(
+        kind=kind,
+        payload=inner,
+        resource_key=path,
+        freshness_key=freshness,
+        write_set=[path],
+        priority=int((payload or {}).get("priority") or 1),  # human enqueue ranks above scheduled
+        created_by=str(auth.nickname or "insu"),
+        reason=str((payload or {}).get("reason") or "human-enqueue"),
+    )
+
+
+@api.get("/api/admin/sagwan/agenda")
+def api_admin_sagwan_agenda(auth: AuthState = Depends(require_admin_token)) -> dict[str, Any]:
+    return _sagwan_agenda.get_observability_snapshot()
+
+
+@api.post("/api/admin/sagwan/agenda/goals")
+def api_admin_sagwan_add_goal(
+    payload: dict[str, Any],
+    auth: AuthState = Depends(require_admin_token),
+) -> dict[str, Any]:
+    return _sagwan_agenda.add_goal(
+        statement=str((payload or {}).get("statement") or ""),
+        metric=str((payload or {}).get("metric") or ""),
+        target=str((payload or {}).get("target") or ""),
+        horizon_days=int((payload or {}).get("horizon_days") or 7),
+        next_actions=list((payload or {}).get("next_actions") or []),
+        notes=str((payload or {}).get("notes") or ""),
+        priority=int((payload or {}).get("priority") or 0),
+        created_by=str(auth.nickname or "insu"),
+    )
+
+
+@api.patch("/api/admin/sagwan/agenda/goals/{goal_id}")
+def api_admin_sagwan_update_goal(
+    goal_id: str,
+    payload: dict[str, Any],
+    auth: AuthState = Depends(require_admin_token),
+) -> dict[str, Any]:
+    out = _sagwan_agenda.update_goal(goal_id, by=str(auth.nickname or "insu"), **(payload or {}))
+    if out is None:
+        raise HTTPException(status_code=404, detail="goal not found")
+    return out
+
+
+@api.post("/api/admin/sagwan/agenda/concerns")
+def api_admin_sagwan_add_concern(
+    payload: dict[str, Any],
+    auth: AuthState = Depends(require_admin_token),
+) -> dict[str, Any]:
+    return _sagwan_agenda.add_concern(
+        statement=str((payload or {}).get("statement") or ""),
+        severity=str((payload or {}).get("severity") or "medium"),
+        source=str(auth.nickname or "insu"),
+        tags=list((payload or {}).get("tags") or []),
+        related_paths=list((payload or {}).get("related_paths") or []),
+        ttl_hours=int((payload or {}).get("ttl_hours") or 72),
+    )
+
+
+# v6 — self-edit observability surface. Lists recent self-edits with rollback
+# excerpts. The actual policy is the operating notes themselves; this endpoint
+# just exposes what sagwan has been editing on its own behalf.
+@api.get("/api/admin/sagwan/self-edits")
+def api_admin_sagwan_self_edits(
+    lookback_hours: int = 168,
+    auth: AuthState = Depends(require_admin_token),
+) -> dict[str, Any]:
+    return _sagwan_self_edit.get_self_edit_snapshot(lookback_hours=max(1, min(720, int(lookback_hours))))
+
+
+# v7 — autonomous sweep observability
+@api.get("/api/admin/sagwan/sweeps")
+def api_admin_sagwan_sweeps(
+    lookback_hours: int = 168,
+    auth: AuthState = Depends(require_admin_token),
+) -> dict[str, Any]:
+    return _sagwan_sweep.get_sweep_snapshot(lookback_hours=max(1, min(720, int(lookback_hours))))
 
 
 _IMPROVEMENT_REQUEST_PREFIX = "personal_vault/meta/improvement-requests/"

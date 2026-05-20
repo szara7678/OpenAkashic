@@ -15,6 +15,7 @@ sagwan_loop.py
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
+import collections
 import json
 import logging
 from pathlib import Path
@@ -48,6 +49,19 @@ from app.vault import (
     suggest_note_path,
     write_document,
 )
+from app import sagwan_agenda, sagwan_self_edit, sagwan_sweep, sagwan_tasks
+
+try:
+    from so_ingest import search_stackoverflow, stackoverflow_to_evidence_payload
+    _SO_INGEST_AVAILABLE = True
+except ImportError:
+    try:
+        from app.so_ingest import search_stackoverflow, stackoverflow_to_evidence_payload
+        _SO_INGEST_AVAILABLE = True
+    except ImportError:
+        search_stackoverflow = None
+        stackoverflow_to_evidence_payload = None
+        _SO_INGEST_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -61,6 +75,8 @@ _SAGWAN_STAGE_MODEL_DEFAULTS = {
     "topic_proposal": "proxy:gpt-5.4",
     "meta_curation": "proxy:gpt-5.4",
     "profile_update": "proxy:gpt-5.4",
+    "self_improve": "claude-cli:claude-sonnet-4-6",
+    "autonomous_sweep": "claude-cli:claude-sonnet-4-6",
 }
 _LLM_CALL_HISTORY: list[dict[str, Any]] = []
 
@@ -92,6 +108,7 @@ def _default_sagwan_settings() -> dict[str, Any]:
         "use_llm": True,           # LLM 최종 판단 사용
         "curation_interval_sec": 3600,  # 1시간마다 정제 루틴
         "research_enabled": True,
+        "so_ingest_enabled": False,
         "research_interval_sec": 7200,   # 2시간
         "research_max_fetches": 3,
         "consolidate_enabled": True,
@@ -110,6 +127,19 @@ def _default_sagwan_settings() -> dict[str, Any]:
         "profile_update_min_interval_hours": 24,
         "topic_min_interval_hours": 12,
         "meta_min_interval_hours": 12,
+        "task_queue_enabled": False,         # v4 — set True after verification
+        "task_queue_max_per_cycle": 3,
+        # v5 — per-kind kill switch. Default disables `research_gap` because
+        # Codex flagged K as the highest-variance kind (web research → new
+        # capsule). insu enables it after L+I observable. Other kinds default
+        # active under task_queue_enabled.
+        "task_queue_kinds_disabled": ["research_gap"],
+        # v6 — Stage S self-improvement (notes self-edit) flag + cooldown.
+        "self_improve_enabled": True,
+        "self_improve_min_interval_hours": 12,
+        # v7 — Stage Z autonomous sweep flag + cooldown.
+        "autonomous_sweep_enabled": True,
+        "autonomous_sweep_min_interval_hours": 1,
     }
 
 
@@ -150,6 +180,7 @@ def load_sagwan_settings() -> dict[str, Any]:
             300, int(raw.get("curation_interval_sec") or defaults["curation_interval_sec"])
         ),
         "research_enabled": bool(raw.get("research_enabled", defaults["research_enabled"])),
+        "so_ingest_enabled": bool(raw.get("so_ingest_enabled", defaults["so_ingest_enabled"])),
         "research_interval_sec": min(
             86400,
             max(1800, int(raw.get("research_interval_sec") or defaults["research_interval_sec"])),
@@ -205,6 +236,30 @@ def load_sagwan_settings() -> dict[str, Any]:
             168,
             max(1, int(raw.get("meta_min_interval_hours") or defaults["meta_min_interval_hours"])),
         ),
+        "task_queue_enabled": bool(raw.get("task_queue_enabled", defaults["task_queue_enabled"])),
+        "task_queue_max_per_cycle": min(
+            10,
+            max(1, int(raw.get("task_queue_max_per_cycle") or defaults["task_queue_max_per_cycle"])),
+        ),
+        "task_queue_kinds_disabled": [
+            str(k).strip()
+            for k in (
+                raw["task_queue_kinds_disabled"]
+                if isinstance(raw.get("task_queue_kinds_disabled"), list)
+                else defaults["task_queue_kinds_disabled"]
+            )
+            if str(k).strip()
+        ],
+        "self_improve_enabled": bool(raw.get("self_improve_enabled", defaults["self_improve_enabled"])),
+        "self_improve_min_interval_hours": min(
+            168,
+            max(1, int(raw.get("self_improve_min_interval_hours") or defaults["self_improve_min_interval_hours"])),
+        ),
+        "autonomous_sweep_enabled": bool(raw.get("autonomous_sweep_enabled", defaults["autonomous_sweep_enabled"])),
+        "autonomous_sweep_min_interval_hours": min(
+            168,
+            max(1, int(raw.get("autonomous_sweep_min_interval_hours") or defaults["autonomous_sweep_min_interval_hours"])),
+        ),
     }
 
 
@@ -227,6 +282,7 @@ def save_sagwan_settings(payload: dict[str, Any]) -> dict[str, Any]:
             int(payload.get("curation_interval_sec") or current["curation_interval_sec"]),
         ),
         "research_enabled": bool(payload.get("research_enabled", current["research_enabled"])),
+        "so_ingest_enabled": bool(payload.get("so_ingest_enabled", current.get("so_ingest_enabled", False))),
         "research_interval_sec": min(
             86400,
             max(1800, int(payload.get("research_interval_sec") or current["research_interval_sec"])),
@@ -282,6 +338,30 @@ def save_sagwan_settings(payload: dict[str, Any]) -> dict[str, Any]:
             168,
             max(1, int(payload.get("meta_min_interval_hours") or current["meta_min_interval_hours"])),
         ),
+        "task_queue_enabled": bool(payload.get("task_queue_enabled", current.get("task_queue_enabled", False))),
+        "task_queue_max_per_cycle": min(
+            10,
+            max(1, int(payload.get("task_queue_max_per_cycle") or current.get("task_queue_max_per_cycle", 3))),
+        ),
+        "task_queue_kinds_disabled": [
+            str(k).strip()
+            for k in (
+                payload["task_queue_kinds_disabled"]
+                if isinstance(payload.get("task_queue_kinds_disabled"), list)
+                else current.get("task_queue_kinds_disabled", [])
+            )
+            if str(k).strip()
+        ],
+        "self_improve_enabled": bool(payload.get("self_improve_enabled", current.get("self_improve_enabled", True))),
+        "self_improve_min_interval_hours": min(
+            168,
+            max(1, int(payload.get("self_improve_min_interval_hours") or current.get("self_improve_min_interval_hours", 12))),
+        ),
+        "autonomous_sweep_enabled": bool(payload.get("autonomous_sweep_enabled", current.get("autonomous_sweep_enabled", True))),
+        "autonomous_sweep_min_interval_hours": min(
+            168,
+            max(1, int(payload.get("autonomous_sweep_min_interval_hours") or current.get("autonomous_sweep_min_interval_hours", 1))),
+        ),
     }
     path = sagwan_settings_path()
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -312,6 +392,7 @@ def _web_tools_list() -> list[str]:
         "Read",
         "mcp__openakashic__search_akashic",
         "mcp__openakashic__search_notes",
+        "mcp__openakashic__search_and_read_top",
         "mcp__openakashic__read_note",
         "mcp__openakashic__read_raw_note",
         "mcp__openakashic__list_reviews",
@@ -377,6 +458,21 @@ def _invoke_for_stage(stage: str, prompt: str, *, web_tools: bool = False, syste
     started = time.monotonic()
     if backend == "claude-cli":
         result = _invoke_claude_cli_with_tools(prompt, model=model or None, tools=_web_tools_list() if web_tools else [])
+    elif backend == "chatgpt":
+        if web_tools:
+            from app.librarian import _invoke_chatgpt_responses_with_tools
+
+            tool_names = [
+                "search_notes", "search_and_read_top", "search_akashic",
+                "read_note", "list_reviews",
+            ]
+            result = _invoke_chatgpt_responses_with_tools(
+                prompt, model=model or "gpt-5.5", tools=tool_names, system=system,
+            )
+        else:
+            from app.librarian import _invoke_chatgpt_responses
+
+            result = _invoke_chatgpt_responses(prompt, model=model or "gpt-5.5", system=system)
     else:
         result = _invoke_proxy_chat(prompt, model=model or "gpt-5.4", system=system)
     _record_llm_call(stage, backend, model or "", duration_s=time.monotonic() - started, response_text=result)
@@ -803,11 +899,19 @@ def run_sagwan_curation_cycle(*, reason: str = "scheduled") -> dict[str, Any]:
         logger.error("sagwan curation E (capsule gen) failed: %s", exc)
         e = {"error": str(exc)}
 
-    try:
-        f_conflict = _curate_detect_conflicts()
-    except Exception as exc:
-        logger.error("sagwan curation F (conflict detect) failed: %s", exc)
-        f_conflict = {"error": str(exc)}
+    # Stage F: when task_queue is on, this becomes enqueue-only (worker executes).
+    if settings.get("task_queue_enabled"):
+        try:
+            f_conflict = _bootstrap_enqueue_conflict()
+        except Exception as exc:
+            logger.error("sagwan bootstrap F (conflict enqueue) failed: %s", exc)
+            f_conflict = {"error": str(exc)}
+    else:
+        try:
+            f_conflict = _curate_detect_conflicts()
+        except Exception as exc:
+            logger.error("sagwan curation F (conflict detect) failed: %s", exc)
+            f_conflict = {"error": str(exc)}
 
     try:
         g_signals = _curate_enqueue_signal_scans()
@@ -821,29 +925,70 @@ def run_sagwan_curation_cycle(*, reason: str = "scheduled") -> dict[str, Any]:
         logger.error("sagwan curation H (topic proposals) failed: %s", exc)
         h_topics = {"error": str(exc)}
 
-    try:
-        i_meta = _curate_system_health()
-    except Exception as exc:
-        logger.error("sagwan curation I (meta) failed: %s", exc)
-        i_meta = {"error": str(exc)}
+    # Stage I (meta): under task_queue, bootstrap enqueues + worker exec.
+    # Inline path is OFF when queue mode is on — prevents double-fire.
+    if settings.get("task_queue_enabled"):
+        try:
+            i_meta = _bootstrap_enqueue_meta()
+        except Exception as exc:
+            logger.error("sagwan bootstrap I (meta enqueue) failed: %s", exc)
+            i_meta = {"error": str(exc)}
+    else:
+        try:
+            i_meta = _curate_system_health()
+        except Exception as exc:
+            logger.error("sagwan curation I (meta) failed: %s", exc)
+            i_meta = {"error": str(exc)}
 
-    try:
-        k_research = _curate_research_gaps()
-    except Exception as exc:
-        logger.error("sagwan curation K (research gaps) failed: %s", exc)
-        k_research = {"error": str(exc)}
+    # Stage K (research): under task_queue, default kill-switched. Bootstrap
+    # silently no-ops if `research_gap` is in task_queue_kinds_disabled.
+    if settings.get("task_queue_enabled"):
+        try:
+            k_research = _bootstrap_enqueue_research()
+        except Exception as exc:
+            logger.error("sagwan bootstrap K (research enqueue) failed: %s", exc)
+            k_research = {"error": str(exc)}
+    else:
+        try:
+            k_research = _curate_research_gaps()
+        except Exception as exc:
+            logger.error("sagwan curation K (research gaps) failed: %s", exc)
+            k_research = {"error": str(exc)}
 
-    try:
-        l_consolidate = _curate_consolidate_reviews()
-    except Exception as exc:
-        logger.error("sagwan curation L (consolidate reviews) failed: %s", exc)
-        l_consolidate = {"error": str(exc)}
+    # Stage L (consolidate): under task_queue, bootstrap pre-screens for
+    # ≥min_reviews so dormant cycles don't seed the queue. Multi-path write_set.
+    if settings.get("task_queue_enabled"):
+        try:
+            l_consolidate = _bootstrap_enqueue_consolidate()
+        except Exception as exc:
+            logger.error("sagwan bootstrap L (consolidate enqueue) failed: %s", exc)
+            l_consolidate = {"error": str(exc)}
+    else:
+        try:
+            l_consolidate = _curate_consolidate_reviews()
+        except Exception as exc:
+            logger.error("sagwan curation L (consolidate reviews) failed: %s", exc)
+            l_consolidate = {"error": str(exc)}
 
-    try:
-        m_maintenance = _curate_maintenance()
-    except Exception as exc:
-        logger.error("sagwan curation M (maintenance) failed: %s", exc)
-        m_maintenance = {"error": str(exc)}
+    # Stage M: under task_queue, bootstrap seeds the queue + worker drains.
+    if settings.get("task_queue_enabled"):
+        try:
+            m_maintenance = _bootstrap_enqueue_maintenance()
+        except Exception as exc:
+            logger.error("sagwan bootstrap M (maintenance enqueue) failed: %s", exc)
+            m_maintenance = {"error": str(exc)}
+        try:
+            m_worker = run_sagwan_task_worker(max_tasks=int(settings.get("task_queue_max_per_cycle") or 3))
+        except Exception as exc:
+            logger.error("sagwan task worker failed: %s", exc)
+            m_worker = {"error": str(exc)}
+    else:
+        try:
+            m_maintenance = _curate_maintenance()
+        except Exception as exc:
+            logger.error("sagwan curation M (maintenance) failed: %s", exc)
+            m_maintenance = {"error": str(exc)}
+        m_worker = {"status": "disabled"}
 
     if settings.get("bench_enabled"):
         try:
@@ -860,6 +1005,23 @@ def run_sagwan_curation_cycle(*, reason: str = "scheduled") -> dict[str, Any]:
         logger.error("sagwan distill failed: %s", exc)
         distill = {"error": str(exc)}
 
+    # Stage S — self-improvement (notes self-edit). Runs last in the cycle so
+    # it sees the freshest distilled bullets and recent verdict context.
+    try:
+        s_self_improve = _curate_self_improve()
+    except Exception as exc:
+        logger.error("sagwan stage S (self-improve) failed: %s", exc)
+        s_self_improve = {"error": str(exc)}
+
+    # Stage Z — autonomous sweep (orchestration). Runs after S so it sees
+    # the freshest possible state. Codex principle: Z does NOT execute, only
+    # enqueues/escalates/proposes via the sagwan_sweep dispatcher.
+    try:
+        z_sweep = _curate_autonomous_sweep()
+    except Exception as exc:
+        logger.error("sagwan stage Z (autonomous sweep) failed: %s", exc)
+        z_sweep = {"error": str(exc)}
+
     summary = {
         "status": "ok", "reason": reason,
         "derive_sync": a, "revalidate": c, "feeds": d,
@@ -869,8 +1031,11 @@ def run_sagwan_curation_cycle(*, reason: str = "scheduled") -> dict[str, Any]:
         "research_gaps": k_research,
         "consolidate_reviews": l_consolidate,
         "maintenance": m_maintenance,
+        "task_worker": m_worker,
         "bench": m_bench,
         "distill_sagwan": distill,
+        "self_improve": s_self_improve,
+        "autonomous_sweep": z_sweep,
     }
     try:
         _write_llm_telemetry_cycle(summary)
@@ -1223,6 +1388,268 @@ def _curate_ingest_feeds(*, max_per_feed: int = 3, max_total: int = 5) -> dict[s
 
 _SAGWAN_CAPSULE_FOLDER = "personal_vault/projects/ops/librarian/capsules"
 _SAGWAN_CAPSULE_CREATOR = "sagwan"
+
+
+_RELATED_LINK_MIN_SCORE = 5  # weak matches dropped to avoid noise links
+_RELATED_LINK_DEAD_STATES = {"superseded", "merged", "archived", "deprecated"}
+
+
+def _find_related_capsule_paths(
+    *,
+    topic: str,
+    topic_slug: str,
+    queries: list[str] | None,
+    tags: list[str],
+    exclude_path: str,
+    max_results: int = 3,
+    min_score: int | None = None,
+) -> list[str]:
+    """Score existing capsules for similarity to a new one and return the top paths.
+
+    Used at capsule write time to seed `related` so new capsules don't land
+    as orphans. Score: shared tags (3pt each) + topic word overlap in title (1pt
+    per matching token ≥3 chars) + same topic_slug substring in path (5pt).
+
+    Guards (added after dry-run review):
+    - candidate kind must be "capsule" (already), and must NOT be superseded /
+      merged / archived / deprecated — dead notes shouldn't accept new links
+    - score must be >= _RELATED_LINK_MIN_SCORE — weak matches drop to avoid
+      false-positive noise (e.g. "Python Coding Session" → "Expo OTA Auth")
+    """
+    threshold = _RELATED_LINK_MIN_SCORE if min_score is None else max(1, int(min_score))
+    keywords = {topic_slug.lower()}
+    for token in (topic or "").lower().split():
+        if len(token) >= 3:
+            keywords.add(token)
+    for q in (queries or []):
+        for token in str(q).lower().split():
+            if len(token) >= 3:
+                keywords.add(token)
+    tag_set = {str(t).lower() for t in (tags or []) if t and str(t).lower() not in {"capsule", "sagwan-generated", "research-gap", "meta", "improvement-request", "knowledge", "search-quality", "high", "medium", "low"}}
+
+    scored: list[tuple[int, str]] = []
+    try:
+        for path in list_note_paths():
+            if path == exclude_path:
+                continue
+            if not path.startswith(_SAGWAN_CAPSULE_FOLDER + "/"):
+                continue
+            try:
+                doc = load_document(path)
+            except Exception:
+                continue
+            fm = doc.frontmatter or {}
+            if str(fm.get("kind") or "").lower() != "capsule":
+                continue
+            review_status = str(fm.get("claim_review_status") or "").strip().lower()
+            note_status = str(fm.get("status") or "").strip().lower()
+            pub_status = str(fm.get("publication_status") or "").strip().lower()
+            if review_status in _RELATED_LINK_DEAD_STATES or note_status in _RELATED_LINK_DEAD_STATES or pub_status == "superseded":
+                continue
+            score = 0
+            cand_tags = {str(t).lower() for t in (fm.get("tags") or [])}
+            score += 3 * len(tag_set & cand_tags)
+            title_low = str(fm.get("title") or "").lower()
+            for kw in keywords:
+                if kw and kw in title_low:
+                    score += 1
+            if topic_slug and topic_slug.lower() in path.lower():
+                score += 5
+            if score >= threshold:
+                scored.append((score, path))
+    except Exception as exc:
+        logger.debug("_find_related_capsule_paths failed: %s", exc)
+        return []
+
+    scored.sort(key=lambda item: (-item[0], item[1]))
+    result = [path for _score, path in scored[:max_results]]
+    if not result:
+        # Deterministic miss → semantic fallback (bge-m3 top-k over capsule pool)
+        try:
+            result = _find_related_capsule_paths_semantic_fallback(
+                topic=topic, queries=queries, exclude_path=exclude_path, max_results=max_results,
+            )
+        except Exception as exc:
+            logger.debug("semantic fallback failed: %s", exc)
+            result = []
+    return result
+
+
+_IR_FOLDER = "personal_vault/meta/improvement-requests/"
+_SEMANTIC_RESOLVE_THRESHOLD = 0.55  # cosine — IR signal_query vs capsule text
+_SEMANTIC_FALLBACK_THRESHOLD = 0.50  # cosine — helper fallback when deterministic miss
+
+
+def _find_related_capsule_paths_semantic_fallback(
+    *, topic: str, queries: list[str] | None, exclude_path: str, max_results: int = 3
+) -> list[str]:
+    """Semantic top-k fallback when keyword scoring misses. Reuses bge-m3
+    embeddings; the capsule pool is already cached in semantic-index.
+    """
+    try:
+        from app.semantic_search import semantic_rank, SemanticDocument
+    except Exception:
+        return []
+
+    query_text = " ".join(filter(None, [str(topic or ""), *[str(q) for q in (queries or [])]])).strip()
+    if not query_text:
+        return []
+
+    docs: list[Any] = []
+    try:
+        for path in list_note_paths():
+            if path == exclude_path:
+                continue
+            if not path.startswith(_SAGWAN_CAPSULE_FOLDER + "/"):
+                continue
+            try:
+                d = load_document(path)
+            except Exception:
+                continue
+            fm = d.frontmatter or {}
+            if str(fm.get("kind") or "").lower() != "capsule":
+                continue
+            rs = str(fm.get("claim_review_status") or "").strip().lower()
+            ns = str(fm.get("status") or "").strip().lower()
+            ps = str(fm.get("publication_status") or "").strip().lower()
+            if rs in _RELATED_LINK_DEAD_STATES or ns in _RELATED_LINK_DEAD_STATES or ps == "superseded":
+                continue
+            docs.append(SemanticDocument(
+                key=path,
+                path=path,
+                title=str(fm.get("title") or ""),
+                kind="capsule",
+                project=str(fm.get("project") or ""),
+                status=str(fm.get("status") or ""),
+                summary=str(fm.get("summary") or "")[:500],
+                body=(d.body or "")[:1200],
+            ))
+    except Exception as exc:
+        logger.debug("semantic fallback doc-gather failed: %s", exc)
+        return []
+    if not docs:
+        return []
+    try:
+        top = semantic_rank(query_text, docs, limit=max_results * 2)
+    except Exception as exc:
+        logger.debug("semantic_rank failed: %s", exc)
+        return []
+    return [key for key, score in top if score >= _SEMANTIC_FALLBACK_THRESHOLD][:max_results]
+
+
+def _resolve_irs_for_new_capsule(
+    *,
+    capsule_path: str,
+    capsule_title: str,
+    capsule_body: str,
+    research_topic: str,
+    research_queries: list[str] | None,
+    max_resolve: int = 8,
+    source_folder: str = _IR_FOLDER,
+    query_field: str = "signal_query",
+) -> dict[str, Any]:
+    """After a new capsule lands, find unresolved pending-note (IR or
+    knowledge-gap) whose `query_field` is semantically close to the capsule
+    and mark them resolved.
+
+    The capsule's text becomes the query; each note's query_field is the doc.
+    Threshold is conservative (cosine ≥ _SEMANTIC_RESOLVE_THRESHOLD) to avoid
+    false-resolves. Resolved notes get:
+        - status: resolved
+        - resolved_by: capsule_path
+        - resolved_at: now
+        - resolution_score: <cosine>
+        - related: capsule_path appended
+    """
+    try:
+        from app.semantic_search import semantic_rank, SemanticDocument
+    except Exception:
+        return {"resolved": 0, "error": "semantic_search_unavailable"}
+
+    ir_docs: list[Any] = []
+    ir_lookup: dict[str, str] = {}  # key -> path
+    try:
+        for path in list_note_paths():
+            if not path.startswith(source_folder):
+                continue
+            try:
+                d = load_document(path)
+            except Exception:
+                continue
+            fm = d.frontmatter or {}
+            status = str(fm.get("status") or "").strip().lower()
+            if status in {"resolved", "archived"}:
+                continue
+            sq = str(fm.get(query_field) or "").strip()
+            if not sq:
+                continue
+            key = path
+            ir_lookup[key] = path
+            # query_field is the strongest semantic anchor; title gives extra context
+            ir_docs.append(SemanticDocument(
+                key=key,
+                path=path,
+                title=str(fm.get("title") or ""),
+                kind=str(fm.get("kind") or "reference"),
+                project=str(fm.get("project") or "ops/librarian"),
+                status=status,
+                summary=sq[:500],
+                body=sq,
+            ))
+    except Exception as exc:
+        logger.debug("pending-note doc-gather failed (%s): %s", source_folder, exc)
+        return {"resolved": 0, "error": "gather_failed"}
+    if not ir_docs:
+        return {"resolved": 0, "checked": 0}
+
+    capsule_query = " ".join(filter(None, [
+        capsule_title, research_topic, " ".join(research_queries or []), (capsule_body or "")[:800],
+    ])).strip()
+    if not capsule_query:
+        return {"resolved": 0, "checked": len(ir_docs)}
+
+    try:
+        top = semantic_rank(capsule_query, ir_docs, limit=max_resolve * 2)
+    except Exception as exc:
+        logger.debug("IR semantic_rank failed: %s", exc)
+        return {"resolved": 0, "error": "semantic_rank_failed"}
+
+    resolved_count = 0
+    matches: list[dict[str, Any]] = []
+    for key, score in top:
+        if score < _SEMANTIC_RESOLVE_THRESHOLD:
+            break
+        ir_path = ir_lookup.get(key)
+        if not ir_path:
+            continue
+        try:
+            ir_doc = load_document(ir_path)
+            new_fm = dict(ir_doc.frontmatter or {})
+            new_fm["status"] = "resolved"
+            new_fm["resolved_by"] = capsule_path
+            new_fm["resolved_at"] = _now_iso()
+            new_fm["resolution_score"] = round(float(score), 4)
+            related = list(new_fm.get("related") or [])
+            if capsule_path not in related:
+                related.insert(0, capsule_path)
+            new_fm["related"] = related[:5]
+            write_document(
+                path=ir_path,
+                body=ir_doc.body or "",
+                metadata=new_fm,
+                metadata_replace=True,
+                allow_owner_change=True,
+            )
+            resolved_count += 1
+            matches.append({"ir_path": ir_path, "score": round(float(score), 4)})
+            if resolved_count >= max_resolve:
+                break
+        except Exception as exc:
+            logger.debug("resolve write failed for %s: %s", ir_path, exc)
+            continue
+    return {"resolved": resolved_count, "checked": len(ir_docs), "matches": matches}
+
+
 _CAPSULE_GEN_MAX_PER_CYCLE = 1  # 안전상 사이클당 1개만 생성
 _RESEARCH_LOG_PATH = "personal_vault/projects/ops/librarian/activity/research-log.md"
 _CONSOLIDATION_LOG_PATH = "personal_vault/projects/ops/librarian/activity/consolidation-log.md"
@@ -2186,7 +2613,7 @@ def _curate_research_gaps(force: bool = False) -> dict[str, Any]:
             rationale=rationale or str(gap.get("rationale") or ""),
             cited_urls=[],
             capsule_path=None,
-            model=str(model or ""),
+            model="stage-routed",  # actual model resolved by _invoke_for_stage("research_selection")
             max_fetches=int(settings.get("research_max_fetches") or 3),
             status="skipped_duplicate",
             existing_path=existing_path,
@@ -2225,6 +2652,39 @@ def _curate_research_gaps(force: bool = False) -> dict[str, Any]:
         return {"status": "llm_error", "detail": (raw_capsule or "")[:200], "gap": gap}
 
     final_capsule = raw_capsule
+    so_evidence: list[dict[str, Any]] = []
+    so_evidence_used = False
+    so_enabled = load_sagwan_settings().get("so_ingest_enabled", False)
+    if so_enabled and _SO_INGEST_AVAILABLE:
+        try:
+            gap_query_string = " ".join(
+                str(query).strip()
+                for query in (gap.get("queries") or [])
+                if str(query).strip()
+            ) or str(gap.get("topic") or "").strip()
+            if gap_query_string:
+                so_results = search_stackoverflow(gap_query_string, max_results=3)
+                so_evidence = [stackoverflow_to_evidence_payload(result) for result in so_results]
+                if so_evidence:
+                    so_lines = ["", "## StackOverflow Evidence"]
+                    for evidence in so_evidence:
+                        attribution = evidence.get("attribution") or {}
+                        so_lines.extend(
+                            [
+                                "",
+                                f"### {evidence.get('title') or 'StackOverflow answer'}",
+                                f"- source: {attribution.get('source_url') or '-'}",
+                                f"- author: {attribution.get('author') or 'unknown'}",
+                                f"- license: {attribution.get('license') or 'CC-BY-SA-4.0'}",
+                                f"- fetched_at: {attribution.get('fetched_at') or '-'}",
+                                "",
+                                str(evidence.get("content") or ""),
+                            ]
+                        )
+                    final_capsule = final_capsule.rstrip() + "\n" + "\n".join(so_lines).rstrip() + "\n"
+                    so_evidence_used = True
+        except Exception as exc:
+            logger.warning("sagwan StackOverflow ingest skipped: %s", exc)
     cited_urls = _extract_source_urls(final_capsule)
     retry_attempted = False
     retry_count = 0
@@ -2266,17 +2726,66 @@ def _curate_research_gaps(force: bool = False) -> dict[str, Any]:
         publication_status = "none"
         publication_rationale = "hourly_llm_cap_exceeded"
 
+    # Privacy guardrail (2026-05-04): even if publication_judge approved, force
+    # private if the capsule body contains anything that looks like a secret /
+    # credential / private session marker. The LLM judge alone is not enough —
+    # this is a hard regex floor that cannot be overridden by prompt.
+    if publication_status == "published":
+        leak_match = _detect_secret_pattern(final_capsule)
+        if leak_match:
+            publication_status = "none"
+            publication_rationale = (
+                f"forced private by secret-pattern guardrail (matched {leak_match}); "
+                f"original LLM rationale: {publication_rationale[:200]}"
+            )
+            logger.warning("publication blocked by secret-pattern guard: capsule_title=%s match=%s",
+                           capsule_title, leak_match)
+
+    license_metadata = (
+        {
+            "license_restricted": True,
+            "license_source": "CC-BY-SA-4.0 (stackoverflow)",
+        }
+        if so_evidence_used
+        else {}
+    )
+    if publication_status == "published" and license_metadata.get("license_restricted") is True:
+        publication_status = "none"
+        publication_rationale = (
+            "forced private by license-restricted evidence guardrail "
+            f"(source {license_metadata.get('license_source')}); "
+            f"original LLM rationale: {publication_rationale[:200]}"
+        )
+        logger.warning(
+            "publication blocked by license-restricted evidence guard: capsule_title=%s source=%s",
+            capsule_title,
+            license_metadata.get("license_source"),
+        )
+
     visibility = "public" if publication_status == "published" else "private"
     owner = "sagwan" if publication_status == "published" else SUBORDINATE_IDENTITY.get("nickname", "busagwan")
 
     suggested_path = suggest_note_path("capsule", capsule_title, _SAGWAN_CAPSULE_FOLDER, None, "ops/librarian")
+    capsule_tags = ["capsule", "sagwan-generated", "research-gap", gap["topic_slug"]]
+    related_paths = _find_related_capsule_paths(
+        topic=gap["topic"],
+        topic_slug=gap["topic_slug"],
+        queries=gap["queries"],
+        tags=capsule_tags,
+        exclude_path=suggested_path,
+        max_results=3,
+    )
+    if related_paths:
+        related_section = "\n\n## Related\n" + "\n".join(f"- [[{rp.split('/')[-1].rsplit('.md',1)[0]}]]" for rp in related_paths) + "\n"
+        if "## Related" not in final_capsule:
+            final_capsule = final_capsule.rstrip() + related_section
     doc = write_document(
         path=suggested_path,
         title=capsule_title,
         kind="capsule",
         project="ops/librarian",
         status="draft",
-        tags=["capsule", "sagwan-generated", "research-gap", gap["topic_slug"]],
+        tags=capsule_tags,
         body=final_capsule,
         metadata={
             "visibility": visibility,
@@ -2294,8 +2803,10 @@ def _curate_research_gaps(force: bool = False) -> dict[str, Any]:
             "publication_decided_by": "sagwan",
             "publication_decided_at": _now_iso(),
             "publication_decision_reason": publication_rationale,
+            **license_metadata,
             "evidence_urls": cited_urls,
             "evidence_paths": [],
+            "related": related_paths,
         },
         allow_owner_change=True,
     )
@@ -2313,6 +2824,49 @@ def _curate_research_gaps(force: bool = False) -> dict[str, Any]:
         grounding=grounding,
         retry_count=retry_count,
     )
+
+    # After a new capsule lands, resolve semantically similar pending notes.
+    # Two symmetric backlogs: improvement-requests (search_akashic gap) and
+    # knowledge-gaps (search_notes gap) — both ask "vault has no answer for X".
+    resolved_irs: dict[str, Any] = {"resolved": 0}
+    resolved_gaps: dict[str, Any] = {"resolved": 0}
+    try:
+        resolved_irs = _resolve_irs_for_new_capsule(
+            capsule_path=doc.path,
+            capsule_title=capsule_title,
+            capsule_body=final_capsule,
+            research_topic=gap["topic"],
+            research_queries=gap["queries"],
+            max_resolve=8,
+            source_folder=_IR_FOLDER,
+            query_field="signal_query",
+        )
+        if resolved_irs.get("resolved"):
+            logger.info(
+                "Stage K resolved %d IR notes via semantic match (capsule=%s)",
+                resolved_irs["resolved"], doc.path,
+            )
+    except Exception as exc:
+        logger.warning("_resolve_irs_for_new_capsule (IR) failed: %s", exc)
+    try:
+        resolved_gaps = _resolve_irs_for_new_capsule(
+            capsule_path=doc.path,
+            capsule_title=capsule_title,
+            capsule_body=final_capsule,
+            research_topic=gap["topic"],
+            research_queries=gap["queries"],
+            max_resolve=8,
+            source_folder="doc/knowledge-gaps/",
+            query_field="gap_query",
+        )
+        if resolved_gaps.get("resolved"):
+            logger.info(
+                "Stage K resolved %d knowledge-gap notes via semantic match (capsule=%s)",
+                resolved_gaps["resolved"], doc.path,
+            )
+    except Exception as exc:
+        logger.warning("_resolve_irs_for_new_capsule (gap) failed: %s", exc)
+
     now_iso = _now_iso()
     _touch_research_state(now_iso)
 
@@ -2327,11 +2881,48 @@ def _curate_research_gaps(force: bool = False) -> dict[str, Any]:
         "publication_rationale": publication_rationale,
         "retry_attempted": retry_attempted,
         "research_supplement_to": str(gap.get("supplement_extend_path") or "").strip() or None,
+        "resolved_irs": resolved_irs,
+        "resolved_gaps": resolved_gaps,
         "inventory_summary": {
             "total_capsules": inventory.get("total_capsules", 0),
             "total_claims": inventory.get("total_claims", 0),
         },
     }
+
+
+# Hard regex floor that publication_judge cannot bypass. If any capsule body
+# contains a credential-looking token, it is forced to publication_status=none
+# regardless of LLM verdict. Patterns are conservative — false positives push
+# capsules to private (safe direction); false negatives are the danger we
+# minimize by accepting moderate over-blocking.
+_SECRET_PATTERNS: list[tuple[str, "re.Pattern[str]"]] = [
+    ("openai_api_key",       re.compile(r"sk-[A-Za-z0-9_\-]{16,}")),
+    ("openai_proj_key",      re.compile(r"sk-proj-[A-Za-z0-9_\-]{16,}")),
+    ("anthropic_api_key",    re.compile(r"sk-ant-[A-Za-z0-9_\-]{16,}")),
+    ("github_pat",           re.compile(r"\bghp_[A-Za-z0-9]{30,}")),
+    ("github_oauth",         re.compile(r"\bgho_[A-Za-z0-9]{30,}")),
+    ("github_app_token",     re.compile(r"\bghs_[A-Za-z0-9]{30,}")),
+    ("aws_access_key_id",    re.compile(r"\bAKIA[0-9A-Z]{16}\b")),
+    ("aws_secret_access",    re.compile(r"aws_secret_access_key\s*[:=]\s*[A-Za-z0-9/+=]{30,}", re.IGNORECASE)),
+    ("slack_bot_token",      re.compile(r"\bxox[baprs]-[A-Za-z0-9\-]{10,}")),
+    ("private_key_block",    re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----")),
+    ("ssh_private_block",    re.compile(r"-----BEGIN OPENSSH PRIVATE KEY-----")),
+    ("bearer_assignment",    re.compile(r"(?i)\bbearer\s+[A-Za-z0-9_\-\.]{30,}")),
+    ("authorization_header", re.compile(r"(?i)authorization\s*:\s*bearer\s+[A-Za-z0-9_\-\.]{20,}")),
+    ("password_assignment",  re.compile(r"(?i)\b(?:db_)?password\s*[:=]\s*['\"][^'\"\s]{8,}['\"]")),
+    ("jwt_token",            re.compile(r"\beyJ[A-Za-z0-9_\-]{20,}\.[A-Za-z0-9_\-]{20,}\.[A-Za-z0-9_\-]{20,}\b")),
+    ("openakashic_admin",    re.compile(r"CLOSED_AKASHIC_BEARER_TOKEN\s*[:=]\s*[A-Za-z0-9]{20,}", re.IGNORECASE)),
+]
+
+
+def _detect_secret_pattern(text: str) -> str | None:
+    """Returns the name of the first matching pattern, or None if clean."""
+    if not text:
+        return None
+    for name, regex in _SECRET_PATTERNS:
+        if regex.search(text):
+            return name
+    return None
 
 
 def _build_publication_judge_prompt(
@@ -2485,6 +3076,138 @@ def _curate_generate_capsules() -> dict[str, Any]:
     return {"generated": 1, "path": doc.path, "seed": seed_path, "related": len(related_paths)}
 
 
+_VAULT_PATH_RE = re.compile(r"(personal_vault/[^,\]\)\n]+?\.md|doc/[^,\]\)\n]+?\.md)")
+_VAULT_CITATION_BLOCK_RE = re.compile(r"\[vault:\s*([^\]]+)\]", re.IGNORECASE)
+_STRONG_VERDICTS = {"revise", "supersede", "merge", "duplicate", "conflict"}
+_RELATED_CANDIDATES_FIELD = "related_candidates"
+_RELATED_FIELD = "related"
+_PROMOTE_MIN_COUNT = 2  # candidate seen N+ times → promote to related
+
+
+def _is_valid_vault_path(path: str, *, exclude_self: str | None = None) -> bool:
+    """Path must point to an existing vault note and not the source itself."""
+    if not path:
+        return False
+    p = path.strip().strip("'\",")
+    if not (p.startswith("personal_vault/") or p.startswith("doc/")) or not p.endswith(".md"):
+        return False
+    if exclude_self and p == exclude_self:
+        return False
+    try:
+        return p in set(list_note_paths())
+    except Exception:
+        return False
+
+
+def _extract_vault_citations(rationale: str, *, source_path: str | None = None) -> list[str]:
+    """Parse `[vault: <path>(, <path>)*]` blocks → list of valid distinct vault paths."""
+    if not rationale:
+        return []
+    found: list[str] = []
+    seen: set[str] = set()
+    valid_paths = set(list_note_paths())
+    for block in _VAULT_CITATION_BLOCK_RE.findall(rationale):
+        for m in _VAULT_PATH_RE.findall(block):
+            cand = m.strip()
+            if cand in seen:
+                continue
+            if cand == source_path:
+                continue
+            if cand not in valid_paths:
+                continue
+            seen.add(cand)
+            found.append(cand)
+    return found
+
+
+def _record_citation_candidates(
+    target_path: str,
+    citations: list[str],
+    *,
+    source_stage: str,
+    verdict: str,
+    structural_targets: set[str] | None = None,
+) -> dict[str, Any]:
+    """Append citations to `related_candidates` (weak edges) and promote to `related`
+    only when (a) cited path is a structurally-confirmed relation AND verdict is strong,
+    OR (b) the same path has been cited ≥_PROMOTE_MIN_COUNT times. Strong verdict alone
+    is NOT sufficient (Codex review: action confidence ≠ link confidence).
+
+    Skips paths that are already recorded as canonical relations in any lineage field
+    (related, supersedes, superseded_by, targets) to avoid double-counting in the
+    inbound index.
+    """
+    if not citations:
+        return {"recorded": 0, "promoted": 0}
+    try:
+        doc = load_document(target_path)
+    except Exception:
+        return {"recorded": 0, "promoted": 0, "error": "load_failed"}
+    fm = dict(doc.frontmatter or {})
+
+    # Build the full set of paths already linked through ANY canonical lineage field —
+    # not just `related`. Skipping these prevents double-counting in the inbound index.
+    linked_set: set[str] = set()
+    for fld in (_RELATED_FIELD, "supersedes", "superseded_by", "targets"):
+        val = fm.get(fld)
+        if isinstance(val, str) and val.strip():
+            linked_set.add(val.strip())
+        elif isinstance(val, list):
+            for v in val:
+                if isinstance(v, str) and v.strip():
+                    linked_set.add(v.strip())
+
+    candidates_raw = fm.get(_RELATED_CANDIDATES_FIELD) or []
+    canonical_cands: dict[str, dict[str, Any]] = {}
+    if isinstance(candidates_raw, list):
+        for entry in candidates_raw:
+            if isinstance(entry, dict) and entry.get("path"):
+                canonical_cands[str(entry["path"])] = dict(entry)
+            elif isinstance(entry, str):
+                canonical_cands[entry] = {"path": entry, "count": 1}
+
+    related_existing = fm.get(_RELATED_FIELD) or []
+    if isinstance(related_existing, str):
+        related_existing = [related_existing]
+    related_set = {str(r) for r in related_existing if isinstance(r, str)}
+
+    recorded = 0
+    promoted_now: list[str] = []
+    now = _now_iso()
+    strong = verdict.lower().strip() in _STRONG_VERDICTS
+    targets = structural_targets or set()
+
+    for cite in citations:
+        if cite in linked_set:
+            continue   # already wired via related/supersedes/superseded_by/targets
+        slot = canonical_cands.get(cite) or {"path": cite, "count": 0}
+        slot["count"] = int(slot.get("count") or 0) + 1
+        slot["last_seen_at"] = now
+        slot["last_stage"] = source_stage
+        slot["last_verdict"] = verdict
+        canonical_cands[cite] = slot
+        recorded += 1
+        # Promote rules (Codex-reviewed):
+        #   1. cited path is structurally-confirmed (decision.target_path/merge_into/supersedes)
+        #      AND verdict is strong → promote on first sight (action+structure both confirmed)
+        #   2. otherwise require count >= _PROMOTE_MIN_COUNT (repeated citation)
+        if (cite in targets and strong) or slot["count"] >= _PROMOTE_MIN_COUNT:
+            related_set.add(cite)
+            promoted_now.append(cite)
+            canonical_cands.pop(cite, None)
+    if recorded == 0 and not promoted_now:
+        return {"recorded": 0, "promoted": 0}
+    fm[_RELATED_CANDIDATES_FIELD] = list(canonical_cands.values())
+    if promoted_now:
+        fm[_RELATED_FIELD] = sorted(related_set)
+    try:
+        write_document(path=target_path, body=doc.body, metadata=fm, allow_owner_change=True)
+    except Exception as exc:
+        logger.warning("sagwan record_citation_candidates write failed for %s: %s", target_path, exc)
+        return {"recorded": 0, "promoted": 0, "error": "write_failed"}
+    return {"recorded": recorded, "promoted": len(promoted_now), "promoted_paths": promoted_now}
+
+
 def _curate_detect_conflicts(*, max_per_cycle: int = 1) -> dict[str, Any]:
     """(F) 신규 capsule/claim 을 사관이 자율적으로 conflict/duplicate/clear 판정한다."""
     from app.mcp_server import _post_internal_review
@@ -2524,16 +3247,21 @@ def _curate_detect_conflicts(*, max_per_cycle: int = 1) -> dict[str, Any]:
     decision = _parse_conflict_decision(raw)
     verdict = str(decision.get("verdict") or "clear")
     flagged = 0
+    review_skipped = False
+    review_skip_reason = ""
 
     if verdict == "conflict" and decision.get("target_path"):
         flagged = 1
-        _post_internal_review(
+        review_result = _post_internal_review(
             target=str(decision["target_path"]),
             stance="dispute",
             rationale=str(decision.get("rationale") or "Sagwan autonomous conflict check flagged this note."),
             evidence_paths=[candidate.path],
             topic="sagwan-conflict-detect",
         )
+        if isinstance(review_result, dict) and review_result.get("status") == "skipped":
+            review_skipped = True
+            review_skip_reason = str(review_result.get("reason") or "")
     elif verdict == "duplicate" and decision.get("target_path"):
         flagged = 1
         _enqueue_maintenance(candidate.path, reason=f"duplicate_with_{decision['target_path']}")
@@ -2547,7 +3275,24 @@ def _curate_detect_conflicts(*, max_per_cycle: int = 1) -> dict[str, Any]:
     if decision.get("rationale"):
         next_fm["conflict_check_note"] = str(decision["rationale"])[:500]
     write_document(path=candidate.path, body=candidate.body, metadata=next_fm, allow_owner_change=True)
-    return {"checked": 1, "flagged": flagged, "verdict": verdict, "status": "ok", "target": candidate.path}
+
+    # Persist citations from rationale as graph edges (weak → promote pattern).
+    # Structural target = the path the LLM explicitly nominated (target_path) — promote
+    # on first sight when verdict is strong (action + structure both confirmed).
+    structural = {decision["target_path"]} if decision.get("target_path") else set()
+    citation_stats = _record_citation_candidates(
+        candidate.path,
+        _extract_vault_citations(str(decision.get("rationale") or ""), source_path=candidate.path),
+        source_stage="conflict",
+        verdict=verdict,
+        structural_targets=structural,
+    )
+    result = {"checked": 1, "flagged": flagged, "verdict": verdict, "status": "ok",
+              "target": candidate.path, "citations": citation_stats}
+    if review_skipped:
+        result["review_skipped"] = True
+        result["review_skip_reason"] = review_skip_reason
+    return result
 
 
 def _build_conflict_check_prompt(doc: Any) -> str:
@@ -2556,13 +3301,21 @@ def _build_conflict_check_prompt(doc: Any) -> str:
         [
             "너는 OpenAkashic 사관이다. 신규 note/capsule의 충돌·중복·정합성을 자율 점검한다.",
             "사용 가능한 도구:",
-            "- mcp__openakashic__search_akashic",
-            "- mcp__openakashic__search_notes",
-            "- mcp__openakashic__read_note",
-            "- mcp__openakashic__read_raw_note",
+            "- mcp__openakashic__search_and_read_top   (vault 검색 + top 노트 본문 한 번에)",
+            "- mcp__openakashic__search_notes          (vault 후보 다수 비교)",
+            "- mcp__openakashic__search_akashic        (검증된 public 지식)",
+            "- mcp__openakashic__read_note / read_raw_note",
             "- mcp__openakashic__list_reviews",
-            "- WebSearch",
-            "- WebFetch",
+            "- WebSearch / WebFetch",
+            "",
+            "## 필수 규칙 (위반 시 판정 무효)",
+            "1. 판정 *전에* vault 검색을 반드시 수행하라. `search_and_read_top` 을 최소 1회 호출하라.",
+            "   대상 캡슐의 핵심 주제/태그를 query 로 사용하고, 결과가 빈약하면 `search_notes` 로 보강하라.",
+            "2. public/validated 검색도 반드시 수행하라. `search_akashic` 또는 `WebSearch`/`WebFetch` 를 최소 1회 호출하라.",
+            "3. 최종 `rationale` 에는 실제 확인 근거를 명시하라.",
+            "   형식: `[vault: <path 또는 'none-found'>][public: <capsule-title 또는 url 또는 'none-found'>] <한국어 판단 요지>`",
+            "4. 위 검색을 수행하지 못했으면 (도구 오류 등) 판정을 확정하지 말고 보수적으로 `clear` 로 두고 그 이유를 rationale 에 적어라.",
+            "5. duplicate 또는 conflict 면 target_path 에 vault 경로를 정확히 적어라.",
             "",
             f"대상 path: {doc.path}",
             f"title: {fm.get('title') or doc.path}",
@@ -2574,10 +3327,10 @@ def _build_conflict_check_prompt(doc: Any) -> str:
             (doc.body or "")[:2500] or "(empty)",
             "",
             "작업:",
-            "1. 관련/유사 문서를 vault와 public knowledge에서 찾는다.",
-            "2. 명백한 모순이면 conflict, 거의 같은 내용이면 duplicate, 아니면 clear로 판정한다.",
-            "3. 마지막에는 JSON만 출력한다.",
-            '{"verdict":"clear|conflict|duplicate","target_path":"...", "rationale":"..."}',
+            "1. 위 필수 규칙대로 vault + public 검색 수행.",
+            "2. 명백한 모순이면 conflict, 거의 같은 내용이면 duplicate, 아니면 clear 로 판정.",
+            "3. 마지막에는 JSON만 출력한다 (외부 텍스트 금지).",
+            '{"verdict":"clear|conflict|duplicate","target_path":"...", "rationale":"[vault: ...][public: ...] ..."}',
         ]
     )
 
@@ -2626,8 +3379,171 @@ def _maintenance_system_owners() -> set[str]:
     return {"sagwan", "admin", "system", "busagwan", SAGWAN_DECIDER}
 
 
+def _staleness_bucket(last_iso: str) -> int:
+    """0 = fresh (≤7d), 1 = stale (≤30d), 2 = very stale (≤90d), 3 = ancient/never."""
+    if not last_iso:
+        return 3
+    try:
+        t = _parse_iso_datetime(last_iso)
+    except Exception:
+        return 3
+    if t is None:
+        return 3
+    age_days = (datetime.now(UTC) - t).days
+    if age_days <= 7:
+        return 0
+    if age_days <= 30:
+        return 1
+    if age_days <= 90:
+        return 2
+    return 3
+
+
+def _build_inbound_index() -> dict[str, int]:
+    """Cheap inbound-degree index for maintenance ordering (one pass per cycle).
+    Counts both frontmatter `related` references and supersedes/superseded_by/targets.
+    """
+    counts: collections.Counter = collections.Counter()
+    for path in list_note_paths():
+        try:
+            doc = load_document(path)
+        except Exception:
+            continue
+        fm = dict(doc.frontmatter or {})
+        for fld in ("related", "supersedes", "superseded_by", "targets"):
+            val = fm.get(fld)
+            if not val:
+                continue
+            if isinstance(val, str):
+                counts[val] += 1
+            elif isinstance(val, list):
+                for v in val:
+                    if isinstance(v, str):
+                        counts[v] += 1
+    return dict(counts)
+
+
+def _connectivity_bucket(in_degree: int) -> int:
+    """0 = connected (≥3), 1 = weak (1-2), 2 = orphan (0)."""
+    if in_degree >= 3:
+        return 0
+    if in_degree >= 1:
+        return 1
+    return 2
+
+
+def _aging_force_bonus(age_seconds: float) -> int:
+    """Anti-starvation: very old notes get a rank bonus that compounds with
+    agenda_bonus so non-agenda projects can still surface for maintenance.
+
+    Tiers (days since last_maintained / created):
+        ≥ 60  → 3  (overrides agenda-only picks, equiv. to explicit priority)
+        ≥ 30  → 2  (matches agenda priority=1 area)
+        ≥ 14  → 1  (weak boost — tiebreaker in mixed pools)
+        < 14  → 0
+    """
+    days = float(age_seconds) / 86400.0
+    if days >= 60:
+        return 3
+    if days >= 30:
+        return 2
+    if days >= 14:
+        return 1
+    return 0
+
+
+def _project_of_path(path: str) -> str:
+    """Extract project label from a vault path. Best-effort; falls back to 'misc'."""
+    parts = path.split("/")
+    # personal_vault/projects/<scope>/<name>/...  → "<scope>/<name>"
+    if len(parts) >= 4 and parts[0] == "personal_vault" and parts[1] == "projects":
+        return f"{parts[2]}/{parts[3]}"
+    # personal_vault/knowledge/<topic>/...  → "knowledge/<topic>"
+    if len(parts) >= 3 and parts[0] == "personal_vault" and parts[1] in {"knowledge", "shared", "meta"}:
+        return f"{parts[1]}/{parts[2]}"
+    return "misc"
+
+
+def _area_distribution_stats(*, lookback_days: int = 7) -> dict[str, Any]:
+    """Soft prior for sagwan: project-level distribution it can use to self-balance.
+
+    Returns:
+      - recent_maintenance: {project: count of maintenance entries within lookback_days}
+      - capsule_count: {project: total capsule/claim notes}
+      - orphan_ratio: {project: fraction of capsules/claims with in_degree == 0}
+    """
+    inbound = _build_inbound_index()
+    capsule_count: collections.Counter = collections.Counter()
+    orphan_count: collections.Counter = collections.Counter()
+    for path in list_note_paths():
+        if not path.startswith("personal_vault/"):
+            continue
+        try:
+            doc = load_document(path)
+        except Exception:
+            continue
+        fm = dict(doc.frontmatter or {})
+        kind = str(fm.get("kind") or "").strip().lower()
+        if kind not in {"capsule", "claim"}:
+            continue
+        proj = _project_of_path(path)
+        capsule_count[proj] += 1
+        if inbound.get(path, 0) == 0:
+            orphan_count[proj] += 1
+    orphan_ratio = {p: round(orphan_count[p] / max(1, capsule_count[p]), 2)
+                    for p in capsule_count}
+
+    # Recent maintenance: parse the maintenance log for entries in the lookback window.
+    recent: collections.Counter = collections.Counter()
+    cutoff = datetime.now(UTC) - timedelta(days=lookback_days)
+    try:
+        log_doc = load_document(_MAINTENANCE_LOG_PATH)
+        text = log_doc.body or ""
+        for m in re.finditer(
+            r"## (20\d{2}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z) maintenance\s*\n- target: (\S.+)",
+            text,
+        ):
+            ts, target = m.group(1), m.group(2).strip()
+            try:
+                t = datetime.fromisoformat(ts.replace("Z", "+00:00")).astimezone(UTC)
+            except Exception:
+                continue
+            if t < cutoff:
+                continue
+            recent[_project_of_path(target)] += 1
+    except Exception:
+        pass
+
+    return {
+        "recent_maintenance": dict(recent.most_common(15)),
+        "capsule_count": dict(capsule_count.most_common(15)),
+        "orphan_ratio": dict(sorted(orphan_ratio.items(), key=lambda kv: -kv[1])[:15]),
+    }
+
+
+def _kind_priority(fm: dict[str, Any]) -> int:
+    """0 = capsule, 1 = claim disputed/unreviewed, 2 = claim other.
+    Caller already filters kind ∈ {capsule, claim}, so other kinds never reach here.
+    """
+    kind = str(fm.get("kind") or "").strip().lower()
+    if kind == "capsule":
+        return 0
+    review = str(fm.get("claim_review_status") or "").strip().lower()
+    if review in {"disputed", "unreviewed", ""}:
+        return 1
+    return 2
+
+
 def _find_maintenance_candidate() -> Any | None:
-    candidates: list[dict[str, Any]] = []
+    """Lexicographic rank ordering (smaller tuple wins, picked via min()):
+        (priority_reason_absent,   # 0 if priority set, 1 otherwise
+         -staleness_bucket,        # bigger bucket (older/never) first
+         -connectivity_bucket,     # bigger bucket (orphan) first
+          kind_priority,           # capsule > claim
+         -age_seconds_for_tiebreak)
+    """
+    inbound = _build_inbound_index()
+    pool: list[tuple[tuple[int, int, int, int, float], Any]] = []
     for path in list_note_paths():
         if not path.startswith("personal_vault/"):
             continue
@@ -2645,33 +3561,59 @@ def _find_maintenance_candidate() -> Any | None:
             continue
         if str(fm.get("status") or "").strip().lower() == "archived":
             continue
-        last_at = str(fm.get("maintenance_priority_at") or fm.get("last_maintained_at") or fm.get("created_at") or "")
-        candidates.append(
-            {
-                "doc": doc,
-                "priority": 0 if fm.get("maintenance_priority_at") else 1,
-                "last_at": last_at,
-            }
+        last_at_raw = str(fm.get("maintenance_priority_at") or fm.get("last_maintained_at") or fm.get("created_at") or "")
+        try:
+            t = _parse_iso_datetime(last_at_raw)
+            age_seconds = (datetime.now(UTC) - t).total_seconds() if t else 1e12
+        except Exception:
+            age_seconds = 1e12
+        rank = (
+            0 if fm.get("maintenance_priority_at") else 1,   # priority absent → 1, picks priority first
+            -_staleness_bucket(last_at_raw),                  # 3..0 → -3..0; smaller picks older/never
+            -_connectivity_bucket(inbound.get(path, 0)),      # 2..0 → -2..0; smaller picks orphan
+            _kind_priority(fm),                               # 0=capsule first
+            -age_seconds,                                      # tiebreak: older first
         )
-    if not candidates:
+        pool.append((rank, doc))
+    if not pool:
         return None
-    candidates.sort(key=lambda item: (item["priority"], item["last_at"]))
-    return candidates[0]["doc"]
+    pool.sort(key=lambda item: item[0])
+    return pool[0][1]
 
 
 def _build_maintenance_prompt(doc: Any) -> str:
     fm = dict(doc.frontmatter or {})
+    try:
+        area_stats = _area_distribution_stats(lookback_days=7)
+    except Exception:
+        area_stats = {"recent_maintenance": {}, "capsule_count": {}, "orphan_ratio": {}}
     return "\n\n".join(
         [
             "너는 OpenAkashic 사관이다. 다음 capsule/claim을 자율 점검하라.",
             "사용 가능한 도구:",
-            "- mcp__openakashic__search_akashic",
-            "- mcp__openakashic__search_notes",
-            "- mcp__openakashic__read_note",
-            "- mcp__openakashic__read_raw_note",
+            "- mcp__openakashic__search_and_read_top   (vault 검색 + top 노트 본문 한 번에)",
+            "- mcp__openakashic__search_notes          (vault 후보 다수 비교)",
+            "- mcp__openakashic__search_akashic        (검증된 public 지식)",
+            "- mcp__openakashic__read_note / read_raw_note",
             "- mcp__openakashic__list_reviews",
-            "- WebSearch",
-            "- WebFetch",
+            "- WebSearch / WebFetch",
+            "",
+            "## 필수 규칙 (위반 시 판정 무효 — keep으로 보수 처리)",
+            "1. 판정 *전에* vault 검색을 반드시 수행하라. `search_and_read_top` 을 최소 1회 호출하라.",
+            "   대상의 핵심 주제/태그를 query 로 쓰고, 결과가 빈약하면 `search_notes` 로 보강하라.",
+            "2. public/validated 검색도 반드시 수행하라. `search_akashic` 또는 `WebSearch`/`WebFetch` 를 최소 1회 호출하라.",
+            "3. 최종 `rationale` 에는 실제 확인 근거를 명시하라.",
+            "   형식: `[vault: <path 또는 'none-found'>][public: <title 또는 url 또는 'none-found'>] <한국어 판단 요지>`",
+            "4. 위 검색을 수행하지 못했으면 판정을 확정하지 말고 보수적으로 `keep` 으로 두고 그 이유를 rationale 에 적어라.",
+            "5. revise/supersede/merge 결정 시에는 vault 근거를 *반드시* 1개 이상 인용하라 (단순 LLM 지식만으로 결정 금지).",
+            "6. **연결성** — 관련 vault 노트를 검색해 `[vault: ...]` 에 인용하면 자동으로 graph edge 가 기록된다."
+            " 점검 대상이 orphan 이라면 의도적으로 인접한 노트를 더 깊게 탐색·인용해서 isolation 을 줄여라.",
+            "",
+            "## 영역 분포 (참고용 — 강제 아님, 사관이 자율 판단)",
+            f"- 최근 7일 maintenance 분포 by project: {json.dumps(area_stats['recent_maintenance'], ensure_ascii=False)}",
+            f"- 전체 capsule/claim 수 by project: {json.dumps(area_stats['capsule_count'], ensure_ascii=False)}",
+            f"- orphan 비율 by project (in_degree=0 비율): {json.dumps(area_stats['orphan_ratio'], ensure_ascii=False)}",
+            "한 영역만 편중되어 있다면 다음 사이클부터는 다른 영역이나 orphan 비율 높은 영역도 신경 쓸 수 있다.",
             "",
             f"path: {doc.path}",
             f"title: {fm.get('title') or doc.path}",
@@ -2682,11 +3624,10 @@ def _build_maintenance_prompt(doc: Any) -> str:
             (doc.body or "")[:3000] or "(empty)",
             "",
             "작업:",
-            "1. 관련 문서 / 비슷한 문서 검색 (vault + public web)",
-            "2. 정보 진위와 정합성 확인",
-            "3. 5-way 판정: keep | revise | supersede | merge | archive",
-            "도구 호출은 5~15회 이내를 목표로 한다.",
-            '마지막에는 JSON만 출력: {"verdict":"keep|revise|supersede|merge|archive","rationale":"...","new_title":"...","new_body":"...","merge_into":"..."}',
+            "1. 위 필수 규칙대로 vault + public 검색 수행 (도구 호출 5~15회 권장).",
+            "2. 정보 진위와 정합성 확인.",
+            "3. 5-way 판정: keep | revise | supersede | merge | archive.",
+            '마지막에는 JSON만 출력: {"verdict":"keep|revise|supersede|merge|archive","rationale":"[vault: ...][public: ...] ...","new_title":"...","new_body":"...","merge_into":"..."}',
         ]
     )
 
@@ -2713,13 +3654,15 @@ def _touch_maintenance_state(path: str, verdict: str, rationale: str) -> None:
     fm["last_maintenance_note"] = rationale[:500]
     fm.pop("maintenance_priority_reason", None)
     fm.pop("maintenance_priority_at", None)
-    write_document(path=path, body=doc.body, metadata=fm, allow_owner_change=True)
+    # metadata_replace=True is required for pop() to actually remove fields —
+    # default merge mode re-loads existing frontmatter as base and just unions.
+    write_document(path=path, body=doc.body, metadata=fm, allow_owner_change=True, metadata_replace=True)
 
 
-def _write_maintenance_dispute(target_path: str, rationale: str) -> None:
+def _write_maintenance_dispute(target_path: str, rationale: str) -> dict[str, Any]:
     from app.mcp_server import _post_internal_review
 
-    _post_internal_review(
+    return _post_internal_review(
         target=target_path,
         stance="dispute",
         rationale=rationale[:1800],
@@ -2730,12 +3673,16 @@ def _write_maintenance_dispute(target_path: str, rationale: str) -> None:
 def _write_revised(candidate: Any, new_body: str, rationale: str) -> dict[str, Any]:
     owner = str(candidate.frontmatter.get("owner") or "").strip().lower()
     if owner and owner not in _maintenance_system_owners():
-        _write_maintenance_dispute(
+        review_result = _write_maintenance_dispute(
             candidate.path,
             f"Sagwan maintenance wanted to revise this note but owner guard blocked direct body edits: {rationale}",
         )
         _touch_maintenance_state(candidate.path, "revise_blocked_owner_guard", rationale)
-        return {"status": "owner_guard_dispute"}
+        result: dict[str, Any] = {"status": "owner_guard_dispute"}
+        if isinstance(review_result, dict) and review_result.get("status") == "skipped":
+            result["review_skipped"] = True
+            result["review_skip_reason"] = str(review_result.get("reason") or "")
+        return result
     fm = dict(candidate.frontmatter or {})
     fm["revision_count"] = int(fm.get("revision_count") or 0) + 1
     fm["last_maintained_at"] = _now_iso()
@@ -2743,7 +3690,7 @@ def _write_revised(candidate: Any, new_body: str, rationale: str) -> dict[str, A
     fm["last_maintenance_note"] = rationale[:500]
     fm.pop("maintenance_priority_reason", None)
     fm.pop("maintenance_priority_at", None)
-    write_document(path=candidate.path, body=new_body, metadata=fm, allow_owner_change=True)
+    write_document(path=candidate.path, body=new_body, metadata=fm, allow_owner_change=True, metadata_replace=True)
     return {"status": "revised"}
 
 
@@ -2770,7 +3717,7 @@ def _mark_parent_merged_into(old_path: str, target_path: str, rationale: str) ->
     fm["last_maintenance_note"] = rationale[:500]
     fm.pop("maintenance_priority_reason", None)
     fm.pop("maintenance_priority_at", None)
-    write_document(path=old_path, body=old_doc.body, metadata=fm, allow_owner_change=True)
+    write_document(path=old_path, body=old_doc.body, metadata=fm, allow_owner_change=True, metadata_replace=True)
 
 
 def _archive_capsule(path: str, rationale: str) -> dict[str, Any]:
@@ -2786,7 +3733,7 @@ def _archive_capsule(path: str, rationale: str) -> dict[str, Any]:
     fm["last_maintenance_note"] = rationale[:500]
     fm.pop("maintenance_priority_reason", None)
     fm.pop("maintenance_priority_at", None)
-    write_document(path=path, body=doc.body, metadata=fm, allow_owner_change=True)
+    write_document(path=path, body=doc.body, metadata=fm, allow_owner_change=True, metadata_replace=True)
     return {"status": "archived"}
 
 
@@ -2899,7 +3846,715 @@ def _curate_maintenance(force: bool = False) -> dict[str, Any]:
 
     _append_maintenance_log_entry(candidate.path, decision)
     _touch_maintenance_state_global(_now_iso())
+
+    # Persist rationale citations as candidate edges. After supersede the candidate
+    # path may have been replaced, so write to the source we just operated on.
+    citation_target = candidate.path
+    structural: set[str] = set()
+    if verdict == "supersede" and result.get("new_path"):
+        citation_target = str(result["new_path"])
+        structural.add(candidate.path)  # the old note IS the structural relation
+    elif verdict == "merge" and decision.get("merge_into"):
+        structural.add(str(decision["merge_into"]))
+    citation_stats = _record_citation_candidates(
+        citation_target,
+        _extract_vault_citations(str(decision.get("rationale") or ""), source_path=citation_target),
+        source_stage="maintenance",
+        verdict=verdict,
+        structural_targets=structural,
+    )
+    if citation_stats.get("recorded") or citation_stats.get("promoted"):
+        result["citations"] = citation_stats
     return result
+
+
+# ─── Sagwan v4 — Task Queue Worker ──────────────────────────────────────────
+# These run individual tasks pulled from sagwan_tasks.claim_next_task(). Each
+# task has a path lock, 4-layer agent memory inject, episodic record, and
+# bounded self-enqueue. Stage F/M bootstrap functions below seed the queue.
+
+def _exec_check_capsule_maintenance(task: dict[str, Any]) -> dict[str, Any]:
+    """Worker for kind=check_capsule_maintenance. Single-target maintenance pass
+    with full agent memory (persona + distilled + episodic + related)."""
+    payload = task.get("payload") or {}
+    target_path = str(payload.get("path") or "").strip()
+    if not target_path:
+        return {"status": "failed", "error": "no path in payload"}
+    try:
+        candidate = load_document(target_path)
+    except Exception as exc:
+        return {"status": "failed", "error": f"load_failed: {exc}"}
+    fm = dict(candidate.frontmatter or {})
+    if str(fm.get("status") or "").strip().lower() == "archived":
+        return {"status": "done", "skipped": "archived"}
+
+    # 4-layer memory + agenda inject
+    title = str(fm.get("title") or target_path)
+    tags = " ".join(str(t) for t in (fm.get("tags") or [])[:4])
+    query = f"maintenance review: {title} {tags}".strip()
+    try:
+        ctx = before_task_context("sagwan", query, current_note_path=target_path, total_chars=3500)
+        memory_block = ctx.get("combined", "") or ""
+    except Exception as exc:
+        logger.warning("sagwan worker: before_task_context failed: %s", exc)
+        memory_block = ""
+    agenda_block = sagwan_agenda.render_active_agenda()
+    concerns_block = sagwan_agenda.render_concerns_block()
+
+    base_prompt = _build_maintenance_prompt(candidate)
+    prompt_parts = [base_prompt]
+    if memory_block:
+        prompt_parts.insert(0, memory_block)
+    if concerns_block:
+        prompt_parts.insert(0, concerns_block)
+    if agenda_block:
+        prompt_parts.insert(0, agenda_block)
+    prompt = "\n\n".join(prompt_parts)
+
+    try:
+        raw = _invoke_for_stage("maintenance", prompt, web_tools=True)
+    except StageRateLimitExceeded:
+        return {"status": "failed", "error": "rate_limit"}
+    decision = _parse_maintenance_decision(raw)
+    verdict = decision["verdict"]
+
+    result: dict[str, Any] = {"status": "done", "target": target_path, "verdict": verdict}
+    citation_target = target_path
+    structural: set[str] = set()
+    if verdict == "keep":
+        _touch_maintenance_state(target_path, "keep", decision["rationale"])
+    elif verdict == "revise":
+        result.update(_write_revised(candidate, decision["new_body"] or candidate.body, decision["rationale"]))
+    elif verdict == "supersede":
+        new_path = _write_superseding(candidate, decision["new_title"], decision["new_body"] or candidate.body, decision["rationale"])
+        result["new_path"] = new_path
+        citation_target = new_path
+        structural.add(target_path)
+    elif verdict == "merge":
+        _mark_parent_merged_into(target_path, decision["merge_into"], decision["rationale"])
+        if decision.get("merge_into"):
+            structural.add(str(decision["merge_into"]))
+    elif verdict == "archive":
+        result.update(_archive_capsule(target_path, decision["rationale"]))
+
+    _append_maintenance_log_entry(target_path, decision)
+    _touch_maintenance_state_global(_now_iso())
+
+    citation_stats = _record_citation_candidates(
+        citation_target,
+        _extract_vault_citations(str(decision.get("rationale") or ""), source_path=citation_target),
+        source_stage="maintenance",
+        verdict=verdict,
+        structural_targets=structural,
+    )
+    if citation_stats.get("recorded") or citation_stats.get("promoted"):
+        result["citations"] = citation_stats
+
+    # Episodic record so the next task sees today's decisions.
+    try:
+        link = (f" → {result.get('new_path') or decision.get('merge_into') or ''}"
+                if verdict in {"supersede", "merge"} else "")
+        outcome = (
+            f"{verdict}{link} (task={str(task.get('id') or '')[:8]}) "
+            + str(decision.get("rationale") or "")[:200]
+        )
+        remember("sagwan", subject=target_path, outcome=outcome, kind="maintenance")
+    except Exception as exc:
+        logger.warning("sagwan worker: remember failed: %s", exc)
+
+    # Bounded self-enqueue: if the rationale flagged a related vault path that's
+    # not the current target, queue a follow-up maintenance task on it.
+    cited = _extract_vault_citations(str(decision.get("rationale") or ""), source_path=citation_target)
+    for follow in cited[: sagwan_tasks.MAX_CHILDREN_PER_TASK]:
+        if follow == citation_target:
+            continue
+        try:
+            doc2 = load_document(follow)
+        except Exception:
+            continue
+        sagwan_tasks.self_enqueue(
+            task,
+            child_kind="check_capsule_maintenance",
+            payload={"path": follow},
+            resource_key=follow,
+            freshness_key=sagwan_tasks.compute_freshness_key(
+                updated_at=str((doc2.frontmatter or {}).get("updated_at") or ""),
+                body=doc2.body,
+            ),
+            write_set=[follow],
+            reason=f"follow-up from {task.get('id')} ({verdict} of {target_path})",
+        )
+
+    return result
+
+
+def _exec_check_capsule_conflict(task: dict[str, Any]) -> dict[str, Any]:
+    """Worker for kind=check_capsule_conflict. Single new-capsule conflict scan
+    with agent memory + agenda."""
+    from app.mcp_server import _post_internal_review
+
+    payload = task.get("payload") or {}
+    target_path = str(payload.get("path") or "").strip()
+    if not target_path:
+        return {"status": "failed", "error": "no path in payload"}
+    try:
+        candidate = load_document(target_path)
+    except Exception as exc:
+        return {"status": "failed", "error": f"load_failed: {exc}"}
+    fm = dict(candidate.frontmatter or {})
+    if str(fm.get("targets") or "").strip():
+        return {"status": "done", "skipped": "is_review_target"}
+
+    title = str(fm.get("title") or target_path)
+    tags = " ".join(str(t) for t in (fm.get("tags") or [])[:4])
+    query = f"conflict scan: {title} {tags}".strip()
+    try:
+        ctx = before_task_context("sagwan", query, current_note_path=target_path, total_chars=2800)
+        memory_block = ctx.get("combined", "") or ""
+    except Exception:
+        memory_block = ""
+    agenda_block = sagwan_agenda.render_active_agenda()
+    concerns_block = sagwan_agenda.render_concerns_block()
+
+    base_prompt = _build_conflict_check_prompt(candidate)
+    prompt_parts = [base_prompt]
+    if memory_block:
+        prompt_parts.insert(0, memory_block)
+    if concerns_block:
+        prompt_parts.insert(0, concerns_block)
+    if agenda_block:
+        prompt_parts.insert(0, agenda_block)
+    prompt = "\n\n".join(prompt_parts)
+
+    try:
+        raw = _invoke_for_stage("conflict", prompt, web_tools=True)
+    except StageRateLimitExceeded:
+        return {"status": "failed", "error": "rate_limit"}
+    decision = _parse_conflict_decision(raw)
+    verdict = str(decision.get("verdict") or "clear")
+
+    flagged = 0
+    review_skipped = False
+    review_skip_reason = ""
+    if verdict == "conflict" and decision.get("target_path"):
+        flagged = 1
+        review_result = _post_internal_review(
+            target=str(decision["target_path"]),
+            stance="dispute",
+            rationale=str(decision.get("rationale") or "Sagwan autonomous conflict check flagged this note."),
+            evidence_paths=[target_path],
+            topic="sagwan-conflict-detect",
+        )
+        if isinstance(review_result, dict) and review_result.get("status") == "skipped":
+            review_skipped = True
+            review_skip_reason = str(review_result.get("reason") or "")
+    elif verdict == "duplicate" and decision.get("target_path"):
+        flagged = 1
+        _enqueue_maintenance(target_path, reason=f"duplicate_with_{decision['target_path']}")
+
+    next_fm = dict(candidate.frontmatter or {})
+    next_fm["conflict_check_at"] = _now_iso()
+    next_fm["conflict_status"] = "flagged" if verdict in {"conflict", "duplicate"} else "clear"
+    next_fm["conflict_check_verdict"] = verdict
+    if decision.get("target_path"):
+        next_fm["conflict_target_path"] = decision["target_path"]
+    if decision.get("rationale"):
+        next_fm["conflict_check_note"] = str(decision["rationale"])[:500]
+    write_document(path=target_path, body=candidate.body, metadata=next_fm,
+                   allow_owner_change=True, metadata_replace=True)
+
+    structural = {decision["target_path"]} if decision.get("target_path") else set()
+    citation_stats = _record_citation_candidates(
+        target_path,
+        _extract_vault_citations(str(decision.get("rationale") or ""), source_path=target_path),
+        source_stage="conflict",
+        verdict=verdict,
+        structural_targets=structural,
+    )
+
+    try:
+        link = f" → {decision.get('target_path')}" if decision.get("target_path") else ""
+        outcome = (
+            f"{verdict}{link} (task={str(task.get('id') or '')[:8]}) "
+            + str(decision.get("rationale") or "")[:200]
+        )
+        remember("sagwan", subject=target_path, outcome=outcome, kind="conflict_check")
+    except Exception as exc:
+        logger.warning("sagwan worker: remember failed: %s", exc)
+
+    result = {
+        "status": "done",
+        "target": target_path,
+        "verdict": verdict,
+        "flagged": flagged,
+        "citations": citation_stats,
+    }
+    if review_skipped:
+        result["review_skipped"] = True
+        result["review_skip_reason"] = review_skip_reason
+    return result
+
+
+def _exec_research_gap(task: dict[str, Any]) -> dict[str, Any]:
+    """Worker for kind=research_gap (Stage K). Single research-gap pass with
+    full agent memory + agenda + policy. Wraps the existing
+    `_curate_research_gaps(force=True)` because all the gap-selection,
+    dedup-check, web-research, publication-judge, and capsule-write logic is
+    there already and battle-tested. We add the agentic surface around it.
+    """
+    payload = task.get("payload") or {}
+    # Pre-task: episodic memory + agenda already injected by the prompts
+    # _build_gap_selection_prompt / _build_research_prompt themselves don't
+    # currently consume agenda/policy/concerns blocks (Stage K builds its own
+    # context). We expose them via temporary thread-local hooks so future
+    # prompt builders can pick them up without a refactor.
+    try:
+        out = _curate_research_gaps(force=bool(payload.get("force", True)))
+    except StageRateLimitExceeded:
+        return {"status": "failed", "error": "rate_limit"}
+    except Exception as exc:
+        return {"status": "failed", "error": f"exception: {exc}"[:300]}
+    if not isinstance(out, dict):
+        out = {"status": "ok", "raw": str(out)[:200]}
+
+    # Episodic record so subsequent tasks see what was researched.
+    try:
+        topic = (out.get("gap") or {}).get("topic") or out.get("status") or "?"
+        cap = out.get("capsule_path") or ""
+        outcome = (
+            f"{out.get('status')} topic={topic} capsule={cap} "
+            f"(task={str(task.get('id') or '')[:8]})"
+        )[:900]
+        remember("sagwan", subject=f"research:{topic}", outcome=outcome, kind="research_gap")
+    except Exception as exc:
+        logger.warning("sagwan worker: research_gap remember failed: %s", exc)
+
+    return {"status": "done" if out.get("status") in (
+        "ok", "skip_existing_coverage", "cooldown", "no_candidates",
+        "llm_parse_error", "response_too_weak", "rate_limit_skipped",
+    ) else "done", **out}
+
+
+def _exec_meta_health(task: dict[str, Any]) -> dict[str, Any]:
+    """Worker for kind=meta_health (Stage I). Wraps `_curate_system_health`."""
+    try:
+        out = _curate_system_health()
+    except StageRateLimitExceeded:
+        return {"status": "failed", "error": "rate_limit"}
+    except Exception as exc:
+        return {"status": "failed", "error": f"exception: {exc}"[:300]}
+    if not isinstance(out, dict):
+        out = {"status": "ok", "raw": str(out)[:200]}
+
+    try:
+        report_path = out.get("health_path") or ""
+        reqs = out.get("requests_created") or []
+        outcome = (
+            f"{out.get('status')} report={report_path} reqs={len(reqs)} "
+            f"(task={str(task.get('id') or '')[:8]})"
+        )[:900]
+        remember("sagwan", subject="meta-health", outcome=outcome, kind="meta_health")
+    except Exception as exc:
+        logger.warning("sagwan worker: meta_health remember failed: %s", exc)
+
+    return {"status": "done", **out}
+
+
+def _exec_consolidate_review(task: dict[str, Any]) -> dict[str, Any]:
+    """Worker for kind=consolidate_review (Stage L). Wraps `_curate_consolidate_reviews`.
+
+    write_set already includes the parent capsule + state/log paths (declared by
+    the bootstrap). When verdict=supersede produces a new path, we self-enqueue
+    a maintenance follow-up on it (Codex L→maintenance whitelist).
+    """
+    try:
+        out = _curate_consolidate_reviews(force=bool((task.get("payload") or {}).get("force", True)))
+    except StageRateLimitExceeded:
+        return {"status": "failed", "error": "rate_limit"}
+    except Exception as exc:
+        return {"status": "failed", "error": f"exception: {exc}"[:300]}
+    if not isinstance(out, dict):
+        out = {"status": "ok", "raw": str(out)[:200]}
+
+    target = out.get("target") or ""
+    verdict = out.get("verdict") or ""
+    new_path = out.get("new_path") or ""
+
+    try:
+        outcome = (
+            f"{verdict} target={target} new_path={new_path} "
+            f"(task={str(task.get('id') or '')[:8]})"
+        )[:900]
+        remember("sagwan", subject=f"consolidate:{target}", outcome=outcome, kind="consolidate_review")
+    except Exception as exc:
+        logger.warning("sagwan worker: consolidate remember failed: %s", exc)
+
+    # Self-enqueue: post-consolidation maintenance on the new (or revised) path.
+    follow = new_path or (target if verdict == "revise" else "")
+    if follow:
+        try:
+            doc = load_document(follow)
+            sagwan_tasks.self_enqueue(
+                task,
+                child_kind="check_capsule_maintenance",
+                payload={"path": follow},
+                resource_key=follow,
+                freshness_key=sagwan_tasks.compute_freshness_key(
+                    updated_at=str((doc.frontmatter or {}).get("updated_at") or ""),
+                    body=doc.body,
+                ),
+                write_set=[follow],
+                reason=f"post-consolidate {verdict} of {target}",
+            )
+        except Exception as exc:
+            logger.debug("post-consolidate self_enqueue skipped: %s", exc)
+
+    return {"status": "done", **out}
+
+
+_SAGWAN_TASK_DISPATCH = {
+    "check_capsule_maintenance": _exec_check_capsule_maintenance,
+    "check_capsule_conflict": _exec_check_capsule_conflict,
+    "research_gap": _exec_research_gap,
+    "meta_health": _exec_meta_health,
+    "consolidate_review": _exec_consolidate_review,
+}
+
+
+def run_sagwan_task_worker(*, max_tasks: int = 3) -> dict[str, Any]:
+    """Drain up to `max_tasks` runnable tasks from the sagwan queue. Designed to
+    be called periodically by the curation loop. Tasks are processed serially —
+    multi-path mutations need this to be safe (Codex final review §4)."""
+    settings = load_sagwan_settings()
+    if not settings.get("task_queue_enabled"):
+        return {"status": "disabled"}
+    sagwan_tasks.prune_done()
+    sagwan_agenda.archive_expired()
+    processed: list[dict[str, Any]] = []
+    for _ in range(max_tasks):
+        task = sagwan_tasks.claim_next_task()
+        if task is None:
+            break
+        kind = str(task.get("kind") or "")
+        handler = _SAGWAN_TASK_DISPATCH.get(kind)
+        if handler is None:
+            sagwan_tasks.complete_task(task["id"], status="dead_letter",
+                                        last_error=f"no handler for kind={kind}")
+            processed.append({"id": task["id"], "kind": kind, "status": "dead_letter"})
+            continue
+        # write_set lock (serialize on resource paths)
+        locks = sagwan_tasks.acquire_path_locks(task.get("write_set") or [task.get("resource_key")])
+        try:
+            try:
+                outcome = handler(dict(task))
+            except StageRateLimitExceeded:
+                sagwan_tasks.complete_task(task["id"], status="failed", last_error="rate_limit_exceeded")
+                processed.append({"id": task["id"], "kind": kind, "status": "failed", "error": "rate_limit"})
+                break  # stop draining if cap hit
+            except Exception as exc:
+                logger.exception("sagwan worker: task %s (%s) crashed", task["id"], kind)
+                sagwan_tasks.complete_task(task["id"], status="failed",
+                                            last_error=f"exception: {exc}"[:400])
+                processed.append({"id": task["id"], "kind": kind, "status": "failed", "error": str(exc)[:200]})
+                continue
+            status = str(outcome.get("status") or "done")
+            if status not in ("done", "failed"):
+                status = "done"
+            sagwan_tasks.complete_task(
+                task["id"],
+                status=status,
+                last_error=str(outcome.get("error") or "")[:400],
+            )
+            processed.append({"id": task["id"], "kind": kind, **outcome})
+        finally:
+            sagwan_tasks.release_path_locks(locks)
+    # Distill if enough new episodes accumulated.
+    try:
+        after_task("sagwan", llm_invoke=_invoke_claude_cli)
+    except Exception as exc:
+        logger.warning("sagwan worker: after_task distill failed: %s", exc)
+    return {"status": "ok", "processed": processed, "queue": sagwan_tasks.queue_stats()}
+
+
+# ─── Bootstrap (cron seeders that enqueue tasks instead of executing) ───────
+def _bootstrap_enqueue_maintenance(*, max_seeds: int = 3) -> dict[str, Any]:
+    """Pick the top-N maintenance candidates by the lexico ranker and enqueue them.
+    The worker handles execution. Dedup by (kind, path, freshness_key) means
+    unchanged capsules are silently skipped.
+    """
+    settings = load_sagwan_settings()
+    if not settings.get("task_queue_enabled"):
+        return {"status": "disabled"}
+    if not settings.get("maintenance_enabled", True):
+        return {"status": "disabled_maintenance"}
+    inbound = _build_inbound_index()
+    pool: list[tuple[tuple, Any]] = []
+    for path in list_note_paths():
+        if not path.startswith("personal_vault/"):
+            continue
+        try:
+            doc = load_document(path)
+        except Exception:
+            continue
+        fm = dict(doc.frontmatter or {})
+        kind = str(fm.get("kind") or "").strip().lower()
+        if kind not in {"capsule", "claim"}:
+            continue
+        if str(fm.get("targets") or "").strip():
+            continue
+        if str(fm.get("claim_review_status") or "").strip().lower() in {"superseded", "merged"}:
+            continue
+        if str(fm.get("status") or "").strip().lower() == "archived":
+            continue
+        last_at_raw = str(fm.get("maintenance_priority_at") or fm.get("last_maintained_at") or fm.get("created_at") or "")
+        try:
+            t = _parse_iso_datetime(last_at_raw)
+            age_seconds = (datetime.now(UTC) - t).total_seconds() if t else 1e12
+        except Exception:
+            age_seconds = 1e12
+        project = _project_of_path(path)
+        agenda_bonus = sagwan_agenda.project_focus_bonus(project)
+        aging_force = _aging_force_bonus(age_seconds)
+        rank = (
+            0 if fm.get("maintenance_priority_at") else 1,         # explicit priority first
+            -(int(agenda_bonus) + aging_force),                    # agenda + aging combined — prevents starvation of non-agenda projects
+            -_staleness_bucket(last_at_raw),                       # then stale notes
+            -_connectivity_bucket(inbound.get(path, 0)),           # then low-connectivity
+            _kind_priority(fm),
+            -age_seconds,
+        )
+        pool.append((rank, doc))
+    if not pool:
+        return {"status": "no_candidates"}
+    pool.sort(key=lambda item: item[0])
+    enqueued: list[str] = []
+    for rank_tuple, doc in pool[: max_seeds * 3]:  # over-sample so dedup doesn't starve us
+        path = doc.path
+        fm = dict(doc.frontmatter or {})
+        freshness = sagwan_tasks.compute_freshness_key(
+            updated_at=str(fm.get("updated_at") or ""),
+            body=doc.body,
+        )
+        try:
+            res = sagwan_tasks.enqueue_task(
+                kind="check_capsule_maintenance",
+                payload={"path": path},
+                resource_key=path,
+                freshness_key=freshness,
+                write_set=[path],
+                created_by="sagwan",
+                reason="bootstrap_maintenance",
+            )
+            if res and res.get("status") == "pending" and res.get("created_at") == res.get("created_at"):
+                enqueued.append(path)
+                # Observability: record why this path was chosen for transparency.
+                try:
+                    project = _project_of_path(path)
+                    sagwan_agenda.record_why_this_next(
+                        picked_path=path,
+                        kind="check_capsule_maintenance",
+                        rank_tuple=rank_tuple,
+                        signals={
+                            "project": project,
+                            "in_degree": inbound.get(path, 0),
+                            "agenda_bonus": sagwan_agenda.project_focus_bonus(project),
+                            "aging_force": _aging_force_bonus(age_seconds),
+                            "kind_fm": str(fm.get("kind") or ""),
+                            "last_maintained_at": str(fm.get("last_maintained_at") or "(never)"),
+                        },
+                    )
+                except Exception as exc:
+                    logger.debug("record_why_this_next failed: %s", exc)
+        except Exception as exc:
+            logger.warning("sagwan bootstrap maintenance enqueue failed for %s: %s", path, exc)
+        if len(enqueued) >= max_seeds:
+            break
+    return {"status": "ok", "enqueued": len(enqueued), "paths": enqueued}
+
+
+def _bootstrap_enqueue_conflict(*, max_seeds: int = 2) -> dict[str, Any]:
+    """Find capsules created in last 24h without a conflict_check yet and enqueue."""
+    settings = load_sagwan_settings()
+    if not settings.get("task_queue_enabled"):
+        return {"status": "disabled"}
+    cutoff = datetime.now(UTC) - timedelta(hours=24)
+    candidates: list[Any] = []
+    for path in list_note_paths():
+        try:
+            doc = load_document(path)
+        except Exception:
+            continue
+        fm = dict(doc.frontmatter or {})
+        kind = str(fm.get("kind") or "").strip().lower()
+        if kind not in {"capsule", "claim"}:
+            continue
+        created_at = _parse_iso_datetime(str(fm.get("created_at") or fm.get("updated_at") or ""))
+        if created_at is None or created_at < cutoff:
+            continue
+        if str(fm.get("conflict_check_at") or "").strip():
+            continue
+        if str(fm.get("targets") or "").strip():
+            continue
+        candidates.append(doc)
+    candidates.sort(key=lambda d: str(d.frontmatter.get("created_at") or ""), reverse=True)
+    enqueued: list[str] = []
+    for doc in candidates[: max_seeds * 3]:
+        path = doc.path
+        fm = dict(doc.frontmatter or {})
+        freshness = sagwan_tasks.compute_freshness_key(
+            updated_at=str(fm.get("updated_at") or ""),
+            body=doc.body,
+        )
+        try:
+            res = sagwan_tasks.enqueue_task(
+                kind="check_capsule_conflict",
+                payload={"path": path},
+                resource_key=path,
+                freshness_key=freshness,
+                write_set=[path],
+                created_by="sagwan",
+                reason="bootstrap_conflict",
+            )
+            if res and res.get("status") == "pending":
+                enqueued.append(path)
+        except Exception as exc:
+            logger.warning("sagwan bootstrap conflict enqueue failed for %s: %s", path, exc)
+        if len(enqueued) >= max_seeds:
+            break
+    return {"status": "ok", "enqueued": len(enqueued), "paths": enqueued}
+
+
+# ─── K/I/L bootstrap enqueuers ──────────────────────────────────────────────
+# Each is "1 seed per cycle" — the underlying _curate_* functions have their
+# own cooldown (Stage K: 2h, I: 24h, L: 6h) so the worker re-runs that gate
+# at exec time. Bootstrap is just a dedup-aware "is the queue carrying this?"
+
+def _bootstrap_enqueue_research() -> dict[str, Any]:
+    """Stage K — enqueue a single research_gap task. The actual gap selection
+    (vault inventory + LLM topic pick + dedup + research + capsule write)
+    happens inside the worker's call to `_curate_research_gaps`. Cooldown gate
+    is preserved at exec time, so a same-cycle dedup hit isn't dangerous.
+    """
+    settings = load_sagwan_settings()
+    if not settings.get("task_queue_enabled"):
+        return {"status": "disabled"}
+    if not settings.get("research_enabled", True):
+        return {"status": "disabled_research"}
+    # Use the research log's last_run_at as the freshness key — same key
+    # blocks duplicate enqueues within the cooldown window.
+    try:
+        rdoc = load_document(_RESEARCH_LOG_PATH)
+        freshness = sagwan_tasks.compute_freshness_key(
+            updated_at=str(rdoc.frontmatter.get("last_run_at") or rdoc.frontmatter.get("updated_at") or ""),
+        )
+    except Exception:
+        freshness = sagwan_tasks.compute_freshness_key(updated_at=_now_iso())
+    res = sagwan_tasks.enqueue_task(
+        kind="research_gap",
+        payload={"force": False},
+        resource_key=_RESEARCH_LOG_PATH,
+        freshness_key=freshness,
+        write_set=[_RESEARCH_LOG_PATH, _SAGWAN_CAPSULE_FOLDER + "/"],  # may write a new capsule under this folder
+        created_by="sagwan",
+        reason="bootstrap_research",
+    )
+    return {"status": "ok", "enqueued": int(bool(res))}
+
+
+def _bootstrap_enqueue_meta() -> dict[str, Any]:
+    """Stage I — enqueue meta_health (24h cadence). Freshness keyed on the
+    state log so duplicate enqueues within the cooldown are dedup'd."""
+    settings = load_sagwan_settings()
+    if not settings.get("task_queue_enabled"):
+        return {"status": "disabled"}
+    try:
+        sdoc = load_document(_META_STATE_PATH)
+        freshness = sagwan_tasks.compute_freshness_key(
+            updated_at=str(sdoc.frontmatter.get("last_run_at") or sdoc.frontmatter.get("updated_at") or ""),
+        )
+    except Exception:
+        freshness = sagwan_tasks.compute_freshness_key(updated_at=_now_iso())
+    res = sagwan_tasks.enqueue_task(
+        kind="meta_health",
+        payload={},
+        resource_key=_META_STATE_PATH,
+        freshness_key=freshness,
+        write_set=[_META_STATE_PATH, _SYSTEM_HEALTH_FOLDER + "/", _IMPROVEMENT_REQUEST_FOLDER + "/"],
+        created_by="sagwan",
+        reason="bootstrap_meta",
+    )
+    return {"status": "ok", "enqueued": int(bool(res))}
+
+
+def _bootstrap_enqueue_consolidate() -> dict[str, Any]:
+    """Stage L — enqueue consolidate_review. Pre-screens for parents with
+    ≥min_reviews so dormant cycles don't bloat the queue. Multi-path
+    write_set: parent capsule + consolidation state/log + (later) review paths.
+    """
+    settings = load_sagwan_settings()
+    if not settings.get("task_queue_enabled"):
+        return {"status": "disabled"}
+    if not settings.get("consolidate_enabled", True):
+        return {"status": "disabled_consolidate"}
+    min_reviews = int(settings.get("consolidate_min_reviews") or 3)
+
+    # Find one parent capsule with ≥min_reviews so we don't enqueue dead work.
+    # The full LLM consolidation logic stays inside _curate_consolidate_reviews.
+    parent_path = None
+    try:
+        from app.site import _load_targeted_claims_for
+        for path in list_note_paths():
+            if not path.startswith("personal_vault/"):
+                continue
+            try:
+                doc = load_document(path)
+            except Exception:
+                continue
+            fm = dict(doc.frontmatter or {})
+            kind = str(fm.get("kind") or "").lower()
+            if kind not in {"capsule", "claim"}:
+                continue
+            if str(fm.get("claim_review_status") or "").lower() in {"superseded", "merged"}:
+                continue
+            try:
+                reviews = _load_targeted_claims_for(path) or []
+            except Exception:
+                continue
+            if len(reviews) >= min_reviews:
+                parent_path = path
+                break
+    except Exception as exc:
+        logger.debug("bootstrap_consolidate parent scan failed: %s", exc)
+
+    if not parent_path:
+        return {"status": "no_candidates", "min_reviews": min_reviews}
+
+    try:
+        doc = load_document(parent_path)
+        freshness = sagwan_tasks.compute_freshness_key(
+            updated_at=str((doc.frontmatter or {}).get("updated_at") or ""),
+            body=doc.body,
+        )
+    except Exception:
+        freshness = sagwan_tasks.compute_freshness_key(updated_at=_now_iso())
+
+    # Multi-path write_set per Codex review: parent + state/log paths must all
+    # be locked. Review path discovery happens inside the executor; the path
+    # lock here covers the durable mutation surfaces.
+    write_set = [
+        parent_path,
+        _CONSOLIDATION_LOG_PATH,
+    ]
+    res = sagwan_tasks.enqueue_task(
+        kind="consolidate_review",
+        payload={"target_hint": parent_path},
+        resource_key=parent_path,
+        freshness_key=freshness,
+        write_set=write_set,
+        created_by="sagwan",
+        reason="bootstrap_consolidate",
+    )
+    return {"status": "ok", "enqueued": int(bool(res)), "target": parent_path}
 
 
 def _curate_enqueue_signal_scans() -> dict[str, Any]:
@@ -3190,7 +4845,11 @@ def _maybe_distill_sagwan() -> dict[str, Any]:
     if new_episodes < min_episodes:
         return {"status": "skip", "reason": "insufficient_new_episodes", "new_episodes": new_episodes}
     prompt_invoke = lambda prompt, *, model=None: _invoke_for_stage("distill", prompt)
-    return distill_memory("sagwan", llm_invoke=prompt_invoke, force=True)
+    result = distill_memory("sagwan", llm_invoke=prompt_invoke, force=True)
+    # v5c JSON-policy compile path retired (2026-05-04). Sagwan now reflects
+    # learning into operating notes directly via Stage S (`_curate_self_improve`)
+    # — markdown notes are already injected into prompts via before_task_context.
+    return result
 
 
 def _write_llm_telemetry_cycle(summary: dict[str, Any]) -> None:
@@ -3259,6 +4918,13 @@ def _write_llm_telemetry_cycle(summary: dict[str, Any]) -> None:
 
 
 def _maybe_update_librarian_profile(state_fm: dict[str, Any]) -> dict[str, Any]:
+    """Thin wrapper to Stage S — kept so Stage I (system health) can still
+    call this entry point. The legacy "full body replace" semantics are now
+    rejected by the safety gate (Profile is section-patch only); the LLM
+    would have to use the new contract via `_curate_self_improve` to actually
+    edit profile content. We keep the cooldown to throttle Stage I from
+    invoking Stage S more than once per 24h via this path.
+    """
     settings = load_sagwan_settings()
     min_hours = int(settings.get("profile_update_min_interval_hours") or 24)
     last_run = str(state_fm.get("last_profile_update_at") or "").strip()
@@ -3266,34 +4932,335 @@ def _maybe_update_librarian_profile(state_fm: dict[str, Any]) -> dict[str, Any]:
         last_dt = _parse_iso_datetime(last_run)
         if last_dt is not None and datetime.now(UTC) < last_dt + timedelta(hours=min_hours):
             return {"status": "cooldown"}
+    # Delegate to Stage S, which considers profile + policy + playbooks together
+    # and routes through sagwan_self_edit safety nets.
+    out = _curate_self_improve(force=True)
+    return {"status": "delegated_to_stage_s", "stage_s": out}
+
+
+# ─── Stage S — Self-Improvement (notes self-edit) ──────────────────────────
+# Sagwan reads its own activity logs / distilled patterns / verdict drift and
+# decides whether to mutate ITS OWN operating notes (profile/policy/playbooks).
+# That mutation flows back into next cycle's prompts via `before_task_context`.
+#
+# All writes go through `sagwan_self_edit.attempt_self_edit` which enforces:
+#   - subtree allowlist (personal_vault/projects/ops/librarian/...)
+#   - one file, one section per call
+#   - diff size cap + structural validation (required sections preserved)
+#   - per-path/per-class rate limit + rollback log
+#   - risk_level=medium|high → improvement-request (never direct write)
+
+_SELF_IMPROVE_STATE_PATH = "personal_vault/projects/ops/librarian/activity/self-improve-state.md"
+_SELF_IMPROVE_DEFAULT_INTERVAL_HOURS = 12
+
+
+def _curate_self_improve(*, force: bool = False) -> dict[str, Any]:
+    """(S) Sagwan self-improvement: read own logs → judge change → edit operating note."""
+    settings = load_sagwan_settings()
+    if not settings.get("self_improve_enabled", True):
+        return {"status": "disabled"}
+
+    # cooldown
+    interval_hours = int(settings.get("self_improve_min_interval_hours") or _SELF_IMPROVE_DEFAULT_INTERVAL_HOURS)
+    state_fm: dict[str, Any] = {}
     try:
-        profile_doc = load_document("personal_vault/projects/ops/librarian/profile/Librarian Profile.md")
+        state_doc = load_document(_SELF_IMPROVE_STATE_PATH)
+        state_fm = dict(state_doc.frontmatter or {})
     except Exception:
-        return {"status": "missing_profile"}
-    prompt = "\n\n".join(
-        [
-            "현재 자기 페르소나 (Librarian Profile.md)와 새 권한/역할이 일치하는가? 새 도구 / 변경된 정책 반영이 필요한지 판단하라.",
-            "필요 없으면 JSON만 출력: {\"needs_update\": false, \"rationale\": \"...\"}",
-            "필요하면 JSON만 출력: {\"needs_update\": true, \"rationale\": \"...\", \"body\": \"## Summary ...\"}",
-            "",
-            "## Current Profile",
-            profile_doc.body or "",
-        ]
-    )
+        pass
+    last_run = str(state_fm.get("last_run_at") or "").strip()
+    if last_run and not force:
+        last_dt = _parse_iso_datetime(last_run)
+        if last_dt is not None and datetime.now(UTC) < last_dt + timedelta(hours=interval_hours):
+            return {"status": "cooldown", "next_run_after": last_run}
+
+    # read context: distilled (recent), recent verdict counts, agenda
     try:
-        raw = _invoke_for_stage("profile_update", prompt)
+        distilled_doc = load_document("personal_vault/projects/ops/librarian/memory/Sagwan Distilled Memory.md")
+        distilled_recent = (distilled_doc.body or "")[-3000:]
+    except Exception:
+        distilled_recent = ""
+    try:
+        mem_tail = recent_memory_tail("sagwan", max_sections=8, char_budget=2000)
+    except Exception:
+        mem_tail = ""
+    try:
+        agenda_block = sagwan_agenda.render_active_agenda()
+    except Exception:
+        agenda_block = ""
+
+    # available targets — list current operating notes inside the subtree
+    targets_index: list[str] = []
+    for sub in ("profile", "policy", "playbooks"):
+        try:
+            from app.vault import list_note_paths
+            for p in list_note_paths():
+                if p.startswith(f"{sagwan_self_edit.SUBTREE_ALLOWLIST}{sub}/"):
+                    targets_index.append(p)
+        except Exception:
+            pass
+    # fallback common paths
+    if not targets_index:
+        targets_index = [
+            "personal_vault/projects/ops/librarian/profile/Librarian Profile.md",
+            "personal_vault/projects/ops/librarian/policy/Librarian Policy.md",
+        ]
+
+    prompt = "\n\n".join([
+        "너는 OpenAkashic 사관이다. 지금까지의 자기 활동 기록을 보고 *너 자신의 운영 노트*(profile/policy/playbook) 중 한 곳을 수정할 가치가 있는지 판단하라.",
+        "이건 자기 학습이 행동 변화로 이어지는 핵심 단계다. 단, 모든 수정은 안전 게이트를 거친다:",
+        f"  - subtree allowlist: `{sagwan_self_edit.SUBTREE_ALLOWLIST}`",
+        f"  - 1회 1파일 1섹션 (max {sagwan_self_edit.MAX_DIFF_BYTES} bytes)",
+        "  - Profile/Policy 전체 교체 금지 (section patch만)",
+        "  - risk_level=medium|high 는 자동으로 improvement-request 로 큐잉되어 사람 검토 (직접 적용 X)",
+        "  - 같은 path 24h 1회 제한",
+        "",
+        "## 활성 agenda (참고)",
+        agenda_block or "(없음)",
+        "",
+        "## 최근 distilled 패턴 (네 자신의 관찰)",
+        distilled_recent or "(없음)",
+        "",
+        "## 최근 task 기록 (recent_memory_tail)",
+        mem_tail or "(없음)",
+        "",
+        "## 수정 가능한 운영 노트 후보",
+        "\n".join(f"- `{p}`" for p in targets_index[:30]),
+        "",
+        "출력 형식 (JSON만, 설명 텍스트 금지):",
+        '{',
+        '  "needs_change": true|false,',
+        '  "target_path": "personal_vault/projects/ops/librarian/.../...md",',
+        '  "section": "## 섹션 헤딩 정확히",',
+        '  "new_content": "그 섹션의 새 본문 (heading 제외, 4000 bytes 이하)",',
+        '  "rationale": "왜 이 변경이 필요한가 — 어떤 패턴/episode가 이 결정을 뒷받침하는가",',
+        '  "risk_level": "low|medium|high"',
+        '}',
+        "",
+        "원칙:",
+        "- needs_change=false 도 valid (확실한 신호 없으면 abstain)",
+        "- low: 작은 명료화·playbook 절차 추가·warning 한 줄 등",
+        "- medium: persona/policy 의 미묘한 어감 조정",
+        "- high: 핵심 행동 강령 변경 (반드시 사람 리뷰)",
+        "- 같은 패턴이 distilled bullet 에 2회 이상 반복되는 경우만 needs_change=true 권장",
+    ])
+
+    try:
+        raw = _invoke_for_stage("self_improve", prompt)
     except StageRateLimitExceeded:
         return {"status": "rate_limit_skipped"}
-    payload = _extract_json_dict(raw)
-    if not payload or not bool(payload.get("needs_update")):
-        return {"status": "no_change", "rationale": str(payload.get("rationale") or "").strip()}
-    body = str(payload.get("body") or "").strip()
-    if "## Summary" not in body:
-        return {"status": "invalid_body"}
-    fm = dict(profile_doc.frontmatter or {})
-    fm["updated_at"] = _now_iso()
-    write_document(path=profile_doc.path, body=body, metadata=fm, allow_owner_change=True)
-    return {"status": "updated", "rationale": str(payload.get("rationale") or "").strip()}
+    if not raw:
+        return {"status": "llm_no_response"}
+
+    decision = _extract_json_dict(raw)
+    if not decision or not bool(decision.get("needs_change")):
+        # Touch state so cooldown advances even on no-change
+        _touch_self_improve_state(reason="no_change")
+        return {"status": "no_change", "rationale": str(decision.get("rationale") or "")[:200] if decision else ""}
+
+    target_path = str(decision.get("target_path") or "").strip()
+    section = str(decision.get("section") or "").strip() or None
+    new_content = str(decision.get("new_content") or "").strip()
+    rationale = str(decision.get("rationale") or "").strip()
+    risk_level = str(decision.get("risk_level") or "high").lower().strip()
+
+    if not target_path or not new_content:
+        _touch_self_improve_state(reason="malformed_decision")
+        return {"status": "malformed_decision"}
+
+    outcome = sagwan_self_edit.attempt_self_edit(
+        target_path=target_path,
+        section=section,
+        new_content=new_content,
+        rationale=rationale,
+        risk_level=risk_level,
+        full_body_replace=False,
+        requested_by="sagwan",
+    )
+    _touch_self_improve_state(reason=outcome.get("status", "?"))
+    return {"status": "ok", "decision": decision, "outcome": outcome}
+
+
+def _touch_self_improve_state(*, reason: str) -> None:
+    try:
+        try:
+            doc = load_document(_SELF_IMPROVE_STATE_PATH)
+            fm = dict(doc.frontmatter or {})
+            body = doc.body or ""
+        except Exception:
+            doc = None
+            fm = {
+                "title": "Sagwan Self-Improve State",
+                "kind": "activity",
+                "project": "ops/librarian",
+                "tags": ["sagwan", "self-improve", "state"],
+                "owner": "sagwan",
+                "visibility": "private",
+            }
+            body = "## Summary\nStage S (self-improve) cooldown + last-run state.\n"
+        fm["last_run_at"] = _now_iso()
+        fm["last_outcome"] = reason
+        write_document(path=_SELF_IMPROVE_STATE_PATH, body=body, metadata=fm,
+                       allow_owner_change=True, metadata_replace=True)
+    except Exception as exc:
+        logger.warning("self_improve state touch failed: %s", exc)
+
+
+# ─── Stage Z — Autonomous Sweep ─────────────────────────────────────────────
+# Codex review (v7, 2026-05-04): Z is orchestration only, no execution.
+# Sagwan reads operational panorama and chooses 0..N actions from a fixed menu
+# (see sagwan_sweep.ACTION_RATE_LIMITS_24H). Each action goes through dispatcher
+# with rate-limit + same-target-cooldown + dedup + prompt-injection detection.
+
+_SWEEP_STATE_PATH = "personal_vault/projects/ops/librarian/activity/sweep-state.md"
+_SWEEP_DEFAULT_INTERVAL_HOURS = 1
+
+
+def _curate_autonomous_sweep(*, force: bool = False) -> dict[str, Any]:
+    """(Z) Sagwan looks at logs/state and decides what (if anything) to do."""
+    settings = load_sagwan_settings()
+    if not settings.get("autonomous_sweep_enabled", True):
+        return {"status": "disabled"}
+
+    interval_hours = int(settings.get("autonomous_sweep_min_interval_hours") or _SWEEP_DEFAULT_INTERVAL_HOURS)
+    state_fm: dict[str, Any] = {}
+    try:
+        state_doc = load_document(_SWEEP_STATE_PATH)
+        state_fm = dict(state_doc.frontmatter or {})
+    except Exception:
+        pass
+    last_run = str(state_fm.get("last_run_at") or "").strip()
+    if last_run and not force:
+        last_dt = _parse_iso_datetime(last_run)
+        if last_dt is not None and datetime.now(UTC) < last_dt + timedelta(hours=interval_hours):
+            return {"status": "cooldown", "next_run_after": last_run}
+
+    panorama = sagwan_sweep.gather_panorama()
+    days_silent = sagwan_sweep.days_since_last_action()
+    forced_action_required = days_silent >= sagwan_sweep.NO_ACTION_BREAK_DAYS
+
+    # Build action menu listing remaining 24h capacity per kind (transparency)
+    action_capacity: dict[str, int] = {}
+    for kind, cap in sagwan_sweep.ACTION_RATE_LIMITS_24H.items():
+        if kind == "no_op":
+            continue
+        used = sagwan_sweep._count_action_24h(kind)
+        action_capacity[kind] = max(0, cap - used)
+
+    prompt = "\n\n".join([
+        "너는 OpenAkashic 사관이다. 지금까지의 운영 상태(panorama)를 보고 0개 이상의 *조치*를 선택하라.",
+        "**Z는 orchestration 단계**다 — 직접 실행은 다른 stage가 한다. 너는 enqueue·flag·plan만 한다.",
+        "",
+        "## Panorama (현재 상태 스냅샷)",
+        json.dumps(panorama, ensure_ascii=False, indent=2)[:3500],
+        "",
+        f"## 7일 무행동 강제: {forced_action_required}",
+        "  → True 면 panorama에 임계치 초과 신호가 있는지 확인하고 최소 1개 concern 또는 improvement_request 를 emit하라.",
+        "",
+        "## 사용 가능한 action 종류 (남은 24h capacity)",
+        "\n".join(f"  - {k}: {v} more allowed" for k, v in action_capacity.items()),
+        "",
+        "각 action 안전장치 (이미 적용됨, 무시하면 reject 됨):",
+        "  - same-target 24h cooldown 자동 적용",
+        "  - prompt-injection 토큰 감지 시 reject",
+        "  - private→public leakage 방지 (proposal-draft 자동 private)",
+        "",
+        "## Action schema",
+        "각 action 은 dict. 모든 텍스트 필드는 한국어/영어 자연어, 200자 이내 권장.",
+        '  - {"kind":"add_goal", "statement":"...", "metric":"...", "target":"...", "horizon_days":N, "priority":N, "next_actions":["..."]}',
+        '  - {"kind":"add_concern", "statement":"...", "severity":"low|medium|high|critical", "tags":["..."], "related_paths":["..."], "ttl_hours":N}',
+        '  - {"kind":"priority_enqueue", "task_kind":"check_capsule_maintenance|check_capsule_conflict", "target_path":"personal_vault/.../foo.md", "rationale":"..."}',
+        '  - {"kind":"improvement_request", "title":"...", "body":"...", "rationale":"..."}',
+        '  - {"kind":"update_goal", "goal_id":"<id>", "status":"...", "priority":N, "next_actions":["..."], "notes":"..."}',
+        '  - {"kind":"propose_oa_improvement", "title":"...", "body":"...(markdown 가능, 6KB 이하)...", "rationale":"..."}',
+        '  - {"kind":"trigger_stage_s", "rationale":"..."} — 운영 노트 수정 단계 조기 호출 권장',
+        '  - {"kind":"no_op", "rationale":"왜 지금 조치 안 하는지 설명 (필수)"}',
+        "",
+        "## 출력 형식",
+        '{"rationale":"전체 sweep 의 종합 판단 (300자 이내)", "actions":[ {action1}, {action2}, ... ]}',
+        "",
+        "원칙:",
+        "- 0개 actions OK (rationale 만 있으면). 다만 위 7일 무행동 강제 조건 충족 시는 최소 1개.",
+        "- 같은 신호로 여러 action 만들지 말 것 (concern 1개로 충분한 걸 IR + concern 둘 다 만들지 마라).",
+        "- propose_oa_improvement 의 body 에는 절대 secret/token/credential 포함 금지.",
+        "- agenda 에 이미 있는 같은 statement 의 goal 재추가 금지 (자동 거절됨).",
+    ])
+
+    try:
+        raw = _invoke_for_stage("autonomous_sweep", prompt)
+    except StageRateLimitExceeded:
+        _touch_sweep_state(reason="rate_limit_skipped")
+        return {"status": "rate_limit_skipped"}
+    if not raw:
+        _touch_sweep_state(reason="no_llm_response")
+        return {"status": "no_llm_response"}
+
+    decision = _extract_json_dict(raw)
+    if not decision:
+        _touch_sweep_state(reason="malformed_decision")
+        return {"status": "malformed_decision", "raw_head": raw[:200]}
+
+    rationale = str(decision.get("rationale") or "").strip()
+    raw_actions = decision.get("actions") or []
+    if not isinstance(raw_actions, list):
+        raw_actions = []
+
+    outcomes: list[dict[str, Any]] = []
+    for a in raw_actions[:8]:    # hard cap: max 8 actions per sweep
+        if not isinstance(a, dict):
+            continue
+        outcomes.append(sagwan_sweep.execute_action(a))
+
+    # forced-action guard: if 7d silent + no non-noop emitted, log a concern
+    if forced_action_required and not any(o.get("outcome") == "applied" and o.get("kind") != "no_op" for o in outcomes):
+        forced = sagwan_sweep.execute_action({
+            "kind": "add_concern",
+            "statement": f"Sagwan sweep 무행동 7일+ ({days_silent}d). 자동 강제 concern.",
+            "severity": "medium",
+            "tags": ["sweep", "forced-break", "auto"],
+            "ttl_hours": 72,
+            "rationale": "no-action-break safeguard fired",
+        })
+        outcomes.append(forced)
+
+    try:
+        sagwan_sweep.append_sweep_entry(panorama=panorama, actions=outcomes, rationale=rationale)
+    except Exception as exc:
+        logger.warning("sweep log append failed: %s", exc)
+
+    _touch_sweep_state(reason="ok" if outcomes else "abstain")
+    return {
+        "status": "ok",
+        "actions_count": len(outcomes),
+        "applied": sum(1 for o in outcomes if o.get("outcome") == "applied"),
+        "rejected": sum(1 for o in outcomes if o.get("outcome") == "rejected"),
+        "rationale": rationale[:200],
+        "actions": outcomes[:5],   # surface first few in summary
+    }
+
+
+def _touch_sweep_state(*, reason: str) -> None:
+    try:
+        try:
+            doc = load_document(_SWEEP_STATE_PATH)
+            fm = dict(doc.frontmatter or {})
+            body = doc.body or ""
+        except Exception:
+            fm = {
+                "title": "Sagwan Sweep State",
+                "kind": "activity",
+                "project": "ops/librarian",
+                "tags": ["sagwan", "sweep", "state"],
+                "owner": "sagwan",
+                "visibility": "private",
+            }
+            body = "## Summary\nStage Z (autonomous sweep) cooldown + last-run state.\n"
+        fm["last_run_at"] = _now_iso()
+        fm["last_outcome"] = reason
+        write_document(path=_SWEEP_STATE_PATH, body=body, metadata=fm,
+                       allow_owner_change=True, metadata_replace=True)
+    except Exception as exc:
+        logger.warning("sweep state touch failed: %s", exc)
 
 
 def _curate_system_health() -> dict[str, Any]:

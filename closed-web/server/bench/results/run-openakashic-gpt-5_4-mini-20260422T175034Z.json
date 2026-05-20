@@ -1,0 +1,233 @@
+{
+  "model": "gpt-5.4-mini",
+  "condition": "openakashic",
+  "timestamp": "20260422T175034Z",
+  "records": [
+    {
+      "task_id": "multihop_synthesis",
+      "condition": "openakashic",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "started_at": "2026-04-22T17:49:50+00:00",
+      "finished_at": "2026-04-22T17:50:34+00:00",
+      "plan": "IchiMozzi 프로젝트 노트에서 배포 전 점검 기준을 먼저 찾고, 관련 README나 운영 메모가 있으면 그 안에서 backend 새 버전 배포 직전 확인할 시스템 3개를 추려내겠습니다. 그다음 각 시스템의 이름과 확인 이유를 한 줄씩 정리하겠습니다.",
+      "tool_calls": [
+        {
+          "tool": "search_and_read_top",
+          "arguments": {
+            "query": "IchiMozzi backend deploy checklist"
+          },
+          "result": {
+            "directive": "노트 본문의 사실을 인용해 질문에 직접 답하세요. 경로 나열·도구명 반복 금지. 부족하면 read_note 추가 호출.",
+            "note_body_preview": "## 현재 업데이트 방법 — 수동\n\n백엔드 소스(`/home/insu/insu_server/apps/ichimozzi/backend`)를 수정한 뒤 다음 절차로 재배포한다.\n\n```bash\n# 1) (선택) 빌드 사전 확인\ncd /home/insu/insu_server/apps/ichimozzi/backend\nnpm run build   # dist/ 확인\n\n# 2) 프로덕션 스택 재빌드 & 재기동\ncd /home/insu/insu_server/compose\ndocker compose -f production.yml build backend-prod\ndocker compose -f production.yml up -d backend-prod\n\n# 3) 헬스 체크\ncurl -s -I https://ichimozzi.com/health   # 200 OK 기대\ndocker logs -f ichimozzi-migration-backend-prod-1 --tail 100\n```\n\n전체 스택 재기동이 필요하면 `/home/insu/insu_server/scripts/start-all.sh` 사용(OpenAkashic·LLM 스택까지 포함해 `up -d --build` 수행 후 `test-all.sh` 실행).\n\n## DB 마이그레이션/시드\n\n- 최초 볼륨 생성 시 `infra/db-init/ichimozzi.sql.gz`가 자동 로드됨. 볼륨이 이미 있으면 미실행.\n- 스키마 변경이 필요하면 TypeORM의 `synchronize` 플래그를 확인한 뒤 필요 시 직접 `psql` 로 ALTER 적용(또는 마이그레이션 파일 작성). 현재 코드는 TypeORM 엔티티 스키마만으로 동기화되므로 새 엔티티 필드 추가 시 기존 row는 DEFAULT로 채워진다.\n- 백업 복원은 `/home/insu/insu_server/archive/ichimozzi-migration-20260414-020020/momhome/db-init/ichimozzi.sql.gz` 참고.\n\n## DB 백업 운영\n\n- 정기 SQL 백업 스크립트: `/home/insu/insu_server/scripts/backup-ichimozzi-db.sh`\n- 크론 등록 스크립트: `/home/insu/insu_server/scripts/install-ichimozzi-db-backup-cron.sh`\n- 기본 백업 위치: `/home/insu/insu_server/a",
+            "retrieval_value": {
+              "directive": "경로 나열 금지. 노트 내용을 읽어 질문에 직접 답하세요. 부족하면 read_note 추가 호출.",
+              "intent": "fact_lookup",
+              "matched_notes": [
+                "personal_vault/projects/personal/ichimozzi/playbooks/update-and-deploy.md",
+                "personal_vault/projects/personal/ichimozzi/deployment-log.md",
+                "personal_vault/projects/personal/ichimozzi/architecture/system-snapshot-2026-04-15.md"
+              ],
+              "writeback_suggested": false,
+              "read_note_hint": "본문이 필요하면 read_note(path=<path>) 추가 호출. 쓰기는 upsert_note(path, body, title)."
+            },
+            "query": "IchiMozzi backend deploy checklist",
+            "top": {
+              "path": "personal_vault/projects/personal/ichimozzi/playbooks/update-and-deploy.md",
+              "slug": "update-and-deploy",
+              "title": "IchiMozzi Update & Deploy Playbook (post-migration)",
+              "kind": "playbook",
+              "project": "personal/ichimozzi",
+              "owner": "aaron",
+              "visibility": "private",
+              "publication_status": "none",
+              "tags": [
+                "ichimozzi",
+                "playbook",
+                "deploy",
+                "webhook",
+                "ops",
+                "backup"
+              ],
+              "summary": "백엔드 소스(/home/insu/insu server/apps/ichimozzi/backend)를 수정한 뒤 다음 절차로 재배포한다.",
+              "href": "/notes/update-and-deploy",
+              "lexical_score": 12.085872677257974,
+              "lexical_bm25": -10.645148,
+              "semantic_score": 0.0,
+              "confirm_count": 0,
+              "dispute_count": 0,
+              "claim_review_status": "unreviewed",
+              "claim_review_badge": "Unreviewed",
+              "trust_multiplier": 1.0,
+              "score": 0.016393
+            },
+            "other_results": [
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/deployment-log.md",
+                "slug": "deployment-log",
+                "title": "IchiMozzi 배포 로그",
+                "kind": "reference",
+                "project": "ichimozzi",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "ichimozzi",
+                  "deployment",
+                  "backend",
+                  "frontend"
+                ],
+                "summary": "- auth: forgotPassword(6자리 코드 이메일), resetPassword, refreshToken, guestLogin(deviceId 중복방지)",
+                "href": "/notes/deployment-log",
+                "lexical_score": 10.12498535248716,
+                "lexical_bm25": -7.000938,
+                "semantic_score": 0.0,
+                "confirm_count": 0,
+                "dispute_count": 0,
+                "claim_review_status": "unreviewed",
+                "claim_review_badge": "Unreviewed",
+                "trust_multiplier": 1.0,
+                "score": 0.016129
+              },
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/architecture/system-snapshot-2026-04-15.md",
+                "slug": "system-snapshot-2026-04-15",
+                "title": "IchiMozzi System Snapshot 2026-04-15",
+                "kind": "architecture",
+                "project": "personal/ichimozzi",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "ichimozzi",
+                  "architecture",
+                  "backend",
+                  "jlpt",
+                  "snapshot"
+                ],
+                "summary": "IchiMozzi는 JLPT(일본어능력시험) 학습용 모바일 앱이다. 객관식 문제 풀이 + SRS(간격 반복) + 태그 기반 취약점 분석 + 개인별 난이도 브릿징 추천이 중심 기능이다.",
+                "href": "/notes/system-snapshot-2026-04-15",
+                "lexical_score": 7.099246313747894,
+                "lexical_bm25": -9.075941,
+                "semantic_score": 0.0,
+                "confirm_count": 0,
+                "dispute_count": 0,
+                "claim_review_status": "unreviewed",
+                "claim_review_badge": "Unreviewed",
+                "trust_multiplier": 1.0,
+                "score": 0.015873
+              },
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/reference/Ichimozzi OTA home screen mismatch investigation 2026-04-21.md",
+                "slug": "ichimozzi-ota-home-screen-mismatch-investigation-2026-04-21",
+                "title": "Ichimozzi OTA home screen mismatch investigation 2026-04-21",
+                "kind": "reference",
+                "project": "ichimozzi",
+                "owner": "admin",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [
+                  "ichimozzi",
+                  "ota",
+                  "expo",
+                  "eas",
+                  "release",
+                  "home-screen",
+                  "admin",
+                  "quest",
+                  "score-reset",
+                  "backend"
+                ],
+                "summary": "- User reported that the review-passed Ichimozzi app still shows the older home screen using MasteryXP-style UI instead of the recently modified home/planner screen. - Investigation combined local git state, Claude local history, existing OpenAkashic notes, li",
+                "href": "/notes/ichimozzi-ota-home-screen-mismatch-investigation-2026-04-21",
+                "lexical_score": 7.096334075941696,
+                "lexical_bm25": -9.380543,
+                "semantic_score": 0.0,
+                "confirm_count": 0,
+                "dispute_count": 0,
+                "claim_review_status": "unreviewed",
+                "claim_review_badge": "Unreviewed",
+                "trust_multiplier": 1.0,
+                "score": 0.015625
+              },
+              {
+                "path": "personal_vault/projects/personal/ichimozzi/deployment.md",
+                "slug": "deployment",
+                "title": "IchiMozzi 배포 가이드",
+                "kind": "reference",
+                "project": "openakashic",
+                "owner": "aaron",
+                "visibility": "private",
+                "publication_status": "none",
+                "tags": [],
+                "summary": "EC2 없음. 홈서버 Docker에서 실행.",
+                "href": "/notes/deployment",
+                "lexical_score": 7.0940038798995895,
+                "lexical_bm25": -9.637859,
+                "semantic_score": 0.0,
+                "confirm_count": 0,
+                "dispute_count": 0,
+                "claim_review_status": "unreviewed",
+                "claim_review_badge": "Unreviewed",
+                "trust_multiplier": 1.0,
+                "score": 0.015385
+              }
+            ],
+            "hints": [],
+            "count": 5,
+            "note": {
+              "path": "personal_vault/projects/personal/ichimozzi/playbooks/update-and-deploy.md",
+              "slug": "update-and-deploy",
+              "title": "IchiMozzi Update & Deploy Playbook (post-migration)",
+              "kind": "playbook",
+              "project": "personal/ichimozzi",
+              "status": "active",
+              "owner": "aaron",
+              "original_owner": "aaron",
+              "created_by": "aaron",
+              "visibility": "private",
+              "publication_status": "none",
+              "claim_review_status": "unreviewed",
+              "claim_review_badge": "Unreviewed",
+              "confirm_count": 0,
+              "dispute_count": 0,
+              "tags": [
+                "ichimozzi",
+                "playbook",
+                "deploy",
+                "webhook",
+                "ops",
+                "backup"
+              ],
+              "related": [],
+              "summary": "백엔드 소스(/home/insu/insu server/apps/ichimozzi/backend)를 수정한 뒤 다음 절차로 재배포한다.",
+              "body": "## 현재 업데이트 방법 — 수동\n\n백엔드 소스(`/home/insu/insu_server/apps/ichimozzi/backend`)를 수정한 뒤 다음 절차로 재배포한다.\n\n```bash\n# 1) (선택) 빌드 사전 확인\ncd /home/insu/insu_server/apps/ichimozzi/backend\nnpm run build   # dist/ 확인\n\n# 2) 프로덕션 스택 재빌드 & 재기동\ncd /home/insu/insu_server/compose\ndocker compose -f production.yml build backend-prod\ndocker compose -f production.yml up -d backend-prod\n\n# 3) 헬스 체크\ncurl -s -I https://ichimozzi.com/health   # 200 OK 기대\ndocker logs -f ichimozzi-migration-backend-prod-1 --tail 100\n```\n\n전체 스택 재기동이 필요하면 `/home/insu/insu_server/scripts/start-all.sh` 사용(OpenAkashic·LLM 스택까지 포함해 `up -d --build` 수행 후 `test-all.sh` 실행).\n\n## DB 마이그레이션/시드\n\n- 최초 볼륨 생성 시 `infra/db-init/ichimozzi.sql.gz`가 자동 로드됨. 볼륨이 이미 있으면 미실행.\n- 스키마 변경이 필요하면 TypeORM의 `synchronize` 플래그를 확인한 뒤 필요 시 직접 `psql` 로 ALTER 적용(또는 마이그레이션 파일 작성). 현재 코드는 TypeORM 엔티티 스키마만으로 동기화되므로 새 엔티티 필드 추가 시 기존 row는 DEFAULT로 채워진다.\n- 백업 복원은 `/home/insu/insu_server/archive/ichimozzi-migration-20260414-020020/momhome/db-init/ichimozzi.sql.gz` 참고.\n\n## DB 백업 운영\n\n- 정기 SQL 백업 스크립트: `/home/insu/insu_server/scripts/backup-ichimozzi-db.sh`\n- 크론 등록 스크립트: `/home/insu/insu_server/scripts/install-ichimozzi-db-backup-cron.sh`\n- 기본 백업 위치: `/home/insu/insu_server/archive/ichimozzi-db-backups`\n- 기본 보관 기간: 14일 (`ICHI_BACKUP_KEEP_DAYS`로 조정)\n- 현재 등록된 정기 실행: 매일 `04:15` 로컬 시간\n- 백업 형식: `pg_dump` plain SQL + gzip (`ichimozzi-YYYYMMDD-HHMMSS.sql.gz`) 및 `.sha256` 체크섬\n\n즉시 수동 백업:\n\n```bash\n/home/insu/insu_server/scripts/backup-ichimozzi-db.sh\n```\n\n정기 실행 등록/갱신:\n\n```bash\n/home/insu/insu_server/scripts/install-ichimozzi-db-backup-cron.sh\n# 또는 다른 시간 예시\n/home/insu/insu_server/scripts/install-ichimozzi-db-backup-cron.sh \"0 3 * * *\"\n```\n\n검증:\n\n```bash\ncrontab -l\nls -lh /home/insu/insu_server/archive/ichimozzi-db-backups\nsha256sum -c /home/insu/insu_server/archive/ichimozzi-db-backups/*.sha256\n```\n\n## 🚨 GitHub Webhook 자동 배포 — 현재 **고장**\n\n`webhook.service.ts` 핵심:\n\n```ts\nprivate readonly WEBHOOK_SECRET = 'IchiMozzi';  // 하드코딩\n// ...\nif (req.body.ref !== 'refs/heads/master') throw new Error(...);\nawait execAsync('sh /home/ec2-user/IchiMozzi/deploy.sh');\n```\n\n문제점:\n1. **경로가 AWS EC2 기준** — 현재 WSL2 insu_server에는 `/home/ec2-user/IchiMozzi/deploy.sh`가 없다.\n2. **컨테이너 내부에서 실행**되므로 호스트의 docker compose를 호출할 수 없다 (socket 마운트 없음, docker CLI 없음).\n3. **시크릿 하드코딩** — 문자열 `'IchiMozzi'` 그대로. env의 `WEBHOOK_SECRET` 값은 읽지 않음.\n4. `master` 브랜치 하드코딩. 최신 레포가 `main`이면 무시됨.\n\n결과: 현재 GitHub push → webhook 도달 시 시그니처 통과하더라도 exec 단계에서 실패만 남는다. 프로덕션 자동 배포는 **수동 절차로 대체**한 상태로 봐야 한다.\n\n## 복구 작업 권장(우선순위 순)\n\n1. **웹훅 비활성화 또는 복구 선택**\n   - 옵션 A(권장): `WebhookModule`을 `app.module.ts` imports에서 제거하거나 `POST /webhook`을 404로 응답. 실수 재배포 경로를 완전히 차단.\n   - 옵션 B: 호스트 쪽에 systemd 또는 crontab으로 돌리는 webhook-listener(예: `webhook` 바이너리, Caddy reverse proxy의 별도 path)를 만들고, 컨테이너 밖에서 `docker compose ... up -d --build` 를 실행하게 교체.\n2. **시크릿 env 화**: `WEBHOOK_SECRET`을 `process.env.WEBHOOK_SECRET`로 읽도록 변경하고 `infra/env/ichimozzi-backend.prod.env`에 실제 값을 두되 로그에 찍지 않는다.\n3. **브랜치 파라미터화**: 기본 브랜치를 `main`으로 또는 env로 관리.\n4. **배포 스크립트 재작성**: `scripts/ichimozzi-deploy.sh` 를 insu_server에 새로 만들고 `git -C /home/insu/insu_server/apps/ichimozzi/backend pull && docker compose -f /home/insu/insu_server/compose/production.yml up -d --build backend-prod` 수행. (단, 이 디렉터리가 실제 git 작업트리가 아닐 수 있어 clone 전략부터 합의 필요 — 현재 apps/ichimozzi는 migration 과정의 복사본인지 git repo인지 확인 필요.)\n\n## 관측/로그\n\n- 컨테이너 stdout: `docker logs ichimozzi-migration-backend-prod-1`\n- PostgreSQL: `docker exec -it ichimozzi-migration-ichimozzi-db-1 psql -U postgres -d IchiMozzi`\n- 과거 AWS CloudWatch 에이전트 흔적이 `backend/opt/aws/amazon-cloudwatch-agent` 에 남아 있으나 현 서버에서는 비활성. 이미지 빌드 결과물에도 포함되어 있어 삭제 권장(이미지 크기 절감).\n\n## 관련\n- `/home/insu/insu_server/archive/ichimozzi-migration-20260414-020020/NEXT_STEPS.md`\n- [[ichimozzi-aws-cleanup-2026-04-14|IchiMozzi AWS Cleanup 2026-04-14]]\n- `../architecture/system-snapshot-2026-04-15.md`\n\n## DB 백업 최신 상태 (2026-04-23)\n- 자동 백업의 canonical 경로를 호스트 crontab에서 백엔드 Nest cron으로 전환했다.\n- 백엔드 `DbBackupService`가 매일 `04:15` Asia/Seoul에 `/app/backups`로 `ichimozzi-YYYYMMDD-HHMMSS.sql.gz`와 `.sha256`를 생성한다.\n- Compose에서 `../archive/ichimozzi-db-backups:/app/backups`를 마운트하므로 실제 파일은 `/home/insu/insu_server/archive/ichimozzi-db-backups`에 쌓인다.\n- 백엔드 이미지에는 PostgreSQL 16 client를 포함시켜 DB 서버(`postgres:16-alpine`)와 `pg_dump` 버전을 맞췄다.\n- `DB_BACKUP_OWNER_UID=1000`, `DB_BACKUP_OWNER_GID=1000`로 생성 파일 소유자를 `insu`로 맞춰 호스트에서 바로 검증 가능하게 했다.\n- 호스트 crontab에 있던 `backup-ichimozzi-db.sh` 정기 실행 항목은 제거했다. 스크립트는 긴급 수동 백업용으로만 유지한다.\n- 2026-04-23 검증: 수동 호출로 `ichimozzi-20260423-011347.sql.gz` 생성, `sha256sum -c` 통과, `https://ichimozzi.com/health` 200 확인.",
+              "body_html": "<h2 id=\"현재-업데이트-방법-수동\">현재 업데이트 방법 — 수동<a class=\"heading-anchor\" href=\"#현재-업데이트-방법-수동\">#</a></h2>\n<p>백엔드 소스(<code>/home/insu/insu_server/apps/ichimozzi/backend</code>)를 수정한 뒤 다음 절차로 재배포한다.</p>\n<pre><code class=\"language-bash\"># 1) (선택) 빌드 사전 확인\ncd /home/insu/insu_server/apps/ichimozzi/backend\nnpm run build   # dist/ 확인\n\n# 2) 프로덕션 스택 재빌드 &amp; 재기동\ncd /home/insu/insu_server/compose\ndocker compose -f production.yml build backend-prod\ndocker compose -f production.yml up -d backend-prod\n\n# 3) 헬스 체크\ncurl -s -I https://ichimozzi.com/health   # 200 OK 기대\ndocker logs -f ichimozzi-migration-backend-prod-1 --tail 100\n</code></pre>\n<p>전체 스택 재기동이 필요하면 <code>/home/insu/insu_server/scripts/start-all.sh</code> 사용(OpenAkashic·LLM 스택까지 포함해 <code>up -d --build</code> 수행 후 <code>test-all.sh</code> 실행).</p>\n<h2 id=\"db-마이그레이션-시드\">DB 마이그레이션/시드<a class=\"heading-anchor\" href=\"#db-마이그레이션-시드\">#</a></h2>\n<ul>\n<li>최초 볼륨 생성 시 <code>infra/db-init/ichimozzi.sql.gz</code>가 자동 로드됨. 볼륨이 이미 있으면 미실행.</li>\n<li>스키마 변경이 필요하면 TypeORM의 <code>synchronize</code> 플래그를 확인한 뒤 필요 시 직접 <code>psql</code> 로 ALTER 적용(또는 마이그레이션 파일 작성). 현재 코드는 TypeORM 엔티티 스키마만으로 동기화되므로 새 엔티티 필드 추가 시 기존 row는 DEFAULT로 채워진다.</li>\n<li>백업 복원은 <code>/home/insu/insu_server/archive/ichimozzi-migration-20260414-020020/momhome/db-init/ichimozzi.sql.gz</code> 참고.</li>\n</ul>\n<h2 id=\"db-백업-운영\">DB 백업 운영<a class=\"heading-anchor\" href=\"#db-백업-운영\">#</a></h2>\n<ul>\n<li>정기 SQL 백업 스크립트: <code>/home/insu/insu_server/scripts/backup-ichimozzi-db.sh</code></li>\n<li>크론 등록 스크립트: <code>/home/insu/insu_server/scripts/install-ichimozzi-db-backup-cron.sh</code></li>\n<li>기본 백업 위치: <code>/home/insu/insu_server/archive/ichimozzi-db-backups</code></li>\n<li>기본 보관 기간: 14일 (<code>ICHI_BACKUP_KEEP_DAYS</code>로 조정)</li>\n<li>현재 등록된 정기 실행: 매일 <code>04:15</code> 로컬 시간</li>\n<li>백업 형식: <code>pg_dump</code> plain SQL + gzip (<code>ichimozzi-YYYYMMDD-HHMMSS.sql.gz</code>) 및 <code>.sha256</code> 체크섬</li>\n</ul>\n<p>즉시 수동 백업:</p>\n<pre><code class=\"language-bash\">/home/insu/insu_server/scripts/backup-ichimozzi-db.sh\n</code></pre>\n<p>정기 실행 등록/갱신:</p>\n<pre><code class=\"language-bash\">/home/insu/insu_server/scripts/install-ichimozzi-db-backup-cron.sh\n# 또는 다른 시간 예시\n/home/insu/insu_server/scripts/install-ichimozzi-db-backup-cron.sh \"0 3 * * *\"\n</code></pre>\n<p>검증:</p>\n<pre><code class=\"language-bash\">crontab -l\nls -lh /home/insu/insu_server/archive/ichimozzi-db-backups\nsha256sum -c /home/insu/insu_server/archive/ichimozzi-db-backups/*.sha256\n</code></pre>\n<h2 id=\"github-webhook-자동-배포-현재-고장\">🚨 GitHub Webhook 자동 배포 — 현재 <strong>고장</strong><a class=\"heading-anchor\" href=\"#github-webhook-자동-배포-현재-고장\">#</a></h2>\n<p><code>webhook.service.ts</code> 핵심:</p>\n<pre><code class=\"language-ts\">private readonly WEBHOOK_SECRET = 'IchiMozzi';  // 하드코딩\n// ...\nif (req.body.ref !== 'refs/heads/master') throw new Error(...);\nawait execAsync('sh /home/ec2-user/IchiMozzi/deploy.sh');\n</code></pre>\n<p>문제점:\n1. <strong>경로가 AWS EC2 기준</strong> — 현재 WSL2 insu_server에는 <code>/home/ec2-user/IchiMozzi/deploy.sh</code>가 없다.\n2. <strong>컨테이너 내부에서 실행</strong>되므로 호스트의 docker compose를 호출할 수 없다 (socket 마운트 없음, docker CLI 없음).\n3. <strong>시크릿 하드코딩</strong> — 문자열 <code>'IchiMozzi'</code> 그대로. env의 <code>WEBHOOK_SECRET</code> 값은 읽지 않음.\n4. <code>master</code> 브랜치 하드코딩. 최신 레포가 <code>main</code>이면 무시됨.</p>\n<p>결과: 현재 GitHub push → webhook 도달 시 시그니처 통과하더라도 exec 단계에서 실패만 남는다. 프로덕션 자동 배포는 <strong>수동 절차로 대체</strong>한 상태로 봐야 한다.</p>\n<h2 id=\"복구-작업-권장-우선순위-순\">복구 작업 권장(우선순위 순)<a class=\"heading-anchor\" href=\"#복구-작업-권장-우선순위-순\">#</a></h2>\n<ol>\n<li><strong>웹훅 비활성화 또는 복구 선택</strong>\n   - 옵션 A(권장): <code>WebhookModule</code>을 <code>app.module.ts</code> imports에서 제거하거나 <code>POST /webhook</code>을 404로 응답. 실수 재배포 경로를 완전히 차단.\n   - 옵션 B: 호스트 쪽에 systemd 또는 crontab으로 돌리는 webhook-listener(예: <code>webhook</code> 바이너리, Caddy reverse proxy의 별도 path)를 만들고, 컨테이너 밖에서 <code>docker compose ... up -d --build</code> 를 실행하게 교체.</li>\n<li><strong>시크릿 env 화</strong>: <code>WEBHOOK_SECRET</code>을 <code>process.env.WEBHOOK_SECRET</code>로 읽도록 변경하고 <code>infra/env/ichimozzi-backend.prod.env</code>에 실제 값을 두되 로그에 찍지 않는다.</li>\n<li><strong>브랜치 파라미터화</strong>: 기본 브랜치를 <code>main</code>으로 또는 env로 관리.</li>\n<li><strong>배포 스크립트 재작성</strong>: <code>scripts/ichimozzi-deploy.sh</code> 를 insu_server에 새로 만들고 <code>git -C /home/insu/insu_server/apps/ichimozzi/backend pull &amp;&amp; docker compose -f /home/insu/insu_server/compose/production.yml up -d --build backend-prod</code> 수행. (단, 이 디렉터리가 실제 git 작업트리가 아닐 수 있어 clone 전략부터 합의 필요 — 현재 apps/ichimozzi는 migration 과정의 복사본인지 git repo인지 확인 필요.)</li>\n</ol>\n<h2 id=\"관측-로그\">관측/로그<a class=\"heading-anchor\" href=\"#관측-로그\">#</a></h2>\n<ul>\n<li>컨테이너 stdout: <code>docker logs ichimozzi-migration-backend-prod-1</code></li>\n<li>PostgreSQL: <code>docker exec -it ichimozzi-migration-ichimozzi-db-1 psql -U postgres -d IchiMozzi</code></li>\n<li>과거 AWS CloudWatch 에이전트 흔적이 <code>backend/opt/aws/amazon-cloudwatch-agent</code> 에 남아 있으나 현 서버에서는 비활성. 이미지 빌드 결과물에도 포함되어 있어 삭제 권장(이미지 크기 절감).</li>\n</ul>\n<h2 id=\"관련\">관련<a class=\"heading-anchor\" href=\"#관련\">#</a></h2>\n<ul>\n<li><code>/home/insu/insu_server/archive/ichimozzi-migration-20260414-020020/NEXT_STEPS.md</code></li>\n<li><a class=\"wiki-link\" data-note-slug=\"ichimozzi-aws-cleanup-2026-04-14\" href=\"/notes/ichimozzi-aws-cleanup-2026-04-14\" rel=\"noopener noreferrer\">IchiMozzi AWS Cleanup 2026-04-14</a></li>\n<li><code>../architecture/system-snapshot-2026-04-15.md</code></li>\n</ul>\n<h2 id=\"db-백업-최신-상태-2026-04-23\">DB 백업 최신 상태 (2026-04-23)<a class=\"heading-anchor\" href=\"#db-백업-최신-상태-2026-04-23\">#</a></h2>\n<ul>\n<li>자동 백업의 canonical 경로를 호스트 crontab에서 백엔드 Nest cron으로 전환했다.</li>\n<li>백엔드 <code>DbBackupService</code>가 매일 <code>04:15</code> Asia/Seoul에 <code>/app/backups</code>로 <code>ichimozzi-YYYYMMDD-HHMMSS.sql.gz</code>와 <code>.sha256</code>를 생성한다.</li>\n<li>Compose에서 <code>../archive/ichimozzi-db-backups:/app/backups</code>를 마운트하므로 실제 파일은 <code>/home/insu/insu_server/archive/ichimozzi-db-backups</code>에 쌓인다.</li>\n<li>백엔드 이미지에는 PostgreSQL 16 client를 포함시켜 DB 서버(<code>postgres:16-alpine</code>)와 <code>pg_dump</code> 버전을 맞췄다.</li>\n<li><code>DB_BACKUP_OWNER_UID=1000</code>, <code>DB_BACKUP_OWNER_GID=1000</code>로 생성 파일 소유자를 <code>insu</code>로 맞춰 호스트에서 바로 검증 가능하게 했다.</li>\n<li>호스트 crontab에 있던 <code>backup-ichimozzi-db.sh</code> 정기 실행 항목은 제거했다. 스크립트는 긴급 수동 백업용으로만 유지한다.</li>\n<li>2026-04-23 검증: 수동 호출로 <code>ichimozzi-20260423-011347.sql.gz</code> 생성, <code>sha256sum -c</code> 통과, <code>https://ichimozzi.com/health</code> 200 확인.</li>\n</ul>",
+              "links": [
+                "ichimozzi-aws-cleanup-2026-04-14"
+              ],
+              "related_notes": [],
+              "backlinks": [
+                {
+                  "slug": "personal-vault-projects-ops-librarian-capsules-ci-cd-배포-전략-실전-가이드-capsule",
+                  "title": "CI/CD 배포 전략 실전 가이드 Capsule",
+                  "summary": "Kubernetes 환경에서 무중단 배포를 구현하기 위한 전략 비교 및 실전 가이드. Recreate부터 Canary, Blue/Green, A/B Testing에 이르는 5가지 배포 패턴의 트레이드오프(다운타임, 롤백성, 리소스 효율)를 명확히 하고, 각 전략의 구현 방식(kubectl, Argo Rollouts, Argo CD)을 코드 예제로 제시합니다.",
+                  "href": "/notes/personal-vault-projects-ops-librarian-capsules-ci-cd-배포-전략-실전-가이드-capsule"
+                }
+              ],
+              "outbound": 1,
+              "href": "/notes/update-and-deploy"
+            }
+          },
+          "error": null,
+          "duration_ms": 266.2
+        }
+      ],
+      "answer": "배포 직전에 볼 3개는 이겁니다.\n\n1. `backend-prod` 빌드/기동 상태: 새 버전이 프로덕션 스택에서 실제로 빌드되고 떠야 하므로 `docker compose -f production.yml build backend-prod`와 `up -d backend-prod`가 정상인지 먼저 봐야 합니다.\n2. `https://ichimozzi.com/health` 헬스 체크: 배포 직후 서비스가 200 OK를 돌려야 외부 트래픽을 받아도 된다는 뜻이라, 엔드포인트가 살아 있는지 확인해야 합니다.\n3. `ichimozzi-migration-backend-prod-1` 마이그레이션 로그: 새 버전이 DB 변경과 충돌하지 않았는지, 마이그레이션 에러가 없는지 이 컨테이너 로그로 확인해야 합니다.",
+      "raw_model_output_turn1": "{\"plan\":\"IchiMozzi 프로젝트 노트에서 배포 전 점검 기준을 먼저 찾고, 관련 README나 운영 메모가 있으면 그 안에서 backend 새 버전 배포 직전 확인할 시스템 3개를 추려내겠습니다. 그다음 각 시스템의 이름과 확인 이유를 한 줄씩 정리하겠습니다.\",\"tool_calls\":[{\"tool\":\"search_and_read_top\",\"arguments\":{\"query\":\"IchiMozzi backend deploy checklist\"}}]}",
+      "raw_model_output_turn2": "{\"answer\":\"배포 직전에 볼 3개는 이겁니다.\\n\\n1. `backend-prod` 빌드/기동 상태: 새 버전이 프로덕션 스택에서 실제로 빌드되고 떠야 하므로 `docker compose -f production.yml build backend-prod`와 `up -d backend-prod`가 정상인지 먼저 봐야 합니다.\\n2. `https://ichimozzi.com/health` 헬스 체크: 배포 직후 서비스가 200 OK를 돌려야 외부 트래픽을 받아도 된다는 뜻이라, 엔드포인트가 살아 있는지 확인해야 합니다.\\n3. `ichimozzi-migration-backend-prod-1` 마이그레이션 로그: 새 버전이 DB 변경과 충돌하지 않았는지, 마이그레이션 에러가 없는지 이 컨테이너 로그로 확인해야 합니다.\"}",
+      "error": null,
+      "format_violation": false
+    }
+  ]
+}

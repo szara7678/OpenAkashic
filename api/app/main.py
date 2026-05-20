@@ -77,12 +77,20 @@ def query(payload: QueryRequest) -> dict[str, Any]:
 def create_claim(payload: ClaimCreate) -> dict[str, Any]:
     data = payload.model_dump(exclude={"mentions"})
     data["metadata"] = Jsonb(data["metadata"])
+    # Embed the claim text — failure is non-fatal (NULL embedding row, picked
+    # up later by a backfill cron). We don't want a flaky ollama to block
+    # writes to the public memory.
+    from app.embeddings import embed_one
+    embedding = embed_one(payload.text, is_query=False)
+    data["embedding"] = embedding
     with get_conn() as conn:
         with conn.cursor() as cur:
             cur.execute(
                 """
-                INSERT INTO claims (text, status, confidence, source_weight, claim_role, metadata)
-                VALUES (%(text)s, %(status)s, %(confidence)s, %(source_weight)s, %(claim_role)s, %(metadata)s)
+                INSERT INTO claims (text, status, confidence, source_weight, claim_role, metadata,
+                                    embedding, embedding_updated_at)
+                VALUES (%(text)s, %(status)s, %(confidence)s, %(source_weight)s, %(claim_role)s, %(metadata)s,
+                        %(embedding)s::vector, CASE WHEN %(embedding)s IS NULL THEN NULL ELSE now() END)
                 RETURNING id, text, status, confidence::float AS confidence, source_weight::float AS source_weight,
                           claim_role, metadata, created_at, updated_at
                 """,
@@ -264,17 +272,51 @@ def get_evidence(evidence_id: UUID) -> dict[str, Any]:
 def create_capsule(payload: CapsuleCreate) -> dict[str, Any]:
     # mode='json' serializes UUIDs → str so Jsonb can encode claim_id references.
     data = payload.model_dump(mode="json")
+    metadata = dict(data.get("metadata") or {})
     data["summary"] = Jsonb(data["summary"])
     data["key_points"] = Jsonb(data["key_points"])
     data["cautions"] = Jsonb(data["cautions"])
-    data["metadata"] = Jsonb(data["metadata"])
     data["source_claim_ids"] = payload.source_claim_ids  # keep as UUID list for uuid[] column
+
+    # Build the embedding text from title + summary + first 5 key_points (same
+    # composition used for the backfill so new caps match the existing index).
+    from app.embeddings import embed_one
+    summary_text = " ".join(str(s) for s in (payload.summary or [])[:5])
+    kp_texts = []
+    for entry in (payload.key_points or [])[:5]:
+        # KeyPoint may be a pydantic model or dict
+        if hasattr(entry, "text"):
+            kp_texts.append(str(getattr(entry, "text", "")))
+        elif isinstance(entry, dict):
+            kp_texts.append(str(entry.get("text", "")))
+    blob = " ".join(filter(None, [payload.title or "", summary_text, " ".join(kp_texts)])).strip()
+    data["embedding"] = embed_one(blob, is_query=False) if blob else None
+
     with get_conn() as conn:
         with conn.cursor() as cur:
+            metadata["related_capsule_ids"] = []
+            if data["embedding"] is not None:
+                cur.execute(
+                    """
+                    SELECT
+                        id,
+                        (1 - (embedding <=> %(embedding)s::vector))::float AS cosine
+                    FROM capsules
+                    WHERE embedding IS NOT NULL
+                      AND (1 - (embedding <=> %(embedding)s::vector)) >= 0.6
+                    ORDER BY embedding <=> %(embedding)s::vector
+                    LIMIT 3
+                    """,
+                    {"embedding": data["embedding"]},
+                )
+                metadata["related_capsule_ids"] = [str(row["id"]) for row in cur.fetchall()]
+            data["metadata"] = Jsonb(metadata)
             cur.execute(
                 """
-                INSERT INTO capsules (title, summary, key_points, cautions, source_claim_ids, confidence, metadata)
-                VALUES (%(title)s, %(summary)s, %(key_points)s, %(cautions)s, %(source_claim_ids)s, %(confidence)s, %(metadata)s)
+                INSERT INTO capsules (title, summary, key_points, cautions, source_claim_ids, confidence, metadata,
+                                      embedding, embedding_updated_at)
+                VALUES (%(title)s, %(summary)s, %(key_points)s, %(cautions)s, %(source_claim_ids)s, %(confidence)s, %(metadata)s,
+                        %(embedding)s::vector, CASE WHEN %(embedding)s IS NULL THEN NULL ELSE now() END)
                 RETURNING id, title, summary, key_points, cautions, source_claim_ids,
                           confidence::float AS confidence, metadata, created_at, updated_at
                 """,

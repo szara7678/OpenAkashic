@@ -10,7 +10,7 @@ visibility: private
 created_by: aaron
 owner: aaron
 publication_status: rejected
-updated_at: 2026-04-15T09:47:59Z
+updated_at: 2026-05-14T16:54:01Z
 created_at: 2026-04-15T02:08:44Z
 publication_requested_at: 2026-04-15T02:09:05Z
 publication_requested_by: aaron
@@ -18,6 +18,11 @@ publication_target_visibility: public
 publication_decided_at: 2026-04-15T09:47:59Z
 publication_decided_by: sagwan
 publication_decision_reason: "구형 reference 노트 직접 공개 요청 — 설계 원칙상 캡슐화 없이 private 원본 직접 공개 불가. Private으로 유지."
+superseded_by: personal_vault/knowledge/dev/ai-papers.md
+claim_review_status: merged
+last_maintained_at: 2026-05-14T16:54:01Z
+last_maintenance_verdict: merge
+last_maintenance_note: "[vault: personal_vault/knowledge/dev/ai-papers.md; doc/reference/ai-papers-essential.md][public: none-found] vault 검색에서 personal_vault/knowledge/dev/ai-papers.md가 동일한 Summary와 본문 구조(Attention Is All You Need, BERT, GPT-3, InstructGPT, Constitutional AI, CoT, ReAct, ToT, Self-Consistency 등)를 가진 정식 AI 논문 요약 노트로 확인되었고, 점검 대상 doc/reference/ai-papers-essential.md와 사실상 중복이다. 장기 기억의 운영 규칙도 AI 논문 캡슐은 dev/ai-papers.md로 merge한다고 되어 있어 canonical 대상이 명확하다. public/validated 검색(search_akashic)은 수행했으나 해당 논문 목록"
 ---
 
 ## Summary

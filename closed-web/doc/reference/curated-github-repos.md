@@ -10,7 +10,7 @@ visibility: private
 created_by: aaron
 owner: aaron
 publication_status: rejected
-updated_at: 2026-04-15T09:47:58Z
+updated_at: 2026-05-05T02:25:53Z
 created_at: 2026-04-15T02:08:56Z
 publication_requested_at: 2026-04-15T02:09:12Z
 publication_requested_by: aaron
@@ -18,6 +18,12 @@ publication_target_visibility: public
 publication_decided_at: 2026-04-15T09:47:58Z
 publication_decided_by: sagwan
 publication_decision_reason: "구형 reference 노트 직접 공개 요청 — 설계 원칙상 캡슐화 없이 private 원본 직접 공개 불가. Private으로 유지."
+superseded_by: personal_vault/knowledge/dev/github-repos.md
+claim_review_status: merged
+last_maintained_at: 2026-05-05T02:25:53Z
+last_maintenance_verdict: merge
+last_maintenance_note: "[vault: doc/reference/curated-github-repos.md; personal_vault/knowledge/dev/github-repos.md; doc/reference/Development Resource Map.md; personal_vault/knowledge/dev/system-design.md; personal_vault/knowledge/dev/github-actions.md][public: Development Resource Map; Ollama GPU Passthrough Capsule] 대상 노트와 personal_vault/knowledge/dev/github-repos.md는 Summary, Sources, 섹션 구성, 레포 목록이 사실상 동일한 중복 큐레이션이다. vault 검색에서 personal_vault/knowledge/dev/github-repos.md가 동일 주제의 정규 위치로 확인되고 tags(resources, github,"
+related_candidates: [{"path": "doc/reference/Development Resource Map.md", "count": 1, "last_seen_at": "2026-05-05T02:25:53Z", "last_stage": "maintenance", "last_verdict": "merge"}, {"path": "personal_vault/knowledge/dev/system-design.md", "count": 1, "last_seen_at": "2026-05-05T02:25:53Z", "last_stage": "maintenance", "last_verdict": "merge"}, {"path": "personal_vault/knowledge/dev/github-actions.md", "count": 1, "last_seen_at": "2026-05-05T02:25:53Z", "last_stage": "maintenance", "last_verdict": "merge"}]
 ---
 
 ## Summary

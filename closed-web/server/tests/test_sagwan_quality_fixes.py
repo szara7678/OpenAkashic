@@ -109,6 +109,39 @@ class SagwanQualityFixesTests(unittest.TestCase):
         self.assertEqual(loaded["topic_min_interval_hours"], 8)
         self.assertEqual(loaded["meta_min_interval_hours"], 48)
 
+    def test_load_sagwan_settings_preserves_explicit_empty_disabled_kinds(self) -> None:
+        # Regression: empty-list `task_queue_kinds_disabled` must NOT fall back
+        # to the default kill-switch list. The previous `or` falsy pattern
+        # silently re-disabled `research_gap` when the user activated K.
+        with tempfile.TemporaryDirectory() as tmpdir:
+            settings_path = Path(tmpdir) / "sagwan-settings.json"
+            settings_path.write_text(
+                json.dumps({"task_queue_kinds_disabled": []}),
+                encoding="utf-8",
+            )
+            with mock.patch.object(sagwan_loop, "sagwan_settings_path", return_value=settings_path):
+                loaded = sagwan_loop.load_sagwan_settings()
+
+        self.assertEqual(loaded["task_queue_kinds_disabled"], [])
+
+    def test_save_sagwan_settings_preserves_explicit_empty_disabled_kinds(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            settings_path = Path(tmpdir) / "sagwan-settings.json"
+            # seed with a non-empty disabled list so we can prove the save
+            # actually replaces it with [] rather than keeping the old value.
+            settings_path.write_text(
+                json.dumps({"task_queue_kinds_disabled": ["research_gap"]}),
+                encoding="utf-8",
+            )
+            with mock.patch.object(sagwan_loop, "sagwan_settings_path", return_value=settings_path):
+                saved = sagwan_loop.save_sagwan_settings(
+                    {"task_queue_kinds_disabled": []}
+                )
+                reloaded = sagwan_loop.load_sagwan_settings()
+
+        self.assertEqual(saved["task_queue_kinds_disabled"], [])
+        self.assertEqual(reloaded["task_queue_kinds_disabled"], [])
+
     def test_curate_propose_topics_reads_interval_from_settings(self) -> None:
         state_doc = types.SimpleNamespace(frontmatter={"last_run_at": sagwan_loop._now_iso()}, body="")
 

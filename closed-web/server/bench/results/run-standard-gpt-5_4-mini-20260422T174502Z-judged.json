@@ -1,0 +1,29 @@
+{
+  "run_file": "/home/insu/insu_server/apps/openakashic/closed-web/server/bench/results/run-standard-gpt-5_4-mini-20260422T174502Z.json",
+  "judge_model": "gpt-5.4",
+  "model": "gpt-5.4-mini",
+  "condition": "standard",
+  "judgments": [
+    {
+      "task_id": "onboarding_openakashic",
+      "condition": "standard",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [
+        "search_notes 또는 search_and_read_top 등 정보 탐색 도구 언급",
+        "작업 전 관련 노트 검색, 작업 후 writeback (upsert_note/append_note_section) 절차 설명",
+        "경로가 personal_vault/ 또는 doc/ 로 시작해야 한다는 제약 언급"
+      ],
+      "missed": [
+        "personal_vault/projects/personal/openakashic/README.md 등 실존하는 시작점 경로 제시"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "답변은 AGENTS 지침과 대체로 맞지만, OpenAkashic 온보딩에 필요한 구체적인 실존 시작점 경로를 제시하지 못했습니다. 또한 openakashic 조건에서 확인 가능한 receipt 경로 근거도 없습니다.",
+      "reason": "검색 도구, 사전 검색/사후 writeback 절차, personal_vault/doc 제약은 제대로 설명했습니다. 하지만 핵심 기대사항인 실제 시작점 경로(예: personal_vault/projects/personal/openakashic/README.md)를 구체적으로 제시하지 않아 expected_outcome 충족률이 80% 미만이므로 fail입니다.",
+      "score": {
+        "hit_rate": 0.75,
+        "traps_hit_count": 0
+      }
+    }
+  ]
+}

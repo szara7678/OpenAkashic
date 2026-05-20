@@ -1,0 +1,28 @@
+{
+  "run_file": "/home/insu/insu_server/apps/openakashic/closed-web/server/bench/results/run-baseline-gpt-5_4-mini-20260422T173956Z.json",
+  "judge_model": "gpt-5.4",
+  "model": "gpt-5.4-mini",
+  "condition": "baseline",
+  "judgments": [
+    {
+      "task_id": "busagwan_sagwan_roles",
+      "condition": "baseline",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [],
+      "missed": [
+        "Sagwan은 Claude CLI 기반 high-quality/느린 주기 워커라는 설명 또는 그에 상응하는 구분",
+        "Busagwan은 Ollama gemma 기반 빠른/가벼운 주기 워커라는 설명 또는 그에 상응하는 구분",
+        "각자의 주기/트리거 (예: 10분/15분/1시간 같은 cadence 구분) 언급",
+        "두 워커가 서로 다른 종류의 task를 담당하며 gate 관계라는 구조 설명"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "답변은 근거 없이 일반적 역할을 추정한 수준으로 보이며, OpenAkashic 고유 용어에 대한 확인 가능한 근거가 없다. 기대된 아키텍처 세부사항(모델, cadence, gate 구조)이 전혀 제시되지 않았다.",
+      "reason": "정답 체크포인트 4개 중 충족된 항목이 없다. 환각 트랩을 직접 밟지는 않았지만, 답변 전체가 문서 기반 설명이 아니라 추정적 서술이어서 최종 판정은 fail이다.",
+      "score": {
+        "hit_rate": 0.0,
+        "traps_hit_count": 0
+      }
+    }
+  ]
+}

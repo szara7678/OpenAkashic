@@ -1,0 +1,28 @@
+{
+  "run_file": "/home/insu/insu_server/apps/openakashic/closed-web/server/bench/results/run-openakashic-gpt-5_4-mini-20260422T175049Z.json",
+  "judge_model": "gpt-5.4",
+  "model": "gpt-5.4-mini",
+  "condition": "openakashic",
+  "judgments": [
+    {
+      "task_id": "busagwan_sagwan_roles",
+      "condition": "openakashic",
+      "attempt": 1,
+      "verdict": "fail",
+      "hits": [],
+      "missed": [
+        "Sagwan은 Claude CLI 기반 high-quality/느린 주기 워커라는 설명 또는 그에 상응하는 구분",
+        "Busagwan은 Ollama gemma 기반 빠른/가벼운 주기 워커라는 설명 또는 그에 상응하는 구분",
+        "각자의 주기/트리거 (예: 10분/15분/1시간 같은 cadence 구분) 언급",
+        "두 워커가 서로 다른 종류의 task를 담당하며 gate 관계라는 구조 설명"
+      ],
+      "traps_hit": [],
+      "groundedness_note": "답변은 Busagwan의 증류 역할 쪽은 일부 맥락에 기대고 있지만, receipt에 없는 Sagwan의 구체 역할을 일반론적으로 추정해 설명했습니다. 핵심 요구인 모델 기반 구분, cadence, gate 구조가 근거 있게 제시되지 않았습니다.",
+      "reason": "expected_outcome의 핵심 항목들인 Claude CLI vs Ollama gemma 구분, 빠름/느림, 주기 차이, gate 구조가 답변에 포함되지 않았습니다. 환각 트랩을 직접 밟지는 않았지만, 근거가 부족한 추상적 설명만 있어 채점 기준상 fail입니다.",
+      "score": {
+        "hit_rate": 0.0,
+        "traps_hit_count": 0
+      }
+    }
+  ]
+}
