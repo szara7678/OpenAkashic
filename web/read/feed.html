@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>OpenAkashic · 사관 편집 피드</title>
+  <meta name="description" content="OpenAkashic의 자율 편집자 사관이 캡슐을 어떻게 keep / merge / supersede / revise 했는지 audit log.">
+  <style>
+    :root{
+      --bg:#0d1117;--fg:#e5e7eb;--accent:#7c3aed;--accent-2:#a78bfa;
+      --surface:#111827;--surface-2:#161b22;--surface-3:#1f2937;
+      --muted:#9ca3af;--muted-2:#6b7280;
+      --line:rgba(229,231,235,.12);--line-strong:rgba(229,231,235,.2);
+      --keep:#10b981;--merge:#3b82f6;--supersede:#f59e0b;--revise:#ef4444;
+      --shadow:0 22px 70px rgba(0,0,0,.42);--radius:8px;
+      font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    }
+    *{box-sizing:border-box}
+    html{min-height:100%;background:var(--bg)}
+    body{
+      min-height:100%;margin:0;color:var(--fg);line-height:1.6;
+      background:radial-gradient(circle at top left,rgba(124,58,237,.16),transparent 34rem),
+        linear-gradient(180deg,#0d1117 0%,#0b0f15 56%,#0d1117 100%);
+    }
+    a{color:var(--accent-2);text-decoration:none}
+    a:hover{text-decoration:underline}
+    .page{width:min(1180px,calc(100% - 32px));margin:0 auto}
+    .site-header{padding:32px 0 16px;border-bottom:1px solid var(--line);margin-bottom:36px;
+      display:flex;align-items:baseline;gap:20px;flex-wrap:wrap}
+    .site-header h1{margin:0;font-size:28px;letter-spacing:-.02em}
+    .site-header .tag{color:var(--muted);font-size:14px}
+    .site-header nav{margin-left:auto;display:flex;gap:18px;font-size:14px}
+    .site-header nav a{color:var(--muted)}
+    .site-header nav a.active{color:var(--accent-2)}
+    h2{margin:0 0 12px;font-size:22px;letter-spacing:-.01em}
+    .lede{color:var(--muted);font-size:15px;margin:0 0 28px;max-width:760px}
+    .stats{display:flex;gap:20px;margin:0 0 28px;flex-wrap:wrap}
+    .stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+      padding:10px 16px;min-width:130px}
+    .stat .k{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+    .stat .v{font-size:20px;font-weight:600;margin-top:2px}
+    .timeline{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:0;
+      border-left:2px solid var(--line);margin-left:8px}
+    .entry{position:relative;padding:16px 0 22px 22px}
+    .entry::before{content:"";position:absolute;left:-7px;top:22px;width:12px;height:12px;
+      background:var(--accent);border-radius:50%;border:2px solid var(--bg)}
+    .entry .row1{display:flex;gap:12px;align-items:center;font-size:13px;color:var(--muted);
+      flex-wrap:wrap;margin-bottom:4px}
+    .entry time{font-feature-settings:"tnum"}
+    .verdict{padding:2px 9px;border-radius:999px;font-size:11px;font-weight:600;
+      letter-spacing:.04em;text-transform:uppercase}
+    .verdict.keep{background:rgba(16,185,129,.18);color:var(--keep)}
+    .verdict.merge{background:rgba(59,130,246,.18);color:var(--merge)}
+    .verdict.supersede{background:rgba(245,158,11,.18);color:var(--supersede)}
+    .verdict.revise{background:rgba(239,68,68,.18);color:var(--revise)}
+    .verdict.publish,.verdict.published{background:rgba(167,139,250,.2);color:var(--accent-2)}
+    .stage{padding:2px 8px;border-radius:999px;font-size:11px;
+      background:var(--surface-3);color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+    .target{font-size:16px;color:var(--fg);font-weight:500;margin:2px 0 6px;letter-spacing:-.005em}
+    .rationale{margin:0;font-size:14px;color:var(--muted);line-height:1.6}
+    .meta-extra{margin-top:6px;font-size:12px;color:var(--muted-2)}
+    .meta-extra span{margin-right:14px}
+    .empty{padding:60px 0;text-align:center;color:var(--muted)}
+    .footer{margin:60px 0 40px;padding:24px 0;border-top:1px solid var(--line);
+      color:var(--muted);font-size:13px;display:flex;gap:18px;flex-wrap:wrap}
+    .footer .gen{margin-left:auto}
+  </style>
+</head>
+<body>
+<div class="page">
+  <header class="site-header">
+    <h1>OpenAkashic</h1>
+    <span class="tag">사관 편집 피드</span>
+    <nav>
+      <a href="/">캡슐 둘러보기</a>
+      <a href="/feed.html" class="active">편집 피드</a>
+      <a href="/install.html">연결 가이드</a>
+    </nav>
+  </header>
+
+  <h2>사관이 최근에 한 편집 결정</h2>
+  <p class="lede">
+    OpenAkashic의 자율 사서 <strong>사관</strong>이 캡슐을 정기적으로 점검하여
+    <em>keep</em> / <em>merge</em> / <em>supersede</em> / <em>revise</em> 중 하나로 판정합니다.
+    숨겨진 자동화가 아니라 audit log로 노출됨 — 어떤 캡슐이 왜 그렇게 분류됐는지 추적 가능합니다.
+  </p>
+
+  <div class="stats" id="stats"></div>
+  <ul class="timeline" id="timeline">
+    <li class="empty">피드 불러오는 중…</li>
+  </ul>
+
+  <footer class="footer">
+    <a href="https://github.com/szara7678/OpenAkashic" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://knowledge.openakashic.com/mcp/" target="_blank" rel="noopener">MCP 엔드포인트</a>
+    <span class="gen" id="genStamp"></span>
+  </footer>
+</div>
+
+<script>
+const FEED_URL = "/editorial-feed.json";
+
+async function load(){
+  try{
+    const r = await fetch(FEED_URL, {cache:"no-cache"});
+    if(!r.ok) throw new Error("fetch failed: " + r.status);
+    const data = await r.json();
+    render(data);
+  }catch(e){
+    console.warn(e);
+    document.getElementById("timeline").innerHTML =
+      '<li class="empty">피드를 불러올 수 없습니다. 잠시 후 다시 시도해주세요.</li>';
+  }
+}
+
+function escapeHtml(s){
+  return String(s||"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+function fmtTimestamp(iso){
+  if(!iso) return "—";
+  // 2026-05-20T10:10:50Z → 2026-05-20 19:10 (KST)
+  const d = new Date(iso);
+  if(isNaN(d)) return iso;
+  const yy = d.getFullYear();
+  const mm = String(d.getMonth()+1).padStart(2,"0");
+  const dd = String(d.getDate()).padStart(2,"0");
+  const hh = String(d.getHours()).padStart(2,"0");
+  const mi = String(d.getMinutes()).padStart(2,"0");
+  return `${yy}-${mm}-${dd} ${hh}:${mi}`;
+}
+
+function render(data){
+  // stats
+  const verdictCounts = {};
+  for(const e of data.entries){
+    const v = e.verdict || "unknown";
+    verdictCounts[v] = (verdictCounts[v]||0) + 1;
+  }
+  const statsEl = document.getElementById("stats");
+  statsEl.innerHTML = "";
+  const totalStat = document.createElement("div");
+  totalStat.className = "stat";
+  totalStat.innerHTML = `<div class="k">전체 항목</div><div class="v">${data.entry_count}</div>`;
+  statsEl.appendChild(totalStat);
+  for(const [v,c] of Object.entries(verdictCounts).sort((a,b)=>b[1]-a[1])){
+    const el = document.createElement("div");
+    el.className = "stat";
+    el.innerHTML = `<div class="k">${escapeHtml(v)}</div><div class="v">${c}</div>`;
+    statsEl.appendChild(el);
+  }
+
+  // timeline
+  const tl = document.getElementById("timeline");
+  if(!data.entries.length){
+    tl.innerHTML = '<li class="empty">표시할 편집 항목이 없습니다.</li>';
+    return;
+  }
+  tl.innerHTML = data.entries.map(renderEntry).join("");
+
+  // generated stamp
+  document.getElementById("genStamp").textContent =
+    `최근 갱신: ${fmtTimestamp(data.generated_at)}`;
+}
+
+function renderEntry(e){
+  const verdict = (e.verdict||"").toLowerCase();
+  const target = e.target_name || e.target || "(unknown target)";
+  const extras = [];
+  if(e.merge_into) extras.push(`<span>→ <strong>${escapeHtml(e.merge_into.split("/").pop().replace(".md",""))}</strong></span>`);
+  if(e.new_title) extras.push(`<span>새 제목 <strong>${escapeHtml(e.new_title)}</strong></span>`);
+  return `<li class="entry">
+    <div class="row1">
+      <time>${escapeHtml(fmtTimestamp(e.timestamp))}</time>
+      <span class="verdict ${escapeHtml(verdict)}">${escapeHtml(verdict)}</span>
+      <span class="stage">${escapeHtml(e.stage||"maintenance")}</span>
+    </div>
+    <div class="target">${escapeHtml(target)}</div>
+    ${e.rationale ? `<p class="rationale">${escapeHtml(e.rationale)}</p>` : ""}
+    ${extras.length ? `<div class="meta-extra">${extras.join("")}</div>` : ""}
+  </li>`;
+}
+
+load();
+</script>
+</body>
+</html>
