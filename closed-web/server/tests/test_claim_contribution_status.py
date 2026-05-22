@@ -124,6 +124,65 @@ def test_claim_contribution_status_can_find_claim_by_query():
     assert result["claims"][0]["state"] == "guardrail_passed"
 
 
+def test_claim_contribution_status_includes_integration_frontmatter_fields():
+    with _temp_openakashic_env() as (vault, mcp_server):
+        path = "personal_vault/projects/personal/openakashic/reference/integrated-claim.md"
+        vault.write_document(
+            path=path,
+            title="Integrated Claim",
+            kind="claim",
+            project="personal/openakashic",
+            body="## Claim\nIntegrated status exposes PR2b integration fields.\n",
+            metadata={
+                "owner": "alice",
+                "created_by": "alice",
+                "visibility": "public",
+                "publication_status": "published",
+                "integration_action": "contribute",
+                "integrated_target_path": "personal_vault/projects/ops/librarian/reference/target.md",
+                "integration_rationale": "fits existing capsule",
+                "integration_defer_reason": "older retry reason",
+                "integrated_at": "2026-05-22T04:00:00Z",
+                "integrated_by": "sagwan",
+            },
+        )
+
+        with mcp_server._auth_override(_auth("alice")):
+            result = mcp_server.claim_contribution_status(path=path)
+
+    claim = result["claims"][0]
+    assert claim["integration_action"] == "contribute"
+    assert claim["integrated_target_path"] == "personal_vault/projects/ops/librarian/reference/target.md"
+    assert claim["integration_rationale"] == "fits existing capsule"
+    assert claim["integration_defer_reason"] == "older retry reason"
+    assert claim["integrated_at"] == "2026-05-22T04:00:00Z"
+    assert claim["integrated_by"] == "sagwan"
+
+
+def test_mcp_note_responses_include_claim_status_self_correction_hints():
+    with _temp_openakashic_env() as (_vault, mcp_server):
+        claim_path = "personal_vault/projects/personal/openakashic/reference/hinted-claim.md"
+
+        with mcp_server._auth_override(_auth("alice")):
+            upserted = mcp_server.upsert_note(
+                path=claim_path,
+                body="## Claim\nResponses remind agents how to check claim status.\n",
+                kind="claim",
+            )
+            searched = mcp_server.search_notes(query="hinted claim", limit=3)
+            bootstrapped = mcp_server.bootstrap_project(project="hinted-project", scope="personal")
+
+    for response in (upserted, searched, bootstrapped):
+        hints = " ".join(response["_hints"])
+        assert "claim_contribution_status" in hints
+        assert "check_contribution_status" in hints
+        assert "~/.claude/settings.json" in hints
+        assert "~/.codex/config.toml" in hints
+        assert "https://knowledge.openakashic.com/mcp/" in hints
+    assert f"claim_contribution_status(path='{claim_path}')" in " ".join(upserted["_hints"])
+    assert "claim_contribution_status" in bootstrapped["_next"]
+
+
 def test_claim_seed_generated_capsule_preserves_submitter_attribution():
     with _temp_openakashic_env() as (vault, _mcp_server):
         from app import sagwan_loop, site

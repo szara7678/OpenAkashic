@@ -167,6 +167,7 @@ from app.site import (
     search_closed_notes,
 )
 from app.sagwan_loop import (
+    _migrate_legacy_none_claims,
     load_sagwan_settings,
     pending_publication_request_count,
     run_sagwan_approval_cycle,
@@ -2430,6 +2431,12 @@ async def lifespan(_: Starlette):
             "Run a single worker or move counters to a shared store before scaling.",
             web_concurrency,
         )
+
+    try:
+        migration = await asyncio.to_thread(_migrate_legacy_none_claims)
+        _logging.getLogger("app.main").info("legacy none-claim migration: %s", migration)
+    except Exception:
+        _logging.getLogger("app.main").exception("legacy none-claim migration failed")
 
     worker_task = asyncio.create_task(subordinate_loop())
     sagwan_task = asyncio.create_task(sagwan_loop())

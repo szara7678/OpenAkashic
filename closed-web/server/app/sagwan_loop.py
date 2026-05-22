@@ -93,6 +93,9 @@ _MIN_RATIONALE_CHARS = 20
 # LLM 에 보내는 본문/이유 스니펫 상한 (토큰 낭비 방지)
 _LLM_BODY_SNIPPET = 1600
 _LLM_RATIONALE_SNIPPET = 600
+_LEGACY_NONE_CLAIM_MIGRATION_STATE_PATH = (
+    "personal_vault/projects/ops/librarian/activity/legacy-none-claims-migration-state.md"
+)
 
 
 def sagwan_settings_path() -> Path:
@@ -379,6 +382,81 @@ def _now_iso_minus_hours(hours: int) -> str:
     from datetime import timedelta
     t = datetime.now(UTC) - timedelta(hours=hours)
     return t.replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
+def _migrate_legacy_none_claims() -> dict[str, Any]:
+    """One-time startup migration: legacy kind=claim none/missing status -> requested."""
+    now_iso = _now_iso()
+    try:
+        state_doc = load_document(_LEGACY_NONE_CLAIM_MIGRATION_STATE_PATH)
+        state_fm = dict(state_doc.frontmatter or {})
+        if str(state_fm.get("legacy_none_claims_migrated_at") or "").strip():
+            return {
+                "status": "skipped",
+                "reason": "already_migrated",
+                "migrated": int(state_fm.get("legacy_none_claims_migrated_count") or 0),
+                "state_path": _LEGACY_NONE_CLAIM_MIGRATION_STATE_PATH,
+            }
+    except FileNotFoundError:
+        state_doc = None
+        state_fm = {}
+    except Exception as exc:
+        logger.warning("legacy none-claim migration state read failed: %s", exc)
+        state_doc = None
+        state_fm = {}
+
+    migrated_paths: list[str] = []
+    scanned = 0
+    for note_path in list_note_paths():
+        try:
+            doc = load_document(note_path)
+        except Exception:
+            continue
+        fm = dict(doc.frontmatter or {})
+        if str(fm.get("kind") or "").strip().lower() != "claim":
+            continue
+        scanned += 1
+        status = str(fm.get("publication_status") or "").strip().lower()
+        if status not in {"", "none"}:
+            continue
+        fm["publication_status"] = "requested"
+        fm.setdefault("publication_requested_at", now_iso)
+        fm.setdefault("publication_requested_by", fm.get("created_by") or fm.get("owner") or SAGWAN_DECIDER)
+        write_document(path=doc.path, body=doc.body, metadata=fm, allow_owner_change=True)
+        migrated_paths.append(doc.path)
+
+    state_body = (
+        "## Summary\n"
+        "One-time migration marker for legacy kind=claim notes whose "
+        "publication_status was `none` or missing.\n"
+    )
+    state_metadata = {
+        **state_fm,
+        "title": "Legacy None Claims Migration State",
+        "kind": "reference",
+        "project": "ops/librarian",
+        "status": "active",
+        "visibility": "private",
+        "owner": SAGWAN_DECIDER,
+        "created_by": SAGWAN_DECIDER,
+        "legacy_none_claims_migrated_at": now_iso,
+        "legacy_none_claims_migrated_count": len(migrated_paths),
+        "legacy_none_claims_scanned_count": scanned,
+        "legacy_none_claims_sample_paths": migrated_paths[:20],
+    }
+    write_document(
+        path=_LEGACY_NONE_CLAIM_MIGRATION_STATE_PATH,
+        body=state_doc.body if state_doc and state_doc.body else state_body,
+        metadata=state_metadata,
+        allow_owner_change=True,
+    )
+    return {
+        "status": "migrated",
+        "migrated": len(migrated_paths),
+        "scanned": scanned,
+        "state_path": _LEGACY_NONE_CLAIM_MIGRATION_STATE_PATH,
+        "sample_paths": migrated_paths[:20],
+    }
 
 
 class StageRateLimitExceeded(RuntimeError):

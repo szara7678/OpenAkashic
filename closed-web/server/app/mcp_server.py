@@ -77,6 +77,36 @@ from app.vault import (
 
 
 settings = get_settings()
+_CLAIM_STATUS_ALIAS_HINT = (
+    "Tool name reminder: use claim_contribution_status. Formerly known as "
+    "`check_contribution_status`. If you see tool-not-found errors, use this name instead."
+)
+
+
+def _mcp_setup_one_liner() -> str:
+    mcp_url = f"{settings.public_base_url}/mcp/"
+    return (
+        "MCP installation one-liner: set CLOSED_AKASHIC_TOKEN, then add ~/.claude/settings.json "
+        f'{{"mcpServers":{{"openakashic":{{"type":"http","url":"{mcp_url}",'
+        '"headers":{"Authorization":"Bearer YOUR_TOKEN"}}}}}}}; or ~/.codex/config.toml '
+        f'[mcp_servers.openakashic] url="{mcp_url}" transport="http" '
+        '[mcp_servers.openakashic.headers] Authorization="Bearer YOUR_TOKEN".'
+    )
+
+
+def _claim_status_check_hint(path: str | None = None) -> str:
+    exact_path = str(path or "").strip()
+    if exact_path:
+        return f"Check claim status with claim_contribution_status(path='{exact_path}')."
+    return "Check claim status with claim_contribution_status(path='<saved claim path>') or claim_contribution_status(query='<claim title>')."
+
+
+def _agent_self_correction_hints(path: str | None = None) -> list[str]:
+    return [
+        _CLAIM_STATUS_ALIAS_HINT,
+        _mcp_setup_one_liner(),
+        _claim_status_check_hint(path),
+    ]
 
 # ── Live tool manifest: agents use this to avoid hallucinating tools/args ──
 _TOOL_MANIFEST = {
@@ -117,7 +147,7 @@ _TOOL_MANIFEST = {
         "claim_contribution_status": {
             "one_of_required": ["path", "query"],
             "optional": ["limit"],
-            "failure_hint": "upsert_note 결과의 path가 있으면 path로 조회. path를 잃어버렸으면 query로 claim 검색 후 state/reviewer_notes를 확인.",
+            "failure_hint": "Formerly known as `check_contribution_status`. If you see tool-not-found errors, use claim_contribution_status instead. upsert_note 결과의 path가 있으면 path로 조회. path를 잃어버렸으면 query로 claim 검색 후 state/reviewer_notes를 확인.",
         },
         "append_note_section": {
             "required": ["path", "heading", "content"],
@@ -430,6 +460,7 @@ def search_notes(
         response["usage_hint"] = usage_hint
     top_path = str(filtered[0].get("path") or "") if filtered else ""
     response["_next"] = _build_search_notes_next(filtered, gap_info)
+    response["_hints"] = _agent_self_correction_hints()
     if top_path:
         response["next_call"] = {"read_note": {"path": top_path}}
     if gap_info:
@@ -687,7 +718,7 @@ def bootstrap_project(
     if not resolved_project:
         raise ValueError("project is required")
     resolved_summary = summary or description
-    return bootstrap_project_workspace(
+    response = bootstrap_project_workspace(
         project=normalize_project_key(resolved_project, scope),
         title=title,
         summary=resolved_summary,
@@ -696,6 +727,13 @@ def bootstrap_project(
         tags=tags,
         related=related,
     )
+    readme_path = str(response.get("readme_path") or "")
+    response["_next"] = (
+        f"Project workspace ready. Read the project index with read_note(path='{readme_path}'). "
+        + _claim_status_check_hint()
+    )
+    response["_hints"] = _agent_self_correction_hints()
+    return response
 
 
 @mcp.tool(title="Upsert OpenAkashic Note")
@@ -723,6 +761,10 @@ def upsert_note(
     kind='capsule' notes stay private until you request publication review.
     Other kinds (playbook, concept, etc.) remain Closed-only working memory.
     Writable roots: personal_vault/, doc/, assets/ only.
+
+    Formerly known as `check_contribution_status`: use
+    claim_contribution_status to check submitted claim state. If you see
+    tool-not-found errors for the old name, use claim_contribution_status instead.
 
     IMPORTANT: The response includes `path` — save this value and pass it to
     request_note_publication when you want to submit a capsule/synthesis for public review.
@@ -811,6 +853,7 @@ def upsert_note(
         "core_api_id": core_api_id,
         "claim_id": str(doc.frontmatter.get("claim_id") or "") if str(doc.frontmatter.get("kind") or "").strip().lower() == "claim" else None,
         "is_targeted": bool(str(doc.frontmatter.get("targets") or "").strip()) if str(doc.frontmatter.get("kind") or "").strip().lower() == "claim" else False,
+        "_hints": _agent_self_correction_hints(saved_path),
         "_next": (
             f"Note saved at '{saved_path}'. "
             + (
@@ -873,7 +916,7 @@ def _claim_reviewer_notes(frontmatter: dict[str, Any]) -> list[dict[str, str]]:
 
 def _claim_status_payload(doc: Any) -> dict[str, Any]:
     fm = dict(doc.frontmatter or {})
-    return {
+    payload = {
         "path": doc.path,
         "title": str(fm.get("title") or Path(doc.path).stem),
         "claim_id": str(fm.get("claim_id") or ""),
@@ -883,6 +926,14 @@ def _claim_status_payload(doc: Any) -> dict[str, Any]:
         "submitted_by": str(fm.get("publication_requested_by") or fm.get("created_by") or fm.get("owner") or ""),
         "reviewer_notes": _claim_reviewer_notes(fm),
     }
+    for key, value in fm.items():
+        if (
+            isinstance(key, str)
+            and (key.startswith("integration_") or key.startswith("integrated_"))
+            and value not in (None, "")
+        ):
+            payload[key] = value
+    return payload
 
 
 @mcp.tool(title="Check OpenAkashic Claim Contribution Status")
@@ -893,6 +944,9 @@ def claim_contribution_status(
     ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Return the current contribution state for kind='claim' notes.
+
+    Formerly known as `check_contribution_status`. If you see tool-not-found
+    errors, use this name instead.
 
     Use this after submitting a claim with upsert_note(kind='claim') to check
     whether it is still requested, guardrail_passed, guardrail_rejected, or
@@ -1174,6 +1228,8 @@ def request_note_publication(
     private + publication_status=requested -> guardrail check ->
     guardrail_passed or guardrail_rejected -> published if later approved.
     Use claim_contribution_status(path=...) to inspect that state.
+    Formerly known as `check_contribution_status`. If you see tool-not-found
+    errors, use claim_contribution_status instead.
 
     Provide `rationale` (or `reason` alias) explaining WHY the note is publication-worthy,
     plus `evidence_paths` linking supporting notes. Weak requests (empty rationale or

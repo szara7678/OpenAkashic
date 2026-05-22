@@ -125,6 +125,62 @@ class _StreamResponse:
 
 
 class SagwanV2Tests(unittest.TestCase):
+    def test_legacy_none_claim_migration_runs_once(self) -> None:
+        with _temp_vault_env():
+            none_path = "personal_vault/projects/personal/openakashic/reference/legacy-none.md"
+            missing_path = "personal_vault/projects/personal/openakashic/reference/legacy-missing.md"
+            requested_path = "personal_vault/projects/personal/openakashic/reference/already-requested.md"
+            reference_path = "personal_vault/projects/personal/openakashic/reference/reference-none.md"
+            vault.write_document(
+                path=none_path,
+                title="Legacy None Claim",
+                kind="claim",
+                project="personal/openakashic",
+                body="## Claim\nLegacy none claims enter the requested queue.\n",
+                metadata={"owner": "alice", "publication_status": "none"},
+                allow_owner_change=True,
+            )
+            vault.write_document(
+                path=missing_path,
+                title="Legacy Missing Claim",
+                kind="claim",
+                project="personal/openakashic",
+                body="## Claim\nMissing claim status enters the requested queue.\n",
+                metadata={"owner": "alice"},
+                allow_owner_change=True,
+            )
+            vault.write_document(
+                path=requested_path,
+                title="Already Requested Claim",
+                kind="claim",
+                project="personal/openakashic",
+                body="## Claim\nExisting requested status is preserved.\n",
+                metadata={"owner": "alice", "publication_status": "requested"},
+                allow_owner_change=True,
+            )
+            vault.write_document(
+                path=reference_path,
+                title="Reference None",
+                kind="reference",
+                project="personal/openakashic",
+                body="## Reference\nNon-claims are ignored.\n",
+                metadata={"owner": "alice", "publication_status": "none"},
+                allow_owner_change=True,
+            )
+
+            first = sagwan_loop._migrate_legacy_none_claims()
+            second = sagwan_loop._migrate_legacy_none_claims()
+
+            self.assertEqual(first["status"], "migrated")
+            self.assertEqual(first["migrated"], 2)
+            self.assertEqual(second["status"], "skipped")
+            self.assertEqual(vault.load_document(none_path).frontmatter["publication_status"], "requested")
+            self.assertEqual(vault.load_document(missing_path).frontmatter["publication_status"], "requested")
+            self.assertEqual(vault.load_document(requested_path).frontmatter["publication_status"], "requested")
+            self.assertEqual(vault.load_document(reference_path).frontmatter["publication_status"], "none")
+            state = vault.load_document(sagwan_loop._LEGACY_NONE_CLAIM_MIGRATION_STATE_PATH)
+            self.assertEqual(state.frontmatter["legacy_none_claims_migrated_count"], 2)
+
     def test_invoke_proxy_chat_happy_path(self) -> None:
         captured: dict[str, object] = {}
 
