@@ -254,12 +254,12 @@ mcp = FastMCP(
         "## Agent Roles\n"
         "- sagwan (Librarian/사서장): publication final decision, policy enforcement, memory curation, subordinate supervision.\n"
         "- busagwan (Subordinate/부사관): repetitive tasks (URL crawl, capsule draft, Core API sync). Runs automatically every 15 minutes.\n"
-        "- Remote agents (Claude Code, Cursor, etc.): read/write personal_vault and doc; claims can publish directly, capsules request publication.\n\n"
+        "- Remote agents (Claude Code, Cursor, etc.): read/write personal_vault and doc; claims are private drafts that enter review, capsules request publication.\n\n"
 
         "## Visibility & Ownership Rules\n"
-        "- New notes are private/shared by default except `kind=claim`, which is public-by-default and trust-ranked in Akashic search.\n"
+        "- New claims are private drafts that enter the review queue (`publication_status=requested`); approved claims become public/trust-ranked in Akashic search.\n"
         "- To publish a capsule/synthesis: use request_note_publication → sagwan review/curation loop promotes worthy capsules.\n"
-        "- Curated public capsules are owned by sagwan; direct-public claims stay owned by their author unless later curated.\n"
+        "- Curated public capsules are owned by sagwan; approved public claims stay owned by their author unless later curated.\n"
         "- Scope (folder path) is a context hint only, not an access control mechanism.\n\n"
 
         "## Publication Governance (important)\n"
@@ -307,12 +307,12 @@ mcp = FastMCP(
         "3. search_notes(query='...') — check your private working memory and docs.\n"
         "4. Do your work (run code, gather findings, etc.).\n"
         "5. upsert_note(path='personal_vault/projects/<project>/<slug>.md', body='...', kind='claim' or 'capsule')\n"
-        "   → claim이면 기본 public/trust-ranked layer로 바로 동기화된다. capsule이면 응답의 `path`를 저장한다.\n"
+        "   → claim이면 private draft로 저장되고 review queue에 들어간다. capsule이면 응답의 `path`를 저장한다.\n"
         "5b. Reviewing someone else's claim/capsule instead of writing your own?\n"
         "   → review_note(target=..., stance='support'|'dispute'|'neutral', rationale='...', evidence_urls=[...], evidence_paths=[...])\n"
         "   → Reviews are Closed-only; don't call request_note_publication on them.\n"
         "5c. Self-check your usage: call run_self_test(task_id='list_tasks') to see canonical tasks; run one if you want to verify your Akashic skill.\n"
-        "6. capsule일 때만 request_note_publication(path=<saved_path>, rationale='...', evidence_paths=[...])\n"
+        "6. capsule/synthesis publication은 request_note_publication(path=<saved_path>, rationale='...', evidence_paths=[...])\n"
         "   → rationale must be ≥20 chars. evidence_paths should list supporting note paths or URLs.\n\n"
 
         "## Note Path Rules\n"
@@ -709,7 +709,7 @@ def upsert_note(
 ) -> dict[str, Any]:
     """Create or overwrite an OpenAkashic markdown note.
 
-    kind='claim' notes are public by default and become trust-ranked Core API claims.
+    kind='claim' notes are private drafts that enter the review queue; approved claims become trust-ranked Core API claims.
     Prefer claim for atomic reusable findings; Sagwan can later turn multiple related claims into a capsule.
     kind='capsule' notes stay private until you request publication review.
     Other kinds (playbook, concept, etc.) remain Closed-only working memory.
@@ -753,31 +753,11 @@ def upsert_note(
         and bool(str(doc.frontmatter.get("targets") or "").strip())
         and not getattr(_UPSERT_TOOL_CONTEXT, "invoked_via_review_tool", False)
     )
-    direct_public_claim = (
-        str(doc.frontmatter.get("kind") or "").strip().lower() == "claim"
-        and str(doc.frontmatter.get("visibility") or "").strip().lower() == "public"
-        and not str(doc.frontmatter.get("targets") or "").strip()
-    )
     wants_publication = not _is_admin(auth) and (
         str((metadata or {}).get("visibility") or "").strip().lower() == "public"
         or str(write_metadata.get("publication_status") or "").strip().lower() == "requested"
     ) and not str(doc.frontmatter.get("targets") or "").strip()
-    if direct_public_claim:
-        core_api_id = sync_published_note(
-            frontmatter=doc.frontmatter,
-            body=doc.body,
-            note_path=doc.path,
-        )
-        if core_api_id and str(doc.frontmatter.get("core_api_id") or "") != core_api_id:
-            next_fm = dict(doc.frontmatter)
-            next_fm["core_api_id"] = core_api_id
-            doc = write_document(
-                path=doc.path,
-                body=doc.body,
-                metadata=next_fm,
-                allow_owner_change=True,
-            )
-    elif wants_publication:
+    if wants_publication:
         publication_request = request_publication(
             path=doc.path,
             requester=auth.nickname,
@@ -820,9 +800,9 @@ def upsert_note(
         "_next": (
             f"Note saved at '{saved_path}'. "
             + (
-                f"Public claim synced to Core API as '{core_api_id}'. Search with search_akashic(query=...). "
+                "Claim saved as a private draft in the review queue. "
                 "If you discover more atomic facts on the same topic, keep adding claims — Sagwan can later synthesize them into a capsule."
-                if direct_public_claim and core_api_id
+                if str(doc.frontmatter.get("kind") or "").strip().lower() == "claim"
                 else "If this is a single reusable fact, consider saving it as kind='claim'. "
                      "For a synthesis/capsule, call request_note_publication with "
                      f"path='{saved_path}', rationale='<why this is worth publishing>', "
@@ -2785,7 +2765,7 @@ def _normalize_write_metadata(*, path: str, metadata: dict[str, Any], auth: Auth
         next_metadata.get("visibility") or existing_frontmatter.get("visibility") or settings.default_note_visibility
     ).strip().lower()
     if resolved_kind == "claim" and not is_existing and not explicit_visibility:
-        requested_visibility = "public"
+        requested_visibility = "private"
     if requested_visibility not in {"private", "public", "shared"}:
         requested_visibility = "private"
     if resolved_kind == "claim":
@@ -2934,7 +2914,7 @@ def _normalize_write_metadata(*, path: str, metadata: dict[str, Any], auth: Auth
                 cleaned_paths.append(evidence_path)
             next_metadata["evidence_paths"] = _dedupe_str_list(cleaned_paths)
 
-    direct_public_claim = resolved_kind == "claim" and requested_visibility == "public" and not effective_targets
+    direct_public_claim = False
     if not _is_admin(auth) and requested_visibility == "public" and not direct_public_claim and not effective_targets:
         next_metadata["publication_target_visibility"] = "public"
         requested_visibility = "private"
@@ -2959,9 +2939,8 @@ def _normalize_write_metadata(*, path: str, metadata: dict[str, Any], auth: Auth
     publication_status = str(
         next_metadata.get("publication_status") or existing_frontmatter.get("publication_status") or "none"
     ).strip().lower()
-    if direct_public_claim:
-        publication_status = "published"
-        next_metadata.pop("publication_target_visibility", None)
+    if resolved_kind == "claim" and not is_existing and not effective_targets:
+        publication_status = "requested"
     elif not _is_admin(auth) and next_metadata.get("publication_target_visibility") == "public":
         publication_status = "requested"
     if not _is_admin(auth) and not direct_public_claim and publication_status not in {"none", "requested"}:

@@ -51,15 +51,16 @@ def test_librarian_defaults_disable_exec_command():
     assert "search_notes" in defaults["enabled_tools"]
 
 
-def test_http_claim_defaults_to_public_and_published_for_non_admin():
+def test_http_claim_defaults_to_private_and_requested():
     payload = main.NoteWriteRequest(
         path="personal_vault/projects/personal/openakashic/reference/test-claim.md",
         body="## Claim\n- claim text\n",
         kind="claim",
     )
     metadata = main._normalize_write_metadata(payload, _auth(authenticated=True, role="user", nickname="alice"))
-    assert metadata["visibility"] == "public"
-    assert metadata["publication_status"] == "published"
+    assert metadata["visibility"] == "private"
+    assert metadata["publication_status"] == "requested"
+    assert "core_api_id" not in metadata
     assert metadata["owner"] == "alice"
 
 

@@ -245,7 +245,7 @@ class NoteWriteRequest(BaseModel):
     title: str | None = None
     kind: str | None = Field(
         default=None,
-        description="Use 'claim' for one reusable fact/warning/config discovery; use 'capsule' for a synthesis. Claims are public by default.",
+        description="Use 'claim' for one reusable fact/warning/config discovery; use 'capsule' for a synthesis. Claims are private drafts that enter the review queue (publication_status=requested); approved claims become public.",
     )
     project: str | None = None
     status: str | None = None
@@ -504,10 +504,10 @@ def _normalize_write_metadata(payload: NoteWriteRequest, auth: AuthState) -> dic
         metadata.get("visibility") or existing_frontmatter.get("visibility") or settings.default_note_visibility
     ).strip().lower().replace("-", "_")
     if resolved_kind == "claim" and not is_existing and not explicit_visibility:
-        requested_visibility = "public"
+        requested_visibility = "private"
     if requested_visibility not in {"private", "public", "shared"}:
         requested_visibility = "private"
-    direct_public_claim = resolved_kind == "claim" and requested_visibility == "public"
+    direct_public_claim = False
     if not _is_admin(auth) and requested_visibility == "public" and not direct_public_claim:
         metadata["publication_target_visibility"] = "public"
         requested_visibility = "private"
@@ -541,9 +541,8 @@ def _normalize_write_metadata(payload: NoteWriteRequest, auth: AuthState) -> dic
     publication_status = str(
         metadata.get("publication_status") or existing_frontmatter.get("publication_status") or "none"
     ).strip().lower().replace("-", "_")
-    if direct_public_claim:
-        publication_status = "published"
-        metadata.pop("publication_target_visibility", None)
+    if resolved_kind == "claim" and not is_existing:
+        publication_status = "requested"
     elif not _is_admin(auth) and metadata.get("publication_target_visibility") == "public":
         publication_status = "requested"
     if not _is_admin(auth) and not direct_public_claim and publication_status not in {"none", "requested"}:
@@ -1932,31 +1931,11 @@ def api_upsert_note(
         )
         publication_request_data: dict[str, Any] | None = None
         core_api_id: str | None = None
-        direct_public_claim = (
-            str(document.frontmatter.get("kind") or "").strip().lower() == "claim"
-            and str(document.frontmatter.get("visibility") or "").strip().lower() == "public"
-            and not str(document.frontmatter.get("targets") or "").strip()
-        )
         wants_publication = not _is_admin(auth) and (
             str((payload.metadata or {}).get("visibility") or "").strip().lower() == "public"
             or str(metadata.get("publication_status") or "").strip().lower() == "requested"
         ) and not str(document.frontmatter.get("targets") or "").strip()
-        if direct_public_claim:
-            core_api_id = sync_published_note(
-                frontmatter=document.frontmatter,
-                body=document.body,
-                note_path=document.path,
-            )
-            if core_api_id and str(document.frontmatter.get("core_api_id") or "") != core_api_id:
-                fm = dict(document.frontmatter)
-                fm["core_api_id"] = core_api_id
-                document = write_document(
-                    path=document.path,
-                    body=document.body,
-                    metadata=fm,
-                    allow_owner_change=True,
-                )
-        elif wants_publication:
+        if wants_publication:
             request = request_publication(
                 path=document.path,
                 requester=auth.nickname,
@@ -1979,7 +1958,7 @@ def api_upsert_note(
     elif requested_kind not in {"claim", "capsule"}:
         coaching.append("If this content should become public memory, prefer kind='claim' for an atomic fact or kind='capsule' for a synthesis.")
     if effective_kind == "claim":
-        coaching.append("This claim is the fast public participation path. Add more atomic claims on the same topic before writing a capsule.")
+        coaching.append("This claim is a private draft in the review queue. Add more atomic claims on the same topic before writing a capsule.")
     return {
         "path": document.path,
         "note": result,
