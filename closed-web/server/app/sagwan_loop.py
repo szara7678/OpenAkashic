@@ -70,6 +70,7 @@ _SAGWAN_STAGE_MODEL_DEFAULTS = {
     "maintenance": "claude-cli:claude-sonnet-4-6",
     "conflict": "proxy:gpt-5.4",
     "claim_guardrail": "proxy:gpt-5.4",
+    "claim_integration": "proxy:gpt-5.4",
     "publication_judge": "proxy:gpt-5.4",
     "revalidate": "proxy:gpt-5.4",
     "distill": "proxy:gpt-5.4-mini",
@@ -1101,10 +1102,385 @@ def _maybe_run_claim_guardrail_cycle(*, db: Any = None) -> dict[str, Any]:
     return _run_claim_guardrail_cycle(db=db, limit=50)
 
 
+_CLAIM_INTEGRATION_ACTIONS = {"link", "contribute", "create", "defer"}
+
+
+def get_guardrail_passed_claims(db: Any = None, limit: int = 50) -> list[dict[str, Any]]:
+    """Return claim notes awaiting PR2b second-pass integration."""
+    del db
+    max_items = max(1, int(limit or 50))
+    claims: list[dict[str, Any]] = []
+    for path in sorted(list_note_paths()):
+        try:
+            doc = load_document(path)
+        except Exception:
+            continue
+        fm = dict(doc.frontmatter or {})
+        if str(fm.get("kind") or "").strip().lower() != "claim":
+            continue
+        if str(fm.get("publication_status") or "").strip().lower() != "guardrail_passed":
+            continue
+        body = doc.body or ""
+        claims.append({
+            "path": doc.path,
+            "title": str(fm.get("title") or Path(doc.path).stem),
+            "body": body,
+            "content": body,
+            "tags": list(fm.get("tags") or []),
+            "claim_id": str(fm.get("claim_id") or ""),
+        })
+        if len(claims) >= max_items:
+            break
+    return claims
+
+
+def _claim_integration_tokens(*parts: str) -> set[str]:
+    stop = {
+        "claim", "summary", "evidence", "links", "scope", "caveats",
+        "the", "and", "for", "with", "that", "this", "from", "into",
+    }
+    tokens = {
+        token.lower()
+        for part in parts
+        for token in re.findall(r"[0-9A-Za-z가-힣_]{3,}", str(part or ""))
+    }
+    return {token for token in tokens if token not in stop}
+
+
+def _related_capsule_context_for_claim(claim: dict[str, Any], *, max_results: int = 5) -> list[dict[str, Any]]:
+    claim_title = str(claim.get("title") or "")
+    claim_body = str(claim.get("body") or claim.get("content") or "")
+    claim_tags = {str(tag).strip().lower() for tag in (claim.get("tags") or []) if str(tag).strip()}
+    claim_tokens = _claim_integration_tokens(claim_title, claim_body[:1000])
+    scored: list[tuple[int, str, Any]] = []
+
+    for path in list_note_paths():
+        try:
+            doc = load_document(path)
+        except Exception:
+            continue
+        fm = dict(doc.frontmatter or {})
+        if str(fm.get("kind") or "").strip().lower() != "capsule":
+            continue
+        review_status = str(fm.get("claim_review_status") or "").strip().lower()
+        note_status = str(fm.get("status") or "").strip().lower()
+        pub_status = str(fm.get("publication_status") or "").strip().lower()
+        if review_status in _RELATED_LINK_DEAD_STATES or note_status in _RELATED_LINK_DEAD_STATES or pub_status == "superseded":
+            continue
+        cap_tags = {str(tag).strip().lower() for tag in (fm.get("tags") or []) if str(tag).strip()}
+        cap_tokens = _claim_integration_tokens(str(fm.get("title") or ""), (doc.body or "")[:1000])
+        score = 3 * len(claim_tags & cap_tags) + len(claim_tokens & cap_tokens)
+        if score <= 0:
+            continue
+        scored.append((score, doc.path, doc))
+
+    scored.sort(key=lambda item: (-item[0], item[1]))
+    return [
+        {
+            "path": doc.path,
+            "title": str((doc.frontmatter or {}).get("title") or Path(doc.path).stem),
+            "tags": list((doc.frontmatter or {}).get("tags") or []),
+            "publication_status": str((doc.frontmatter or {}).get("publication_status") or "none"),
+            "evidence_paths": list((doc.frontmatter or {}).get("evidence_paths") or []),
+            "excerpt": (doc.body or "")[:1200],
+        }
+        for _score, _path, doc in scored[:max_results]
+    ]
+
+
+def _build_claim_integration_prompt(claims: list[dict[str, Any]]) -> str:
+    payload: list[dict[str, Any]] = []
+    for claim in claims:
+        payload.append({
+            "path": str(claim.get("path") or ""),
+            "title": str(claim.get("title") or "")[:200],
+            "claim_id": str(claim.get("claim_id") or ""),
+            "text": str(claim.get("body") or claim.get("content") or "")[:2000],
+            "tags": list(claim.get("tags") or [])[:8],
+            "relevant_capsules": _related_capsule_context_for_claim(claim, max_results=5),
+        })
+    return "\n".join([
+        "너는 OpenAkashic 의 사관이다. PR2b 2차 통합 단계로, guardrail_passed claim을 기존 지식 구조에 넣는다.",
+        "각 claim을 독립적으로 판단하되, 입력 배치 전체에 대해 JSON 하나만 반환하라.",
+        "",
+        "가능한 action:",
+        "- LINK: 기존 관련 capsule의 citation/evidence로만 연결한다. target_path 필수.",
+        "- CONTRIBUTE: 기존 capsule 본문을 보강한다. target_path 필수, contribution 또는 body 권장.",
+        "- CREATE: claim이 충분히 일반화 가능한 패턴이면 새 capsule을 만든다. title/body 권장.",
+        "- DEFER: 아직 통합하지 않는다. 보류 이유를 적는다.",
+        "",
+        "반드시 다음 JSON 형식만 반환하라:",
+        '{"results":[{"claim_path":"...","action":"LINK|CONTRIBUTE|CREATE|DEFER","target_path":"personal_vault/.../x.md","title":"optional","body":"optional markdown","contribution":"optional markdown","rationale":"short reason"}]}',
+        "",
+        "Claims and relevant capsule context:",
+        json.dumps(payload, ensure_ascii=False, indent=2),
+    ])
+
+
+def _parse_claim_integration_response(raw: str, claims: list[dict[str, Any]]) -> list[dict[str, str]]:
+    parsed = _extract_json_dict(raw)
+    results_raw = parsed.get("results") if isinstance(parsed, dict) else None
+    if not isinstance(results_raw, list):
+        results_raw = []
+    by_path: dict[str, dict[str, str]] = {}
+    for item in results_raw:
+        if not isinstance(item, dict):
+            continue
+        path = str(item.get("claim_path") or item.get("path") or "").strip()
+        if not path:
+            continue
+        action = str(item.get("action") or "").strip().lower()
+        if action not in _CLAIM_INTEGRATION_ACTIONS:
+            action = "defer"
+        by_path[path] = {
+            "claim_path": path,
+            "action": action.upper(),
+            "target_path": str(item.get("target_path") or "").strip(),
+            "title": str(item.get("title") or "").strip()[:200],
+            "body": str(item.get("body") or item.get("content") or "").strip(),
+            "contribution": str(item.get("contribution") or "").strip(),
+            "rationale": str(item.get("rationale") or item.get("reason") or "").strip()[:1000],
+        }
+
+    results: list[dict[str, str]] = []
+    for claim in claims:
+        path = str(claim.get("path") or "").strip()
+        if not path:
+            continue
+        result = by_path.get(path)
+        if result is None:
+            result = {
+                "claim_path": path,
+                "action": "DEFER",
+                "target_path": "",
+                "title": "",
+                "body": "",
+                "contribution": "",
+                "rationale": "claim integration response omitted this claim",
+            }
+        elif not result.get("rationale"):
+            result["rationale"] = "claim integration decision returned no reason"
+        results.append(result)
+    return results
+
+
+def _run_claim_integration_pass(claims: list[dict[str, Any]]) -> list[dict[str, str]]:
+    prompt = _build_claim_integration_prompt(claims)
+    raw = _invoke_for_stage("claim_integration", prompt)
+    return _parse_claim_integration_response(raw, claims)
+
+
+def _dedupe_paths(value: Any, *extra: str) -> list[str]:
+    raw_items: list[Any]
+    if isinstance(value, list):
+        raw_items = value
+    elif isinstance(value, str) and value.strip():
+        raw_items = [value]
+    else:
+        raw_items = []
+    seen: set[str] = set()
+    result: list[str] = []
+    for item in [*raw_items, *extra]:
+        path = str(item or "").strip()
+        if not path or path in seen:
+            continue
+        seen.add(path)
+        result.append(path)
+    return result
+
+
+def _claim_integration_capsule_body(*, claim: Any, decision: dict[str, str]) -> str:
+    supplied = str(decision.get("body") or decision.get("contribution") or "").strip()
+    if supplied:
+        if "## Summary" in supplied:
+            return supplied
+        return "\n".join(["## Summary", supplied, "", "## Evidence Links", f"- `{claim.path}`"])
+    claim_title = str((claim.frontmatter or {}).get("title") or Path(claim.path).stem)
+    return "\n".join([
+        "## Summary",
+        claim_title,
+        "",
+        "## Key Points",
+        "- " + (claim.body or claim_title).strip().replace("\n", " ")[:240],
+        "",
+        "## Evidence Links",
+        f"- `{claim.path}`",
+        "",
+        "## Cautions",
+        "- Created from a single guardrail-passed claim; future reviews may refine scope.",
+    ])
+
+
+def _unique_capsule_path(title: str) -> str:
+    base_title = title.strip() or f"Claim Integration {_now_iso()}"
+    suggested = suggest_note_path("capsule", base_title, _SAGWAN_CAPSULE_FOLDER, None, "ops/librarian")
+    candidate = suggested
+    suffix = 2
+    while True:
+        try:
+            load_document(candidate)
+        except FileNotFoundError:
+            return candidate
+        except Exception:
+            return candidate
+        stem = Path(suggested).with_suffix("").as_posix()
+        candidate = f"{stem}-{suffix}.md"
+        suffix += 1
+
+
+def _apply_claim_integration_results(results: list[dict[str, Any]], db: Any = None) -> dict[str, Any]:
+    """Persist PR2b integration decisions into claims and capsule notes."""
+    del db
+    applied = 0
+    missing = 0
+    action_counts = {"LINK": 0, "CONTRIBUTE": 0, "CREATE": 0, "DEFER": 0}
+    created_paths: list[str] = []
+    now_iso = _now_iso()
+
+    for result in results:
+        claim_path = str(result.get("claim_path") or result.get("path") or "").strip()
+        if not claim_path:
+            continue
+        try:
+            claim_doc = load_document(claim_path)
+        except FileNotFoundError:
+            missing += 1
+            continue
+        claim_fm = dict(claim_doc.frontmatter or {})
+        action = str(result.get("action") or "").strip().upper()
+        if action not in action_counts:
+            action = "DEFER"
+        target_path = str(result.get("target_path") or "").strip()
+        rationale = str(result.get("rationale") or "").strip()[:1000] or "no integration reason provided"
+        final_action = action
+        final_target = target_path
+        failure_reason = ""
+
+        if action in {"LINK", "CONTRIBUTE"}:
+            try:
+                target_doc = load_document(target_path)
+                target_fm = dict(target_doc.frontmatter or {})
+                if str(target_fm.get("kind") or "").strip().lower() != "capsule":
+                    raise ValueError("target is not a capsule")
+                target_fm["evidence_paths"] = _dedupe_paths(target_fm.get("evidence_paths"), claim_path)
+                target_fm["related"] = _dedupe_paths(target_fm.get("related"), claim_path)
+                target_fm["last_claim_integrated_at"] = now_iso
+                target_fm["last_claim_integrated_by"] = SAGWAN_DECIDER
+                write_document(path=target_path, body=target_doc.body, metadata=target_fm, allow_owner_change=True)
+                if action == "LINK":
+                    append_section(
+                        target_path,
+                        f"Sagwan Claim Link {now_iso}",
+                        "\n".join([f"- claim: `{claim_path}`", f"- rationale: {rationale}"]),
+                    )
+                else:
+                    contribution = str(result.get("contribution") or result.get("body") or "").strip()
+                    if not contribution:
+                        contribution = (claim_doc.body or "").strip()[:1200]
+                    append_section(
+                        target_path,
+                        f"Sagwan Claim Contribution {now_iso}",
+                        "\n".join([contribution, "", f"- source_claim: `{claim_path}`", f"- rationale: {rationale}"]),
+                    )
+            except Exception as exc:
+                final_action = "DEFER"
+                final_target = ""
+                failure_reason = f"{action.lower()} target unavailable: {exc}"
+
+        elif action == "CREATE":
+            capsule_title = str(result.get("title") or "").strip() or f"{claim_fm.get('title') or Path(claim_path).stem} Capsule"
+            capsule_body = _claim_integration_capsule_body(claim=claim_doc, decision={k: str(v) for k, v in result.items()})
+            capsule_path = _unique_capsule_path(capsule_title)
+            claim_tags = [str(tag) for tag in (claim_fm.get("tags") or []) if str(tag).strip()]
+            capsule_doc = write_document(
+                path=capsule_path,
+                title=capsule_title,
+                kind="capsule",
+                project="ops/librarian",
+                status="active",
+                tags=list(dict.fromkeys(["capsule", "sagwan-integrated", "claim-integration", *claim_tags[:4]])),
+                related=[claim_path],
+                body=capsule_body,
+                metadata={
+                    "owner": SAGWAN_DECIDER,
+                    "created_by": SAGWAN_DECIDER,
+                    "generated_by": "claim_integration",
+                    "visibility": "public",
+                    "publication_status": "published",
+                    "publication_decided_at": now_iso,
+                    "publication_decided_by": SAGWAN_DECIDER,
+                    "publication_decision_reason": rationale,
+                    "source_claim_paths": [claim_path],
+                    "evidence_paths": [claim_path],
+                },
+                allow_owner_change=True,
+            )
+            final_target = capsule_doc.path
+            created_paths.append(capsule_doc.path)
+
+        if final_action == "DEFER":
+            claim_fm["publication_status"] = "pending_integration"
+            claim_fm["integration_deferred_at"] = now_iso
+            claim_fm["integration_deferred_by"] = SAGWAN_DECIDER
+            claim_fm["integration_defer_reason"] = failure_reason or rationale
+        else:
+            claim_fm.setdefault("original_owner", claim_fm.get("owner") or get_settings().default_note_owner)
+            claim_fm["owner"] = SAGWAN_DECIDER
+            claim_fm["visibility"] = "public"
+            claim_fm["publication_status"] = "published"
+            claim_fm["publication_decided_at"] = now_iso
+            claim_fm["publication_decided_by"] = SAGWAN_DECIDER
+            claim_fm["publication_decision_reason"] = rationale
+            claim_fm["integrated_at"] = now_iso
+            claim_fm["integrated_by"] = SAGWAN_DECIDER
+            claim_fm["integration_action"] = final_action.lower()
+            claim_fm["integrated_target_path"] = final_target
+            claim_fm["integration_rationale"] = rationale
+        write_document(path=claim_path, body=claim_doc.body, metadata=claim_fm, allow_owner_change=True)
+        action_counts[final_action] += 1
+        applied += 1
+
+    return {
+        "applied": applied,
+        "missing": missing,
+        "linked": action_counts["LINK"],
+        "contributed": action_counts["CONTRIBUTE"],
+        "created": action_counts["CREATE"],
+        "deferred": action_counts["DEFER"],
+        "created_paths": created_paths,
+    }
+
+
+def _run_claim_integration_cycle(*, db: Any = None, limit: int = 50) -> dict[str, Any]:
+    claims = get_guardrail_passed_claims(db, limit=limit)
+    if not claims:
+        return {"status": "no_pending", "pending_count": 0, "processed": 0, "results": []}
+    try:
+        results = _run_claim_integration_pass(claims)
+    except StageRateLimitExceeded:
+        return {"status": "rate_limit_skipped", "pending_count": len(claims), "processed": 0, "results": []}
+    applied = _apply_claim_integration_results(results, db)
+    return {
+        "status": "ok",
+        "pending_count": len(claims),
+        "processed": len(results),
+        **applied,
+        "results": results,
+    }
+
+
+def _maybe_run_claim_integration_cycle(*, db: Any = None) -> dict[str, Any]:
+    pending_count = len(get_guardrail_passed_claims(db, limit=1000000))
+    if pending_count <= 0:
+        return {"status": "no_pending", "pending_count": 0}
+    return _run_claim_integration_cycle(db=db, limit=50)
+
+
 def run_sagwan_curation_cycle(*, reason: str = "scheduled") -> dict[str, Any]:
     """
     사관의 정제(큐레이션) 루틴. 다음 단계를 수행한다:
     (A0) claim guardrail — pending claim notes get first-pass pass/reject
+    (A1) claim integration — guardrail-passed claims become capsule evidence/contributions/new capsules
     (B) core_api 재동기화 — published 인데 core_api_id 없음 → sync_to_core_api enqueue
     (C) 재검증 — published capsule/claim 오래된 순으로 사관 LLM 재검토
     (D) 레거시 피드 수급 — deprecated no-op
@@ -1122,6 +1498,12 @@ def run_sagwan_curation_cycle(*, reason: str = "scheduled") -> dict[str, Any]:
     except Exception as exc:
         logger.error("sagwan curation A0 (claim guardrail) failed: %s", exc)
         guardrail = {"error": str(exc)}
+
+    try:
+        integration = _maybe_run_claim_integration_cycle()
+    except Exception as exc:
+        logger.error("sagwan curation A1 (claim integration) failed: %s", exc)
+        integration = {"error": str(exc)}
 
     try:
         a = _curate_derive_and_sync()
@@ -1273,6 +1655,7 @@ def run_sagwan_curation_cycle(*, reason: str = "scheduled") -> dict[str, Any]:
     summary = {
         "status": "ok", "reason": reason,
         "claim_guardrail": guardrail,
+        "claim_integration": integration,
         "derive_sync": a, "revalidate": c, "feeds": d,
         "capsule_gen": e, "conflict_detect": f_conflict, "signal_scans": g_signals,
         "topic_proposals": h_topics,
@@ -3214,6 +3597,28 @@ def _parse_publication_decision(raw: str) -> dict[str, str]:
     }
 
 
+def _seed_contribution_metadata(seed_path: str, seed_frontmatter: dict[str, Any]) -> dict[str, Any]:
+    seed_kind = str(seed_frontmatter.get("kind") or "").strip().lower()
+    contributed_by = str(
+        seed_frontmatter.get("publication_requested_by")
+        or seed_frontmatter.get("created_by")
+        or seed_frontmatter.get("original_owner")
+        or seed_frontmatter.get("owner")
+        or ""
+    ).strip()
+    metadata: dict[str, Any] = {
+        "source_note_path": seed_path,
+        "source_note_kind": seed_kind or None,
+    }
+    if seed_kind == "claim":
+        if contributed_by:
+            metadata["contributed_by"] = contributed_by
+        claim_id = str(seed_frontmatter.get("claim_id") or "").strip()
+        if claim_id:
+            metadata["source_claim_id"] = claim_id
+    return metadata
+
+
 def _curate_generate_capsules() -> dict[str, Any]:
     """(E) 최근 크롤된 feed 노트 + 관련 기존 지식을 묶어 사관이 capsule 초안을 직접 작성한다.
     비용 통제를 위해 사이클당 최대 1개만 생성. 생성된 capsule 은 private/none 으로 시작.
@@ -3230,6 +3635,7 @@ def _curate_generate_capsules() -> dict[str, Any]:
     seed_path, seed_doc = candidate_seed
     seed_title = str(seed_doc.frontmatter.get("title") or seed_path)
     seed_tags = list(seed_doc.frontmatter.get("tags") or [])
+    seed_contribution = _seed_contribution_metadata(seed_path, dict(seed_doc.frontmatter or {}))
 
     # 2) 관련 기존 지식 수집 (semantic + lexical 하이브리드는 search_closed_notes 가 처리)
     query = f"{seed_title} {' '.join(str(t) for t in seed_tags[:4])}"
@@ -3293,6 +3699,7 @@ def _curate_generate_capsules() -> dict[str, Any]:
                 "created_by": _SAGWAN_CAPSULE_CREATOR,
                 "generated_by": _SAGWAN_CAPSULE_CREATOR,
                 "seed_path": seed_path,
+                **seed_contribution,
                 "evidence_paths": evidence_paths,
                 "publication_rationale": f"Auto-synthesized by sagwan from seed={seed_path} + {len(related_paths)} related notes. Review before requesting publication.",
             },

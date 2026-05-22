@@ -112,7 +112,12 @@ _TOOL_MANIFEST = {
         "upsert_note": {
             "required": ["path", "body"],
             "optional": ["title", "kind", "project", "status", "tags", "related", "metadata"],
-            "failure_hint": "path는 personal_vault/ 로 시작. 기존 노트면 read_note로 내용 확인 후 덮어쓰기. 임시 메모는 tags=['agent-scratch']. 한 가지 재사용 가능한 사실이면 capsule보다 claim을 우선 고려. 타겟에 대한 리뷰를 쓰려고 metadata={targets, stance, ...}로 조립하지 말 것 — review_note(target, stance, rationale) 전용 도구를 쓸 것.",
+            "failure_hint": "path는 personal_vault/ 로 시작. 기존 노트면 read_note로 내용 확인 후 덮어쓰기. 임시 메모는 tags=['agent-scratch']. 한 가지 재사용 가능한 사실이면 capsule보다 claim을 우선 고려. kind=claim은 private+requested로 저장되고 guardrail_passed/guardrail_rejected를 거쳐 승인 시 published가 된다. 타겟에 대한 리뷰를 쓰려고 metadata={targets, stance, ...}로 조립하지 말 것 — review_note(target, stance, rationale) 전용 도구를 쓸 것.",
+        },
+        "claim_contribution_status": {
+            "one_of_required": ["path", "query"],
+            "optional": ["limit"],
+            "failure_hint": "upsert_note 결과의 path가 있으면 path로 조회. path를 잃어버렸으면 query로 claim 검색 후 state/reviewer_notes를 확인.",
         },
         "append_note_section": {
             "required": ["path", "heading", "content"],
@@ -709,7 +714,11 @@ def upsert_note(
 ) -> dict[str, Any]:
     """Create or overwrite an OpenAkashic markdown note.
 
-    kind='claim' notes are private drafts that enter the review queue; approved claims become trust-ranked Core API claims.
+    kind='claim' notes enter the contribution flow as private drafts with
+    publication_status=requested. Sagwan then runs the first-pass guardrail:
+    requested -> guardrail_passed or guardrail_rejected. A passed claim can later
+    be approved/published by the publication workflow; rejected claims stay
+    private with reviewer notes in frontmatter.
     Prefer claim for atomic reusable findings; Sagwan can later turn multiple related claims into a capsule.
     kind='capsule' notes stay private until you request publication review.
     Other kinds (playbook, concept, etc.) remain Closed-only working memory.
@@ -801,7 +810,8 @@ def upsert_note(
             f"Note saved at '{saved_path}'. "
             + (
                 "Claim saved as a private draft in the review queue. "
-                "If you discover more atomic facts on the same topic, keep adding claims — Sagwan can later synthesize them into a capsule."
+                "Flow: private+requested -> guardrail_passed or guardrail_rejected -> published if approved. "
+                f"Check later with claim_contribution_status(path='{saved_path}')."
                 if str(doc.frontmatter.get("kind") or "").strip().lower() == "claim"
                 else "If this is a single reusable fact, consider saving it as kind='claim'. "
                      "For a synthesis/capsule, call request_note_publication with "
@@ -813,6 +823,128 @@ def upsert_note(
                 if targeted_claim_written_directly
                 else ""
             )
+        ),
+    }
+
+
+def _claim_reviewer_notes(frontmatter: dict[str, Any]) -> list[dict[str, str]]:
+    notes: list[dict[str, str]] = []
+    field_map = [
+        ("guardrail_reason", "guardrail", "guardrail_decided_at", "guardrail_decided_by"),
+        ("guardrail_pass_reason", "guardrail_pass", "guardrail_decided_at", "guardrail_decided_by"),
+        ("guardrail_reject_reason", "guardrail_reject", "guardrail_decided_at", "guardrail_decided_by"),
+        ("publication_decision_reason", "publication", "publication_decided_at", "publication_decided_by"),
+        ("last_maintenance_note", "maintenance", "last_maintained_at", "publication_decided_by"),
+        ("last_consolidation_note", "consolidation", "last_consolidated_at", "publication_decided_by"),
+    ]
+    seen: set[tuple[str, str]] = set()
+    for field, stage, at_field, by_field in field_map:
+        text = str(frontmatter.get(field) or "").strip()
+        if not text:
+            continue
+        key = (stage, text)
+        if key in seen:
+            continue
+        seen.add(key)
+        notes.append({
+            "stage": stage,
+            "note": text,
+            "at": str(frontmatter.get(at_field) or ""),
+            "by": str(frontmatter.get(by_field) or ""),
+        })
+    failures = frontmatter.get("sagwan_auto_review_failures")
+    if isinstance(failures, list):
+        for failure in failures:
+            text = str(failure or "").strip()
+            if text:
+                notes.append({
+                    "stage": "sagwan_auto_review",
+                    "note": text,
+                    "at": str(frontmatter.get("sagwan_auto_review_at") or ""),
+                    "by": "sagwan",
+                })
+    return notes
+
+
+def _claim_status_payload(doc: Any) -> dict[str, Any]:
+    fm = dict(doc.frontmatter or {})
+    return {
+        "path": doc.path,
+        "title": str(fm.get("title") or Path(doc.path).stem),
+        "claim_id": str(fm.get("claim_id") or ""),
+        "state": str(fm.get("publication_status") or "none").strip().lower() or "none",
+        "state_field": "publication_status",
+        "submitted_at": str(fm.get("publication_requested_at") or fm.get("created_at") or ""),
+        "submitted_by": str(fm.get("publication_requested_by") or fm.get("created_by") or fm.get("owner") or ""),
+        "reviewer_notes": _claim_reviewer_notes(fm),
+    }
+
+
+@mcp.tool(title="Check OpenAkashic Claim Contribution Status")
+def claim_contribution_status(
+    path: Annotated[str | None, Field(description="Exact claim note path returned by upsert_note. Preferred when available.")] = None,
+    query: Annotated[str | None, Field(description="Search query to find a submitted claim when you no longer have the path.")] = None,
+    limit: Annotated[int, Field(description="Max claim matches to return for query lookup. Default 5, max 20.")] = 5,
+    ctx: Context | None = None,
+) -> dict[str, Any]:
+    """Return the current contribution state for kind='claim' notes.
+
+    Use this after submitting a claim with upsert_note(kind='claim') to check
+    whether it is still requested, guardrail_passed, guardrail_rejected, or
+    published. The response includes submission timestamp and reviewer notes
+    when Sagwan or a publisher has written them.
+    """
+    auth = _auth_from_ctx(ctx)
+    requested_path = str(path or "").strip()
+    requested_query = str(query or "").strip()
+    if not requested_path and not requested_query:
+        raise ValueError("Provide either path or query")
+
+    matches: list[dict[str, Any]] = []
+    if requested_path:
+        doc = load_document(requested_path)
+        if str(doc.frontmatter.get("kind") or "").strip().lower() != "claim":
+            raise ValueError(f"path is not a kind=claim note: {doc.path}")
+        if not _can_read_frontmatter(doc.frontmatter, auth):
+            raise ValueError("Claim note is not readable for this token")
+        matches = [_claim_status_payload(doc)]
+    else:
+        bounded_limit = max(1, min(int(limit or 5), 20))
+        results = search_closed_notes(requested_query, limit=bounded_limit, kind="claim")
+        for item in results.get("results", []):
+            if not _can_read_note_payload(item, auth):
+                continue
+            note_path = str(item.get("path") or "").strip()
+            if not note_path:
+                continue
+            try:
+                doc = load_document(note_path)
+            except Exception:
+                continue
+            if str(doc.frontmatter.get("kind") or "").strip().lower() != "claim":
+                continue
+            if not _can_read_frontmatter(doc.frontmatter, auth):
+                continue
+            matches.append(_claim_status_payload(doc))
+
+    try:
+        log_tool_event(
+            "claim_contribution_status",
+            user=auth.nickname or auth.username,
+            args_summary={"path": requested_path or None, "query": requested_query or None, "limit": limit},
+            notes_read=[item["path"] for item in matches[:5]],
+        )
+    except Exception:
+        pass
+    return {
+        "status": "ok" if matches else "not_found",
+        "count": len(matches),
+        "claims": matches,
+        "_next": (
+            "If state is guardrail_rejected, read reviewer_notes and submit a corrected new claim. "
+            "If state is guardrail_passed or requested, wait for the publication workflow or add supporting evidence."
+            if matches
+            else "No readable claim matched. Retry with the exact upsert_note path or a more specific query."
         ),
     }
 
@@ -1032,6 +1164,11 @@ def request_note_publication(
     ctx: Context | None = None,
 ) -> dict[str, Any]:
     """Request librarian review for public publication. Source remains private by default.
+
+    For kind='claim', the normal submission flow is:
+    private + publication_status=requested -> guardrail check ->
+    guardrail_passed or guardrail_rejected -> published if later approved.
+    Use claim_contribution_status(path=...) to inspect that state.
 
     Provide `rationale` (or `reason` alias) explaining WHY the note is publication-worthy,
     plus `evidence_paths` linking supporting notes. Weak requests (empty rationale or

@@ -245,7 +245,7 @@ class NoteWriteRequest(BaseModel):
     title: str | None = None
     kind: str | None = Field(
         default=None,
-        description="Use 'claim' for one reusable fact/warning/config discovery; use 'capsule' for a synthesis. Claims are private drafts that enter the review queue (publication_status=requested); approved claims become public.",
+        description="Use 'claim' for one reusable fact/warning/config discovery; use 'capsule' for a synthesis. Claim flow: private + publication_status=requested -> guardrail check -> guardrail_passed or guardrail_rejected -> published if approved.",
     )
     project: str | None = None
     status: str | None = None
@@ -1958,7 +1958,7 @@ def api_upsert_note(
     elif requested_kind not in {"claim", "capsule"}:
         coaching.append("If this content should become public memory, prefer kind='claim' for an atomic fact or kind='capsule' for a synthesis.")
     if effective_kind == "claim":
-        coaching.append("This claim is a private draft in the review queue. Add more atomic claims on the same topic before writing a capsule.")
+        coaching.append("This claim is private+requested, then Sagwan sets guardrail_passed or guardrail_rejected before any later publication.")
     return {
         "path": document.path,
         "note": result,

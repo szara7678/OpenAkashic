@@ -94,6 +94,7 @@ class ClaimGuardrailPassTests(unittest.TestCase):
             stack.enter_context(mock.patch.object(self.sagwan_loop, "_invoke_for_stage", return_value=llm_response))
             for name, value in {
                 "_curate_derive_and_sync": {"sync_enqueued": False},
+                "_maybe_run_claim_integration_cycle": {"status": "skipped"},
                 "_curate_revalidate_published": {"checked": 0, "revalidated": 0},
                 "_curate_ingest_feeds": {"enqueued": 0},
                 "_curate_generate_capsules": {"generated": 0},

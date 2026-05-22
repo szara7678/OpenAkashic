@@ -161,6 +161,7 @@ PUBLICATION_STATUS_VALUES = {
     "rejected",
     "guardrail_passed",
     "guardrail_rejected",
+    "pending_integration",
     "published",
     "needs_merge",
     "needs_evidence",
@@ -588,7 +589,7 @@ def set_publication_status(
     if next_status == "none":
         raise ValueError(
             "Publication status decision must be requested, reviewing, approved, rejected, "
-            "guardrail_passed, guardrail_rejected, published, needs_merge, needs_evidence, or superseded"
+            "guardrail_passed, guardrail_rejected, pending_integration, published, needs_merge, needs_evidence, or superseded"
         )
     frontmatter["publication_status"] = next_status
     frontmatter["publication_decided_at"] = _now_iso()

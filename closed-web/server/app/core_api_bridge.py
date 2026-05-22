@@ -338,6 +338,17 @@ def _sync_capsule(frontmatter: dict[str, Any], body: str, note_path: str) -> str
         else:
             cautions.append({"text": text})
 
+    capsule_metadata = {
+        "tags": tags,
+        "source_note": note_path,
+        "source": "closed_akashic_publication",
+        "parser_version": "2026-04-19",
+    }
+    for field in ("contributed_by", "source_note_path", "source_note_kind", "source_claim_id"):
+        value = frontmatter.get(field)
+        if value not in (None, "", []):
+            capsule_metadata[field] = value
+
     payload = {
         "title": title,
         "summary": summary,
@@ -345,12 +356,7 @@ def _sync_capsule(frontmatter: dict[str, Any], body: str, note_path: str) -> str
         "cautions": cautions,
         "source_claim_ids": source_claim_ids,
         "confidence": confidence,
-        "metadata": {
-            "tags": tags,
-            "source_note": note_path,
-            "source": "closed_akashic_publication",
-            "parser_version": "2026-04-19",
-        },
+        "metadata": capsule_metadata,
     }
 
     result = _core_api_post("/capsules", payload, settings.core_api_write_key, settings.core_api_url)
