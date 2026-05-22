@@ -136,6 +136,21 @@ class ClaimGuardrailPassTests(unittest.TestCase):
         self.assertEqual(doc.frontmatter["publication_status"], "guardrail_rejected")
         self.assertEqual(doc.frontmatter["guardrail_reject_reason"], "no evidence or basis")
 
+    def test_parse_failure_preserves_claim_for_retry(self) -> None:
+        path = "personal_vault/projects/personal/openakashic/reference/parse-failure.md"
+        self._write_claim(path, "## Claim\nA parser failure should not reject this claim.\n")
+
+        with mock.patch.object(self.sagwan_loop, "_invoke_for_stage", return_value="not json"):
+            claims = self.sagwan_loop.get_pending_claims(None)
+            with self.assertLogs("app.sagwan_loop", level="WARNING") as logs:
+                results = self.sagwan_loop._run_guardrail_pass(claims)
+            self.sagwan_loop._apply_guardrail_results(results, None)
+
+        doc = self.vault.load_document(path)
+        self.assertEqual(results, [])
+        self.assertEqual(doc.frontmatter["publication_status"], "requested")
+        self.assertTrue(any("claim guardrail response parse failed" in line for line in logs.output))
+
     def test_reject_by_secret_pattern(self) -> None:
         path = "personal_vault/projects/personal/openakashic/reference/secret.md"
         self._write_claim(path, "## Claim\nThe test credential is sk-abcdef0123456789ABCDEF.\n")

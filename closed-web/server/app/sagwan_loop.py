@@ -922,7 +922,11 @@ def _parse_claim_guardrail_response(raw: str, claims: list[dict[str, Any]]) -> l
     parsed = _extract_json_dict(raw)
     results_raw = parsed.get("results") if isinstance(parsed, dict) else None
     if not isinstance(results_raw, list):
-        results_raw = []
+        logger.warning(
+            "sagwan_loop: claim guardrail response parse failed; preserving %d claim(s) for retry",
+            len(claims),
+        )
+        return []
     by_path: dict[str, dict[str, str]] = {}
     for item in results_raw:
         if not isinstance(item, dict):
@@ -1106,10 +1110,11 @@ _CLAIM_INTEGRATION_ACTIONS = {"link", "contribute", "create", "defer"}
 
 
 def get_guardrail_passed_claims(db: Any = None, limit: int = 50) -> list[dict[str, Any]]:
-    """Return claim notes awaiting PR2b second-pass integration."""
+    """Return claim notes awaiting or retrying PR2b second-pass integration."""
     del db
     max_items = max(1, int(limit or 50))
     claims: list[dict[str, Any]] = []
+    retry_statuses = {"guardrail_passed", "pending_integration"}
     for path in sorted(list_note_paths()):
         try:
             doc = load_document(path)
@@ -1118,7 +1123,7 @@ def get_guardrail_passed_claims(db: Any = None, limit: int = 50) -> list[dict[st
         fm = dict(doc.frontmatter or {})
         if str(fm.get("kind") or "").strip().lower() != "claim":
             continue
-        if str(fm.get("publication_status") or "").strip().lower() != "guardrail_passed":
+        if str(fm.get("publication_status") or "").strip().lower() not in retry_statuses:
             continue
         body = doc.body or ""
         claims.append({
@@ -1221,7 +1226,11 @@ def _parse_claim_integration_response(raw: str, claims: list[dict[str, Any]]) ->
     parsed = _extract_json_dict(raw)
     results_raw = parsed.get("results") if isinstance(parsed, dict) else None
     if not isinstance(results_raw, list):
-        results_raw = []
+        logger.warning(
+            "sagwan_loop: claim integration response parse failed; preserving %d claim(s) for retry",
+            len(claims),
+        )
+        return []
     by_path: dict[str, dict[str, str]] = {}
     for item in results_raw:
         if not isinstance(item, dict):
@@ -1405,11 +1414,12 @@ def _apply_claim_integration_results(results: list[dict[str, Any]], db: Any = No
                     "owner": SAGWAN_DECIDER,
                     "created_by": SAGWAN_DECIDER,
                     "generated_by": "claim_integration",
-                    "visibility": "public",
-                    "publication_status": "published",
-                    "publication_decided_at": now_iso,
-                    "publication_decided_by": SAGWAN_DECIDER,
-                    "publication_decision_reason": rationale,
+                    "visibility": "private",
+                    "publication_status": "requested",
+                    "publication_requested_at": now_iso,
+                    "publication_requested_by": SAGWAN_DECIDER,
+                    "publication_target_visibility": "public",
+                    "publication_request_reason": rationale,
                     "source_claim_paths": [claim_path],
                     "evidence_paths": [claim_path],
                 },

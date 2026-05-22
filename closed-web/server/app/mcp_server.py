@@ -765,7 +765,12 @@ def upsert_note(
     wants_publication = not _is_admin(auth) and (
         str((metadata or {}).get("visibility") or "").strip().lower() == "public"
         or str(write_metadata.get("publication_status") or "").strip().lower() == "requested"
-    ) and not str(doc.frontmatter.get("targets") or "").strip()
+    )
+    wants_publication = (
+        wants_publication
+        and str(doc.frontmatter.get("kind") or "").strip().lower() != "claim"
+        and not str(doc.frontmatter.get("targets") or "").strip()
+    )
     if wants_publication:
         publication_request = request_publication(
             path=doc.path,

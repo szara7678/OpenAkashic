@@ -1931,10 +1931,16 @@ def api_upsert_note(
         )
         publication_request_data: dict[str, Any] | None = None
         core_api_id: str | None = None
+        effective_kind = str(document.frontmatter.get("kind") or "").strip().lower()
         wants_publication = not _is_admin(auth) and (
             str((payload.metadata or {}).get("visibility") or "").strip().lower() == "public"
             or str(metadata.get("publication_status") or "").strip().lower() == "requested"
-        ) and not str(document.frontmatter.get("targets") or "").strip()
+        )
+        wants_publication = (
+            wants_publication
+            and effective_kind != "claim"
+            and not str(document.frontmatter.get("targets") or "").strip()
+        )
         if wants_publication:
             request = request_publication(
                 path=document.path,

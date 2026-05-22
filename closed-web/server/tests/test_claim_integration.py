@@ -158,7 +158,8 @@ class ClaimIntegrationTests(unittest.TestCase):
         self.assertEqual(claim.frontmatter["publication_status"], "published")
         self.assertEqual(claim.frontmatter["integrated_target_path"], capsule_path)
         self.assertEqual(capsule.frontmatter["kind"], "capsule")
-        self.assertEqual(capsule.frontmatter["publication_status"], "published")
+        self.assertEqual(capsule.frontmatter["publication_status"], "requested")
+        self.assertEqual(capsule.frontmatter["visibility"], "private")
         self.assertEqual(capsule.frontmatter["source_claim_paths"], [claim_path])
         self.assertIn("Claim integration creates capsules", capsule.body)
 
@@ -181,6 +182,47 @@ class ClaimIntegrationTests(unittest.TestCase):
         self.assertEqual(result["deferred"], 1)
         self.assertEqual(claim.frontmatter["publication_status"], "pending_integration")
         self.assertIn("stronger related capsule", claim.frontmatter["integration_defer_reason"])
+
+    def test_pending_integration_claim_is_retried(self) -> None:
+        claim_path = "personal_vault/projects/personal/openakashic/reference/retry-claim.md"
+        capsule_path = "personal_vault/projects/ops/librarian/capsules/retry-target.md"
+        self._write_claim(claim_path, "## Claim\nPending integration claims should be retried.\n")
+        claim = self.vault.load_document(claim_path)
+        claim_fm = dict(claim.frontmatter)
+        claim_fm["publication_status"] = "pending_integration"
+        self.vault.write_document(path=claim_path, body=claim.body, metadata=claim_fm)
+        self._write_capsule(capsule_path)
+        llm_response = json.dumps({
+            "results": [{
+                "claim_path": claim_path,
+                "action": "LINK",
+                "target_path": capsule_path,
+                "rationale": "retry found a related capsule",
+            }]
+        })
+
+        with mock.patch.object(self.sagwan_loop, "_invoke_for_stage", return_value=llm_response):
+            result = self.sagwan_loop._run_claim_integration_cycle(limit=10)
+
+        claim = self.vault.load_document(claim_path)
+        capsule = self.vault.load_document(capsule_path)
+        self.assertEqual(result["linked"], 1)
+        self.assertEqual(claim.frontmatter["publication_status"], "published")
+        self.assertIn(claim_path, capsule.frontmatter["evidence_paths"])
+
+    def test_integration_parse_failure_preserves_claim_for_retry(self) -> None:
+        claim_path = "personal_vault/projects/personal/openakashic/reference/integration-parse-failure.md"
+        self._write_claim(claim_path, "## Claim\nInvalid integration JSON should leave state unchanged.\n")
+
+        with mock.patch.object(self.sagwan_loop, "_invoke_for_stage", return_value="not json"):
+            with self.assertLogs("app.sagwan_loop", level="WARNING") as logs:
+                result = self.sagwan_loop._run_claim_integration_cycle(limit=10)
+
+        claim = self.vault.load_document(claim_path)
+        self.assertEqual(result["processed"], 0)
+        self.assertEqual(result["applied"], 0)
+        self.assertEqual(claim.frontmatter["publication_status"], "guardrail_passed")
+        self.assertTrue(any("claim integration response parse failed" in line for line in logs.output))
 
     def test_curation_cycle_registers_integration_after_guardrail(self) -> None:
         order: list[str] = []
