@@ -147,7 +147,7 @@ from app.librarian import (
     load_librarian_settings,
     save_librarian_settings,
 )
-from app.core_api_bridge import sync_published_note
+from app.core_api_bridge import get_last_sync_failure_reason, sync_published_note
 from app.mcp_server import mcp
 from app.observability import (
     RequestLogMiddleware,
@@ -399,6 +399,10 @@ def _is_admin(auth: AuthState) -> bool:
     return auth.role == "admin" or "librarian:admin" in auth.capabilities
 
 
+def _is_inspector(auth: AuthState) -> bool:
+    return _is_admin(auth) or auth.role in {"inspector", "manager"} or "publication:manage" in auth.capabilities
+
+
 def _can_manage_publication(auth: AuthState) -> bool:
     return _is_admin(auth) or "publication:manage" in auth.capabilities
 
@@ -440,11 +444,31 @@ def _can_read_frontmatter(frontmatter: dict[str, Any], auth: AuthState) -> bool:
 
 
 def _can_modify_frontmatter(frontmatter: dict[str, Any], auth: AuthState) -> bool:
+    if _is_inspector(auth) and str(frontmatter.get("kind") or "").strip().lower() in {"capsule", "claim"}:
+        return True
     if _note_visibility(frontmatter) == "public":
         if str(frontmatter.get("kind") or "").strip().lower() == "claim":
             return auth.authenticated and (_is_admin(auth) or _note_owner(frontmatter) == auth.nickname)
         return _is_admin(auth)
     return auth.authenticated and (_is_admin(auth) or _note_owner(frontmatter) == auth.nickname)
+
+
+def _apply_inspector_revision_attribution(metadata: dict[str, Any], existing_frontmatter: dict[str, Any], auth: AuthState) -> None:
+    if not existing_frontmatter:
+        return
+    if not _is_inspector(auth):
+        return
+    owner = _note_owner(existing_frontmatter)
+    if owner == auth.nickname:
+        return
+    if str(existing_frontmatter.get("kind") or "").strip().lower() not in {"capsule", "claim"}:
+        return
+    now = datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+    metadata.setdefault("original_owner", existing_frontmatter.get("original_owner") or owner)
+    metadata["last_revised_by_inspector"] = auth.nickname
+    metadata["last_revised_by_inspector_at"] = now
+    metadata["revision_attribution"] = f"revised by inspector {auth.nickname}; contributor credit preserved as original_owner={metadata['original_owner']}"
+    metadata["revision_count"] = max(0, int(existing_frontmatter.get("revision_count") or 0)) + 1
 
 
 def _assert_can_read_note_payload(note: dict[str, Any], auth: AuthState) -> None:
@@ -517,6 +541,7 @@ def _normalize_write_metadata(payload: NoteWriteRequest, auth: AuthState) -> dic
     if is_existing:
         if not _can_modify_frontmatter(existing_frontmatter, auth):
             raise HTTPException(status_code=403, detail="Notes can only be modified by their owner or an admin")
+        _apply_inspector_revision_attribution(metadata, existing_frontmatter, auth)
         owner = _note_owner(existing_frontmatter)
         if requested_visibility == "public" and _is_admin(auth) and not direct_public_claim:
             metadata.setdefault("original_owner", existing_frontmatter.get("original_owner") or owner)
@@ -1616,6 +1641,90 @@ def api_admin_core_resync(
     return {"synced": synced, "errors": errors, "count": len(synced), "requested_by": auth.nickname}
 
 
+def _published_sync_failure_items(*, include_pending: bool = True) -> list[dict[str, Any]]:
+    items: list[dict[str, Any]] = []
+    for rel in list_note_paths():
+        try:
+            doc = load_document(rel)
+        except Exception:
+            continue
+        fm = dict(doc.frontmatter or {})
+        if str(fm.get("publication_status") or "").strip().lower() != "published":
+            continue
+        if str(fm.get("kind") or "").strip().lower() not in {"capsule", "claim"}:
+            continue
+        if str(fm.get("targets") or "").strip():
+            continue
+        failure_count = max(0, int(fm.get("core_sync_failure_count") or 0))
+        pending = not bool(fm.get("core_api_id"))
+        failed = failure_count > 0 or bool(fm.get("core_sync_blocked"))
+        if not failed and not (include_pending and pending):
+            continue
+        items.append({
+            "path": rel,
+            "title": str(fm.get("title") or Path(rel).stem),
+            "kind": str(fm.get("kind") or ""),
+            "core_api_id": str(fm.get("core_api_id") or ""),
+            "pending": pending,
+            "blocked": bool(fm.get("core_sync_blocked")),
+            "failure_count": failure_count,
+            "last_failure_at": str(fm.get("core_sync_last_failure_at") or ""),
+            "last_failure_reason": str(fm.get("core_sync_last_failure_reason") or ""),
+            "retry_after": str(fm.get("core_sync_retry_after") or ""),
+            "updated_at": str(fm.get("updated_at") or ""),
+        })
+    items.sort(key=lambda item: (item["blocked"], item["failure_count"], item["last_failure_at"]), reverse=True)
+    return items
+
+
+@api.get("/admin/sync-failures")
+@api.get("/api/admin/sync-failures")
+def api_admin_sync_failures(
+    include_pending: bool = Query(default=True),
+    auth: AuthState = Depends(require_admin_token),
+) -> dict[str, Any]:
+    items = _published_sync_failure_items(include_pending=include_pending)
+    return {"items": items, "count": len(items), "requested_by": auth.nickname}
+
+
+@api.post("/admin/sync-failures/retry")
+@api.post("/api/admin/sync-failures/retry")
+def api_admin_retry_sync_failures(
+    path: str | None = Query(default=None),
+    limit: int = Query(default=20, ge=1, le=100),
+    force: bool = Query(default=False),
+    auth: AuthState = Depends(require_admin_token),
+) -> dict[str, Any]:
+    candidates = [path] if path else [item["path"] for item in _published_sync_failure_items(include_pending=True)[:limit]]
+    synced: list[dict[str, str]] = []
+    errors: list[dict[str, str]] = []
+    for rel in candidates:
+        try:
+            doc = load_document(rel)
+            core_api_id = sync_published_note(doc.frontmatter, doc.body, rel, force=force)
+            next_fm = dict(doc.frontmatter)
+            if core_api_id:
+                next_fm["core_api_id"] = core_api_id
+                next_fm["core_synced_at"] = datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+                next_fm["core_sync_failure_count"] = 0
+                next_fm.pop("core_sync_last_failure_at", None)
+                next_fm.pop("core_sync_last_failure_reason", None)
+                next_fm.pop("core_sync_retry_after", None)
+                next_fm.pop("core_sync_blocked", None)
+                write_document(path=rel, body=doc.body, metadata=next_fm, allow_owner_change=True, skip_core_sync=True)
+                synced.append({"path": rel, "core_api_id": core_api_id})
+            else:
+                failure_count = max(0, int(next_fm.get("core_sync_failure_count") or 0)) + 1
+                next_fm["core_sync_failure_count"] = failure_count
+                next_fm["core_sync_last_failure_at"] = datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+                next_fm["core_sync_last_failure_reason"] = (get_last_sync_failure_reason(rel) or "sync_failed")[:240]
+                write_document(path=rel, body=doc.body, metadata=next_fm, allow_owner_change=True, skip_core_sync=True)
+                errors.append({"path": rel, "error": next_fm["core_sync_last_failure_reason"]})
+        except Exception as exc:
+            errors.append({"path": rel or "", "error": str(exc)})
+    return {"synced": synced, "errors": errors, "count": len(synced), "requested_by": auth.nickname}
+
+
 @api.get("/api/core/search")
 def api_core_search(
     q: str = Query(..., min_length=1),
@@ -1987,7 +2096,16 @@ def api_append_note(
 ) -> dict[str, Any]:
     try:
         _assert_can_modify_document(payload.path, auth)
-        document = append_section(payload.path, payload.heading, payload.content)
+        existing = load_document(payload.path)
+        metadata = dict(existing.frontmatter)
+        _apply_inspector_revision_attribution(metadata, existing.frontmatter, auth)
+        section = f"\n\n## {payload.heading.strip()}\n{payload.content.strip()}\n"
+        document = write_document(
+            path=payload.path,
+            body=(existing.body.rstrip() + section).strip() + "\n",
+            metadata=metadata,
+            allow_owner_change=True,
+        )
     except (FileNotFoundError, ValueError) as exc:
         raise _vault_http_error(exc) from exc
     result = get_closed_note(document.path, viewer_owner=auth.nickname, is_admin=_is_admin(auth))
@@ -2115,27 +2233,38 @@ def api_publication_status(
     except (FileNotFoundError, ValueError) as exc:
         raise _vault_http_error(exc) from exc
     core_api_id = None
-    if payload.status == "published":
-        core_api_id = sync_published_note(
-            frontmatter=document.frontmatter,
-            body=document.body,
-            note_path=document.path,
-        )
-        if core_api_id:
+    synced_path = document.path
+    if payload.status.strip().lower().replace("-", "_") == "published":
+        effective_document = document
+        source_path = str(document.frontmatter.get("source_path") or "").strip()
+        if source_path:
             try:
-                from app.vault import write_document
-                fm = dict(document.frontmatter)
-                fm["core_api_id"] = core_api_id
-                document = write_document(
-                    path=document.path,
-                    body=document.body,
-                    metadata=fm,
-                    allow_owner_change=True,
-                )
-            except Exception as exc:
-                import logging
-                logging.getLogger(__name__).error("publication/status: failed to persist core_api_id on %s: %s", document.path, exc)
-    return {"path": document.path, "frontmatter": document.frontmatter, "core_api_id": core_api_id}
+                effective_document = load_document(source_path)
+            except FileNotFoundError:
+                effective_document = document
+        synced_path = effective_document.path
+        core_api_id = str(effective_document.frontmatter.get("core_api_id") or "").strip() or None
+        if not core_api_id and str(effective_document.frontmatter.get("kind") or "").strip().lower() in {"capsule", "claim"}:
+            core_api_id = sync_published_note(
+                frontmatter=effective_document.frontmatter,
+                body=effective_document.body,
+                note_path=effective_document.path,
+            )
+            if core_api_id:
+                try:
+                    fm = dict(effective_document.frontmatter)
+                    fm["core_api_id"] = core_api_id
+                    effective_document = write_document(
+                        path=effective_document.path,
+                        body=effective_document.body,
+                        metadata=fm,
+                        allow_owner_change=True,
+                        skip_core_sync=True,
+                    )
+                except Exception as exc:
+                    import logging
+                    logging.getLogger(__name__).error("publication/status: failed to persist core_api_id on %s: %s", effective_document.path, exc)
+    return {"path": document.path, "frontmatter": document.frontmatter, "synced_path": synced_path, "core_api_id": core_api_id}
 
 
 async def _read_upload_capped(file: UploadFile, max_bytes: int) -> bytes:

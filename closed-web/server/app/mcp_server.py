@@ -1287,14 +1287,24 @@ def list_note_publication_requests(status: str | None = None) -> dict[str, Any]:
 def set_note_publication_status(path: str, status: str, reason: str | None = None, ctx: Context | None = None) -> dict[str, Any]:
     """Admin/librarian-only publication decision helper. published also sets visibility=public."""
     auth = _auth_from_ctx(ctx)
-    if not _is_admin(auth):
-        raise ValueError("Only admins can set publication status directly")
+    if not _is_inspector(auth):
+        raise ValueError("Only admins or inspectors can set publication status directly")
     source_doc = load_document(path)
     if str(source_doc.frontmatter.get("targets") or "").strip():
         raise ValueError("Targeted claims (reviews) cannot be published. Reviews stay Closed-only by design — publish the underlying capsule instead.")
     document = set_publication_status(path=path, status=status, decider=auth.nickname, reason=reason)
     note = get_closed_note(document.path, viewer_owner=auth.nickname, is_admin=_is_admin(auth))
-    return {"path": document.path, "frontmatter": document.frontmatter, "note": note}
+    synced_path = document.path
+    core_api_id = str(document.frontmatter.get("core_api_id") or "").strip()
+    source_path = str(document.frontmatter.get("source_path") or "").strip()
+    if status.strip().lower().replace("-", "_") == "published" and source_path:
+        try:
+            synced_doc = load_document(source_path)
+            synced_path = synced_doc.path
+            core_api_id = str(synced_doc.frontmatter.get("core_api_id") or "").strip()
+        except Exception:
+            pass
+    return {"path": document.path, "frontmatter": document.frontmatter, "note": note, "synced_path": synced_path, "core_api_id": core_api_id or None}
 
 
 @mcp.tool(title="Append OpenAkashic Note Section")
@@ -1307,7 +1317,16 @@ def append_note_section(
     """Append a new H2 section to an existing OpenAkashic markdown note."""
     auth = _auth_from_ctx(ctx)
     _assert_can_modify_document(path, auth)
-    doc = append_section(path, heading, content)
+    existing = load_document(path)
+    metadata = dict(existing.frontmatter)
+    _apply_inspector_revision_attribution(metadata, existing.frontmatter, auth)
+    section = f"\n\n## {heading.strip()}\n{content.strip()}\n"
+    doc = write_document(
+        path=path,
+        body=(existing.body.rstrip() + section).strip() + "\n",
+        metadata=metadata,
+        allow_owner_change=True,
+    )
     note = get_closed_note(doc.path, viewer_owner=auth.nickname, is_admin=_is_admin(auth))
     try:
         log_tool_event(
@@ -2773,6 +2792,10 @@ def _is_admin(auth: AuthState) -> bool:
     return auth.role == "admin"
 
 
+def _is_inspector(auth: AuthState) -> bool:
+    return _is_admin(auth) or auth.role in {"inspector", "manager"} or "publication:manage" in auth.capabilities
+
+
 def _note_visibility(frontmatter: dict[str, Any]) -> str:
     visibility = str(frontmatter.get("visibility") or settings.default_note_visibility).strip().lower()
     return visibility if visibility in {"private", "public", "shared"} else "private"
@@ -2792,11 +2815,30 @@ def _can_read_frontmatter(frontmatter: dict[str, Any], auth: AuthState) -> bool:
 
 
 def _can_modify_frontmatter(frontmatter: dict[str, Any], auth: AuthState) -> bool:
+    if _is_inspector(auth) and str(frontmatter.get("kind") or "").strip().lower() in {"capsule", "claim"}:
+        return True
     if _note_visibility(frontmatter) == "public":
         if str(frontmatter.get("kind") or "").strip().lower() == "claim":
             return auth.authenticated and (_is_admin(auth) or _note_owner(frontmatter) == auth.nickname)
         return _is_admin(auth)
     return auth.authenticated and (_is_admin(auth) or _note_owner(frontmatter) == auth.nickname)
+
+
+def _apply_inspector_revision_attribution(metadata: dict[str, Any], existing_frontmatter: dict[str, Any], auth: AuthState) -> None:
+    if not existing_frontmatter or not _is_inspector(auth):
+        return
+    owner = _note_owner(existing_frontmatter)
+    if owner == auth.nickname:
+        return
+    if str(existing_frontmatter.get("kind") or "").strip().lower() not in {"capsule", "claim"}:
+        return
+    from datetime import UTC as _UTC, datetime as _dt
+    now = _dt.now(_UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+    metadata.setdefault("original_owner", existing_frontmatter.get("original_owner") or owner)
+    metadata["last_revised_by_inspector"] = auth.nickname
+    metadata["last_revised_by_inspector_at"] = now
+    metadata["revision_attribution"] = f"revised by inspector {auth.nickname}; contributor credit preserved as original_owner={metadata['original_owner']}"
+    metadata["revision_count"] = max(0, int(existing_frontmatter.get("revision_count") or 0)) + 1
 
 
 def _can_read_note_payload(note: dict[str, Any], auth: AuthState) -> bool:
@@ -3121,6 +3163,7 @@ def _normalize_write_metadata(*, path: str, metadata: dict[str, Any], auth: Auth
     if is_existing:
         if not _can_modify_frontmatter(existing_frontmatter, auth):
             raise ValueError("Notes can only be modified by their owner or an admin")
+        _apply_inspector_revision_attribution(next_metadata, existing_frontmatter, auth)
         owner = _note_owner(existing_frontmatter)
         if requested_visibility == "public" and not direct_public_claim and not effective_targets:
             next_metadata.setdefault("original_owner", existing_frontmatter.get("original_owner") or owner)

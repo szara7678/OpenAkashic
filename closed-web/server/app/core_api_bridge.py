@@ -279,7 +279,7 @@ def _create_derived_claim(
 
 # ─── kind=capsule 동기화 ──────────────────────────────────────────────────────
 
-def _sync_capsule(frontmatter: dict[str, Any], body: str, note_path: str) -> str | None:
+def _sync_capsule(frontmatter: dict[str, Any], body: str, note_path: str, *, existing_id: str | None = None) -> str | None:
     """
     Core API에 capsule 레코드를 생성하고 ID를 반환한다.
 
@@ -359,8 +359,17 @@ def _sync_capsule(frontmatter: dict[str, Any], body: str, note_path: str) -> str
         "metadata": capsule_metadata,
     }
 
-    result = _core_api_post("/capsules", payload, settings.core_api_write_key, settings.core_api_url)
-    capsule_id = str(result.get("id") or "")
+    capsule_id = str(existing_id or frontmatter.get("core_api_id") or "").strip()
+    if capsule_id:
+        result = _core_api_patch(
+            f"/capsules/{capsule_id}",
+            payload,
+            settings.core_api_write_key,
+            settings.core_api_url,
+        )
+    else:
+        result = _core_api_post("/capsules", payload, settings.core_api_write_key, settings.core_api_url)
+    capsule_id = str(result.get("id") or capsule_id)
     logger.info(
         "core_api_bridge: synced capsule %s → Core API %s (claims=%d key_points=%d cautions=%d)",
         note_path, capsule_id, len(source_claim_ids), len(key_points), len(cautions),
@@ -488,9 +497,22 @@ def sync_published_note(frontmatter: dict[str, Any], body: str, note_path: str, 
             logger.error("core_api_bridge: unexpected error syncing %s: %s", note_path, exc)
             _record_sync_failure(note_path, f"unexpected_error: {type(exc).__name__}")
             return None
-    if not force and frontmatter.get("core_api_id"):
-        _clear_sync_failure(note_path)
-        return str(frontmatter["core_api_id"])
+    if kind == "capsule" and frontmatter.get("core_api_id") and not force:
+        try:
+            result = _sync_capsule(frontmatter, body, note_path, existing_id=str(frontmatter["core_api_id"]))
+            if result:
+                _clear_sync_failure(note_path)
+                return result
+            _record_sync_failure(note_path, "sync_returned_none")
+            return None
+        except urlerror.URLError as exc:
+            logger.error("core_api_bridge: network error syncing %s: %s", note_path, exc)
+            _record_sync_failure(note_path, f"network_error: {exc}")
+            return None
+        except Exception as exc:
+            logger.error("core_api_bridge: unexpected error syncing %s: %s", note_path, exc)
+            _record_sync_failure(note_path, f"unexpected_error: {type(exc).__name__}")
+            return None
 
     try:
         if kind == "capsule":

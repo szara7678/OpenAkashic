@@ -41,7 +41,7 @@ def _capabilities_for_role(role: str) -> list[str]:
             "librarian:chat",
             "librarian:admin",
         ]
-    if role == "manager":
+    if role in {"manager", "inspector"}:
         return [
             "notes:read",
             "notes:write",
@@ -164,7 +164,7 @@ def require_admin_token(
 ) -> AuthState:
     token = credentials.credentials if credentials else None
     auth_state = auth_state_for_token(token)
-    if auth_state.authenticated and auth_state.role == "admin":
+    if auth_state.authenticated and (auth_state.role == "admin" or "librarian:admin" in auth_state.capabilities):
         return auth_state
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,

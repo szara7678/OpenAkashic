@@ -527,9 +527,6 @@ def _sync_published_notes_to_core_api(*, limit: int = 10) -> str:
             continue
         if fm.get("core_api_id"):
             continue
-        if fm.get("core_sync_blocked"):
-            blocked.append(note_path)
-            continue
         failure_count = max(0, int(fm.get("core_sync_failure_count") or 0))
         last_failure_at = str(fm.get("core_sync_last_failure_at") or "").strip()
         retry_after_backoff = False
@@ -542,6 +539,8 @@ def _sync_published_notes_to_core_api(*, limit: int = 10) -> str:
                     last_failure_dt = None
             if last_failure_dt is not None and datetime.now(UTC) - last_failure_dt < timedelta(hours=_CORE_SYNC_BACKOFF_HOURS):
                 skipped_backoff.append(note_path)
+                if fm.get("core_sync_blocked"):
+                    blocked.append(note_path)
                 continue
             retry_after_backoff = True
         core_api_id = sync_published_note(frontmatter=fm, body=doc.body, note_path=note_path)
@@ -554,7 +553,7 @@ def _sync_published_notes_to_core_api(*, limit: int = 10) -> str:
             next_fm.pop("core_sync_last_failure_reason", None)
             next_fm.pop("core_sync_blocked", None)
             try:
-                write_document(path=note_path, body=doc.body, metadata=next_fm, allow_owner_change=True)
+                write_document(path=note_path, body=doc.body, metadata=next_fm, allow_owner_change=True, skip_core_sync=True)
                 synced.append(note_path)
             except Exception as exc:
                 logger.error("sync_to_core_api: failed to persist core_api_id for %s: %s", note_path, exc)
@@ -568,7 +567,7 @@ def _sync_published_notes_to_core_api(*, limit: int = 10) -> str:
                 next_fm["core_sync_blocked"] = True
                 blocked.append(note_path)
             try:
-                write_document(path=note_path, body=doc.body, metadata=next_fm, allow_owner_change=True)
+                write_document(path=note_path, body=doc.body, metadata=next_fm, allow_owner_change=True, skip_core_sync=True)
             except Exception as exc:
                 logger.error("sync_to_core_api: failed to persist failure state for %s: %s", note_path, exc)
             errors.append(note_path)

@@ -222,42 +222,10 @@
   </div>
   <script type="module">
     const API_URL = "https://api.openakashic.com/query";
+    const CAPSULES_URL = "https://api.openakashic.com/capsules";
     const ERROR_TEXT = "캡슐을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.";
     const LOADING_TEXT = "캡슐 불러오는 중…";
-    const curated = [
-      ["ba214ec8",1,"OpenAkashic MCP Idempotent Note Bootstrap and Append Failure Modes"],
-      ["6dd83c68",1,"OpenAkashic MCP search_akashic Endpoint Contract, Auth, and Response-Shaping"],
-      ["eded6d53",1,"OpenAkashic MCP Search Endpoint OpenAPI Pattern for Include Filters"],
-      ["9a108374",1,"OpenAkashic MCP Guide"],
-      ["95ba156b",1,"OpenAkashic Project Index & Agent Onboarding"],
-      ["50bb02da",1,"Codex AGENTS Template"],
-      ["b5d75056",1,"OpenAkashic 가시성 제어 지식 네트워크"],
-      ["f35f2d49",1,"OpenAkashic Vault Cleanup Methodology"],
-      ["8620ee6c",1,"OpenAkashic MCP Idempotent Note Bootstrap and Append Workflow"],
-      ["1372bda9",2,"Expo EAS OTA Channel Header Resolution and SecureStore Session Failure Modes"],
-      ["f9a6393f",2,"Argo Rollouts Canary Abort Rollback Failure Modes"],
-      ["d0501a9f",2,"Python Typing Protocol vs ABC for Plugin APIs"],
-      ["cc2bbb8a",2,"OpenAPI Agent Tooling Failure Modes operationId Stability"],
-      ["33e005c5",2,"Collector Pipeline Failure Modes Recrawl Scheduling Deduplication"],
-      ["dd98aa09",2,"Collector Incremental Polling Failure Modes Conditional Requests"],
-      ["0d2e3e49",2,"Agent RAG 평가 스택 드리프트 게이트 Langfuse Braintrust"],
-      ["8dddd01a",3,"IchiMozzi JLPT Grammar Taxonomy Subpattern Mapping"],
-      ["6e3f89c6",3,"Curation Pipeline Enum Normalization Unknown Status"],
-      ["ae7bbb15",3,"OpenAkashic Project Index README Patterns Discoverability"],
-      ["a6b8e057",3,"Sagwan Loop Test Capsule"],
-      ["db565163",3,"Capsule LLM-Generated JLPT Item Validation Failure Modes"],
-      ["0b15c2b0",4,"OpenAPI Schema Drift Detection for Generated Clients Breaking Change Rules"],
-      ["7184973f",4,"OpenAPI TypeScript Client Codegen Failure Modes oneOf anyOf"],
-      ["df98aafd",4,"OpenAPI Codegen Failure Modes nullable oneOf allOf"],
-      ["450c19f8",5,"Feed Collector Canonical URL Normalization Idempotent Upsert"],
-      ["3608d0a2",5,"Collector Canonicalization and Duplicate Suppression Failure Modes"],
-      ["537d8577",5,"Agent UI Skills and Editor References"],
-      ["a910c70d",5,"OpenAkashic Roadmap"],
-      ["00000000",5,"OpenAkashic v1 core"],
-      ["1f724222",5,"Closed Akashic User Scope Review"]
-    ].map(([prefix,tier,title]) => ({ prefix, tier, title }));
-    const tierByPrefix = new Map(curated.map((item) => [item.prefix, item.tier]));
-    const titleByPrefix = new Map(curated.map((item) => [item.prefix, item.title]));
+    const RECENT_LIMIT = 30;
     const $ = (selector) => document.querySelector(selector);
     const heroGrid = $("#heroGrid");
     const capsuleGrid = $("#capsuleGrid");
@@ -272,81 +240,60 @@
     const modalTier = $("#modalTier");
     const modalBody = $("#modalBody");
     const modal = $(".modal");
-    let curatedCapsules = buildPlaceholders();
+    let curatedCapsules = [];
     let activeCapsules = curatedCapsules;
 
-    function queryBody(query, topK = 20) {
-      return { query, top_k: topK, mode: "standard", include: ["capsules"] };
-    }
-    async function fetchCapsules(query, topK = 20) {
+    const SEED_QUERIES = ["agent knowledge","OpenAkashic","development","failure modes","capsule"];
+    async function fetchClaims(query, topK = 10) {
       const response = await fetch(API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(queryBody(query, topK))
+        body: JSON.stringify({ query, top_k: topK, mode: "standard" })
       });
       if (!response.ok) throw new Error(`Query failed: ${response.status}`);
       const data = await response.json();
-      return Array.isArray(data?.results?.capsules) ? data.results.capsules : [];
+      return Array.isArray(data?.results?.claims) ? data.results.claims : [];
     }
-    async function loadCuratedCapsules() {
+    async function fetchRecentClaims(limit = RECENT_LIMIT) {
+      const seen = new Set();
+      const all = [];
+      for (const q of SEED_QUERIES) {
+        if (all.length >= limit) break;
+        try {
+          const claims = await fetchClaims(q, 8);
+          for (const c of claims) {
+            if (!seen.has(c.id) && all.length < limit) { seen.add(c.id); all.push(c); }
+          }
+        } catch (_) {}
+      }
+      return all;
+    }
+    async function loadLiveCapsules() {
       setLoading();
-      renderAll(curatedCapsules, { preserveStatus: true });
       try {
-        // empty query → 0 capsules from API. 바로 title-별 fetch로 진행.
-        const matches = await fallbackByTitle();
-        const matchedPrefixes = matches.length;
-        console.info(`[OpenAkashic] curated fetch: ${matchedPrefixes}/${curated.length} matched`);
-        curatedCapsules = orderCurated(matches);
+        const claims = await fetchRecentClaims();
+        curatedCapsules = claims.map((c, i) => normalizeClaim(c, tierForIndex(i)));
         activeCapsules = curatedCapsules;
         renderAll(activeCapsules);
       } catch (error) {
         console.warn("[OpenAkashic] load error:", error);
-        curatedCapsules = buildPlaceholders();
+        curatedCapsules = [];
         activeCapsules = curatedCapsules;
         renderAll(activeCapsules, { error: true });
       }
     }
-    async function fallbackByTitle() {
-      const batches = await Promise.all(curated.map(async (item) => {
-        try { return await fetchCapsules(item.title, 5); }
-        catch { return []; }
-      }));
-      return selectCuratedMatches(batches.flat());
+    function tierForIndex(index) {
+      if (index < 6) return 1;
+      if (index < 12) return 2;
+      if (index < 18) return 3;
+      if (index < 24) return 4;
+      return 5;
     }
-    function selectCuratedMatches(capsules) {
-      const matches = new Map();
-      for (const capsule of capsules) {
-        const prefix = getPrefix(capsule);
-        if (tierByPrefix.has(prefix) && !matches.has(prefix)) matches.set(prefix, normalizeCapsule(capsule));
-      }
-      return [...matches.values()];
-    }
-    function orderCurated(capsules) {
-      const byPrefix = new Map(capsules.map((capsule) => [getPrefix(capsule), capsule]));
-      return curated.map((item) => byPrefix.get(item.prefix)).filter(Boolean);
-    }
-    function mergeWithPlaceholders(capsules) {
-      const byPrefix = new Map(capsules.map((capsule) => [getPrefix(capsule), normalizeCapsule(capsule)]));
-      return curated.map((item) => byPrefix.get(item.prefix) || placeholderFor(item));
-    }
-    function buildPlaceholders() {
-      return curated.map(placeholderFor);
-    }
-    function placeholderFor(item) {
-      return normalizeCapsule({
-        id: item.prefix,
-        title: item.title,
-        summary: "라이브 API에서 아직 이 캡슐을 가져오지 못했습니다. 제목 힌트를 기준으로 큐레이션 목록에 유지됩니다.",
-        key_points: [],
-        cautions: ["네트워크 또는 검색 인덱스 상태에 따라 상세 데이터가 비어 있을 수 있습니다."],
-        metadata: { source_note: "", research_cited_urls: [], dedup_decision: "", created_at: "" }
-      });
-    }
-    function normalizeCapsule(capsule) {
+    function normalizeCapsule(capsule, tier = 5) {
       const metadata = capsule?.metadata && typeof capsule.metadata === "object" ? capsule.metadata : {};
       return {
         id: String(capsule?.id || ""),
-        title: String(capsule?.title || titleByPrefix.get(getPrefix(capsule)) || "제목 없는 캡슐"),
+        title: String(capsule?.title || "제목 없는 캡슐"),
         summary: capsule?.summary || "",
         key_points: Array.isArray(capsule?.key_points) ? capsule.key_points : [],
         cautions: Array.isArray(capsule?.cautions) ? capsule.cautions : [],
@@ -354,16 +301,36 @@
           source_note: metadata.source_note || "",
           research_cited_urls: Array.isArray(metadata.research_cited_urls) ? metadata.research_cited_urls : [],
           dedup_decision: metadata.dedup_decision || "",
-          created_at: metadata.created_at || ""
+          created_at: metadata.created_at || capsule?.created_at || capsule?.updated_at || ""
         },
-        embedding_score: capsule?.embedding_score
+        embedding_score: capsule?.embedding_score,
+        tier
+      };
+    }
+    function normalizeClaim(claim, tier = 5) {
+      const text = String(claim?.text || claim?.summary || "");
+      const title = text.length > 60 ? text.slice(0, 58) + "…" : text;
+      return {
+        id: String(claim?.id || ""),
+        title,
+        summary: text,
+        key_points: Array.isArray(claim?.key_points) ? claim.key_points : [],
+        cautions: Array.isArray(claim?.cautions) ? claim.cautions : [],
+        metadata: {
+          source_note: String(claim?.source_note || ""),
+          research_cited_urls: [],
+          created_at: String(claim?.created_at || ""),
+          confidence: claim?.confidence
+        },
+        embedding_score: claim?.embedding_score,
+        tier
       };
     }
     function getPrefix(capsule) {
       return String(capsule?.id || "").slice(0, 8);
     }
     function getTier(capsule) {
-      return tierByPrefix.get(getPrefix(capsule)) || 5;
+      return Number(capsule?.tier || 5);
     }
     function summaryItems(summary) {
       if (Array.isArray(summary)) return summary.map((item) => String(item || "").trim()).filter(Boolean);
@@ -434,7 +401,7 @@
       }
       setLoading();
       try {
-        const capsules = (await fetchCapsules(text, 20)).map(normalizeCapsule);
+        const capsules = (await fetchCapsules(text, 20)).map((capsule, index) => normalizeCapsule(capsule, tierForIndex(index)));
         activeCapsules = capsules;
         renderGrid(activeCapsules);
         statusText.textContent = capsules.length ? "검색 결과입니다." : "검색 결과가 없습니다.";
@@ -532,7 +499,7 @@
       if (event.key === "Escape" && modalRoot.classList.contains("is-open")) closeModal();
     });
     renderAll(curatedCapsules, { preserveStatus: true });
-    loadCuratedCapsules();
+    loadLiveCapsules();
   </script>
 </body>
 </html>

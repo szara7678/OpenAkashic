@@ -2121,6 +2121,9 @@ def closed_note_html(
     function canWriteCurrentNote(session) {{
       if (!session?.authenticated) return false;
       if (session.role === 'admin') return true;
+      if (['inspector', 'manager'].includes(session.role)) {{
+        return ['capsule', 'claim'].includes(String(noteMeta.kind || '').toLowerCase());
+      }}
       return noteMeta.visibility !== 'public' && session.nickname === noteMeta.owner;
     }}
 
@@ -4893,6 +4896,7 @@ def closed_debug_html(route_prefix: str = "") -> str:
                       <select class="select" id="role-value">
                         <option value="user">user</option>
                         <option value="manager">manager</option>
+                        <option value="inspector">inspector</option>
                         <option value="admin">admin</option>
                       </select>
                     </label>

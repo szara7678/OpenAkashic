@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 import json
 import mimetypes
 from pathlib import Path
@@ -169,6 +169,8 @@ PUBLICATION_STATUS_VALUES = {
     "escalated",  # busagwan 반복 실패 → 사관 수동 리뷰 필요
 }
 PUBLICATION_REQUEST_FOLDER = "personal_vault/projects/ops/librarian/publication_requests"
+CORE_SYNC_FAILURE_THRESHOLD = 3
+CORE_SYNC_BACKOFF_HOURS = 24
 
 
 FOLDER_RULES: list[dict[str, Any]] = [
@@ -341,6 +343,7 @@ def write_document(
     metadata: dict[str, Any] | None = None,
     allow_owner_change: bool = False,
     metadata_replace: bool = False,
+    skip_core_sync: bool = False,
 ) -> VaultDocument:
     target = resolve_note_path(path, must_exist=False)
     with _get_path_lock(str(target.resolve())):
@@ -402,6 +405,9 @@ def write_document(
 
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(render_document(frontmatter, body), encoding="utf-8")
+        document = load_document(path)
+        if not skip_core_sync:
+            document = _sync_published_after_write(existing, document, target)
         # 노트 캐시 무효화 — site.py의 TTL 캐시를 즉시 비워 다음 검색이 최신 데이터를 반환하도록.
         # lazy import로 순환 임포트 방지 (site → vault, 역방향 금지).
         try:
@@ -410,7 +416,7 @@ def write_document(
         except Exception:
             pass
         invalidate_claim_id_cache()
-        return load_document(path)
+        return document
 
 
 def request_publication(
@@ -956,6 +962,111 @@ def render_document(frontmatter: dict[str, Any], body: str) -> str:
     lines.append("")
     lines.append(body.strip())
     return "\n".join(lines).rstrip() + "\n"
+
+
+def _syncable_published_frontmatter(frontmatter: dict[str, Any]) -> bool:
+    kind = str(frontmatter.get("kind") or "").strip().lower()
+    if kind not in {"capsule", "claim"}:
+        return False
+    if str(frontmatter.get("publication_status") or "").strip().lower() != "published":
+        return False
+    if str(frontmatter.get("targets") or "").strip():
+        return False
+    return True
+
+
+def _should_sync_published_after_write(existing: VaultDocument | None, frontmatter: dict[str, Any], body: str) -> bool:
+    if not _syncable_published_frontmatter(frontmatter):
+        return False
+    if existing is None:
+        return True
+    existing_fm = dict(existing.frontmatter or {})
+    if str(existing_fm.get("publication_status") or "").strip().lower() != "published":
+        return True
+    if not frontmatter.get("core_api_id"):
+        return True
+    if (existing.body or "").strip() != (body or "").strip():
+        return True
+    sync_relevant_fields = (
+        "title",
+        "tags",
+        "confidence",
+        "claim_role",
+        "claim_review_status",
+        "confirm_count",
+        "dispute_count",
+    )
+    return any(existing_fm.get(field) != frontmatter.get(field) for field in sync_relevant_fields)
+
+
+def _record_core_sync_result(
+    *,
+    target: Path,
+    note_path: str,
+    frontmatter: dict[str, Any],
+    body: str,
+    core_api_id: str | None,
+    failure_reason: str | None = None,
+) -> VaultDocument:
+    next_fm = dict(frontmatter)
+    now = _now_iso()
+    if core_api_id:
+        next_fm["core_api_id"] = core_api_id
+        next_fm["core_synced_at"] = now
+        next_fm["core_sync_failure_count"] = 0
+        next_fm.pop("core_sync_last_failure_at", None)
+        next_fm.pop("core_sync_last_failure_reason", None)
+        next_fm.pop("core_sync_retry_after", None)
+        next_fm.pop("core_sync_blocked", None)
+    else:
+        failure_count = max(0, int(next_fm.get("core_sync_failure_count") or 0)) + 1
+        retry_after = datetime.now(UTC) + timedelta(hours=CORE_SYNC_BACKOFF_HOURS)
+        next_fm["core_sync_failure_count"] = failure_count
+        next_fm["core_sync_last_failure_at"] = now
+        next_fm["core_sync_last_failure_reason"] = (failure_reason or "sync_failed")[:240]
+        next_fm["core_sync_retry_after"] = retry_after.replace(microsecond=0).isoformat().replace("+00:00", "Z")
+        if failure_count >= CORE_SYNC_FAILURE_THRESHOLD:
+            next_fm["core_sync_blocked"] = True
+    target.write_text(render_document(next_fm, body), encoding="utf-8")
+    return load_document(note_path)
+
+
+def _sync_published_after_write(
+    existing: VaultDocument | None,
+    document: VaultDocument,
+    target: Path,
+) -> VaultDocument:
+    if not _should_sync_published_after_write(existing, dict(document.frontmatter or {}), document.body):
+        return document
+    try:
+        from app.core_api_bridge import get_last_sync_failure_reason, sync_published_note
+
+        core_api_id = sync_published_note(document.frontmatter, document.body, document.path)
+        if core_api_id:
+            return _record_core_sync_result(
+                target=target,
+                note_path=document.path,
+                frontmatter=document.frontmatter,
+                body=document.body,
+                core_api_id=core_api_id,
+            )
+        return _record_core_sync_result(
+            target=target,
+            note_path=document.path,
+            frontmatter=document.frontmatter,
+            body=document.body,
+            core_api_id=None,
+            failure_reason=get_last_sync_failure_reason(document.path) or "sync_returned_none",
+        )
+    except Exception as exc:
+        return _record_core_sync_result(
+            target=target,
+            note_path=document.path,
+            frontmatter=document.frontmatter,
+            body=document.body,
+            core_api_id=None,
+            failure_reason=f"unexpected_error: {type(exc).__name__}",
+        )
 
 
 def _apply_governance_defaults(frontmatter: dict[str, Any]) -> None:

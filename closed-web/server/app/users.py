@@ -18,7 +18,7 @@ from app.config import get_settings
 _STORE_LOCK = threading.Lock()  # in-process mutex; fcntl adds inter-process safety
 
 
-USER_ROLES = {"user", "manager", "admin"}
+USER_ROLES = {"user", "manager", "inspector", "admin"}
 USERNAME_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{2,31}$")
 SYSTEM_USERNAMES = {"aaron", "sagwan"}
 SYSTEM_NICKNAMES = {"aaron", "sagwan", "anonymous"}
