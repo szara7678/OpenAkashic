@@ -99,6 +99,9 @@
 </div>
 
 <script>
+// 사관 편집 피드 데이터 소스: /editorial-feed.json (정적 파일, build_feed.py가 sagwan maintenance-log에서 생성)
+// ⚠️ api.openakashic.com/capsules 로 변경하지 말 것 — 그 테이블은 비어 있으며 편집 결정 로그가 아님.
+// 올바른 소스: web/scripts/build_feed.py → web/read/editorial-feed.json (cron 주기 갱신)
 const FEED_URL = "/editorial-feed.json";
 
 async function load(){
