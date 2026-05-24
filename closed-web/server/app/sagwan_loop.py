@@ -4416,23 +4416,23 @@ def _write_maintenance_dispute(target_path: str, rationale: str) -> dict[str, An
 
 
 def _write_revised(candidate: Any, new_body: str, rationale: str) -> dict[str, Any]:
-    owner = str(candidate.frontmatter.get("owner") or "").strip().lower()
-    if owner and owner not in _maintenance_system_owners():
-        review_result = _write_maintenance_dispute(
-            candidate.path,
-            f"Sagwan maintenance wanted to revise this note but owner guard blocked direct body edits: {rationale}",
-        )
-        _touch_maintenance_state(candidate.path, "revise_blocked_owner_guard", rationale)
-        result: dict[str, Any] = {"status": "owner_guard_dispute"}
-        if isinstance(review_result, dict) and review_result.get("status") == "skipped":
-            result["review_skipped"] = True
-            result["review_skip_reason"] = str(review_result.get("reason") or "")
-        return result
     fm = dict(candidate.frontmatter or {})
+    owner = str(fm.get("owner") or "").strip() or get_settings().default_note_owner
+    now_iso = _now_iso()
+    fm.setdefault("original_owner", fm.get("original_owner") or owner)
+    if not str(fm.get("original_author") or "").strip():
+        fm["original_author"] = owner
+    if not str(fm.get("contributed_by") or "").strip():
+        fm["contributed_by"] = owner
+    fm["sagwan_revised_at"] = now_iso
+    fm["sagwan_revision_rationale"] = str(rationale or "")
     fm["revision_count"] = int(fm.get("revision_count") or 0) + 1
-    fm["last_maintained_at"] = _now_iso()
+    fm["last_maintained_at"] = now_iso
     fm["last_maintenance_verdict"] = "revise"
     fm["last_maintenance_note"] = rationale[:500]
+    fm["last_revised_by_inspector"] = SAGWAN_DECIDER
+    fm["last_revised_by_inspector_at"] = now_iso
+    fm["revision_attribution"] = f"revised by inspector {SAGWAN_DECIDER}; contributor credit preserved as original_owner={fm['original_owner']}"
     fm.pop("maintenance_priority_reason", None)
     fm.pop("maintenance_priority_at", None)
     write_document(path=candidate.path, body=new_body, metadata=fm, allow_owner_change=True, metadata_replace=True)
@@ -4623,6 +4623,7 @@ def _exec_check_capsule_maintenance(task: dict[str, Any]) -> dict[str, Any]:
     with full agent memory (persona + distilled + episodic + related)."""
     payload = task.get("payload") or {}
     target_path = str(payload.get("path") or "").strip()
+    decider = str(task.get("decider") or task.get("created_by") or payload.get("decider") or SAGWAN_DECIDER).strip()
     if not target_path:
         return {"status": "failed", "error": "no path in payload"}
     try:
@@ -4669,7 +4670,11 @@ def _exec_check_capsule_maintenance(task: dict[str, Any]) -> dict[str, Any]:
     if verdict == "keep":
         _touch_maintenance_state(target_path, "keep", decision["rationale"])
     elif verdict == "revise":
-        result.update(_write_revised(candidate, decision["new_body"] or candidate.body, decision["rationale"]))
+        owner = str(fm.get("owner") or "").strip() or get_settings().default_note_owner
+        if decider != SAGWAN_DECIDER and owner not in _maintenance_system_owners():
+            result.update(_write_maintenance_dispute(target_path, decision["rationale"]))
+        else:
+            result.update(_write_revised(candidate, decision["new_body"] or candidate.body, decision["rationale"]))
     elif verdict == "supersede":
         new_path = _write_superseding(candidate, decision["new_title"], decision["new_body"] or candidate.body, decision["rationale"])
         result["new_path"] = new_path

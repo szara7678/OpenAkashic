@@ -978,6 +978,15 @@ def _syncable_published_frontmatter(frontmatter: dict[str, Any]) -> bool:
 def _should_sync_published_after_write(existing: VaultDocument | None, frontmatter: dict[str, Any], body: str) -> bool:
     if not _syncable_published_frontmatter(frontmatter):
         return False
+    has_failure_state = bool(
+        frontmatter.get("core_sync_failure_count")
+        or frontmatter.get("core_sync_last_failure_at")
+        or frontmatter.get("core_sync_blocked")
+    )
+    if has_failure_state and existing is None:
+        return False
+    if has_failure_state and existing is not None and (existing.body or "").strip() == (body or "").strip():
+        return False
     if existing is None:
         return True
     existing_fm = dict(existing.frontmatter or {})

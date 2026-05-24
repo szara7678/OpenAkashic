@@ -307,6 +307,104 @@ class SagwanV2Tests(unittest.TestCase):
             self.assertEqual(doc.body, new_body)
             self.assertEqual(doc.frontmatter.get("last_maintenance_verdict"), "revise")
 
+    def test_sagwan_revise_user_owned_capsule_directly_preserves_attribution(self) -> None:
+        with _temp_vault_env():
+            path = "personal_vault/projects/demo/reference/sagwan-direct-revise.md"
+            new_body = _capsule_body(sources="- https://example.com/sagwan-direct")
+            vault.write_document(
+                path=path,
+                title="Sagwan Direct Revise",
+                kind="capsule",
+                project="demo",
+                body=_capsule_body(),
+                metadata={"owner": "alice", "created_at": _iso(datetime.now(UTC) - timedelta(days=3))},
+                allow_owner_change=True,
+            )
+            with mock.patch.object(sagwan_loop, "before_task_context", return_value={"combined": ""}), mock.patch.object(
+                sagwan_loop,
+                "_invoke_for_stage",
+                return_value=json.dumps({"verdict": "revise", "rationale": "curator correction", "new_body": new_body}),
+            ):
+                result = sagwan_loop._exec_check_capsule_maintenance(
+                    {"kind": "check_capsule_maintenance", "payload": {"path": path}, "created_by": sagwan_loop.SAGWAN_DECIDER}
+                )
+
+            doc = vault.load_document(path)
+            self.assertEqual(result["status"], "revised")
+            self.assertEqual(doc.body, new_body)
+            self.assertEqual(doc.frontmatter.get("owner"), "alice")
+            self.assertEqual(doc.frontmatter.get("original_author"), "alice")
+            self.assertEqual(doc.frontmatter.get("contributed_by"), "alice")
+            self.assertTrue(str(doc.frontmatter.get("sagwan_revised_at") or "").strip())
+            self.assertEqual(doc.frontmatter.get("sagwan_revision_rationale"), "curator correction")
+
+    def test_non_sagwan_revise_user_owned_capsule_posts_dispute_review(self) -> None:
+        with _temp_vault_env():
+            path = "personal_vault/projects/demo/reference/non-sagwan-revise.md"
+            original_body = _capsule_body()
+            new_body = _capsule_body(sources="- https://example.com/non-sagwan")
+            vault.write_document(
+                path=path,
+                title="Non Sagwan Revise",
+                kind="capsule",
+                project="demo",
+                body=original_body,
+                metadata={"owner": "alice", "created_at": _iso(datetime.now(UTC) - timedelta(days=3))},
+                allow_owner_change=True,
+            )
+            with mock.patch.object(sagwan_loop, "before_task_context", return_value={"combined": ""}), mock.patch.object(
+                sagwan_loop,
+                "_invoke_for_stage",
+                return_value=json.dumps({"verdict": "revise", "rationale": "human dispute", "new_body": new_body}),
+            ), mock.patch.object(
+                mcp_server,
+                "_post_internal_review",
+                return_value={"status": "created", "path": "personal_vault/reviews/review.md", "stance": "dispute"},
+            ) as review:
+                result = sagwan_loop._exec_check_capsule_maintenance(
+                    {"kind": "check_capsule_maintenance", "payload": {"path": path}, "created_by": "bob"}
+                )
+
+            doc = vault.load_document(path)
+            self.assertEqual(result["status"], "created")
+            self.assertEqual(doc.body, original_body)
+            review.assert_called_once()
+            self.assertEqual(review.call_args.kwargs["target"], path)
+            self.assertEqual(review.call_args.kwargs["stance"], "dispute")
+            self.assertEqual(review.call_args.kwargs["topic"], "sagwan-maintenance-owner-guard")
+
+    def test_sagwan_revise_preserves_existing_contributed_by(self) -> None:
+        with _temp_vault_env():
+            path = "personal_vault/projects/demo/reference/preserve-contributor.md"
+            new_body = _capsule_body(sources="- https://example.com/preserve")
+            vault.write_document(
+                path=path,
+                title="Preserve Contributor",
+                kind="capsule",
+                project="demo",
+                body=_capsule_body(),
+                metadata={
+                    "owner": "alice",
+                    "contributed_by": "carol",
+                    "created_at": _iso(datetime.now(UTC) - timedelta(days=3)),
+                },
+                allow_owner_change=True,
+            )
+            with mock.patch.object(sagwan_loop, "before_task_context", return_value={"combined": ""}), mock.patch.object(
+                sagwan_loop,
+                "_invoke_for_stage",
+                return_value=json.dumps({"verdict": "revise", "rationale": "preserve contributor", "new_body": new_body}),
+            ):
+                result = sagwan_loop._exec_check_capsule_maintenance(
+                    {"kind": "check_capsule_maintenance", "payload": {"path": path}, "created_by": sagwan_loop.SAGWAN_DECIDER}
+                )
+
+            doc = vault.load_document(path)
+            self.assertEqual(result["status"], "revised")
+            self.assertEqual(doc.body, new_body)
+            self.assertEqual(doc.frontmatter.get("original_author"), "alice")
+            self.assertEqual(doc.frontmatter.get("contributed_by"), "carol")
+
     def test_maintenance_supersede_creates_new_capsule_and_links_parent(self) -> None:
         with _temp_vault_env():
             path = "personal_vault/projects/demo/reference/supersede.md"
