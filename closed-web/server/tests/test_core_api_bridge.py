@@ -150,6 +150,38 @@ def test_sync_capsule_with_string_confidence(fake_settings, monkeypatch):
     assert payload["metadata"]["source_note"] == "personal_vault/test.md"
 
 
+def test_sync_capsule_carries_contribution_metadata(fake_settings, monkeypatch):
+    captured: dict = {}
+
+    def _fake_post(path, payload, write_key, base_url):
+        if path == "/capsules":
+            captured.update(payload)
+            return {"id": "cap-attr"}
+        return {"id": "unused"}
+
+    monkeypatch.setattr(bridge, "_create_derived_claim", lambda *a, **k: None)
+    monkeypatch.setattr(bridge, "_core_api_post", _fake_post)
+
+    result = bridge.sync_published_note(
+        frontmatter={
+            "kind": "capsule",
+            "title": "Attributed Capsule",
+            "contributed_by": "alice",
+            "source_note_path": "personal_vault/feeds/source-claim.md",
+            "source_note_kind": "claim",
+            "source_claim_id": "c_pr3_seed",
+        },
+        body="## Summary\nAttributed summary.\n",
+        note_path="personal_vault/capsule.md",
+    )
+
+    assert result == "cap-attr"
+    assert captured["metadata"]["contributed_by"] == "alice"
+    assert captured["metadata"]["source_note_path"] == "personal_vault/feeds/source-claim.md"
+    assert captured["metadata"]["source_note_kind"] == "claim"
+    assert captured["metadata"]["source_claim_id"] == "c_pr3_seed"
+
+
 def test_sync_claim_without_evidence_uses_public_fallback(fake_settings, monkeypatch):
     calls: list[tuple[str, dict]] = []
 

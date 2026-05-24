@@ -129,7 +129,10 @@ def test_mcp_claim_upsert_does_not_create_publication_request():
         path = "personal_vault/projects/personal/openakashic/reference/mcp-claim.md"
         auth = _auth(authenticated=True, role="user", nickname="alice")
 
-        with mcp_server._auth_override(auth), mock.patch.object(mcp_server, "request_publication") as request_publication:
+        with (
+            mcp_server._auth_override(auth),
+            mock.patch.object(mcp_server, "request_publication") as request_publication,
+        ):
             result = mcp_server.upsert_note(
                 path=path,
                 body="## Claim\nMCP claim writes enter only the guardrail queue.\n",
