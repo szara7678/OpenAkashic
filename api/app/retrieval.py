@@ -1,4 +1,5 @@
 import logging
+import re
 from typing import Any
 
 from app.config import get_settings
@@ -8,6 +9,7 @@ from app.schemas import QueryRequest
 from app.utils import json_ready, normalize_text
 
 logger = logging.getLogger("openakashic.retrieval")
+_PUBLICATION_REQUEST_PREFIX = "personal_vault/projects/ops/librarian/publication_requests/"
 
 
 _CAPSULE_MODE_FIELDS = {
@@ -80,6 +82,69 @@ def _project_claim(row: dict[str, Any], mode: str, explicit_fields: set[str]) ->
     if allowed is None:
         return projected
     return {k: v for k, v in projected.items() if k in allowed}
+
+
+def _is_publication_request_row(row: dict[str, Any]) -> bool:
+    metadata = row.get("metadata") if isinstance(row.get("metadata"), dict) else {}
+    kind = str(metadata.get("kind") or "").strip().lower()
+    source_kind = str(metadata.get("source_note_kind") or "").strip().lower()
+    source_note = str(metadata.get("source_note") or "").strip()
+    return (
+        kind == "publication_request"
+        or source_kind == "publication_request"
+        or source_note.startswith(_PUBLICATION_REQUEST_PREFIX)
+    )
+
+
+def _claim_text_key(row: dict[str, Any]) -> str:
+    text = normalize_text(str(row.get("text") or ""))
+    text = re.sub(r"\s+", " ", text).strip()
+    return text
+
+
+def _claim_metadata_weight(row: dict[str, Any]) -> int:
+    metadata = row.get("metadata") if isinstance(row.get("metadata"), dict) else {}
+    return sum(1 for value in metadata.values() if value not in (None, "", [], {}))
+
+
+def _dedupe_claim_rows(rows: list[dict[str, Any]], top_k: int) -> list[dict[str, Any]]:
+    selected: dict[str, dict[str, Any]] = {}
+    passthrough: list[dict[str, Any]] = []
+    for row in rows:
+        if _is_publication_request_row(row):
+            continue
+        key = _claim_text_key(row)
+        if not key:
+            passthrough.append(row)
+            continue
+        existing = selected.get(key)
+        if existing is None:
+            selected[key] = row
+            continue
+        current_rank = (float(row.get("score") or 0.0), _claim_metadata_weight(row), str(row.get("updated_at") or ""))
+        existing_rank = (
+            float(existing.get("score") or 0.0),
+            _claim_metadata_weight(existing),
+            str(existing.get("updated_at") or ""),
+        )
+        if current_rank > existing_rank:
+            selected[key] = row
+    ordered: list[dict[str, Any]] = []
+    emitted: set[int] = set()
+    for row in rows:
+        if _is_publication_request_row(row):
+            continue
+        key = _claim_text_key(row)
+        chosen = selected.get(key) if key else None
+        if chosen is row and id(row) not in emitted:
+            ordered.append(row)
+            emitted.add(id(row))
+        elif not key:
+            ordered.append(row)
+    for row in selected.values():
+        if id(row) not in emitted:
+            ordered.append(row)
+    return ordered[:top_k]
 
 
 def _rrf_merge(
@@ -173,7 +238,10 @@ def query_memory(payload: QueryRequest) -> dict[str, Any]:
         expanded = []
         if payload.options.expand_related_claims and fused_claims:
             expanded = _expand_related_claims(conn, fused_claims, payload)
-        combined = _merge_ranked_claims(fused_claims, expanded, payload.top_k)
+        combined = _dedupe_claim_rows(
+            _merge_ranked_claims(fused_claims, expanded, max(payload.top_k * 3, payload.top_k)),
+            payload.top_k,
+        )
 
         claim_ids = [claim["id"] for claim in combined]
         if payload.options.expand_mentions and claim_ids:
@@ -262,6 +330,9 @@ def _search_claims_semantic(
             FROM claims c
             WHERE c.embedding IS NOT NULL
               AND c.status = ANY(%(statuses)s)
+              AND COALESCE(c.metadata->>'kind','') <> 'publication_request'
+              AND COALESCE(c.metadata->>'source_note_kind','') <> 'publication_request'
+              AND COALESCE(c.metadata->>'source_note','') NOT LIKE 'personal_vault/projects/ops/librarian/publication_requests/%%'
             ORDER BY c.embedding <=> %(qv)s::vector
             LIMIT %(limit)s
             """,
@@ -294,6 +365,9 @@ def _search_capsules_semantic(
             FROM capsules cap
             WHERE cap.embedding IS NOT NULL
               AND COALESCE(cap.metadata->>'dedup_decision','') <> 'supersede'
+              AND COALESCE(cap.metadata->>'kind','') <> 'publication_request'
+              AND COALESCE(cap.metadata->>'source_note_kind','') <> 'publication_request'
+              AND COALESCE(cap.metadata->>'source_note','') NOT LIKE 'personal_vault/projects/ops/librarian/publication_requests/%%'
             ORDER BY cap.embedding <=> %(qv)s::vector
             LIMIT %(limit)s
             """,
@@ -372,6 +446,9 @@ def _search_claims(conn, payload: QueryRequest, normalized_query: str) -> list[d
             LEFT JOIN mention_hits mh ON mh.claim_id = c.id
             WHERE
                 c.status = ANY(%(statuses)s)
+                AND COALESCE(c.metadata->>'kind','') <> 'publication_request'
+                AND COALESCE(c.metadata->>'source_note_kind','') <> 'publication_request'
+                AND COALESCE(c.metadata->>'source_note','') NOT LIKE 'personal_vault/projects/ops/librarian/publication_requests/%%'
                 AND (
                     c.search_vector @@ q.tsq
                     OR lower(c.text) ILIKE '%%' || q.nq || '%%'
@@ -431,7 +508,11 @@ def _expand_related_claims(conn, claims: list[dict[str, Any]], payload: QueryReq
                 )::float AS score
             FROM linked
             JOIN claims c ON c.id = linked.claim_id
-            WHERE c.status = ANY(%(statuses)s) AND c.id <> ALL(%(claim_ids)s)
+            WHERE c.status = ANY(%(statuses)s)
+              AND c.id <> ALL(%(claim_ids)s)
+              AND COALESCE(c.metadata->>'kind','') <> 'publication_request'
+              AND COALESCE(c.metadata->>'source_note_kind','') <> 'publication_request'
+              AND COALESCE(c.metadata->>'source_note','') NOT LIKE 'personal_vault/projects/ops/librarian/publication_requests/%%'
             GROUP BY c.id
             ORDER BY score DESC, c.updated_at DESC
             LIMIT %(limit)s
@@ -517,6 +598,9 @@ def _search_capsules(
             CROSS JOIN q
             WHERE
                 COALESCE(cap.metadata->>'dedup_decision','') <> 'supersede'
+                AND COALESCE(cap.metadata->>'kind','') <> 'publication_request'
+                AND COALESCE(cap.metadata->>'source_note_kind','') <> 'publication_request'
+                AND COALESCE(cap.metadata->>'source_note','') NOT LIKE 'personal_vault/projects/ops/librarian/publication_requests/%%'
                 AND (
                 cap.search_vector @@ q.tsq
                 OR lower(cap.title) ILIKE '%%' || q.nq || '%%'
@@ -564,6 +648,9 @@ def _attach_related_capsules(conn, capsules: list[dict[str, Any]]) -> None:
                 WHERE embedding IS NOT NULL
                   AND id != %(id)s
                   AND NOT (id = ANY(%(result_ids)s::uuid[]))
+                  AND COALESCE(metadata->>'kind','') <> 'publication_request'
+                  AND COALESCE(metadata->>'source_note_kind','') <> 'publication_request'
+                  AND COALESCE(metadata->>'source_note','') NOT LIKE 'personal_vault/projects/ops/librarian/publication_requests/%%'
                 ORDER BY embedding <=> %(embedding)s::vector
                 LIMIT 4
                 """,

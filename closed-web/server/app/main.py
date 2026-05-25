@@ -147,7 +147,7 @@ from app.librarian import (
     load_librarian_settings,
     save_librarian_settings,
 )
-from app.core_api_bridge import get_last_sync_failure_reason, sync_published_note
+from app.core_api_bridge import get_last_sync_failure_reason, is_publication_request_note, sync_published_note
 from app.mcp_server import mcp
 from app.observability import (
     RequestLogMiddleware,
@@ -1612,6 +1612,8 @@ def api_admin_core_resync(
                 fm = load_document(rel).frontmatter
             except Exception:
                 continue
+            if is_publication_request_note(fm, rel):
+                continue
             if str(fm.get("publication_status") or "").lower() != "published":
                 continue
             if str(fm.get("kind") or "").lower() not in {"capsule", "claim"}:
@@ -1649,6 +1651,8 @@ def _published_sync_failure_items(*, include_pending: bool = True) -> list[dict[
         except Exception:
             continue
         fm = dict(doc.frontmatter or {})
+        if is_publication_request_note(fm, rel):
+            continue
         if str(fm.get("publication_status") or "").strip().lower() != "published":
             continue
         if str(fm.get("kind") or "").strip().lower() not in {"capsule", "claim"}:
@@ -2244,7 +2248,11 @@ def api_publication_status(
                 effective_document = document
         synced_path = effective_document.path
         core_api_id = str(effective_document.frontmatter.get("core_api_id") or "").strip() or None
-        if not core_api_id and str(effective_document.frontmatter.get("kind") or "").strip().lower() in {"capsule", "claim"}:
+        if (
+            not core_api_id
+            and not is_publication_request_note(effective_document.frontmatter, effective_document.path)
+            and str(effective_document.frontmatter.get("kind") or "").strip().lower() in {"capsule", "claim"}
+        ):
             core_api_id = sync_published_note(
                 frontmatter=effective_document.frontmatter,
                 body=effective_document.body,

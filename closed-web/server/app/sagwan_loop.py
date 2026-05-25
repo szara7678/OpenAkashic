@@ -1201,6 +1201,10 @@ def get_guardrail_passed_claims(db: Any = None, limit: int = 50) -> list[dict[st
         fm = dict(doc.frontmatter or {})
         if str(fm.get("kind") or "").strip().lower() != "claim":
             continue
+        if str(fm.get("targets") or "").strip():
+            continue
+        if str(fm.get("superseded_by") or "").strip() or "superseded" in Path(path).name.lower():
+            continue
         if str(fm.get("publication_status") or "").strip().lower() not in retry_statuses:
             continue
         body = doc.body or ""

@@ -125,6 +125,82 @@ def _viewer_can_open_note(note: ClosedNote, viewer_owner: str | None, is_admin: 
     return bool(owner and note.owner == owner)
 
 
+def _is_superseded_search_note(note: ClosedNote) -> bool:
+    if str(note.superseded_by or "").strip():
+        return True
+    filename = Path(note.path).name.lower()
+    if "superseded" in filename:
+        return True
+    return False
+
+
+def _claim_dedupe_key(note: ClosedNote) -> str:
+    if note.kind != "claim":
+        return ""
+    text = note.body or note.summary or note.title
+    match = re.search(r"^#{2,4}\s+Claim\s*\n(.*?)(?=\n#{2,4}\s|\Z)", text, re.MULTILINE | re.DOTALL | re.IGNORECASE)
+    if match:
+        text = match.group(1)
+    text = _summary_text(text)
+    text = re.sub(r"\s+", " ", text).strip().lower()
+    return text
+
+
+def _result_metadata_weight(item: dict[str, Any]) -> int:
+    return sum(
+        1
+        for field in (
+            "summary",
+            "tags",
+            "confirm_count",
+            "dispute_count",
+            "neutral_count",
+            "claim_review_status",
+            "supersedes",
+            "superseded_by",
+        )
+        if item.get(field) not in (None, "", [], 0)
+    )
+
+
+def _dedupe_claim_search_results(results: list[dict[str, Any]], note_by_slug: dict[str, ClosedNote]) -> list[dict[str, Any]]:
+    selected: dict[str, dict[str, Any]] = {}
+    passthrough: list[dict[str, Any]] = []
+    for item in results:
+        slug = str(item.get("slug") or "")
+        note = note_by_slug.get(slug)
+        key = _claim_dedupe_key(note) if note else ""
+        if not key:
+            passthrough.append(item)
+            continue
+        existing = selected.get(key)
+        if existing is None:
+            selected[key] = item
+            continue
+        current_rank = (float(item.get("score") or 0.0), _result_metadata_weight(item))
+        existing_rank = (float(existing.get("score") or 0.0), _result_metadata_weight(existing))
+        if current_rank > existing_rank:
+            selected[key] = item
+    deduped_claims = {id(item): item for item in selected.values()}
+    output: list[dict[str, Any]] = []
+    emitted_claim_ids: set[int] = set()
+    for item in results:
+        marker = id(item)
+        if marker in deduped_claims:
+            output.append(item)
+            emitted_claim_ids.add(marker)
+            continue
+        slug = str(item.get("slug") or "")
+        note = note_by_slug.get(slug)
+        if note and _claim_dedupe_key(note):
+            continue
+        output.append(item)
+    for item in selected.values():
+        if id(item) not in emitted_claim_ids:
+            output.append(item)
+    return output
+
+
 def _as_bool(value: Any) -> bool:
     if isinstance(value, bool):
         return value
@@ -586,6 +662,7 @@ def search_closed_notes(
     # raw import 노트는 기본적으로 검색에서 제외 (include_imported=True 시 포함)
     if not include_imported:
         notes = [n for n in notes if "imported-doc" not in n.tags]
+    notes = [n for n in notes if not _is_superseded_search_note(n)]
     # publication_request 스텁은 지식이 아닌 메타데이터 — 실제 source 노트의 rationale/evidence가
     # 본문에 포함돼 있어 source보다 상위 랭크되는 부작용을 일으킨다. 검색에서 제외한다.
     notes = [n for n in notes if not n.path.startswith("personal_vault/projects/ops/librarian/publication_requests/")]
@@ -658,29 +735,29 @@ def search_closed_notes(
                 "bm25": float(lexical_entry.get("bm25") or 0.0),
             }
     # Common queries should stay fast: run semantic reranking over the lexical pool first.
-    # Only fall back to a global semantic pass when lexical recall is too thin.
+    # Only fall back to a global semantic pass when lexical recall is empty.
     semantic_scores: dict[str, float] = {}
-    if not lexical_scores:
-        semantic_scores = {
-            key: score
-            for key, score in semantic_rank(
-                query,
-                [
-                    SemanticDocument(
-                        key=note.slug,
-                        path=note.path,
-                        title=note.title,
-                        kind=note.kind,
-                        project=note.project,
-                        status=note.status,
-                        summary=note.summary,
-                        body=note.body,
-                    )
-                    for note in notes
-                ],
-                limit=max(limit * 3, limit),
-            )
-        }
+    semantic_pool = [note for note in notes if not lexical_scores or note.slug in lexical_scores]
+    semantic_scores = {
+        key: score
+        for key, score in semantic_rank(
+            query,
+            [
+                SemanticDocument(
+                    key=note.slug,
+                    path=note.path,
+                    title=note.title,
+                    kind=note.kind,
+                    project=note.project,
+                    status=note.status,
+                    summary=note.summary,
+                    body=note.body,
+                )
+                for note in semantic_pool
+            ],
+            limit=max(limit * 3, len(semantic_pool), limit),
+        )
+    }
     for note in notes:
         semantic_score = semantic_scores.get(note.slug, 0.0)
         lexical_entry = lexical_scores.get(note.slug, {})
@@ -739,7 +816,8 @@ def search_closed_notes(
         final_score = rrf_scores.get(slug, 0.0) * trust_multiplier
         entry["trust_multiplier"] = round(trust_multiplier, 6)
         entry["score"] = round(final_score, 6)
-    results = sorted(matches_by_slug.values(), key=lambda item: (-item["score"], item["title"]))[:limit]
+    ranked_results = sorted(matches_by_slug.values(), key=lambda item: (-item["score"], item["title"]))
+    results = _dedupe_claim_search_results(ranked_results, note_by_slug)[:limit]
     # 결과가 얇을 때 semantic 점수가 조금이라도 있는 이웃 노트를 hint로 제공.
     # 작은 모델이 쿼리 문구를 잘못 고를 때 재검색 실마리를 잡을 수 있도록 한다.
     hints: list[dict[str, Any]] = []

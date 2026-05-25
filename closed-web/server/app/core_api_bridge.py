@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 
 _SYNCABLE_KINDS = {"capsule", "claim"}
 _LAST_SYNC_FAILURES: dict[str, str] = {}
+_PUBLICATION_REQUEST_PREFIX = "personal_vault/projects/ops/librarian/publication_requests/"
 
 # confidence 필드는 노트에서 "high"/"medium"/"low" 같은 라벨 또는 float으로 올 수 있다.
 # Core API 스키마는 [0, 1] float만 받으므로 라벨을 대표 숫자로 매핑한다.
@@ -48,6 +49,16 @@ def _clear_sync_failure(note_path: str) -> None:
 
 def get_last_sync_failure_reason(note_path: str) -> str:
     return str(_LAST_SYNC_FAILURES.get(note_path) or "").strip()
+
+
+def is_publication_request_note(frontmatter: dict[str, Any], note_path: str = "") -> bool:
+    kind = str(frontmatter.get("kind") or "").strip().lower()
+    if kind == "publication_request":
+        return True
+    if str(note_path or "").startswith(_PUBLICATION_REQUEST_PREFIX):
+        return True
+    source_kind = str(frontmatter.get("source_note_kind") or "").strip().lower()
+    return source_kind == "publication_request"
 
 
 def _coerce_confidence(value: Any, default: float = 0.75) -> float:
@@ -341,6 +352,7 @@ def _sync_capsule(frontmatter: dict[str, Any], body: str, note_path: str, *, exi
     capsule_metadata = {
         "tags": tags,
         "source_note": note_path,
+        "source_note_kind": "capsule",
         "source": "closed_akashic_publication",
         "parser_version": "2026-04-19",
     }
@@ -416,6 +428,7 @@ def _sync_claim(frontmatter: dict[str, Any], body: str, note_path: str, *, exist
         "metadata": {
             "tags": tags,
             "source_note": note_path,
+            "source_note_kind": "claim",
             "source": "closed_akashic_publication",
             "claim_review_status": claim_review_status,
             "confirm_count": confirm_count,
@@ -477,6 +490,8 @@ def sync_published_note(frontmatter: dict[str, Any], body: str, note_path: str, 
     (key_points 파서 버그 수정 이후 과거 캡슐을 재생성할 때 사용.)
     """
     kind = str(frontmatter.get("kind") or "").strip().lower()
+    if is_publication_request_note(frontmatter, note_path):
+        return None
     if kind not in _SYNCABLE_KINDS:
         return None
 

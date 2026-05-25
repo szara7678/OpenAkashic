@@ -210,6 +210,23 @@ class ClaimIntegrationTests(unittest.TestCase):
         self.assertEqual(claim.frontmatter["publication_status"], "published")
         self.assertIn(claim_path, capsule.frontmatter["evidence_paths"])
 
+    def test_targeted_review_claims_do_not_enter_integration_queue(self) -> None:
+        review_path = "personal_vault/shared/reviews/r_targeted.md"
+        superseded_path = "personal_vault/projects/personal/openakashic/reference/Old Claim Superseded.md"
+        normal_path = "personal_vault/projects/personal/openakashic/reference/normal-claim.md"
+        self._write_claim(review_path, "## Claim\nThis is a review claim attached to a target.\n")
+        review = self.vault.load_document(review_path)
+        review_fm = dict(review.frontmatter)
+        review_fm["targets"] = "personal_vault/projects/ops/librarian/capsules/target.md"
+        review_fm["stance"] = "support"
+        self.vault.write_document(path=review_path, body=review.body, metadata=review_fm)
+        self._write_claim(superseded_path, "## Claim\nThis old claim has a newer replacement.\n")
+        self._write_claim(normal_path, "## Claim\nThis normal contribution should still integrate.\n")
+
+        queued = self.sagwan_loop.get_guardrail_passed_claims(limit=10)
+
+        self.assertEqual([item["path"] for item in queued], [normal_path])
+
     def test_integration_parse_failure_preserves_claim_for_retry(self) -> None:
         claim_path = "personal_vault/projects/personal/openakashic/reference/integration-parse-failure.md"
         self._write_claim(claim_path, "## Claim\nInvalid integration JSON should leave state unchanged.\n")

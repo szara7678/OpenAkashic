@@ -52,7 +52,7 @@ def _trigger_wake() -> None:
         pass
 
 from app.config import get_settings
-from app.core_api_bridge import get_last_sync_failure_reason, sync_published_note
+from app.core_api_bridge import get_last_sync_failure_reason, is_publication_request_note, sync_published_note
 from app.site import SemanticDocument, get_closed_note, search_closed_notes, semantic_rank
 from app.users import SAGWAN_SYSTEM_OWNER
 from app.vault import (
@@ -519,6 +519,8 @@ def _sync_published_notes_to_core_api(*, limit: int = 10) -> str:
         except Exception:
             continue
         fm = doc.frontmatter
+        if is_publication_request_note(fm, note_path):
+            continue
         if str(fm.get("publication_status") or "").lower() != "published":
             continue
         if str(fm.get("kind") or "").lower() not in {"capsule", "claim"}:

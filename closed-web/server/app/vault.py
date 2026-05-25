@@ -965,6 +965,14 @@ def render_document(frontmatter: dict[str, Any], body: str) -> str:
 
 
 def _syncable_published_frontmatter(frontmatter: dict[str, Any]) -> bool:
+    try:
+        from app.core_api_bridge import is_publication_request_note
+
+        if is_publication_request_note(frontmatter):
+            return False
+    except Exception:
+        if str(frontmatter.get("kind") or "").strip().lower() == "publication_request":
+            return False
     kind = str(frontmatter.get("kind") or "").strip().lower()
     if kind not in {"capsule", "claim"}:
         return False

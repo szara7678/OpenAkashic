@@ -50,7 +50,7 @@ def test_extract_section_case_insensitive_and_alternates():
 
 def test_extract_bullets_strips_markers():
     text = "- alpha\n* beta\n+ gamma\n일반 문장"
-    assert bridge._extract_bullets(text) == ["alpha", "beta", "gamma", "일반 문장"]
+    assert bridge._extract_bullets(text) == ["alpha", "beta", "gamma"]
 
 
 def test_extract_evidence_links_markdown_and_bare():
@@ -104,16 +104,42 @@ def test_sync_skips_reference_kind(fake_settings, monkeypatch):
     assert called == []
 
 
-def test_sync_idempotent_via_core_api_id(fake_settings, monkeypatch):
+def test_sync_skips_publication_request_even_if_published(fake_settings, monkeypatch):
     called = []
-    monkeypatch.setattr(bridge, "_core_api_post", lambda *a, **k: called.append(a) or {"id": "new"})
+    monkeypatch.setattr(bridge, "_core_api_post", lambda *a, **k: called.append(a) or {"id": "x"})
+    result = bridge.sync_published_note(
+        frontmatter={"kind": "publication_request", "publication_status": "published", "title": "Request"},
+        body="## Summary\nrequest metadata",
+        note_path="personal_vault/projects/ops/librarian/publication_requests/request.md",
+    )
+    assert result is None
+    assert called == []
+
+
+def test_sync_skips_publication_request_path_defensively(fake_settings, monkeypatch):
+    called = []
+    monkeypatch.setattr(bridge, "_core_api_post", lambda *a, **k: called.append(a) or {"id": "x"})
+    result = bridge.sync_published_note(
+        frontmatter={"kind": "capsule", "publication_status": "published", "title": "Bad Request Artifact"},
+        body="## Summary\nrequest metadata",
+        note_path="personal_vault/projects/ops/librarian/publication_requests/request.md",
+    )
+    assert result is None
+    assert called == []
+
+
+def test_sync_idempotent_via_core_api_id(fake_settings, monkeypatch):
+    patched = []
+    monkeypatch.setattr(bridge, "_core_api_post", lambda *a, **k: {"id": "new"})
+    monkeypatch.setattr(bridge, "_core_api_patch", lambda *a, **k: patched.append(a) or {"id": "existing-id"})
     result = bridge.sync_published_note(
         frontmatter={"kind": "capsule", "core_api_id": "existing-id"},
         body="## Summary\n...",
         note_path="personal_vault/x.md",
     )
     assert result == "existing-id"
-    assert called == []
+    assert len(patched) == 1
+    assert "/capsules/existing-id" in patched[0][0]
 
 
 def test_sync_capsule_with_string_confidence(fake_settings, monkeypatch):
@@ -124,6 +150,7 @@ def test_sync_capsule_with_string_confidence(fake_settings, monkeypatch):
         return {"id": "cap-123"}
 
     monkeypatch.setattr(bridge, "_core_api_post", _fake_post)
+    monkeypatch.setattr(bridge, "_create_derived_claim", lambda *a, **k: None)
     body = (
         "## Summary\n전략 캡슐 요약\n\n"
         "## Key Points\n- 포인트 A\n- 포인트 B\n\n"

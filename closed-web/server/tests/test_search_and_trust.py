@@ -12,7 +12,8 @@ if str(SERVER_ROOT) not in sys.path:
 from app.fts_search import FTSDocument, lexical_rank  # noqa: E402
 from app import mcp_server  # noqa: E402
 from app import subordinate  # noqa: E402
-from app.site import _claim_trust_multiplier, _normalize_claim_review_status  # noqa: E402
+from app import site  # noqa: E402
+from app.site import ClosedNote, _claim_trust_multiplier, _normalize_claim_review_status  # noqa: E402
 
 
 class _FakeSettings:
@@ -123,3 +124,137 @@ def test_analyze_search_quality_signals_creates_improvement_request(tmp_path, mo
     assert created_path.startswith("personal_vault/meta/improvement-requests/search-quality-")
     assert "Repeated low-quality public search result" in str(created_note["body"])
     assert "search-quality" in list(created_note["metadata"]["tags"])
+
+
+def _closed_note(
+    *,
+    path: str,
+    slug: str,
+    title: str,
+    kind: str = "reference",
+    body: str = "body",
+    superseded_by: str = "",
+) -> ClosedNote:
+    return ClosedNote(
+        path=path,
+        slug=slug,
+        title=title,
+        kind=kind,
+        project="openakashic",
+        status="active",
+        owner="tester",
+        visibility="public",
+        publication_status="published",
+        tags=[],
+        related=[],
+        summary="",
+        body=body,
+        links=[],
+        frontmatter={"kind": kind, "title": title},
+        superseded_by=superseded_by,
+    )
+
+
+def test_search_closed_notes_applies_semantic_scores_to_lexical_hits(monkeypatch):
+    notes = [
+        _closed_note(path="doc/one.md", slug="one", title="One", body="alpha beta"),
+        _closed_note(path="doc/two.md", slug="two", title="Two", body="alpha gamma"),
+    ]
+    monkeypatch.setattr(site, "_load_notes", lambda: notes)
+    monkeypatch.setattr(
+        site,
+        "lexical_rank",
+        lambda query, documents, limit: {
+            "one": {"score": 1.0, "bm25": 0.1},
+            "two": {"score": 0.9, "bm25": 0.1},
+        },
+    )
+
+    semantic_docs_seen = []
+
+    def fake_semantic_rank(query, documents, limit):
+        semantic_docs_seen.extend(doc.key for doc in documents)
+        return [("one", 0.73), ("two", 0.41)]
+
+    monkeypatch.setattr(site, "semantic_rank", fake_semantic_rank)
+
+    result = site.search_closed_notes("alpha", limit=2)
+
+    assert semantic_docs_seen == ["one", "two"]
+    scores = {item["slug"]: item["semantic_score"] for item in result["results"]}
+    assert scores["one"] == 0.73
+    assert scores["two"] == 0.41
+
+
+def test_search_closed_notes_excludes_superseded_notes_before_indexing(monkeypatch):
+    active = _closed_note(path="doc/active.md", slug="active", title="Active", body="alpha")
+    superseded_field = _closed_note(
+        path="doc/old.md",
+        slug="old",
+        title="Old",
+        body="alpha",
+        superseded_by="doc/new.md",
+    )
+    superseded_filename = _closed_note(
+        path="doc/Thing Superseded.md",
+        slug="thing-superseded",
+        title="Thing Superseded",
+        body="alpha",
+    )
+    monkeypatch.setattr(site, "_load_notes", lambda: [active, superseded_field, superseded_filename])
+
+    indexed_slugs = []
+
+    def fake_lexical_rank(query, documents, limit):
+        indexed_slugs.extend(doc.slug for doc in documents)
+        return {"active": {"score": 1.0, "bm25": 0.1}}
+
+    monkeypatch.setattr(site, "lexical_rank", fake_lexical_rank)
+    monkeypatch.setattr(site, "semantic_rank", lambda *args, **kwargs: [])
+
+    result = site.search_closed_notes("alpha", limit=5)
+
+    assert indexed_slugs == ["active"]
+    assert [item["slug"] for item in result["results"]] == ["active"]
+
+
+def test_search_closed_notes_dedupes_claims_by_normalized_text(monkeypatch):
+    first = _closed_note(
+        path="personal_vault/a/dup1.md",
+        slug="dup1",
+        title="Duplicate One",
+        kind="claim",
+        body="## Claim\nDuplicate claim text.\n",
+    )
+    second = _closed_note(
+        path="personal_vault/a/dup2.md",
+        slug="dup2",
+        title="Duplicate Two",
+        kind="claim",
+        body="## Claim\nDuplicate   claim text.\n",
+    )
+    unique = _closed_note(
+        path="personal_vault/a/unique.md",
+        slug="unique",
+        title="Unique",
+        kind="claim",
+        body="## Claim\nUnique claim text.\n",
+    )
+    monkeypatch.setattr(site, "_load_notes", lambda: [first, second, unique])
+    monkeypatch.setattr(
+        site,
+        "lexical_rank",
+        lambda query, documents, limit: {
+            "dup1": {"score": 0.7, "bm25": 0.1},
+            "dup2": {"score": 0.9, "bm25": 0.1},
+            "unique": {"score": 0.8, "bm25": 0.1},
+        },
+    )
+    monkeypatch.setattr(site, "semantic_rank", lambda *args, **kwargs: [])
+
+    result = site.search_closed_notes("claim text", limit=5, kind="claim")
+
+    slugs = [item["slug"] for item in result["results"]]
+    assert "dup2" in slugs
+    assert "dup1" not in slugs
+    assert "unique" in slugs

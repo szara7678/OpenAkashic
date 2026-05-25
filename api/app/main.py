@@ -327,6 +327,29 @@ def create_capsule(payload: CapsuleCreate) -> dict[str, Any]:
     return json_ready(capsule)
 
 
+@app.get("/capsules")
+def list_capsules(
+    limit: int = Query(default=30, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+    sort: str = Query(default="recent"),
+) -> dict[str, Any]:
+    order_clause = "updated_at DESC, created_at DESC" if sort == "updated" else "created_at DESC"
+    with get_conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                f"""
+                SELECT id, title, summary, key_points, cautions, source_claim_ids,
+                       confidence::float AS confidence, metadata, created_at, updated_at
+                FROM capsules
+                ORDER BY {order_clause}
+                LIMIT %(limit)s OFFSET %(offset)s
+                """,
+                {"limit": limit, "offset": offset},
+            )
+            rows = cur.fetchall()
+    return {"capsules": [json_ready(dict(row)) for row in rows], "count": len(rows), "limit": limit, "offset": offset, "sort": sort}
+
+
 @app.get("/capsules/{capsule_id}")
 def get_capsule(capsule_id: UUID) -> dict[str, Any]:
     with get_conn() as conn:
@@ -343,6 +366,55 @@ def get_capsule(capsule_id: UUID) -> dict[str, Any]:
             capsule = cur.fetchone()
             if not capsule:
                 raise HTTPException(status_code=404, detail="Capsule not found")
+    return json_ready(dict(capsule))
+
+
+@app.patch("/capsules/{capsule_id}", dependencies=[Depends(require_write_key)])
+def update_capsule(capsule_id: UUID, payload: CapsuleCreate) -> dict[str, Any]:
+    data = payload.model_dump(mode="json")
+    data["id"] = capsule_id
+    data["summary"] = Jsonb(data["summary"])
+    data["key_points"] = Jsonb(data["key_points"])
+    data["cautions"] = Jsonb(data["cautions"])
+    data["source_claim_ids"] = payload.source_claim_ids
+
+    from app.embeddings import embed_one
+    summary_text = " ".join(str(s) for s in (payload.summary or [])[:5])
+    kp_texts = []
+    for entry in (payload.key_points or [])[:5]:
+        if hasattr(entry, "text"):
+            kp_texts.append(str(getattr(entry, "text", "")))
+        elif isinstance(entry, dict):
+            kp_texts.append(str(entry.get("text", "")))
+    blob = " ".join(filter(None, [payload.title or "", summary_text, " ".join(kp_texts)])).strip()
+    data["embedding"] = embed_one(blob, is_query=False) if blob else None
+    data["metadata"] = Jsonb(dict(data.get("metadata") or {}))
+
+    with get_conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                UPDATE capsules
+                SET title = %(title)s,
+                    summary = %(summary)s,
+                    key_points = %(key_points)s,
+                    cautions = %(cautions)s,
+                    source_claim_ids = %(source_claim_ids)s,
+                    confidence = %(confidence)s,
+                    metadata = %(metadata)s,
+                    embedding = %(embedding)s::vector,
+                    embedding_updated_at = CASE WHEN %(embedding)s IS NULL THEN NULL ELSE now() END,
+                    updated_at = now()
+                WHERE id = %(id)s
+                RETURNING id, title, summary, key_points, cautions, source_claim_ids,
+                          confidence::float AS confidence, metadata, created_at, updated_at
+                """,
+                data,
+            )
+            capsule = cur.fetchone()
+            if not capsule:
+                raise HTTPException(status_code=404, detail="Capsule not found")
+        conn.commit()
     return json_ready(dict(capsule))
 
 
