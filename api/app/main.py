@@ -11,6 +11,7 @@ from app.db import close_pool, get_conn
 from app.retrieval import query_memory
 from app.schemas import (
     CapsuleCreate,
+    CapsuleUpdate,
     ClaimCreate,
     ClaimUpdate,
     ClaimStatusUpdate,
@@ -370,52 +371,81 @@ def get_capsule(capsule_id: UUID) -> dict[str, Any]:
 
 
 @app.patch("/capsules/{capsule_id}", dependencies=[Depends(require_write_key)])
-def update_capsule(capsule_id: UUID, payload: CapsuleCreate) -> dict[str, Any]:
-    data = payload.model_dump(mode="json")
-    data["id"] = capsule_id
-    data["summary"] = Jsonb(data["summary"])
-    data["key_points"] = Jsonb(data["key_points"])
-    data["cautions"] = Jsonb(data["cautions"])
-    data["source_claim_ids"] = payload.source_claim_ids
+def update_capsule(capsule_id: UUID, payload: CapsuleUpdate) -> dict[str, Any]:
+    patch = payload.model_dump(exclude_unset=True, mode="json")
+    if not patch:
+        raise HTTPException(status_code=400, detail="No capsule fields provided")
 
-    from app.embeddings import embed_one
-    summary_text = " ".join(str(s) for s in (payload.summary or [])[:5])
-    kp_texts = []
-    for entry in (payload.key_points or [])[:5]:
-        if hasattr(entry, "text"):
-            kp_texts.append(str(getattr(entry, "text", "")))
-        elif isinstance(entry, dict):
-            kp_texts.append(str(entry.get("text", "")))
-    blob = " ".join(filter(None, [payload.title or "", summary_text, " ".join(kp_texts)])).strip()
-    data["embedding"] = embed_one(blob, is_query=False) if blob else None
-    data["metadata"] = Jsonb(dict(data.get("metadata") or {}))
+    assignments: list[str] = []
+    values: dict[str, Any] = {"id": capsule_id}
+    if "title" in patch:
+        if patch["title"] is None:
+            raise HTTPException(status_code=400, detail="title cannot be null")
+        assignments.append("title = %(title)s")
+        values["title"] = patch["title"]
+    if "summary" in patch:
+        assignments.append("summary = %(summary)s")
+        values["summary"] = Jsonb(patch["summary"] or [])
+    if "key_points" in patch:
+        assignments.append("key_points = %(key_points)s")
+        values["key_points"] = Jsonb(patch["key_points"] or [])
+    if "cautions" in patch:
+        assignments.append("cautions = %(cautions)s")
+        values["cautions"] = Jsonb(patch["cautions"] or [])
+    if "source_claim_ids" in patch:
+        assignments.append("source_claim_ids = %(source_claim_ids)s")
+        values["source_claim_ids"] = payload.source_claim_ids or []
+    if "confidence" in patch:
+        if patch["confidence"] is None:
+            raise HTTPException(status_code=400, detail="confidence cannot be null")
+        assignments.append("confidence = %(confidence)s")
+        values["confidence"] = patch["confidence"]
+    if "metadata" in patch:
+        assignments.append("metadata = %(metadata)s")
+        values["metadata"] = Jsonb(patch["metadata"] or {})
 
+    should_refresh_embedding = any(field in patch for field in ("title", "summary", "key_points"))
     with get_conn() as conn:
         with conn.cursor() as cur:
             cur.execute(
-                """
+                f"""
                 UPDATE capsules
-                SET title = %(title)s,
-                    summary = %(summary)s,
-                    key_points = %(key_points)s,
-                    cautions = %(cautions)s,
-                    source_claim_ids = %(source_claim_ids)s,
-                    confidence = %(confidence)s,
-                    metadata = %(metadata)s,
-                    embedding = %(embedding)s::vector,
-                    embedding_updated_at = CASE WHEN %(embedding)s IS NULL THEN NULL ELSE now() END,
-                    updated_at = now()
+                SET {", ".join(assignments)}
                 WHERE id = %(id)s
                 RETURNING id, title, summary, key_points, cautions, source_claim_ids,
                           confidence::float AS confidence, metadata, created_at, updated_at
                 """,
-                data,
+                values,
             )
             capsule = cur.fetchone()
             if not capsule:
                 raise HTTPException(status_code=404, detail="Capsule not found")
+            capsule = dict(capsule)
+            if should_refresh_embedding:
+                from app.embeddings import embed_one
+                summary_text = " ".join(str(s) for s in (capsule["summary"] or [])[:5])
+                kp_texts = []
+                for entry in (capsule["key_points"] or [])[:5]:
+                    if isinstance(entry, dict):
+                        kp_texts.append(str(entry.get("text", "")))
+                    elif hasattr(entry, "text"):
+                        kp_texts.append(str(getattr(entry, "text", "")))
+                blob = " ".join(filter(None, [capsule["title"] or "", summary_text, " ".join(kp_texts)])).strip()
+                embedding = embed_one(blob, is_query=False) if blob else None
+                cur.execute(
+                    """
+                    UPDATE capsules
+                    SET embedding = %(embedding)s::vector,
+                        embedding_updated_at = CASE WHEN %(embedding)s IS NULL THEN NULL ELSE now() END
+                    WHERE id = %(id)s
+                    RETURNING id, title, summary, key_points, cautions, source_claim_ids,
+                              confidence::float AS confidence, metadata, created_at, updated_at
+                    """,
+                    {"id": capsule_id, "embedding": embedding},
+                )
+                capsule = dict(cur.fetchone())
         conn.commit()
-    return json_ready(dict(capsule))
+    return json_ready(capsule)
 
 
 @app.delete("/capsules/{capsule_id}", dependencies=[Depends(require_write_key)])

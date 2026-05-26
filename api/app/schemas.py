@@ -62,6 +62,16 @@ class CapsuleCreate(BaseModel):
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
+class CapsuleUpdate(BaseModel):
+    title: str | None = Field(default=None, min_length=1)
+    summary: list[str] | None = None
+    key_points: list[CapsulePoint] | None = None
+    cautions: list[CapsulePoint] | None = None
+    source_claim_ids: list[UUID] | None = None
+    confidence: float | None = Field(default=None, ge=0, le=1)
+    metadata: dict[str, Any] | None = None
+
+
 class EntityCreate(BaseModel):
     entity_key: str = Field(min_length=1)
     canonical_name: str = Field(min_length=1)
