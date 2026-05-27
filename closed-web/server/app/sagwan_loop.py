@@ -117,6 +117,7 @@ def _default_sagwan_settings() -> dict[str, Any]:
         "research_interval_sec": 7200,   # 2시간
         "research_max_fetches": 3,
         "research_topic_cooldown_cycles": 5,
+        "research_dedup_similarity_threshold": 0.85,
         "consolidate_enabled": True,
         "consolidate_interval_sec": 21600,  # 6시간
         "consolidate_min_reviews": 3,
@@ -203,6 +204,17 @@ def load_sagwan_settings() -> dict[str, Any]:
                     defaults["research_topic_cooldown_cycles"]
                     if raw.get("research_topic_cooldown_cycles") is None
                     else raw.get("research_topic_cooldown_cycles")
+                ),
+            ),
+        ),
+        "research_dedup_similarity_threshold": min(
+            1.0,
+            max(
+                0.0,
+                float(
+                    defaults["research_dedup_similarity_threshold"]
+                    if raw.get("research_dedup_similarity_threshold") is None
+                    else raw.get("research_dedup_similarity_threshold")
                 ),
             ),
         ),
@@ -2377,8 +2389,14 @@ def _capsule_inventory_for_gap(gap: dict[str, Any], *, max_items: int = 60) -> l
 
 
 def _find_related_capsule_paths_semantic_fallback(
-    *, topic: str, queries: list[str] | None, exclude_path: str, max_results: int = 3
-) -> list[str]:
+    *,
+    topic: str,
+    queries: list[str] | None,
+    exclude_path: str,
+    max_results: int = 3,
+    min_score: float | None = None,
+    include_scores: bool = False,
+) -> list[str] | list[tuple[str, float]]:
     """Semantic top-k fallback when keyword scoring misses. Reuses bge-m3
     embeddings; the capsule pool is already cached in semantic-index.
     """
@@ -2430,7 +2448,11 @@ def _find_related_capsule_paths_semantic_fallback(
     except Exception as exc:
         logger.debug("semantic_rank failed: %s", exc)
         return []
-    return [key for key, score in top if score >= _SEMANTIC_FALLBACK_THRESHOLD][:max_results]
+    threshold = _SEMANTIC_FALLBACK_THRESHOLD if min_score is None else float(min_score)
+    matches = [(key, float(score)) for key, score in top if score >= threshold][:max_results]
+    if include_scores:
+        return matches
+    return [key for key, _score in matches]
 
 
 def _resolve_irs_for_new_capsule(
@@ -3044,6 +3066,53 @@ def _recent_topic_cooldown_match(
                 "existing_path": str(entry.get("existing_path") or ""),
             }
     return None
+
+
+def _semantic_vault_dedup_guard(gap: dict[str, Any], *, threshold: float) -> dict[str, Any]:
+    search_text = " ".join(
+        str(part or "").strip()
+        for part in [
+            gap.get("target_capsule_title"),
+            gap.get("topic"),
+            " ".join(str(q).strip() for q in (gap.get("queries") or []) if str(q).strip()),
+            gap.get("rationale"),
+        ]
+        if str(part or "").strip()
+    )
+    if not search_text:
+        return {"matched": False}
+
+    try:
+        matches = _find_related_capsule_paths_semantic_fallback(
+            topic=search_text,
+            queries=[],
+            exclude_path="",
+            max_results=1,
+            min_score=threshold,
+            include_scores=True,
+        )
+    except Exception as exc:
+        logger.debug("research gap semantic vault dedup failed: %s", exc)
+        return {"matched": False, "semantic": "rank_failed"}
+
+    if not matches:
+        return {"matched": False}
+
+    best_path, best_score = matches[0]
+    title = ""
+    try:
+        doc = load_document(str(best_path))
+        title = str((doc.frontmatter or {}).get("title") or "")
+    except Exception:
+        title = ""
+    return {
+        "matched": True,
+        "method": "semantic_vault",
+        "score": round(float(best_score), 4),
+        "path": str(best_path),
+        "title": title,
+        "threshold": round(float(threshold), 4),
+    }
 
 
 def _hard_dedup_guard(gap: dict[str, Any]) -> dict[str, Any]:
@@ -3757,6 +3826,38 @@ def _curate_research_gaps(force: bool = False) -> dict[str, Any]:
         return {
             "status": "skip_recent_topic_cooldown",
             "match": cooldown_match,
+            "rationale": rationale,
+            "gap": gap,
+        }
+
+    semantic_duplicate = _semantic_vault_dedup_guard(
+        gap,
+        threshold=float(settings.get("research_dedup_similarity_threshold") or 0.85),
+    )
+    if semantic_duplicate.get("matched"):
+        now_iso = _now_iso()
+        existing_path = str(semantic_duplicate.get("path") or "").strip() or None
+        rationale = (
+            f"semantic vault dedup matched existing capsule "
+            f"score={semantic_duplicate.get('score')} "
+            f"threshold={semantic_duplicate.get('threshold')}"
+        )
+        _append_research_log_entry(
+            topic=gap["topic"],
+            queries=gap["queries"],
+            rationale=rationale,
+            cited_urls=[],
+            capsule_path=None,
+            model="stage-routed",
+            max_fetches=int(settings.get("research_max_fetches") or 3),
+            status="semantic_vault_duplicate",
+            existing_path=existing_path,
+        )
+        _touch_research_state(now_iso, gap=gap, status="semantic_vault_duplicate", existing_path=existing_path)
+        return {
+            "status": "skip_semantic_vault_duplicate",
+            "existing_path": existing_path,
+            "match": semantic_duplicate,
             "rationale": rationale,
             "gap": gap,
         }
