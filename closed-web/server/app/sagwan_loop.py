@@ -116,6 +116,7 @@ def _default_sagwan_settings() -> dict[str, Any]:
         "so_ingest_enabled": False,
         "research_interval_sec": 7200,   # 2시간
         "research_max_fetches": 3,
+        "research_topic_cooldown_cycles": 5,
         "consolidate_enabled": True,
         "consolidate_interval_sec": 21600,  # 6시간
         "consolidate_min_reviews": 3,
@@ -193,6 +194,17 @@ def load_sagwan_settings() -> dict[str, Any]:
         "research_max_fetches": min(
             6,
             max(1, int(raw.get("research_max_fetches") or defaults["research_max_fetches"])),
+        ),
+        "research_topic_cooldown_cycles": min(
+            50,
+            max(
+                0,
+                int(
+                    defaults["research_topic_cooldown_cycles"]
+                    if raw.get("research_topic_cooldown_cycles") is None
+                    else raw.get("research_topic_cooldown_cycles")
+                ),
+            ),
         ),
         "maintenance_enabled": bool(raw.get("maintenance_enabled", defaults["maintenance_enabled"])),
         "maintenance_interval_sec": min(
@@ -2202,6 +2214,166 @@ def _find_related_capsule_paths(
 _IR_FOLDER = "personal_vault/meta/improvement-requests/"
 _SEMANTIC_RESOLVE_THRESHOLD = 0.55  # cosine — IR signal_query vs capsule text
 _SEMANTIC_FALLBACK_THRESHOLD = 0.50  # cosine — helper fallback when deterministic miss
+_DEDUP_GUARD_SEMANTIC_THRESHOLD = 0.58  # cosine — proposed gap vs existing capsule
+_DEDUP_GUARD_OVERLAP_THRESHOLD = 0.50
+_DEDUP_GUARD_MAX_CANDIDATES = 120
+_TOPIC_DEDUP_STOPWORDS = {
+    "capsule",
+    "reference",
+    "guide",
+    "implementation",
+    "architecture",
+    "pattern",
+    "patterns",
+    "failure",
+    "mode",
+    "modes",
+    "practical",
+    "best",
+    "practice",
+    "practices",
+    "generated",
+    "research",
+    "knowledge",
+    "topic",
+    "topics",
+    "system",
+    "systems",
+    "project",
+    "projects",
+    "workflow",
+    "workflows",
+}
+
+
+def _compact_snippet(value: Any, limit: int = 240) -> str:
+    text = re.sub(r"\s+", " ", str(value or "")).strip()
+    return text[:limit].rstrip()
+
+
+def _capsule_is_live(fm: dict[str, Any]) -> bool:
+    if str(fm.get("kind") or "").strip().lower() != "capsule":
+        return False
+    review_status = str(fm.get("claim_review_status") or "").strip().lower()
+    note_status = str(fm.get("status") or "").strip().lower()
+    pub_status = str(fm.get("publication_status") or "").strip().lower()
+    return not (
+        review_status in _RELATED_LINK_DEAD_STATES
+        or note_status in _RELATED_LINK_DEAD_STATES
+        or pub_status in _RELATED_LINK_DEAD_STATES
+        or pub_status == "superseded"
+    )
+
+
+def _topic_terms(*values: Any) -> list[str]:
+    text = " ".join(str(value or "") for value in values)
+    raw_tokens = re.findall(r"[0-9a-zA-Z가-힣]{3,}", text.lower())
+    terms: list[str] = []
+    seen: set[str] = set()
+    for token in raw_tokens:
+        if token.isdigit() or token in _TOPIC_DEDUP_STOPWORDS:
+            continue
+        if len(token) < 4 and not re.search(r"[가-힣]", token):
+            continue
+        if token in seen:
+            continue
+        seen.add(token)
+        terms.append(token)
+    return terms[:32]
+
+
+def _topic_overlap_score(left_terms: list[str], right_terms: list[str]) -> tuple[float, list[str]]:
+    left = set(left_terms)
+    right = set(right_terms)
+    if not left or not right:
+        return 0.0, []
+    shared = sorted(left & right)
+    score = len(shared) / max(1, min(len(left), len(right)))
+    return score, shared
+
+
+def _capsule_summary_from_doc(path: str, doc: Any) -> dict[str, Any]:
+    fm = dict(doc.frontmatter or {})
+    title = str(fm.get("title") or Path(path).stem).strip()
+    description = (
+        str(fm.get("summary") or "").strip()
+        or _compact_snippet(str(doc.body or "").replace("#", " "), 260)
+    )
+    tags = [str(tag).strip() for tag in (fm.get("tags") or []) if str(tag).strip()]
+    topic = str(fm.get("research_gap_topic") or "").strip()
+    queries = [str(item).strip() for item in (fm.get("research_queries") or []) if str(item).strip()]
+    terms = _topic_terms(title, description, topic, " ".join(queries), " ".join(tags))
+    return {
+        "path": path,
+        "title": title,
+        "description": _compact_snippet(description, 260),
+        "tags": tags[:8],
+        "updated_at": str(fm.get("updated_at") or fm.get("created_at") or ""),
+        "research_gap_topic": topic,
+        "research_queries": queries[:5],
+        "_terms": terms,
+    }
+
+
+def _public_capsule_summary(item: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "path": item.get("path"),
+        "title": item.get("title"),
+        "description": item.get("description"),
+        "tags": item.get("tags") or [],
+        "research_gap_topic": item.get("research_gap_topic") or "",
+    }
+
+
+def _collect_existing_capsule_summaries(
+    *,
+    relevant_terms: list[str] | None = None,
+    max_items: int = 80,
+    exclude_path: str = "",
+) -> list[dict[str, Any]]:
+    relevant = set(relevant_terms or [])
+    scored: list[tuple[float, str, dict[str, Any]]] = []
+    try:
+        for path in list_note_paths():
+            if exclude_path and path == exclude_path:
+                continue
+            try:
+                doc = load_document(path)
+            except Exception:
+                continue
+            fm = dict(doc.frontmatter or {})
+            if not _capsule_is_live(fm):
+                continue
+            item = _capsule_summary_from_doc(path, doc)
+            score = 0.0
+            if relevant:
+                overlap, _shared = _topic_overlap_score(list(relevant), list(item.get("_terms") or []))
+                score = overlap
+                if score <= 0:
+                    continue
+            scored.append((score, str(item.get("updated_at") or ""), item))
+    except Exception as exc:
+        logger.debug("capsule inventory gather failed: %s", exc)
+        return []
+    scored.sort(key=lambda row: (-row[0], row[1], str(row[2].get("path") or "")), reverse=False)
+    if relevant:
+        scored.sort(key=lambda row: (-row[0], str(row[2].get("path") or "")))
+    else:
+        scored.sort(key=lambda row: (str(row[1] or ""), str(row[2].get("path") or "")), reverse=True)
+    return [item for _score, _updated, item in scored[:max_items]]
+
+
+def _capsule_inventory_for_gap(gap: dict[str, Any], *, max_items: int = 60) -> list[dict[str, Any]]:
+    terms = _topic_terms(
+        gap.get("topic"),
+        gap.get("target_capsule_title"),
+        " ".join(str(q) for q in (gap.get("queries") or [])),
+        gap.get("rationale"),
+    )
+    relevant = _collect_existing_capsule_summaries(relevant_terms=terms, max_items=max_items)
+    if relevant:
+        return relevant
+    return _collect_existing_capsule_summaries(max_items=min(max_items, 30))
 
 
 def _find_related_capsule_paths_semantic_fallback(
@@ -2423,6 +2595,7 @@ def _inventory_knowledge_state() -> dict[str, Any]:
     now = datetime.now(UTC)
     clusters: dict[str, dict[str, Any]] = {}
     recent_gap_queries: list[dict[str, Any]] = []
+    existing_capsules: list[dict[str, Any]] = []
     total_capsules = 0
     total_claims = 0
 
@@ -2436,6 +2609,8 @@ def _inventory_knowledge_state() -> dict[str, Any]:
         tags = [str(tag).strip() for tag in (fm.get("tags") or []) if str(tag).strip()]
         if kind == "capsule":
             total_capsules += 1
+            if _capsule_is_live(fm):
+                existing_capsules.append(_capsule_summary_from_doc(path, doc))
         elif kind == "claim":
             total_claims += 1
 
@@ -2544,6 +2719,10 @@ def _inventory_knowledge_state() -> dict[str, Any]:
         ),
         reverse=True,
     )
+    existing_capsules.sort(
+        key=lambda item: (str(item.get("updated_at") or ""), str(item.get("path") or "")),
+        reverse=True,
+    )
 
     return {
         "tag_clusters": tag_clusters[:30],
@@ -2551,6 +2730,7 @@ def _inventory_knowledge_state() -> dict[str, Any]:
         "total_capsules": total_capsules,
         "total_claims": total_claims,
         "recent_gap_queries": recent_gap_queries[:10],
+        "existing_capsules": [_public_capsule_summary(item) for item in existing_capsules[:80]],
     }
 
 
@@ -2560,12 +2740,14 @@ def _build_gap_selection_prompt(
 ) -> str:
     top_thin = inventory.get("top_thin") or []
     gap_queries = inventory.get("recent_gap_queries") or []
+    existing_capsules = inventory.get("existing_capsules") or []
     inventory_block = json.dumps(
         {
             "total_capsules": inventory.get("total_capsules", 0),
             "total_claims": inventory.get("total_claims", 0),
             "top_thin": top_thin[:8],
             "recent_gap_queries": gap_queries[:8],
+            "existing_capsules": existing_capsules[:60],
         },
         ensure_ascii=False,
         indent=2,
@@ -2576,6 +2758,8 @@ def _build_gap_selection_prompt(
             "선정 기준:",
             "- 이미 충분히 두꺼운 태그 군집은 피한다.",
             "- 최근 gap query 와 연결되거나, capsule/claim 이 부족하거나, 오래된 군집을 우선한다.",
+            "- existing_capsules 에 이미 같은 의미의 주제가 있으면 선택하지 않는다.",
+            "- exact title 이 달라도 같은 root topic이면 중복이다. 예: OpenAPI spec/schema/validation/codegen/drift 는 모두 OpenAPI root coverage로 본다.",
             "- 검색 쿼리는 실제 웹 검색에 바로 쓸 수 있게 구체적으로 쓴다.",
             "- broad topic 금지. implementation / architecture / failure mode 같이 재사용 가능한 주제를 고른다.",
             "",
@@ -2686,14 +2870,24 @@ def _build_research_prompt(gap: dict[str, Any], *, require_web_citations: bool =
 
 
 def _build_dedup_check_prompt(gap: dict[str, Any]) -> str:
+    existing_capsules = [
+        _public_capsule_summary(item)
+        for item in _capsule_inventory_for_gap(gap, max_items=60)
+    ]
     return "\n".join(
         [
             "너는 OpenAkashic 사관이다. 새 capsule을 쓰기 전 기존 지식과의 겹침을 검사한다.",
+            "목표는 새 title의 exact match가 아니라 semantic topic overlap 검사다.",
+            "같은 root topic을 다루면 제목/표현이 달라도 중복으로 본다.",
+            "예: 'OpenAPI spec', 'OpenAPI schema', 'OpenAPI validation', 'OpenAPI codegen'은 모두 OpenAPI root topic과 강하게 겹친다.",
             "",
             "제안된 주제:",
             f"- topic: {gap.get('topic')}",
             f"- queries: {json.dumps(gap.get('queries') or [], ensure_ascii=False)}",
             f"- rationale: {str(gap.get('rationale') or '').strip() or '(none)'}",
+            "",
+            "기존 capsule 후보(제목 + 요약):",
+            json.dumps(existing_capsules, ensure_ascii=False, indent=2) if existing_capsules else "(none)",
             "",
             "제공된 도구:",
             "- mcp__openakashic__search_akashic(query: str) — 검증된 public capsule 검색",
@@ -2705,6 +2899,12 @@ def _build_dedup_check_prompt(gap: dict[str, Any]) -> str:
             '- {"verdict":"skip","rationale":"...","existing_path":"..."}',
             '- {"verdict":"refine","new_topic":"...","new_queries":["...","..."],"rationale":"..."}',
             '- {"verdict":"supplement","extend_path":"...","rationale":"..."}',
+            "",
+            "판정 규칙:",
+            "- 기존 capsule이 같은 root topic을 이미 설명하면 skip.",
+            "- 기존 capsule에 작은 최신 정보만 더하면 되면 supplement.",
+            "- 근접하지만 새로 쓸 가치가 있는 좁은 하위 주제가 있으면 refine.",
+            "- public 검색이 비어도 위 기존 capsule 후보와 private vault 검색 결과를 반드시 함께 본다.",
             "",
             "총 도구 호출은 4-7회 이내로 제한하라. 최종 출력은 JSON만 작성한다.",
         ]
@@ -2765,6 +2965,178 @@ def _parse_dedup_decision(raw: str) -> dict[str, Any]:
         decision["new_topic"] = str(payload.get("new_topic") or "").strip()
         decision["new_queries"] = list(dict.fromkeys(new_queries))[:5]
     return decision
+
+
+def _research_topic_entries_from_body(body: str, *, limit: int = 20) -> list[dict[str, Any]]:
+    entries: list[dict[str, Any]] = []
+    for match in re.finditer(r"^##\s+.+?\s+research-gap\s*$([\s\S]*?)(?=^##\s+|\Z)", str(body or ""), re.MULTILINE):
+        section = match.group(1)
+        topic_match = re.search(r"^\s*-\s*topic:\s*(.+?)\s*$", section, re.MULTILINE)
+        if not topic_match:
+            continue
+        queries_match = re.search(r"^\s*-\s*queries:\s*(.+?)\s*$", section, re.MULTILINE)
+        queries: list[str] = []
+        if queries_match:
+            raw_queries = queries_match.group(1).strip()
+            try:
+                parsed_queries = json.loads(raw_queries)
+                if isinstance(parsed_queries, list):
+                    queries = [str(item).strip() for item in parsed_queries if str(item).strip()]
+            except Exception:
+                queries = [item.strip() for item in re.split(r"[,\n;]+", raw_queries) if item.strip()]
+        topic = topic_match.group(1).strip()
+        entries.append(
+            {
+                "topic": topic,
+                "queries": queries[:5],
+                "topic_slug": _topic_slug(topic),
+                "terms": _topic_terms(topic, " ".join(queries)),
+            }
+        )
+    return list(reversed(entries))[:limit]
+
+
+def _research_topic_entries(state: dict[str, Any], body: str, *, limit: int = 20) -> list[dict[str, Any]]:
+    raw_entries = state.get("recent_research_topics")
+    entries: list[dict[str, Any]] = []
+    if isinstance(raw_entries, list):
+        for item in raw_entries:
+            if not isinstance(item, dict):
+                continue
+            topic = str(item.get("topic") or "").strip()
+            if not topic:
+                continue
+            terms = [str(term).strip() for term in (item.get("terms") or []) if str(term).strip()]
+            if not terms:
+                terms = _topic_terms(topic, " ".join(str(q) for q in (item.get("queries") or [])))
+            entries.append({**item, "topic": topic, "terms": terms, "topic_slug": str(item.get("topic_slug") or _topic_slug(topic))})
+    if not entries:
+        entries = _research_topic_entries_from_body(body, limit=limit)
+    return entries[:limit]
+
+
+def _recent_topic_cooldown_match(
+    gap: dict[str, Any],
+    state: dict[str, Any],
+    body: str,
+    *,
+    cycles: int,
+) -> dict[str, Any] | None:
+    if cycles <= 0:
+        return None
+    terms = _topic_terms(
+        gap.get("topic"),
+        gap.get("target_capsule_title"),
+        " ".join(str(q) for q in (gap.get("queries") or [])),
+    )
+    if not terms:
+        return None
+    for entry in _research_topic_entries(state, body, limit=cycles):
+        score, shared = _topic_overlap_score(terms, [str(term) for term in (entry.get("terms") or [])])
+        if score >= _DEDUP_GUARD_OVERLAP_THRESHOLD and shared:
+            return {
+                "topic": str(entry.get("topic") or ""),
+                "topic_slug": str(entry.get("topic_slug") or ""),
+                "score": round(score, 4),
+                "shared_terms": shared,
+                "status": str(entry.get("status") or ""),
+                "capsule_path": str(entry.get("capsule_path") or ""),
+                "existing_path": str(entry.get("existing_path") or ""),
+            }
+    return None
+
+
+def _hard_dedup_guard(gap: dict[str, Any]) -> dict[str, Any]:
+    candidate_terms = _topic_terms(
+        gap.get("topic"),
+        gap.get("target_capsule_title"),
+        " ".join(str(q) for q in (gap.get("queries") or [])),
+        gap.get("rationale"),
+    )
+    if not candidate_terms:
+        return {"matched": False}
+
+    candidate_norm = " ".join(candidate_terms)
+    candidates = _capsule_inventory_for_gap(gap, max_items=_DEDUP_GUARD_MAX_CANDIDATES)
+    for item in candidates:
+        existing_terms = [str(term) for term in (item.get("_terms") or []) if str(term)]
+        existing_norm = " ".join(existing_terms)
+        if len(candidate_terms) >= 2 and len(existing_terms) >= 2 and candidate_norm and existing_norm:
+            if candidate_norm in existing_norm or existing_norm in candidate_norm:
+                return {
+                    "matched": True,
+                    "method": "substring",
+                    "score": 1.0,
+                    "path": str(item.get("path") or ""),
+                    "title": str(item.get("title") or ""),
+                    "shared_terms": sorted(set(candidate_terms) & set(existing_terms)),
+                }
+        score, shared = _topic_overlap_score(candidate_terms, existing_terms)
+        if score >= _DEDUP_GUARD_OVERLAP_THRESHOLD and shared:
+            return {
+                "matched": True,
+                "method": "token_overlap",
+                "score": round(score, 4),
+                "path": str(item.get("path") or ""),
+                "title": str(item.get("title") or ""),
+                "shared_terms": shared,
+            }
+
+    try:
+        from app.semantic_search import semantic_rank, SemanticDocument
+    except Exception:
+        return {"matched": False, "checked": len(candidates), "semantic": "unavailable"}
+
+    docs: list[Any] = []
+    for item in candidates:
+        docs.append(
+            SemanticDocument(
+                key=str(item.get("path") or ""),
+                path=str(item.get("path") or ""),
+                title=str(item.get("title") or ""),
+                kind="capsule",
+                project="ops/librarian",
+                status="",
+                summary=str(item.get("description") or "")[:500],
+                body=" ".join(
+                    [
+                        str(item.get("title") or ""),
+                        str(item.get("research_gap_topic") or ""),
+                        " ".join(str(q) for q in (item.get("research_queries") or [])),
+                        str(item.get("description") or ""),
+                    ]
+                )[:1200],
+            )
+        )
+    if not docs:
+        return {"matched": False, "checked": 0}
+    query_text = " ".join(
+        [
+            str(gap.get("target_capsule_title") or ""),
+            str(gap.get("topic") or ""),
+            " ".join(str(q) for q in (gap.get("queries") or [])),
+            str(gap.get("rationale") or ""),
+        ]
+    ).strip()
+    try:
+        top = semantic_rank(query_text, docs, limit=5)
+    except Exception as exc:
+        logger.debug("hard dedup semantic_rank failed: %s", exc)
+        return {"matched": False, "checked": len(docs), "semantic": "rank_failed"}
+    if not top:
+        return {"matched": False, "checked": len(docs)}
+    best_key, best_score = top[0]
+    if best_score >= _DEDUP_GUARD_SEMANTIC_THRESHOLD:
+        best = next((item for item in candidates if str(item.get("path") or "") == best_key), {})
+        return {
+            "matched": True,
+            "method": "semantic",
+            "score": round(float(best_score), 4),
+            "path": str(best.get("path") or best_key),
+            "title": str(best.get("title") or ""),
+            "shared_terms": sorted(set(candidate_terms) & set(best.get("_terms") or [])),
+        }
+    return {"matched": False, "checked": len(docs), "best_score": round(float(best_score), 4), "best_path": best_key}
 
 
 def _extract_source_urls(capsule_body: str) -> list[str]:
@@ -2851,11 +3223,46 @@ def _append_research_log_entry(
     )
 
 
-def _touch_research_state(now_iso: str) -> None:
+def _touch_research_state(
+    now_iso: str,
+    *,
+    gap: dict[str, Any] | None = None,
+    status: str = "",
+    capsule_path: str | None = None,
+    existing_path: str | None = None,
+) -> None:
     _ensure_research_log_document()
     doc = load_document(_RESEARCH_LOG_PATH)
     next_frontmatter = dict(doc.frontmatter or {})
     next_frontmatter["last_run_at"] = now_iso
+    if gap:
+        current = _research_topic_entries(next_frontmatter, doc.body or "", limit=30)
+        entry = {
+            "topic": str(gap.get("topic") or "").strip(),
+            "topic_slug": _topic_slug(str(gap.get("topic") or "")),
+            "queries": [str(item).strip() for item in (gap.get("queries") or []) if str(item).strip()][:5],
+            "terms": _topic_terms(
+                gap.get("topic"),
+                gap.get("target_capsule_title"),
+                " ".join(str(q) for q in (gap.get("queries") or [])),
+            ),
+            "selected_at": now_iso,
+            "status": status or "selected",
+            "capsule_path": capsule_path or "",
+            "existing_path": existing_path or "",
+        }
+        current.insert(0, entry)
+        deduped: list[dict[str, Any]] = []
+        seen: set[tuple[str, str]] = set()
+        for item in current:
+            key = (str(item.get("topic_slug") or ""), "|".join(str(term) for term in (item.get("terms") or [])))
+            if key in seen:
+                continue
+            seen.add(key)
+            deduped.append(item)
+            if len(deduped) >= 30:
+                break
+        next_frontmatter["recent_research_topics"] = deduped
     write_document(
         path=_RESEARCH_LOG_PATH,
         body=doc.body,
@@ -3317,6 +3724,43 @@ def _curate_research_gaps(force: bool = False) -> dict[str, Any]:
     if not gap:
         return {"status": "llm_parse_error", "raw": raw_selection[:500]}
 
+    topic_cooldown_cycles = int(settings.get("research_topic_cooldown_cycles") or 0)
+    cooldown_match = _recent_topic_cooldown_match(
+        gap,
+        state,
+        state_doc.body or "",
+        cycles=topic_cooldown_cycles,
+    )
+    if cooldown_match:
+        now_iso = _now_iso()
+        rationale = (
+            f"same root topic selected within last {topic_cooldown_cycles} research cycles; "
+            f"matched={cooldown_match.get('topic')} shared_terms={cooldown_match.get('shared_terms')}"
+        )
+        _append_research_log_entry(
+            topic=gap["topic"],
+            queries=gap["queries"],
+            rationale=rationale,
+            cited_urls=[],
+            capsule_path=None,
+            model="stage-routed",
+            max_fetches=int(settings.get("research_max_fetches") or 3),
+            status="skipped_recent_topic",
+            existing_path=str(cooldown_match.get("capsule_path") or cooldown_match.get("existing_path") or "") or None,
+        )
+        _touch_research_state(
+            now_iso,
+            gap=gap,
+            status="skipped_recent_topic",
+            existing_path=str(cooldown_match.get("capsule_path") or cooldown_match.get("existing_path") or "") or None,
+        )
+        return {
+            "status": "skip_recent_topic_cooldown",
+            "match": cooldown_match,
+            "rationale": rationale,
+            "gap": gap,
+        }
+
     dedup_raw = _invoke_claude_cli_with_tools(
         _build_dedup_check_prompt(gap),
         model="claude-sonnet-4-6",
@@ -3343,7 +3787,7 @@ def _curate_research_gaps(force: bool = False) -> dict[str, Any]:
             status="skipped_duplicate",
             existing_path=existing_path,
         )
-        _touch_research_state(now_iso)
+        _touch_research_state(now_iso, gap=gap, status="skipped_duplicate", existing_path=existing_path)
         return {
             "status": "skip_existing_coverage",
             "existing_path": existing_path,
@@ -3365,6 +3809,34 @@ def _curate_research_gaps(force: bool = False) -> dict[str, Any]:
         extend_path = str(dedup_decision.get("extend_path") or "").strip()
         if extend_path:
             gap["supplement_extend_path"] = extend_path
+
+    hard_duplicate = _hard_dedup_guard(gap)
+    if hard_duplicate.get("matched"):
+        now_iso = _now_iso()
+        existing_path = str(hard_duplicate.get("path") or "").strip() or None
+        rationale = (
+            f"hard dedup guard matched existing capsule via {hard_duplicate.get('method')} "
+            f"score={hard_duplicate.get('score')} shared_terms={hard_duplicate.get('shared_terms')}"
+        )
+        _append_research_log_entry(
+            topic=gap["topic"],
+            queries=gap["queries"],
+            rationale=rationale,
+            cited_urls=[],
+            capsule_path=None,
+            model="stage-routed",
+            max_fetches=int(settings.get("research_max_fetches") or 3),
+            status="hard_duplicate",
+            existing_path=existing_path,
+        )
+        _touch_research_state(now_iso, gap=gap, status="hard_duplicate", existing_path=existing_path)
+        return {
+            "status": "skip_hard_duplicate",
+            "existing_path": existing_path,
+            "match": hard_duplicate,
+            "rationale": rationale,
+            "gap": gap,
+        }
 
     gap["topic_slug"] = _topic_slug(gap["topic"])
     gap["max_fetches"] = int(settings.get("research_max_fetches") or 3)
@@ -3593,7 +4065,7 @@ def _curate_research_gaps(force: bool = False) -> dict[str, Any]:
         logger.warning("_resolve_irs_for_new_capsule (gap) failed: %s", exc)
 
     now_iso = _now_iso()
-    _touch_research_state(now_iso)
+    _touch_research_state(now_iso, gap=gap, status="ok", capsule_path=doc.path)
 
     return {
         "status": "ok",
