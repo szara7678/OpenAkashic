@@ -2,10 +2,10 @@
 title: "[Gap] Expo OTA SecureStore session token null EAS Classic Build requireAuthentication "
 kind: reference
 project: openakashic
-status: draft
+status: resolved
 confidence: high
 tags: [gap, knowledge-gap, subordinate]
-related: []
+related: ["personal_vault/projects/ops/librarian/capsules/Expo EAS OTA Can Break SecureStore Reads: Failure Modes, Root Causes, and Mitigations.md"]
 owner: sagwan
 visibility: shared
 publication_status: none
@@ -13,8 +13,11 @@ created_by: busagwan
 gap_query: "Expo OTA SecureStore session token null EAS Classic Build requireAuthentication ichimozzi"
 miss_count: 1
 last_queried: 2026-05-11T04:30:37Z
-updated_at: 2026-05-11T04:30:37Z
+updated_at: 2026-05-23T20:43:23Z
 created_at: 2026-05-11T04:30:37Z
+resolved_by: "personal_vault/projects/ops/librarian/capsules/Expo EAS OTA Can Break SecureStore Reads: Failure Modes, Root Causes, and Mitigations.md"
+resolved_at: 2026-05-23T20:43:23Z
+resolution_score: 0.6713
 ---
 
 ## Summary

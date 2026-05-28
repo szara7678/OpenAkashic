@@ -2756,9 +2756,50 @@ def _inventory_knowledge_state() -> dict[str, Any]:
     }
 
 
+def _list_recent_research_topics(*, max_age_days: int = 7, max_entries: int = 20) -> list[dict[str, Any]]:
+    try:
+        doc = load_document(_RESEARCH_LOG_PATH)
+    except Exception:
+        return []
+    body = str(doc.body or "")
+    cutoff = datetime.now(UTC) - timedelta(days=max_age_days)
+    entries: list[dict[str, Any]] = []
+    for match in re.finditer(r"^##\s+(\S+)\s+research-gap\s*$([\s\S]*?)(?=^##\s+|\Z)", body, re.MULTILINE):
+        ts_str = match.group(1)
+        section = match.group(2)
+        ts = _parse_iso_datetime(ts_str)
+        if ts is not None and ts < cutoff:
+            continue
+        topic_match = re.search(r"^\s*-\s*topic:\s*(.+?)\s*$", section, re.MULTILINE)
+        if not topic_match:
+            continue
+        queries_match = re.search(r"^\s*-\s*queries:\s*(.+?)\s*$", section, re.MULTILINE)
+        queries: list[str] = []
+        if queries_match:
+            raw_queries = queries_match.group(1).strip()
+            try:
+                parsed_queries = json.loads(raw_queries)
+                if isinstance(parsed_queries, list):
+                    queries = [str(item).strip() for item in parsed_queries if str(item).strip()]
+            except Exception:
+                queries = [item.strip() for item in re.split(r"[,\n;]+", raw_queries) if item.strip()]
+        topic = topic_match.group(1).strip()
+        entries.append(
+            {
+                "topic": topic,
+                "queries": queries[:5],
+                "topic_slug": _topic_slug(topic),
+                "terms": _topic_terms(topic, " ".join(queries)),
+                "researched_at": ts_str,
+            }
+        )
+    return list(reversed(entries))[:max_entries]
+
+
 def _build_gap_selection_prompt(
     inventory: dict[str, Any],
     memory_snippet: str,
+    recent_topics: list[dict[str, Any]] | None = None,
 ) -> str:
     top_thin = inventory.get("top_thin") or []
     gap_queries = inventory.get("recent_gap_queries") or []
@@ -2774,27 +2815,31 @@ def _build_gap_selection_prompt(
         ensure_ascii=False,
         indent=2,
     )
-    return "\n\n".join(
-        [
-            "너는 OpenAkashic 사관이다. 지식 인벤토리를 보고 지금 가장 얇고 가치 있는 연구 공백 하나를 고른다.",
-            "선정 기준:",
-            "- 이미 충분히 두꺼운 태그 군집은 피한다.",
-            "- 최근 gap query 와 연결되거나, capsule/claim 이 부족하거나, 오래된 군집을 우선한다.",
-            "- existing_capsules 에 이미 같은 의미의 주제가 있으면 선택하지 않는다.",
-            "- exact title 이 달라도 같은 root topic이면 중복이다. 예: OpenAPI spec/schema/validation/codegen/drift 는 모두 OpenAPI root coverage로 본다.",
-            "- 검색 쿼리는 실제 웹 검색에 바로 쓸 수 있게 구체적으로 쓴다.",
-            "- broad topic 금지. implementation / architecture / failure mode 같이 재사용 가능한 주제를 고른다.",
-            "",
-            "반드시 JSON 객체만 출력하라. 설명 금지.",
-            '{"topic":"...","queries":["q1","q2","q3"],"rationale":"...","target_capsule_title":"..."}',
-            "",
-            "## 인벤토리",
-            inventory_block,
-            "",
-            "## 최근 사관 기억",
-            memory_snippet or "(없음)",
-        ]
-    )
+    sections = [
+        "너는 OpenAkashic 사관이다. 지식 인벤토리를 보고 지금 가장 얇고 가치 있는 연구 공백 하나를 고른다.",
+        "선정 기준:",
+        "- 이미 충분히 두꺼운 태그 군집은 피한다.",
+        "- 최근 gap query 와 연결되거나, capsule/claim 이 부족하거나, 오래된 군집을 우선한다.",
+        "- existing_capsules 에 이미 같은 의미의 주제가 있으면 선택하지 않는다.",
+        "- exact title 이 달라도 같은 root topic이면 중복이다. 예: OpenAPI spec/schema/validation/codegen/drift 는 모두 OpenAPI root coverage로 본다.",
+        "- 검색 쿼리는 실제 웹 검색에 바로 쓸 수 있게 구체적으로 쓴다.",
+        "- broad topic 금지. implementation / architecture / failure mode 같이 재사용 가능한 주제를 고른다.",
+        "",
+        "반드시 JSON 객체만 출력하라. 설명 금지.",
+        '{"topic":"...","queries":["q1","q2","q3"],"rationale":"...","target_capsule_title":"..."}',
+        "",
+        "## 인벤토리",
+        inventory_block,
+    ]
+    if recent_topics:
+        topic_lines = "\n".join(f"- {entry['topic']}" for entry in recent_topics[:20])
+        sections.append("\n## Recently researched (중복 선택 금지)\n" + topic_lines)
+    sections += [
+        "",
+        "## 최근 사관 기억",
+        memory_snippet or "(없음)",
+    ]
+    return "\n\n".join(sections)
 
 
 def _parse_gap_selection(raw: str) -> dict[str, Any] | None:
@@ -3784,7 +3829,8 @@ def _curate_research_gaps(force: bool = False) -> dict[str, Any]:
     memory_snippet = "\n\n".join(
         block for block in [memory.get("distilled", ""), recent_memory_tail("sagwan", max_sections=4, char_budget=1000)] if block
     )
-    selection_prompt = _build_gap_selection_prompt(inventory, memory_snippet)
+    recent_topics = _list_recent_research_topics(max_age_days=7, max_entries=15)
+    selection_prompt = _build_gap_selection_prompt(inventory, memory_snippet, recent_topics)
     try:
         raw_selection = _invoke_for_stage("research_selection", selection_prompt)
     except StageRateLimitExceeded:
@@ -3792,6 +3838,17 @@ def _curate_research_gaps(force: bool = False) -> dict[str, Any]:
     gap = _parse_gap_selection(raw_selection)
     if not gap:
         return {"status": "llm_parse_error", "raw": raw_selection[:500]}
+
+    # Block if the selected topic overlaps with a recently researched topic (last 7 days)
+    gap_terms = _topic_terms(
+        gap.get("topic"),
+        gap.get("target_capsule_title"),
+        " ".join(str(q) for q in (gap.get("queries") or [])),
+    )
+    for recent in recent_topics:
+        score, shared = _topic_overlap_score(gap_terms, [str(t) for t in (recent.get("terms") or [])])
+        if score >= _DEDUP_GUARD_OVERLAP_THRESHOLD and shared:
+            return {"status": "duplicate_topic_blocked", "topic": gap["topic"], "matched_topic": recent.get("topic"), "score": score}
 
     topic_cooldown_cycles = int(settings.get("research_topic_cooldown_cycles") or 0)
     cooldown_match = _recent_topic_cooldown_match(

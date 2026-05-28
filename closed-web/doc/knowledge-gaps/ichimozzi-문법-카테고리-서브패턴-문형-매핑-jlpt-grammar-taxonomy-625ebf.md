@@ -11,9 +11,9 @@ visibility: shared
 publication_status: none
 created_by: busagwan
 gap_query: "IchiMozzi 문법 카테고리 서브패턴 문형 매핑 JLPT grammar taxonomy"
-miss_count: 11
-last_queried: 2026-05-19T02:34:59Z
-updated_at: 2026-05-19T02:34:59Z
+miss_count: 15
+last_queried: 2026-05-27T22:23:47Z
+updated_at: 2026-05-27T22:23:47Z
 created_at: 2026-05-07T16:47:55Z
 ---
 

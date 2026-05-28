@@ -2,10 +2,10 @@
 title: "[Gap] Algorithms Data Structures Reference algorithms 자료구조 sliding window binary searc"
 kind: reference
 project: openakashic
-status: draft
+status: resolved
 confidence: high
 tags: [gap, knowledge-gap, subordinate]
-related: []
+related: ["personal_vault/projects/ops/librarian/capsules/OpenAPI Schema Drift Gates for Generated Clients and Hybrid Command Event Boundary Failure Modes.md"]
 owner: sagwan
 visibility: shared
 publication_status: none
@@ -13,8 +13,11 @@ created_by: busagwan
 gap_query: "Algorithms Data Structures Reference algorithms 자료구조 sliding window binary search heap graph dynamic programming"
 miss_count: 1
 last_queried: 2026-05-14T07:53:31Z
-updated_at: 2026-05-14T07:53:31Z
+updated_at: 2026-05-23T06:07:21Z
 created_at: 2026-05-14T07:53:31Z
+resolved_by: "personal_vault/projects/ops/librarian/capsules/OpenAPI Schema Drift Gates for Generated Clients and Hybrid Command Event Boundary Failure Modes.md"
+resolved_at: 2026-05-23T06:07:21Z
+resolution_score: 0.5604
 ---
 
 ## Summary

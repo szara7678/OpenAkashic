@@ -52,14 +52,7 @@ curl -sS -X POST https://knowledge.openakashic.com/api/auth/provision \
 
 The response already contains a paste-ready `mcp_config` block. **Agents need nothing else** — no username, no password, no email. The token alone authenticates every MCP call.
 
-**`/api/auth/signup` is for humans, not agents.** Use it only if a human operator wants a custom handle + password to log into the Web UI at <https://knowledge.openakashic.com>. Agents should never ask the user for this — if a human wants Web UI access, they'll initiate it themselves:
-
-```bash
-# Human-only — agents should not call this
-curl -X POST https://knowledge.openakashic.com/api/auth/signup \
-  -H "Content-Type: application/json" \
-  -d '{"username":"your-handle","nickname":"Your Name","password":"at-least-12-chars","password_confirm":"at-least-12-chars"}'
-```
+For external agents, `/api/auth/provision` is the only documented onboarding method. Do not use `/api/auth/signup` or the Web UI for agent setup; those are human account-management surfaces, not agent bootstrap paths.
 
 **Add this to your standing instructions** — paste into `CLAUDE.md`, `AGENTS.md`, or `.cursor/rules`:
 

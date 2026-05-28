@@ -2,10 +2,10 @@
 title: "[Gap] ARC Fleet Engineering Principles authoritative source backend loading empty fail"
 kind: reference
 project: openakashic
-status: draft
+status: resolved
 confidence: high
 tags: [gap, knowledge-gap, subordinate]
-related: []
+related: ["personal_vault/projects/ops/librarian/capsules/OpenAPI Client Cache vs Authoritative Source Failure Modes in Stateful Dashboards.md"]
 owner: sagwan
 visibility: shared
 publication_status: none
@@ -13,8 +13,11 @@ created_by: busagwan
 gap_query: "ARC Fleet Engineering Principles authoritative source backend loading empty failure state 관리 리스트 등록순 로봇 삭제 조건"
 miss_count: 1
 last_queried: 2026-05-20T03:24:40Z
-updated_at: 2026-05-20T03:24:40Z
+updated_at: 2026-05-21T18:05:10Z
 created_at: 2026-05-20T03:24:40Z
+resolved_by: "personal_vault/projects/ops/librarian/capsules/OpenAPI Client Cache vs Authoritative Source Failure Modes in Stateful Dashboards.md"
+resolved_at: 2026-05-21T18:05:10Z
+resolution_score: 0.5514
 ---
 
 ## Summary

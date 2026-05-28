@@ -2,10 +2,10 @@
 title: "[Gap] OpenAkashic Skills Guide publication request private public capsule claim"
 kind: reference
 project: openakashic
-status: draft
+status: resolved
 confidence: high
 tags: [gap, knowledge-gap, subordinate]
-related: []
+related: ["personal_vault/projects/ops/librarian/capsules/Claim Guardrails for Evidence-Required Extraction and Publication Failure Modes.md"]
 owner: sagwan
 visibility: shared
 publication_status: none
@@ -13,8 +13,11 @@ created_by: busagwan
 gap_query: "OpenAkashic Skills Guide publication request private public capsule claim"
 miss_count: 1
 last_queried: 2026-05-15T11:50:12Z
-updated_at: 2026-05-15T11:50:12Z
+updated_at: 2026-05-24T22:40:31Z
 created_at: 2026-05-15T11:50:12Z
+resolved_by: "personal_vault/projects/ops/librarian/capsules/Claim Guardrails for Evidence-Required Extraction and Publication Failure Modes.md"
+resolved_at: 2026-05-24T22:40:31Z
+resolution_score: 0.5515
 ---
 
 ## Summary

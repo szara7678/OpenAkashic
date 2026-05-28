@@ -14,6 +14,8 @@ from __future__ import annotations
 import json
 import logging
 import re
+import threading
+from datetime import UTC, datetime
 from typing import Any
 from urllib import error as urlerror
 from urllib import parse as urlparse
@@ -49,6 +51,73 @@ def _clear_sync_failure(note_path: str) -> None:
 
 def get_last_sync_failure_reason(note_path: str) -> str:
     return str(_LAST_SYNC_FAILURES.get(note_path) or "").strip()
+
+
+def _enqueue_core_sync_retry(note_path: str, reason: str) -> None:
+    try:
+        from app.subordinate import enqueue_subordinate_task
+
+        enqueue_subordinate_task(
+            kind="sync_to_core_api",
+            payload={"limit": 10, "source": "core_api_bridge", "note_path": note_path},
+            created_by="core_api_bridge",
+        )
+    except Exception as exc:
+        logger.warning(
+            "core_api_bridge: failed to enqueue Busagwan retry for %s after %s: %s",
+            note_path,
+            reason,
+            exc,
+        )
+
+
+def _persist_background_sync_success(
+    *,
+    note_path: str,
+    body: str,
+    core_api_id: str,
+) -> None:
+    try:
+        from app.vault import load_document, write_document
+
+        doc = load_document(note_path)
+        if (doc.body or "").strip() != (body or "").strip():
+            _enqueue_core_sync_retry(note_path, "body_changed_after_background_sync")
+            return
+        next_fm = dict(doc.frontmatter or {})
+        next_fm["core_api_id"] = core_api_id
+        next_fm["core_synced_at"] = datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+        next_fm["core_sync_failure_count"] = 0
+        next_fm.pop("core_sync_last_failure_at", None)
+        next_fm.pop("core_sync_last_failure_reason", None)
+        next_fm.pop("core_sync_retry_after", None)
+        next_fm.pop("core_sync_blocked", None)
+        write_document(path=note_path, body=doc.body, metadata=next_fm, allow_owner_change=True, skip_core_sync=True)
+    except Exception as exc:
+        logger.warning("core_api_bridge: failed to persist background sync result for %s: %s", note_path, exc)
+        _enqueue_core_sync_retry(note_path, f"persist_failed: {type(exc).__name__}")
+
+
+def schedule_published_note_sync(frontmatter: dict[str, Any], body: str, note_path: str, *, force: bool = False) -> None:
+    def _run() -> None:
+        try:
+            core_api_id = sync_published_note(dict(frontmatter), body, note_path, force=force)
+        except Exception as exc:
+            _record_sync_failure(note_path, f"unexpected_error: {type(exc).__name__}")
+            _enqueue_core_sync_retry(note_path, f"unexpected_error: {type(exc).__name__}")
+            return
+        if core_api_id:
+            _persist_background_sync_success(note_path=note_path, body=body, core_api_id=core_api_id)
+            return
+        reason = get_last_sync_failure_reason(note_path) or "sync_returned_none"
+        _enqueue_core_sync_retry(note_path, reason)
+
+    thread = threading.Thread(
+        target=_run,
+        name=f"core-api-sync:{str(note_path)[:80]}",
+        daemon=True,
+    )
+    thread.start()
 
 
 def is_publication_request_note(frontmatter: dict[str, Any], note_path: str = "") -> bool:

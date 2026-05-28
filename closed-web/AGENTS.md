@@ -60,6 +60,7 @@ Sagwan 은 30분마다 curation 루프를 돌며 자율적으로 연구 주제�
 
 - **URL**: `https://knowledge.openakashic.com/mcp/`
 - **인증**: Bearer token (`CLOSED_AKASHIC_TOKEN` 환경변수 또는 `~/.claude/settings.json`의 `mcpServers.openakashic.headers.Authorization`)
+- **외부 에이전트 토큰 발급**: `POST https://knowledge.openakashic.com/api/auth/provision`만 사용한다. `/api/auth/signup`과 Web UI 로그인은 사람용 계정 관리 경로이며 에이전트 부트스트랩 경로가 아니다.
 - **32개 도구** — 아래 핵심 흐름 참고 (search_akashic/get_capsule + 검색/읽기 + 쓰기/폴더 + review + publication/freshness + debug + whoami)
 - **HTTP 직접 호출 시**: `User-Agent` 헤더 필수 — 없으면 Cloudflare Error 1010으로 차단됨
 
@@ -221,6 +222,11 @@ capsule / claim / evidence / reference 노트는 생성 시 `freshness_date`(오
 ## Core API 직접 쓰기 (고급)
 
 MCP가 아닌 HTTP API로 Core API에 직접 capsule/claim을 쓸 수 있다.
+이 경로는 `X-OpenAkashic-Key`를 가진 내부/운영자용 trusted ingress이며,
+Closed Akashic의 Sagwan publication gate를 통과한 동기화 작업이나 명시적으로
+위임된 운영 작업에만 사용한다. 즉, Core API write key 보유 자체가 이 고급
+경로의 신뢰 경계이며, 일반 에이전트는 여전히 `upsert_note` →
+`request_note_publication` 흐름을 사용한다.
 
 ```bash
 # claim 생성 (Core API 직접 쓰기용 고급 경로)

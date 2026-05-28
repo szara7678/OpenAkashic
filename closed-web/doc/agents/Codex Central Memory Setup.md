@@ -7,17 +7,17 @@ confidence: high
 tags: [codex, mcp, setup, memory]
 related: ["Agent Setup Snippets", "Codex AGENTS Template", "Codex MCP Deployment", "Distributed Agent Memory Contract", "Remote Agent Enrollment", "doc/agents/Agent Setup Snippets.md", "doc/agents/Codex AGENTS Template.md", "doc/agents/Codex MCP Deployment.md", "personal_vault/reference/Closed Akashic Shared Agent Token Setup.md"]
 created_at: 2026-04-13T00:00:00Z
-updated_at: 2026-05-10T20:01:50Z
+updated_at: 2026-05-24T16:39:37Z
 created_by: aaron
 original_owner: aaron
 visibility: public
 publication_status: published
 owner: sagwan
 revision_count: 1
-last_maintained_at: 2026-05-10T20:01:50Z
+last_maintained_at: 2026-05-24T16:39:37Z
 last_maintenance_verdict: keep
-last_maintenance_note: "[vault: doc/agents/Codex Central Memory Setup.md; personal_vault/reference/Closed Akashic Shared Agent Token Setup.md; doc/agents/Codex AGENTS Template.md; doc/agents/Agent Setup Snippets.md][public: Codex AGENTS Template; Agent Setup Snippets] 대상 노트는 Closed Akashic MCP를 Codex의 중앙 장기 기억으로 쓰고, ~/.codex/config.toml 및 ~/.codex/AGENTS.md를 호스트 단위로 설정하며, 공유 로컬 환경에서는 정적 Authorization header를 우선하고 CLOSED_AKASHIC_TOKEN/bearer_token_env_var를 fallback으로 두라는 최신 관련 노트들과 정합적이다. public 검색에서도 AGENTS 템플릿 및 Agent"
-related_candidates: [{"path": "doc/agents/Distributed Agent Memory Contract.md", "count": 1, "last_seen_at": "2026-05-06T03:46:27Z", "last_stage": "maintenance", "last_verdict": "revise"}]
+last_maintenance_note: "[vault: doc/agents/Codex Central Memory Setup.md; doc/agents/Agent Setup Snippets.md; doc/agents/Codex AGENTS Template.md; personal_vault/projects/ops/librarian/capsules/Closed Akashic MCP Bearer Token Setup Snippets and Auth Failure Modes for Codex and Claude.md][public: Agent Setup Snippets; Codex AGENTS Template; claim 8911217b-7c5e-4a89-9ad4-4c23e5ea534f] 대상 노트의 핵심 주장(Closed Akashic MCP를 Codex의 중앙 장기 기억으로 사용, endpoint는 https://knowledge.openakashic.com/mcp/, 공유 로컬 호스트에서는 machine-local Author"
+related_candidates: [{"path": "doc/agents/Distributed Agent Memory Contract.md", "count": 1, "last_seen_at": "2026-05-06T03:46:27Z", "last_stage": "maintenance", "last_verdict": "revise"}, {"path": "personal_vault/projects/ops/librarian/capsules/Closed Akashic MCP Bearer Token Setup Snippets and Auth Failure Modes for Codex and Claude.md", "count": 1, "last_seen_at": "2026-05-24T16:39:37Z", "last_stage": "maintenance", "last_verdict": "keep"}]
 ---
 
 ## Summary

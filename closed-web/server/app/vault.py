@@ -1056,25 +1056,10 @@ def _sync_published_after_write(
     if not _should_sync_published_after_write(existing, dict(document.frontmatter or {}), document.body):
         return document
     try:
-        from app.core_api_bridge import get_last_sync_failure_reason, sync_published_note
+        from app.core_api_bridge import schedule_published_note_sync
 
-        core_api_id = sync_published_note(document.frontmatter, document.body, document.path)
-        if core_api_id:
-            return _record_core_sync_result(
-                target=target,
-                note_path=document.path,
-                frontmatter=document.frontmatter,
-                body=document.body,
-                core_api_id=core_api_id,
-            )
-        return _record_core_sync_result(
-            target=target,
-            note_path=document.path,
-            frontmatter=document.frontmatter,
-            body=document.body,
-            core_api_id=None,
-            failure_reason=get_last_sync_failure_reason(document.path) or "sync_returned_none",
-        )
+        schedule_published_note_sync(document.frontmatter, document.body, document.path)
+        return document
     except Exception as exc:
         return _record_core_sync_result(
             target=target,

@@ -12,11 +12,10 @@ publication_status: published
 created_by: aaron
 original_owner: aaron
 created_at: 2026-04-14T00:00:00Z
-updated_at: 2026-05-18T19:44:12Z
-last_maintained_at: 2026-05-18T19:44:12Z
+updated_at: 2026-05-25T16:21:17Z
+last_maintained_at: 2026-05-25T16:21:17Z
 last_maintenance_verdict: keep
-last_maintenance_note: "[vault: doc/agents/OpenAkashic Agent Contribution Guide.md; doc/agents/OpenAkashic MCP Guide.md; doc/agents/OpenAkashic Skills Guide.md][public: OpenAkashic MCP Guide; OpenAkashic MCP search_akashic Endpoint Contract, Auth, and Response-Shaping Failure Modes] 대상 문서는 Core API와 Closed Akashic의 2-layer 구조, search_akashic 우선 검색, search_notes/search_and_read_top 보조 검색, kind=capsule/claim publish 후 Core API 동기화, private 원문과 public 산출물 분리 정책을 설명한다. 관련 vault 문서인 MCP Guide는 knowledge.openakashic.com/mcp/"
-related_candidates: [{"path": "personal_vault/meta/improvement-requests/search-quality-openakashic-agent-contribution-guide-core-api-clos-317c9b.md", "count": 1, "last_seen_at": "2026-05-06T23:24:55Z", "last_stage": "maintenance", "last_verdict": "keep"}, {"path": "doc/agents/Knowledge Distillation Guide.md", "count": 1, "last_seen_at": "2026-05-09T02:13:50Z", "last_stage": "maintenance", "last_verdict": "keep"}]
+related_candidates: [{"path": "personal_vault/meta/improvement-requests/search-quality-openakashic-agent-contribution-guide-core-api-clos-317c9b.md", "count": 1, "last_seen_at": "2026-05-06T23:24:55Z", "last_stage": "maintenance", "last_verdict": "keep"}, {"path": "doc/agents/Knowledge Distillation Guide.md", "count": 1, "last_seen_at": "2026-05-09T02:13:50Z", "last_stage": "maintenance", "last_verdict": "keep"}, {"path": "personal_vault/projects/ops/librarian/capsules/OpenAkashic MCP Idempotent Note Bootstrap and Append Workflow.md", "count": 1, "last_seen_at": "2026-05-24T14:27:15Z", "last_stage": "maintenance", "last_verdict": "keep"}, {"path": "personal_vault/meta/improvement-requests/search-quality-openakashic-agent-contribution-guide-core-api-clos-d539ad.md", "count": 1, "last_seen_at": "2026-05-24T14:27:15Z", "last_stage": "maintenance", "last_verdict": "keep"}]
 revision_count: 1
 ---
 

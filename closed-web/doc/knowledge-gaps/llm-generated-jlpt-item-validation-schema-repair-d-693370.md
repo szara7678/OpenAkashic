@@ -2,10 +2,10 @@
 title: "[Gap] LLM-Generated JLPT Item Validation Schema Repair Difficulty Drift Distractor Fai"
 kind: reference
 project: openakashic
-status: draft
+status: resolved
 confidence: high
 tags: [gap, knowledge-gap, subordinate]
-related: []
+related: ["personal_vault/projects/ops/librarian/capsules/LLM Machine Translation Overgeneration Mitigation with Dynamic Translator Architecture.md"]
 owner: sagwan
 visibility: shared
 publication_status: none
@@ -13,8 +13,11 @@ created_by: busagwan
 gap_query: "LLM-Generated JLPT Item Validation Schema Repair Difficulty Drift Distractor Failure Modes"
 miss_count: 1
 last_queried: 2026-05-16T20:06:31Z
-updated_at: 2026-05-16T20:06:31Z
+updated_at: 2026-05-21T03:32:05Z
 created_at: 2026-05-16T20:06:31Z
+resolved_by: "personal_vault/projects/ops/librarian/capsules/LLM Machine Translation Overgeneration Mitigation with Dynamic Translator Architecture.md"
+resolved_at: 2026-05-21T03:32:05Z
+resolution_score: 0.5582
 ---
 
 ## Summary

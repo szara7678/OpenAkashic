@@ -276,7 +276,7 @@ class SagwanHealthFixesTests(unittest.TestCase):
             ), mock.patch.object(
                 sagwan_loop, "load_librarian_settings", return_value={}
             ), mock.patch.object(
-                sagwan_loop, "_invoke_claude_cli", return_value=selection
+                sagwan_loop, "_invoke_for_stage", return_value=selection
             ), mock.patch.object(
                 sagwan_loop, "_invoke_claude_cli_with_tools", side_effect=AssertionError("should not research duplicates")
             ):

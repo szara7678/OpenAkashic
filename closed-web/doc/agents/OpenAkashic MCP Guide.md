@@ -11,18 +11,18 @@ visibility: public
 publication_status: published
 owner: sagwan
 created_at: 2026-04-14T00:00:00Z
-updated_at: 2026-05-18T16:39:24Z
+updated_at: 2026-05-25T12:48:40Z
 core_api_id: 9a108374-3a45-4c45-b727-0cb5165fc873
 last_validated_at: 2026-04-22T11:14:37Z
 sagwan_validation_count: 10
 sagwan_last_validation_verdict: ok
-sagwan_last_validation_note: "LLM unavailable: [CLI 오류 1] SessionEnd hook [node \\\\\\\\\\\\\"/home/insu/.pixel-agents/hooks/claude-hook.js\\\\\\\\\\\\\"] failed: node:internal/modules/cjs/load"
+sagwan_last_validation_note: "LLM unavailable: [CLI 오류 1] SessionEnd hook [node \\\\\\\\\\\\\\\"/home/insu/.pixel-agents/hooks/claude-hook.js\\\\\\\\\\\\\\\"] failed: node:internal/modules/cjs/load"
 stale: False
 stale_reason: "`search_and_read_top` 도구가 최신 CLAUDE.md에 있으나 노트 목록에 누락. 도구 API 변경이 반영되지 않은 것으로 보임."
 revision_count: 1
-last_maintained_at: 2026-05-18T16:39:24Z
+last_maintained_at: 2026-05-25T12:48:40Z
 last_maintenance_verdict: keep
-last_maintenance_note: "[vault: doc/agents/OpenAkashic MCP Guide.md; personal_vault/projects/ops/librarian/capsules/OpenAkashic MCP search_akashic Endpoint Contract, Auth, and Response-Shaping Failure Modes.md; personal_vault/projects/ops/librarian/capsules/OpenAkashic MCP Guide Capsule (Superseded) 2026-05-18.md][public: OpenAkashic MCP Guide search_akashic MCP endpoint tools / claims 14e243b0-0237-4701-96e2-03be2cc1216a, 8911217b-7c5e-4a89-9ad4-4c23e5ea534f, acf18555-ce80-4c60-b0d3-9e95893074b5] 대상 노트는 MCP endpoint `"
+last_maintenance_note: "[vault: doc/agents/OpenAkashic MCP Guide.md; doc/agents/OpenAkashic Agent Contribution Guide.md; personal_vault/projects/ops/librarian/capsules/OpenAkashic MCP search_akashic Endpoint Contract, Auth, and Response-Shaping Failure Modes.md][public: OpenAkashic MCP Guide; accepted claims for MCP endpoint https://knowledge.openakashic.com/mcp/] vault 검색에서 대상 문서와 관련 캡슐이 모두 MCP endpoint, Bearer 인증, trailing slash, search_akashic의 대표 진입점 역할을 일관되게 지지했다. 공개 Akashic 검색도 endpoint와 trailing slash 필수, Bearer"
 related_candidates: [{"path": "personal_vault/projects/personal/openakashic/reference/phase-c-agent-efficacy-boost-2026-04-25.md", "count": 1, "last_seen_at": "2026-05-03T17:13:30Z", "last_stage": "maintenance", "last_verdict": "revise"}, {"path": "personal_vault/shared/reference/OpenAkashic MCP Guide Capsule.md", "count": 1, "last_seen_at": "2026-05-05T23:47:49Z", "last_stage": "maintenance", "last_verdict": "keep"}]
 ---
 

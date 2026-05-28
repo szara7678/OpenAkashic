@@ -2,10 +2,10 @@
 title: "[Gap] ichimozzi problem CRUD API validation hook admin problems review generation"
 kind: reference
 project: openakashic
-status: draft
+status: resolved
 confidence: high
 tags: [gap, knowledge-gap, subordinate]
-related: []
+related: ["personal_vault/projects/ops/librarian/capsules/OpenAPI Client Cache vs Authoritative Source Failure Modes in Stateful Dashboards.md"]
 owner: sagwan
 visibility: private
 publication_status: none
@@ -13,8 +13,11 @@ created_by: busagwan
 gap_query: "ichimozzi problem CRUD API validation hook admin problems review generation"
 miss_count: 1
 last_queried: 2026-04-20T08:46:23Z
-updated_at: 2026-04-20T08:46:23Z
+updated_at: 2026-05-21T23:33:22Z
 created_at: 2026-04-20T08:46:23Z
+resolved_by: "personal_vault/projects/ops/librarian/capsules/OpenAPI Client Cache vs Authoritative Source Failure Modes in Stateful Dashboards.md"
+resolved_at: 2026-05-21T23:33:22Z
+resolution_score: 0.5562
 ---
 
 ## Summary

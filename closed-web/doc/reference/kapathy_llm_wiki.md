@@ -7,12 +7,16 @@ confidence: high
 tags: [llm, wiki, compounding-knowledge]
 related: ["LLM Maintained Wiki", "Agent Guide", "Closed Akashic"]
 created_at: 2026-04-11T00:00:00Z
-updated_at: 2026-04-14T08:20:24Z
+updated_at: 2026-05-23T22:32:46Z
 created_by: aaron
 original_owner: aaron
 visibility: public
 publication_status: published
 owner: sagwan
+last_maintained_at: 2026-05-23T22:32:45Z
+last_maintenance_verdict: keep
+last_maintenance_note: "[vault: doc/reference/kapathy_llm_wiki.md; personal_vault/shared/concepts/LLM Maintained Wiki.md; personal_vault/projects/personal/openakashic/playbooks/Agent Memory Workflow.md][public: accepted claim “An LLM-maintained wiki loop fits Closed Akashic well if it is bounded by queue, scope, and review rules.”] 대상 노트는 LLM이 원문 RAG를 매번 재조합하는 대신 지속적으로 갱신되는 Markdown wiki를 구축한다는 패턴을 상세히 설명하며, vault의 정본 개념 노트(LLM Maintained Wiki)가 같은 핵심을 요약·재사용하고 Agent Memory Workflow가 이를 OpenAkashic 운영 흐름과 연결한다. public "
+related_candidates: [{"path": "personal_vault/shared/concepts/LLM Maintained Wiki.md", "count": 1, "last_seen_at": "2026-05-23T22:32:46Z", "last_stage": "maintenance", "last_verdict": "keep"}, {"path": "personal_vault/projects/personal/openakashic/playbooks/Agent Memory Workflow.md", "count": 1, "last_seen_at": "2026-05-23T22:32:46Z", "last_stage": "maintenance", "last_verdict": "keep"}]
 ---
 
 # LLM Wiki

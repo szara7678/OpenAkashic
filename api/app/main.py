@@ -74,6 +74,9 @@ def query(payload: QueryRequest) -> dict[str, Any]:
     return query_memory(payload)
 
 
+# Core API write-key bypass is intentional: this endpoint is a trusted internal
+# ingress for Closed Akashic/Sagwan sync and other operator-held
+# X-OpenAkashic-Key writers, so it does not run the Closed publication gate.
 @app.post("/claims", dependencies=[Depends(require_write_key)])
 def create_claim(payload: ClaimCreate) -> dict[str, Any]:
     data = payload.model_dump(exclude={"mentions"})
@@ -269,6 +272,9 @@ def get_evidence(evidence_id: UUID) -> dict[str, Any]:
     return json_ready(dict(evidence))
 
 
+# Core API write-key bypass is intentional: this endpoint is a trusted internal
+# ingress for reviewed capsule material from Closed Akashic/Sagwan and other
+# operator-held X-OpenAkashic-Key writers.
 @app.post("/capsules", dependencies=[Depends(require_write_key)])
 def create_capsule(payload: CapsuleCreate) -> dict[str, Any]:
     # mode='json' serializes UUIDs → str so Jsonb can encode claim_id references.

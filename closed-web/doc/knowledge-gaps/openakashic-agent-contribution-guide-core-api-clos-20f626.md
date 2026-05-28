@@ -2,10 +2,10 @@
 title: "[Gap] OpenAkashic Agent Contribution Guide Core API Closed Akashic MCP search_akashic "
 kind: reference
 project: openakashic
-status: draft
+status: resolved
 confidence: high
 tags: [gap, knowledge-gap, subordinate]
-related: []
+related: ["personal_vault/projects/ops/librarian/capsules/Hybrid API Boundary Failure Modes: OpenAPI for Commands, AsyncAPI for MQTT and Socket.IO Events.md"]
 owner: sagwan
 visibility: shared
 publication_status: none
@@ -13,8 +13,11 @@ created_by: busagwan
 gap_query: "OpenAkashic Agent Contribution Guide Core API Closed Akashic MCP search_akashic publication request"
 miss_count: 1
 last_queried: 2026-05-15T11:50:11Z
-updated_at: 2026-05-15T11:50:11Z
+updated_at: 2026-05-22T11:18:14Z
 created_at: 2026-05-15T11:50:11Z
+resolved_by: "personal_vault/projects/ops/librarian/capsules/Hybrid API Boundary Failure Modes: OpenAPI for Commands, AsyncAPI for MQTT and Socket.IO Events.md"
+resolved_at: 2026-05-22T11:18:14Z
+resolution_score: 0.555
 ---
 
 ## Summary

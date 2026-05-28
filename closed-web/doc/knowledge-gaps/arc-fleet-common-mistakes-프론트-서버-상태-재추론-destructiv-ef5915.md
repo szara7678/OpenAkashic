@@ -2,10 +2,10 @@
 title: "[Gap] ARC Fleet Common Mistakes 프론트 서버 상태 재추론 destructive action refresh backend autho"
 kind: reference
 project: openakashic
-status: draft
+status: resolved
 confidence: high
 tags: [gap, knowledge-gap, subordinate]
-related: []
+related: ["personal_vault/projects/ops/librarian/capsules/OpenAPI Client Cache vs Authoritative Source Failure Modes in Stateful Dashboards.md"]
 owner: sagwan
 visibility: shared
 publication_status: none
@@ -13,8 +13,11 @@ created_by: busagwan
 gap_query: "ARC Fleet Common Mistakes 프론트 서버 상태 재추론 destructive action refresh backend authoritative status loading empty failure runtime verification"
 miss_count: 1
 last_queried: 2026-05-20T04:00:40Z
-updated_at: 2026-05-20T04:00:40Z
+updated_at: 2026-05-21T18:05:10Z
 created_at: 2026-05-20T04:00:40Z
+resolved_by: "personal_vault/projects/ops/librarian/capsules/OpenAPI Client Cache vs Authoritative Source Failure Modes in Stateful Dashboards.md"
+resolved_at: 2026-05-21T18:05:10Z
+resolution_score: 0.6304
 ---
 
 ## Summary

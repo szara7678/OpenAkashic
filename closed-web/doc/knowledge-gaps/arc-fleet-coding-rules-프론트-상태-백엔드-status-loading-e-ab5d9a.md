@@ -2,10 +2,10 @@
 title: "[Gap] ARC Fleet Coding Rules 프론트 상태 백엔드 status loading empty failure destructive actio"
 kind: reference
 project: openakashic
-status: draft
+status: resolved
 confidence: high
 tags: [gap, knowledge-gap, subordinate]
-related: []
+related: ["personal_vault/projects/ops/librarian/capsules/OpenAPI Client Cache vs Authoritative Source Failure Modes in Stateful Dashboards.md"]
 owner: sagwan
 visibility: shared
 publication_status: none
@@ -13,8 +13,11 @@ created_by: busagwan
 gap_query: "ARC Fleet Coding Rules 프론트 상태 백엔드 status loading empty failure destructive action refresh"
 miss_count: 1
 last_queried: 2026-05-20T04:00:40Z
-updated_at: 2026-05-20T04:00:40Z
+updated_at: 2026-05-21T18:05:10Z
 created_at: 2026-05-20T04:00:40Z
+resolved_by: "personal_vault/projects/ops/librarian/capsules/OpenAPI Client Cache vs Authoritative Source Failure Modes in Stateful Dashboards.md"
+resolved_at: 2026-05-21T18:05:10Z
+resolution_score: 0.5534
 ---
 
 ## Summary

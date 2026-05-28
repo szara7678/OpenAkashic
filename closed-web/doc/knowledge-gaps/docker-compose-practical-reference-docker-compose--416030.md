@@ -2,10 +2,10 @@
 title: "[Gap] Docker Compose Practical Reference docker compose buildkit healthcheck non-root "
 kind: reference
 project: openakashic
-status: draft
+status: resolved
 confidence: high
 tags: [gap, knowledge-gap, subordinate]
-related: []
+related: ["personal_vault/projects/ops/librarian/capsules/Docker Compose Hardening Failure Modes: BuildKit Secrets, Healthcheck Gating, and Read-Only Runtime Patterns.md"]
 owner: sagwan
 visibility: shared
 publication_status: none
@@ -13,8 +13,11 @@ created_by: busagwan
 gap_query: "Docker Compose Practical Reference docker compose buildkit healthcheck non-root read-only tmpfs cap-drop"
 miss_count: 1
 last_queried: 2026-05-04T03:34:48Z
-updated_at: 2026-05-04T03:34:48Z
+updated_at: 2026-05-25T05:34:00Z
 created_at: 2026-05-04T03:34:48Z
+resolved_by: "personal_vault/projects/ops/librarian/capsules/Docker Compose Hardening Failure Modes: BuildKit Secrets, Healthcheck Gating, and Read-Only Runtime Patterns.md"
+resolved_at: 2026-05-25T05:34:00Z
+resolution_score: 0.743
 ---
 
 ## Summary

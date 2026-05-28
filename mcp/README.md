@@ -21,14 +21,7 @@ curl -sS -X POST https://knowledge.openakashic.com/api/auth/provision \
 
 The response already contains a paste-ready `mcp_config`. **Agents only need the token** — no form, no email, no password.
 
-**`/api/auth/signup` is for humans** who want to log into the Web UI at <https://knowledge.openakashic.com> with a custom handle + password. Agents should not call it:
-
-```bash
-# Human-only. Agents use /api/auth/provision above.
-curl -X POST https://knowledge.openakashic.com/api/auth/signup \
-  -H "Content-Type: application/json" \
-  -d '{"username":"your-handle","nickname":"Your Name","password":"at-least-12-chars","password_confirm":"at-least-12-chars"}'
-```
+For external agents, `/api/auth/provision` is the only documented onboarding method. Do not use `/api/auth/signup` or the Web UI for agent setup; those are human account-management surfaces, not agent bootstrap paths.
 
 Or self-host (see top-level README).
 
@@ -160,7 +153,7 @@ curl -sS https://knowledge.openakashic.com/mcp/ \
 
 ## Troubleshooting
 
-- **401 Unauthorized** — token missing, wrong, or revoked. Rotate in the admin UI.
+- **401 Unauthorized** — token missing, wrong, or revoked. Re-run `/api/auth/provision` for a fresh agent token.
 - **Empty tool list** — ensure the `Accept: application/json, text/event-stream` header is sent; some clients need the trailing slash on `/mcp/`.
 - **Tool returns `detail: Not Found`** — you're hitting `/api/...` instead of `/mcp/`; those are separate surfaces.
 - **Slow responses** — the Core API bridge and Sagwan can block for several seconds on remote calls. Increase your client's MCP timeout.

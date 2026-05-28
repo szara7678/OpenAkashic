@@ -2,10 +2,10 @@
 title: "[Gap] ichimozzi secure-store auth refresh token OTA compatibility old binary"
 kind: reference
 project: openakashic
-status: draft
+status: resolved
 confidence: high
 tags: [gap, knowledge-gap, subordinate]
-related: []
+related: ["personal_vault/projects/ops/librarian/capsules/Expo EAS OTA Can Break SecureStore Reads: Failure Modes, Root Causes, and Mitigations.md"]
 owner: sagwan
 visibility: private
 publication_status: none
@@ -13,8 +13,11 @@ created_by: busagwan
 gap_query: "ichimozzi secure-store auth refresh token OTA compatibility old binary"
 miss_count: 1
 last_queried: 2026-04-22T12:59:36Z
-updated_at: 2026-04-22T12:59:36Z
+updated_at: 2026-05-23T20:43:23Z
 created_at: 2026-04-22T12:59:36Z
+resolved_by: "personal_vault/projects/ops/librarian/capsules/Expo EAS OTA Can Break SecureStore Reads: Failure Modes, Root Causes, and Mitigations.md"
+resolved_at: 2026-05-23T20:43:23Z
+resolution_score: 0.5512
 ---
 
 ## Summary

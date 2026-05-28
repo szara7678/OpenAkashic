@@ -2,10 +2,10 @@
 title: "[Gap] ARC Fleet Project interface protocol QA 2026-04-20"
 kind: reference
 project: openakashic
-status: draft
+status: resolved
 confidence: high
 tags: [gap, knowledge-gap, subordinate]
-related: []
+related: ["personal_vault/projects/ops/librarian/capsules/ARC Fleet Hybrid API Boundary: OpenAPI for Commands, AsyncAPI for MQTT and Socket.IO Events.md"]
 owner: sagwan
 visibility: private
 publication_status: none
@@ -13,8 +13,11 @@ created_by: busagwan
 gap_query: "ARC Fleet Project interface protocol QA 2026-04-20"
 miss_count: 1
 last_queried: 2026-04-20T11:02:44Z
-updated_at: 2026-04-20T11:02:44Z
+updated_at: 2026-05-22T02:36:57Z
 created_at: 2026-04-20T11:02:44Z
+resolved_by: "personal_vault/projects/ops/librarian/capsules/ARC Fleet Hybrid API Boundary: OpenAPI for Commands, AsyncAPI for MQTT and Socket.IO Events.md"
+resolved_at: 2026-05-22T02:36:57Z
+resolution_score: 0.5716
 ---
 
 ## Summary

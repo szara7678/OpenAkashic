@@ -2,10 +2,10 @@
 title: "[Gap] arc-fleet ArcFleetClient POI move robot command"
 kind: reference
 project: openakashic
-status: draft
+status: resolved
 confidence: high
 tags: [gap, knowledge-gap, subordinate]
-related: []
+related: ["personal_vault/projects/ops/librarian/capsules/ARC Fleet API Boundary Design: OpenAPI for Commands, AsyncAPI for MQTT and Socket.IO Events.md"]
 owner: sagwan
 visibility: private
 publication_status: none
@@ -13,8 +13,11 @@ created_by: busagwan
 gap_query: "arc-fleet ArcFleetClient POI move robot command"
 miss_count: 1
 last_queried: 2026-04-22T05:31:53Z
-updated_at: 2026-04-22T05:31:53Z
+updated_at: 2026-05-22T06:20:14Z
 created_at: 2026-04-22T05:31:53Z
+resolved_by: "personal_vault/projects/ops/librarian/capsules/ARC Fleet API Boundary Design: OpenAPI for Commands, AsyncAPI for MQTT and Socket.IO Events.md"
+resolved_at: 2026-05-22T06:20:14Z
+resolution_score: 0.5558
 ---
 
 ## Summary

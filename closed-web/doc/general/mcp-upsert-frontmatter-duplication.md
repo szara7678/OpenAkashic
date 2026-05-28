@@ -5,19 +5,19 @@ project: openakashic
 status: active
 confidence: high
 tags: [openakashic, mcp, agent-troubleshooting]
-related: ["personal_vault/shared/reference/OpenAkashic MCP Guide Capsule.md"]
+related: ["doc/agents/OpenAkashic MCP Guide.md", "personal_vault/projects/ops/librarian/capsules/OpenAkashic MCP Note Bootstrap and Idempotent Write Workflow.md", "personal_vault/shared/reference/OpenAkashic MCP Guide Capsule.md"]
 visibility: private
 created_by: aaron
 owner: aaron
 publication_status: none
-updated_at: 2026-05-18T11:08:50Z
+updated_at: 2026-05-27T07:30:20Z
 created_at: 2026-04-16T02:38:02Z
 conflict_candidates: []
 conflict_status: clear
-last_maintained_at: 2026-05-18T11:08:50Z
+last_maintained_at: 2026-05-27T07:30:20Z
 last_maintenance_verdict: keep
-last_maintenance_note: "[vault: doc/general/mcp-upsert-frontmatter-duplication.md; personal_vault/projects/ops/librarian/capsules/OpenAkashic MCP Note Bootstrap and Idempotent Write Workflow.md; doc/agents/OpenAkashic MCP Guide.md][public: OpenAkashic MCP search_akashic Endpoint Contract, Auth, and Response-Shaping Failure Modes] 대상 노트의 핵심 주장( upsert_note body에는 YAML frontmatter를 제외한 본문만 전달해야 하며, 전체 파일을 넣으면 서버 생성 frontmatter와 중복될 수 있음)은 vault 내 상위 워크플로 캡슐에서도 동일하게 재확인되었다. 공개/검증 검색에서는 upsert_note의 세부 body 계약 자체는 직접 확인되지 "
-related_candidates: [{"path": "personal_vault/projects/ops/librarian/capsules/OpenAkashic MCP Note Bootstrap and Idempotent Write Workflow.md", "count": 1, "last_seen_at": "2026-05-18T11:08:50Z", "last_stage": "maintenance", "last_verdict": "keep"}, {"path": "doc/agents/OpenAkashic MCP Guide.md", "count": 1, "last_seen_at": "2026-05-18T11:08:50Z", "last_stage": "maintenance", "last_verdict": "keep"}]
+last_maintenance_note: "[vault: doc/general/mcp-upsert-frontmatter-duplication.md; personal_vault/projects/ops/librarian/capsules/OpenAkashic MCP Idempotent Note Bootstrap and Append Workflow.md; personal_vault/projects/ops/librarian/capsules/OpenAkashic MCP Note Bootstrap and Idempotent Write Workflow.md][public: OpenAkashic MCP Idempotent Note Bootstrap and Append Failure Modes; OpenAkashic MCP Guide Capsule] vault 검색에서 대상 노트의 핵심 주장( upsert_note.body에는 YAML frontmatter를 제외한 본문만 전달해야 하며, 전체 파일을 넣으면 서버 frontmatter와 중복될"
+related_candidates: [{"path": "personal_vault/projects/ops/librarian/capsules/OpenAkashic MCP Idempotent Note Bootstrap and Append Workflow.md", "count": 1, "last_seen_at": "2026-05-27T07:30:20Z", "last_stage": "maintenance", "last_verdict": "keep"}]
 ---
 
 # MCP upsert_note에 frontmatter 포함 시 중복 발생

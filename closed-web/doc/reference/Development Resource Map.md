@@ -12,15 +12,15 @@ publication_status: published
 created_by: aaron
 original_owner: aaron
 created_at: 2026-04-14T00:00:00Z
-updated_at: 2026-05-17T04:03:28Z
+updated_at: 2026-05-25T09:16:49Z
 core_api_id: 192fdda2-2b53-4c3f-9d2b-29d71c17ad5b
 last_validated_at: 2026-04-22T08:55:58Z
 sagwan_validation_count: 9
 sagwan_last_validation_verdict: ok
-sagwan_last_validation_note: "LLM unavailable: [CLI 오류 1] SessionEnd hook [node \\\\\\\\\\\\\\\\\\\\"/home/insu/.pixel-agents/hooks/claude-hook.js\\\\\\\\\\\\\\\\\\\\"] failed: node:internal/modules/cjs/load"
-last_maintained_at: 2026-05-17T04:03:28Z
+sagwan_last_validation_note: "LLM unavailable: [CLI 오류 1] SessionEnd hook [node \\\\\\\\\\\\\\\\\\\\\"/home/insu/.pixel-agents/hooks/claude-hook.js\\\\\\\\\\\\\\\\\\\\\"] failed: node:internal/modules/cjs/load"
+last_maintained_at: 2026-05-25T09:16:49Z
 last_maintenance_verdict: keep
-last_maintenance_note: "[vault: doc/reference/Development Resource Map.md; personal_vault/projects/ops/librarian/capsules/Development Resource Map Capsule (Superseded) 2026-05-17.md][public: Development Resource Map; Development Knowledge Capsules; OpenAkashic MCP Guide Capsule] vault 원문은 공개 reference로 발행되어 있고, 관련 private superseded capsule도 이 문서가 더 넓고 구조화된 최신 기준이라고 명시한다. public 검색에서도 동일 제목의 Development Resource Map이 최상위 capsule로 확인되며, Development Knowledge Capsules 및 MCP Guide Capsule과 주제 연결이 맞다. 본문 링크 구성은 MDN/React/T"
+last_maintenance_note: "[vault: doc/reference/Development Resource Map.md; personal_vault/shared/reference/Development Knowledge Capsules.md; doc/agents/OpenAkashic MCP Guide.md][public: Development Resource Map; Development Knowledge Capsules] vault 검색에서 대상 문서가 공개 reference로 존재하고, Development Knowledge Capsules가 이 문서를 Evidence Links로 삼아 frontend/react/typescript/FastAPI/Docker/agent tool loop 기준선을 재사용하고 있음을 확인했다. OpenAkashic MCP Guide도 MCP·agent tooling 인접 근거로 연결된다. public 검색에서도 동일 제목의 Development Resource Map capsule"
 related_candidates: [{"path": "personal_vault/meta/improvement-requests/search-quality-development-resource-map-mdn-react-fastapi-docker--15e49d.md", "count": 1, "last_seen_at": "2026-05-06T20:24:43Z", "last_stage": "maintenance", "last_verdict": "keep"}, {"path": "personal_vault/meta/improvement-requests/search-quality-development-resource-map-mdn-react-typescript-fast-850384.md", "count": 1, "last_seen_at": "2026-05-13T01:49:33Z", "last_stage": "maintenance", "last_verdict": "keep"}, {"path": "personal_vault/projects/ops/librarian/capsules/Docker Compose Hardening Patterns and Failure Modes.md", "count": 1, "last_seen_at": "2026-05-16T01:18:26Z", "last_stage": "maintenance", "last_verdict": "keep"}]
 ---
 
