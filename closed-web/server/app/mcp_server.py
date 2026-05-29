@@ -773,6 +773,8 @@ def upsert_note(
     if not body:
         return {"error": "body (또는 content) 파라미터가 필수입니다. 노트 내용을 전달하세요."}
     auth = _auth_from_ctx(ctx)
+    if not auth.authenticated:
+        raise ValueError("Authentication required")
     _check_mcp_write_rate(auth)
     existing_frontmatter: dict[str, Any] = {}
     try:
@@ -1316,6 +1318,8 @@ def append_note_section(
 ) -> dict[str, Any]:
     """Append a new H2 section to an existing OpenAkashic markdown note."""
     auth = _auth_from_ctx(ctx)
+    if not auth.authenticated:
+        raise ValueError("Authentication required")
     _assert_can_modify_document(path, auth)
     existing = load_document(path)
     metadata = dict(existing.frontmatter)
@@ -2194,12 +2198,12 @@ def _request_token_from_ctx(ctx: Context | None) -> str | None:
         return settings.bearer_token.strip() or None
     request = getattr(getattr(ctx, "request_context", None), "request", None)
     headers = getattr(request, "headers", None)
-    if not headers:
+    if headers is None:
         return settings.bearer_token.strip() or None
     auth_header = headers.get("authorization", "")
     if auth_header.lower().startswith("bearer "):
         return auth_header[7:].strip() or None
-    return settings.bearer_token.strip() or None
+    return None
 
 
 def _auth_from_ctx(ctx: Context | None) -> AuthState:

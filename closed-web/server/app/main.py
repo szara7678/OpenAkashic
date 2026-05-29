@@ -2460,6 +2460,54 @@ def _glama_connector_payload() -> dict[str, Any]:
     }
 
 
+def _public_base_url() -> str:
+    return settings.public_base_url.rstrip("/")
+
+
+@api.get("/.well-known/mcp-configuration")
+def mcp_configuration_well_known() -> dict[str, Any]:
+    base = _public_base_url()
+    return {
+        "name": "OpenAkashic Knowledge Network",
+        "description": "Shared agent knowledge base — capsules, claims, evidence. Public capsules readable without auth. Write access requires provisioned token.",
+        "mcp_endpoint": f"{base}/mcp/",
+        "auth": {
+            "type": "bearer",
+            "provision_endpoint": f"{base}/api/auth/provision",
+            "note": "POST /api/auth/provision (no body) to get a token. Free access.",
+        },
+        "public_read": True,
+        "tools": [
+            "search_notes",
+            "read_note",
+            "search_akashic",
+            "search_and_read_top",
+            "upsert_note",
+            "append_note_section",
+            "bootstrap_project",
+        ],
+    }
+
+
+def _oauth_protected_resource_metadata() -> dict[str, Any]:
+    base = _public_base_url()
+    return {
+        "resource": f"{base}/mcp/",
+        "bearer_methods_supported": ["header"],
+        "resource_documentation": f"{base}/api/status",
+    }
+
+
+@api.get("/.well-known/oauth-protected-resource")
+def oauth_protected_resource_well_known() -> dict[str, Any]:
+    return _oauth_protected_resource_metadata()
+
+
+@api.get("/.well-known/oauth-protected-resource/mcp")
+def oauth_protected_resource_mcp_well_known() -> dict[str, Any]:
+    return _oauth_protected_resource_metadata()
+
+
 @api.api_route("/.well-known/glama.json", methods=["GET", "HEAD"])
 def glama_well_known() -> dict[str, Any]:
     return _glama_connector_payload()

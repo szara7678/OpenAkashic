@@ -186,9 +186,13 @@ class BearerTokenASGI:
             for key, value in scope.get("headers", [])
         }
         auth_header = headers.get("authorization", "")
+        if not auth_header:
+            await self.app(scope, receive, send)
+            return
+
         token = auth_header[7:].strip() if auth_header.lower().startswith("bearer ") else None
 
-        if auth_state_for_token(token).authenticated:
+        if token and auth_state_for_token(token).authenticated:
             await self.app(scope, receive, send)
             return
 
