@@ -26,7 +26,7 @@ from typing import Any
 
 from app.agent_memory import (
     after_task,
-    before_task_context,
+    before_task_context as _memory_before_task_context,
     distill_memory,
     gather_context,
     recent_memory_tail,
@@ -98,6 +98,66 @@ _LLM_RATIONALE_SNIPPET = 600
 _LEGACY_NONE_CLAIM_MIGRATION_STATE_PATH = (
     "personal_vault/projects/ops/librarian/activity/legacy-none-claims-migration-state.md"
 )
+
+
+def before_task_context(
+    actor: str,
+    query: str,
+    *,
+    current_note_path: str | None = None,
+    total_chars: int = 4000,
+) -> dict[str, str]:
+    ctx = _memory_before_task_context(
+        actor,
+        query,
+        current_note_path=current_note_path,
+        total_chars=total_chars,
+    )
+    if actor != "sagwan":
+        return ctx
+    experience_seed = _recent_experience_seed_context(char_budget=max(600, int(total_chars * 0.18)))
+    if not experience_seed:
+        return ctx
+    combined = "\n\n".join(
+        block for block in [ctx.get("combined", ""), experience_seed] if block
+    ).strip()
+    out = dict(ctx)
+    out["experience_seed"] = experience_seed
+    out["combined"] = combined
+    return out
+
+
+def _recent_experience_seed_context(*, limit: int = 3, char_budget: int = 900) -> str:
+    entries: list[tuple[str, str, str]] = []
+    try:
+        paths = [
+            p for p in list_note_paths()
+            if p.startswith("personal_vault/knowledge/agent-experience/") and p.endswith(".md")
+        ]
+    except Exception:
+        return ""
+    for path in paths:
+        try:
+            doc = load_document(path)
+        except Exception:
+            continue
+        fm = dict(doc.frontmatter or {})
+        tags = {str(t) for t in (fm.get("tags") or [])}
+        if fm.get("generated_by") != "sagwan-experience-seed" and "agent-experience" not in tags:
+            continue
+        ts = str(fm.get("mined_at") or fm.get("updated_at") or fm.get("created_at") or "")
+        title = str(fm.get("title") or path).strip()
+        body = " ".join(
+            line.strip()
+            for line in (doc.body or "").splitlines()
+            if line.strip() and not line.startswith("## ")
+        )
+        entries.append((ts, path, f"- {title}: {body[:260]}"))
+    if not entries:
+        return ""
+    entries.sort(key=lambda item: item[0], reverse=True)
+    block = "## Recent Agent Experience Seeds\n" + "\n".join(item[2] for item in entries[:limit])
+    return block[:char_budget].rstrip()
 
 
 def sagwan_settings_path() -> Path:
@@ -2816,6 +2876,7 @@ def _build_gap_selection_prompt(
     inventory: dict[str, Any],
     memory_snippet: str,
     recent_topics: list[dict[str, Any]] | None = None,
+    worked_well_patterns: list[str] | None = None,
 ) -> str:
     top_thin = inventory.get("top_thin") or []
     gap_queries = inventory.get("recent_gap_queries") or []
@@ -2850,12 +2911,61 @@ def _build_gap_selection_prompt(
     if recent_topics:
         topic_lines = "\n".join(f"- {entry['topic']}" for entry in recent_topics[:20])
         sections.append("\n## Recently researched (중복 선택 금지)\n" + topic_lines)
+    if worked_well_patterns:
+        sections.append(
+            "\n## Worked-well topic patterns from distilled memory\n"
+            + "\n".join(f"- {item}" for item in worked_well_patterns[:3])
+        )
     sections += [
         "",
         "## 최근 사관 기억",
         memory_snippet or "(없음)",
     ]
     return "\n\n".join(sections)
+
+
+def _extract_worked_well_topic_patterns(text: str, *, limit: int = 3) -> list[str]:
+    out: list[str] = []
+    seen: set[str] = set()
+    for raw_line in str(text or "").splitlines():
+        line = raw_line.strip(" -\t")
+        if not line:
+            continue
+        lower = line.lower()
+        has_success = any(token in lower for token in ("worked well", "success", "successful", "kept", "approved"))
+        has_korean_success = any(token in line for token in ("효과", "성공", "유효", "통과", "승인"))
+        has_topic = any(token in lower for token in ("topic", "research", "capsule", "gap", "pattern"))
+        if not ((has_success or has_korean_success) and has_topic):
+            continue
+        compact = re.sub(r"\s+", " ", line)[:220]
+        key = compact.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(compact)
+        if len(out) >= limit:
+            break
+    return out
+
+
+def _top_distilled_patterns(text: str, *, limit: int = 3) -> list[str]:
+    preferred = _extract_worked_well_topic_patterns(text, limit=limit)
+    if len(preferred) >= limit:
+        return preferred[:limit]
+    seen = {item.lower() for item in preferred}
+    for raw_line in str(text or "").splitlines():
+        line = raw_line.strip(" -\t")
+        if len(line) < 12:
+            continue
+        compact = re.sub(r"\s+", " ", line)[:220]
+        key = compact.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        preferred.append(compact)
+        if len(preferred) >= limit:
+            break
+    return preferred[:limit]
 
 
 def _parse_gap_selection(raw: str) -> dict[str, Any] | None:
@@ -4109,7 +4219,13 @@ def _curate_research_gaps(force: bool = False) -> dict[str, Any]:
         block for block in [memory.get("distilled", ""), recent_memory_tail("sagwan", max_sections=4, char_budget=1000)] if block
     )
     recent_topics = _list_recent_research_topics(max_age_days=7, max_entries=15)
-    selection_prompt = _build_gap_selection_prompt(inventory, memory_snippet, recent_topics)
+    worked_well_patterns = _extract_worked_well_topic_patterns(memory_snippet, limit=3)
+    selection_prompt = _build_gap_selection_prompt(
+        inventory,
+        memory_snippet,
+        recent_topics,
+        worked_well_patterns,
+    )
     try:
         raw_selection = _invoke_for_stage("research_selection", selection_prompt)
     except StageRateLimitExceeded:
@@ -6615,6 +6731,47 @@ def _maybe_update_librarian_profile(state_fm: dict[str, Any]) -> dict[str, Any]:
 
 _SELF_IMPROVE_STATE_PATH = "personal_vault/projects/ops/librarian/activity/self-improve-state.md"
 _SELF_IMPROVE_DEFAULT_INTERVAL_HOURS = 12
+_LIBRARIAN_POLICY_PATH = "personal_vault/projects/ops/librarian/policy/Librarian Policy.md"
+
+
+def _replace_or_append_markdown_section(body: str, heading: str, content: str) -> str:
+    heading = heading.strip()
+    pattern = rf"^{re.escape(heading)}\s*\n.*?(?=^##\s+|\Z)"
+    replacement = f"{heading}\n{content.strip()}\n"
+    if re.search(pattern, body or "", flags=re.MULTILINE | re.DOTALL):
+        return re.sub(pattern, replacement, body or "", flags=re.MULTILINE | re.DOTALL).rstrip() + "\n"
+    return (body or "").rstrip() + "\n\n" + replacement
+
+
+def _force_write_policy_distilled_carryover(patterns: list[str]) -> dict[str, Any]:
+    today = datetime.now(UTC).strftime("%Y-%m-%d")
+    selected = [p for p in patterns[:3] if p]
+    if not selected:
+        selected = ["No concrete distilled pattern was available; continue active exploration and record new evidence."]
+    content = "\n".join(
+        [
+            f"- noted_at: {today}",
+            "- reason: Stage S returned no_change for 3+ consecutive cycles; carry forward stable distilled patterns explicitly.",
+            "- patterns:",
+            *[f"  - {item}" for item in selected],
+        ]
+    )
+    doc = load_document(_LIBRARIAN_POLICY_PATH)
+    fm = dict(doc.frontmatter or {})
+    fm["updated_at"] = _now_iso()
+    body = _replace_or_append_markdown_section(
+        doc.body or "",
+        "## Distilled Pattern Carryover",
+        content,
+    )
+    write_document(
+        path=_LIBRARIAN_POLICY_PATH,
+        body=body,
+        metadata=fm,
+        allow_owner_change=True,
+        metadata_replace=True,
+    )
+    return {"status": "forced_policy_update", "path": _LIBRARIAN_POLICY_PATH, "patterns": selected}
 
 
 def _curate_self_improve(*, force: bool = False) -> dict[str, Any]:
@@ -6717,6 +6874,27 @@ def _curate_self_improve(*, force: bool = False) -> dict[str, Any]:
 
     decision = _extract_json_dict(raw)
     if not decision or not bool(decision.get("needs_change")):
+        previous_no_change = int(state_fm.get("consecutive_no_change") or 0)
+        if previous_no_change <= 0 and str(state_fm.get("last_outcome") or "") == "no_change":
+            previous_no_change = 1
+        if previous_no_change + 1 >= 3:
+            patterns = _top_distilled_patterns(distilled_recent, limit=3)
+            try:
+                fallback = _force_write_policy_distilled_carryover(patterns)
+            except Exception as exc:
+                _touch_self_improve_state(reason="no_change")
+                return {
+                    "status": "no_change_fallback_failed",
+                    "reason": str(exc)[:160],
+                    "rationale": str(decision.get("rationale") or "")[:200] if decision else "",
+                }
+            _touch_self_improve_state(reason=fallback.get("status", "forced_policy_update"))
+            return {
+                "status": fallback.get("status", "forced_policy_update"),
+                "path": fallback.get("path"),
+                "patterns": fallback.get("patterns", []),
+                "rationale": str(decision.get("rationale") or "")[:200] if decision else "",
+            }
         # Touch state so cooldown advances even on no-change
         _touch_self_improve_state(reason="no_change")
         return {"status": "no_change", "rationale": str(decision.get("rationale") or "")[:200] if decision else ""}
@@ -6763,6 +6941,8 @@ def _touch_self_improve_state(*, reason: str) -> None:
             body = "## Summary\nStage S (self-improve) cooldown + last-run state.\n"
         fm["last_run_at"] = _now_iso()
         fm["last_outcome"] = reason
+        previous_no_change = int(fm.get("consecutive_no_change") or 0)
+        fm["consecutive_no_change"] = previous_no_change + 1 if reason == "no_change" else 0
         write_document(path=_SELF_IMPROVE_STATE_PATH, body=body, metadata=fm,
                        allow_owner_change=True, metadata_replace=True)
     except Exception as exc:
@@ -6885,6 +7065,25 @@ def _curate_autonomous_sweep(*, force: bool = False) -> dict[str, Any]:
             "rationale": "no-action-break safeguard fired",
         })
         outcomes.append(forced)
+        add_concern_remaining = max(
+            0,
+            sagwan_sweep.ACTION_RATE_LIMITS_24H.get("add_concern", 0)
+            - sagwan_sweep._count_action_24h("add_concern"),
+        )
+        improvement_remaining = max(
+            0,
+            sagwan_sweep.ACTION_RATE_LIMITS_24H.get("improvement_request", 0)
+            - sagwan_sweep._count_action_24h("improvement_request"),
+        )
+        if (
+            forced.get("outcome") != "applied"
+            and add_concern_remaining <= 0
+            and improvement_remaining <= 0
+        ):
+            outcomes.append(sagwan_sweep.execute_action({
+                "kind": "trigger_stage_s",
+                "rationale": "no-action-break fallback: concern and improvement_request capacity exhausted",
+            }))
 
     try:
         sagwan_sweep.append_sweep_entry(panorama=panorama, actions=outcomes, rationale=rationale)

@@ -332,9 +332,15 @@ def prune_concerns() -> int:
 def list_concerns() -> list[dict[str, Any]]:
     """Active concerns ordered by severity desc, then most-recent first."""
     sev_order = {"critical": 0, "high": 1, "medium": 2, "low": 3}
+    now = _now_dt()
     with _LOCK:
         data = _ensure_observability(_load())
-    items = list(data["active_concerns"])
+    items = []
+    for c in data["active_concerns"]:
+        exp = _parse_iso(c.get("expires_at"))
+        if exp and exp < now:
+            continue
+        items.append(c)
     items.sort(key=lambda c: (sev_order.get(c.get("severity", "medium"), 2),
                               c.get("created_at") or "" * -1), reverse=False)
     return items

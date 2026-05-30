@@ -3,13 +3,13 @@ sagwan_sweep.py — Stage Z (autonomous sweep) engine.
 
 Codex review (2026-05-04 v7) decision: Z is **orchestration only, no execution**.
 Existing stages already do narrow domain work; Z gathers a panorama and decides
-whether to enqueue, escalate, or annotate (goals/concerns/IR/proposals).
+whether to enqueue, escalate, annotate, or trigger Stage S as a deadlock breaker.
 
 Action types (8):
     1. add_goal              — sagwan adds a goal to its own agenda
     2. add_concern           — sagwan flags a risk
     3. priority_enqueue      — urgent maintenance/conflict task at priority=2
-    4. trigger_stage_s       — request operating-note edit (Stage S)
+    4. trigger_stage_s       — directly trigger operating-note edit (Stage S)
     5. improvement_request   — open a human-review note
     6. update_goal           — adjust an existing goal's status/priority/next_actions
     7. propose_oa_improvement — write a markdown draft to OpenAkashic proposals/
@@ -19,7 +19,7 @@ Hard caps (per 24h, Codex-tightened):
     add_goal                   ≤ 1
     add_concern                ≤ 2
     priority_enqueue           ≤ 3
-    trigger_stage_s            ≤ 1
+    trigger_stage_s            bypasses 24h capacity
     improvement_request        ≤ 1
     update_goal                ≤ 3
     propose_oa_improvement     ≤ 2
@@ -60,12 +60,13 @@ SCHEMA_VERSION = 1
 SWEEP_LOG_PATH = "personal_vault/projects/ops/librarian/activity/sweep-log.md"
 PROPOSALS_FOLDER = "personal_vault/projects/personal/openakashic/proposals"
 
-# Per-kind 24h hard caps (Codex v7 tightened)
+# Per-kind 24h hard caps (Codex v7 tightened). trigger_stage_s is a deadlock
+# breaker and bypasses this 24h capacity check.
 ACTION_RATE_LIMITS_24H: dict[str, int] = {
     "add_goal": 1,
     "add_concern": 2,
     "priority_enqueue": 3,
-    "trigger_stage_s": 1,
+    "trigger_stage_s": 9999,
     "improvement_request": 1,
     "update_goal": 3,
     "propose_oa_improvement": 2,
@@ -137,9 +138,10 @@ def gather_panorama() -> dict[str, Any]:
     # agenda + concerns + recent picks
     try:
         snap = sagwan_agenda.get_observability_snapshot()
+        active_concerns = [c for c in (snap.get("active_concerns") or []) if _concern_still_active(c)]
         panorama["agenda_count"] = len(snap.get("current_agenda") or [])
         panorama["agenda_titles"] = [g.get("statement", "")[:80] for g in (snap.get("current_agenda") or [])][:5]
-        panorama["concerns_count"] = len(snap.get("active_concerns") or [])
+        panorama["concerns_count"] = len(active_concerns)
         panorama["why_this_next_recent"] = (snap.get("why_this_next") or [])[:3]
     except Exception as exc:
         panorama["agenda_error"] = str(exc)[:120]
@@ -189,6 +191,11 @@ def gather_panorama() -> dict[str, Any]:
         panorama["sweep_recent"] = []
 
     return panorama
+
+
+def _concern_still_active(concern: dict[str, Any]) -> bool:
+    exp = _parse_iso(str(concern.get("expires_at") or ""))
+    return exp is None or exp >= _now_dt()
 
 
 # ─── sweep log ──────────────────────────────────────────────────────────────
@@ -319,10 +326,11 @@ def execute_action(action: dict[str, Any], *, requested_by: str = "sagwan") -> d
         return {"kind": "no_op", "outcome": "applied", "target_summary": "",
                 "rationale_head": rationale[:120]}
 
-    ok, why = can_do_action(kind)
-    if not ok:
-        return {"kind": kind, "outcome": "rejected", "target_summary": "",
-                "reason": why}
+    if kind != "trigger_stage_s":
+        ok, why = can_do_action(kind)
+        if not ok:
+            return {"kind": kind, "outcome": "rejected", "target_summary": "",
+                    "reason": why}
 
     # Reject prompt-injection in any user-emitted free text
     for fld in ("rationale", "statement", "text", "new_content", "title", "body"):
@@ -436,13 +444,21 @@ def _do_priority_enqueue(action: dict[str, Any], rationale: str) -> dict[str, An
 
 
 def _do_trigger_stage_s(action: dict[str, Any], rationale: str) -> dict[str, Any]:
-    """Don't directly call Stage S (would bypass its cooldown). Instead lower
-    its cooldown by writing to its state — Codex principle: Z is orchestration,
-    not execution. We just open an improvement-request that flags the request."""
-    return _do_improvement_request({
-        "title": "Stage S 트리거 권장",
-        "body": "Sagwan sweep이 Stage S 자기개선 단계의 조기 호출을 권장합니다.\n\n" + rationale,
-    }, rationale, "sagwan")
+    """Directly invoke Stage S as the no-action breaker.
+
+    This action intentionally bypasses the sweep 24h action-capacity check; Stage
+    S still keeps its own model/self-edit safety gates.
+    """
+    try:
+        from app import sagwan_loop  # late import: sagwan_loop imports this module
+        out = sagwan_loop._curate_self_improve(force=True)
+    except Exception as exc:
+        return {"kind": "trigger_stage_s", "outcome": "rejected",
+                "target_summary": "Stage S self-improve",
+                "reason": f"stage_s_failed:{exc}"[:120]}
+    return {"kind": "trigger_stage_s", "outcome": "applied",
+            "target_summary": "Stage S self-improve",
+            "stage_s_status": str((out or {}).get("status") or "")[:80]}
 
 
 def _do_improvement_request(action: dict[str, Any], rationale: str, requested_by: str) -> dict[str, Any]:
