@@ -7547,7 +7547,7 @@ def load_chat_session(session_id: str) -> dict[str, Any]:
         return {"session_id": session_id, "messages": [], "message_count": 0, "title": f"Chat Session {session_id}"}
 
 
-def append_chat_message(session_id: str, role: str, content: str, *, participant: str = "user") -> None:
+def append_chat_message(session_id: str, role: str, content: str, *, participant: str = "user", project: str = "") -> None:
     """세션 파일에 메시지 append."""
     session_id = _validate_chat_session_id(session_id)
     if role not in {"user", "sagwan"}:
@@ -7559,7 +7559,10 @@ def append_chat_message(session_id: str, role: str, content: str, *, participant
         doc = load_document(path)
         fm = dict(doc.frontmatter or {})
         count = int(fm.get("message_count") or 0) + 1
-        fm.update({"updated_at": ts, "message_count": count})
+        update = {"updated_at": ts, "message_count": count}
+        if project and not fm.get("project_label"):
+            update["project_label"] = project
+        fm.update(update)
         write_document(
             path=path,
             body=(doc.body or "") + section,
@@ -7569,6 +7572,18 @@ def append_chat_message(session_id: str, role: str, content: str, *, participant
         )
     except Exception:
         # 신규 세션 생성
+        meta: dict[str, Any] = {
+            "owner": "sagwan",
+            "visibility": "private",
+            "publication_status": "none",
+            "session_id": session_id,
+            "participant": participant,
+            "created_at": ts,
+            "updated_at": ts,
+            "message_count": 1,
+        }
+        if project:
+            meta["project_label"] = project
         write_document(
             path=path,
             title=f"Chat Session {session_id}",
@@ -7576,16 +7591,7 @@ def append_chat_message(session_id: str, role: str, content: str, *, participant
             project="ops/librarian",
             tags=["chat", "sagwan-session"],
             body=section.strip() + "\n",
-            metadata={
-                "owner": "sagwan",
-                "visibility": "private",
-                "publication_status": "none",
-                "session_id": session_id,
-                "participant": participant,
-                "created_at": ts,
-                "updated_at": ts,
-                "message_count": 1,
-            },
+            metadata=meta,
             allow_owner_change=True,
         )
 
@@ -7615,6 +7621,7 @@ def list_chat_sessions(*, limit: int = 20, participant: str | None = None) -> li
                 "session_id": sid,
                 "title": str(fm.get("title") or f"Chat Session {sid}"),
                 "participant": session_participant,
+                "project": str(fm.get("project_label") or ""),
                 "updated_at": str(fm.get("updated_at") or ""),
                 "message_count": int(fm.get("message_count") or 0),
             })

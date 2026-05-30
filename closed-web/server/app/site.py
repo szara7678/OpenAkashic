@@ -6936,6 +6936,11 @@ def _debug_href(route_prefix: str) -> str:
     return f"{route_prefix}/admin" if route_prefix else "/admin"
 
 
+def _sagwan_href(route_prefix: str) -> str:
+    route_prefix = _normalize_prefix(route_prefix)
+    return f"{route_prefix}/sagwan" if route_prefix else "/sagwan"
+
+
 def _graph_data_href(route_prefix: str) -> str:
     route_prefix = _normalize_prefix(route_prefix)
     return f"{route_prefix}/graph-data" if route_prefix else "/graph-data"
@@ -8144,6 +8149,7 @@ def _shared_header_html(route_prefix: str, page_label: str, *, note_actions: boo
         <a class="global-pill" href="{html.escape(_root_href(route_prefix))}">Home</a>
         <a class="global-pill" href="{html.escape(_graph_href(route_prefix))}">Graph</a>
         <a class="global-pill" id="global-admin-link" href="{html.escape(_debug_href(route_prefix))}" hidden>Admin</a>
+        <a class="global-pill" id="global-sagwan-link" href="{html.escape(_sagwan_href(route_prefix))}" hidden>사관</a>
       </nav>{note_action_html}
       <div class="global-actions">
         <button class="theme-toggle" id="global-theme-toggle" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">🌓</button>
@@ -8632,9 +8638,11 @@ def _shared_ui_shell(route_prefix: str) -> str:
           if (dom.authAvatar) dom.authAvatar.textContent = initialsFor(session);
           if (dom.authName) dom.authName.textContent = session?.nickname || 'Guest';
           if (dom.authRole) dom.authRole.textContent = session?.role || 'anonymous';
-          // Show Admin nav link only to admin/manager
+          // Show Admin/Sagwan nav link only to admin/manager
           const adminLink = document.getElementById('global-admin-link');
           if (adminLink) adminLink.hidden = !isAdmin;
+          const sagwanLink = document.getElementById('global-sagwan-link');
+          if (sagwanLink) sagwanLink.hidden = !isAdmin;
         }}
 
         function setAdminVisible(visible) {{
@@ -10105,327 +10113,221 @@ def _rewrite_markdown_image(match: re.Match[str], route_prefix: str) -> str:
 
 
 def sagwan_chat_html(*, auth: Any = None, route_prefix: str = "") -> str:
-    """Sagwan 채팅 UI — /sagwan 라우트용."""
+    """Sagwan 채팅 UI — Claude 스타일 멀티세션."""
     shared_styles = _shared_ui_styles()
-    shared_header = _shared_header_html(route_prefix, "사관 대화")
+    shared_header = _shared_header_html(route_prefix, "사관")
     shared_shell = _shared_ui_shell(route_prefix)
     nickname = str(getattr(auth, "nickname", "") or getattr(auth, "username", "") or "you")
+    nick_initial = (nickname[0].upper()) if nickname else "U"
     return f"""<!doctype html>
 <html lang="ko">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <link rel="icon" href="data:,"/>
-  <title>사관 대화 — OpenAkashic</title>
-  <script>document.documentElement.setAttribute('data-theme', 'dark');</script>
+  <title>사관 — OpenAkashic</title>
   <style>
-    {shared_styles}
+    {{shared_styles}}
     :root {{
-      --chat-user-bg: #1e3a5f;
-      --chat-sagwan-bg: #1a2535;
-      --chat-border: #2d3748;
+      --sb-bg: #111827; --sb-hover: #1f2937; --sb-active: #1e3a5f;
+      --sb-border: #1f2937; --main-bg: #0d1117;
+      --msg-user-bg: #1e3a5f; --msg-sagwan-bg: #161d27; --msg-border: #1e293b;
     }}
-    html, body {{
-      margin: 0;
-      min-height: 100%;
-      background: #0d0d0d;
-      color: #e2e8f0;
-    }}
-    .chat-layout {{
-      display: grid;
-      grid-template-columns: 240px minmax(0,1fr);
-      height: calc(100svh - var(--closed-header-height, 52px));
-    }}
-    /* session list */
-    .session-panel {{
-      border-right: 1px solid var(--chat-border);
-      overflow-y: auto;
-      padding: 12px 8px;
-      background: #101828;
-    }}
-    .session-panel h3 {{
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: .06em;
-      color: #64748b;
-      margin: 0 0 8px 4px;
-    }}
-    .session-item {{
-      padding: 8px 10px;
-      border-radius: 7px;
-      cursor: pointer;
-      margin-bottom: 2px;
-      font-size: 13px;
-      color: #94a3b8;
-    }}
-    .session-item:hover, .session-item.active {{
-      background: #1e293b;
-      color: #e2e8f0;
-    }}
-    .session-item .s-date {{
-      font-size: 10px;
-      color: #475569;
-      margin-top: 2px;
-    }}
-    .new-session-btn {{
-      width: 100%;
-      padding: 8px;
-      background: #1e3a5f;
-      color: #93c5fd;
-      border: none;
-      border-radius: 7px;
-      cursor: pointer;
-      font-size: 13px;
-      margin-bottom: 12px;
-    }}
-    .new-session-btn:hover {{ background: #1d4ed8; color: #fff; }}
-    /* main chat */
-    .chat-main {{
-      display: flex;
-      flex-direction: column;
-      background: #0d0d0d;
-    }}
-    .chat-status {{
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 12px 24px;
-      border-bottom: 1px solid #1e293b;
-      background: #101010;
-      color: #94a3b8;
-      font-size: 13px;
-    }}
-    .chat-status strong {{
-      color: #e2e8f0;
-      font-weight: 700;
-    }}
-    .chat-status span:last-child {{
-      color: #64748b;
-      font-size: 12px;
-    }}
-    .chat-messages {{
-      flex: 1;
-      overflow-y: auto;
-      padding: 20px 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }}
-    .msg {{
-      display: flex;
-      flex-direction: column;
-      max-width: 78%;
-    }}
-    .msg.user {{ align-self: flex-end; align-items: flex-end; }}
-    .msg.sagwan {{ align-self: flex-start; }}
-    .msg-label {{
-      font-size: 11px;
-      color: #475569;
-      margin-bottom: 4px;
-      padding: 0 4px;
-    }}
-    .msg-bubble {{
-      padding: 11px 15px;
-      border-radius: 12px;
-      font-size: 14px;
-      line-height: 1.6;
-      white-space: pre-wrap;
-    }}
-    .msg.user .msg-bubble {{ background: var(--chat-user-bg); color: #bfdbfe; border-bottom-right-radius: 3px; }}
-    .msg.sagwan .msg-bubble {{ background: var(--chat-sagwan-bg); color: #e2e8f0; border-bottom-left-radius: 3px; border: 1px solid #2d3748; }}
-    .capability-chips {{
-      display: flex;
-      gap: 6px;
-      padding: 10px 24px;
-      border-bottom: 1px solid #1e293b;
-      flex-wrap: wrap;
-    }}
-    .chip {{
-      font-size: 11px;
-      padding: 3px 9px;
-      border-radius: 99px;
-      background: #1e293b;
-      color: #64748b;
-      border: 1px solid #334155;
-    }}
-    .chat-input-area {{
-      padding: 14px 24px 18px;
-      border-top: 1px solid #1e293b;
-      display: flex;
-      gap: 10px;
-      align-items: flex-end;
-    }}
-    .chat-input {{
-      flex: 1;
-      background: #1e293b;
-      border: 1px solid #334155;
-      border-radius: 10px;
-      color: #e2e8f0;
-      font-size: 14px;
-      padding: 10px 14px;
-      resize: none;
-      min-height: 42px;
-      max-height: 140px;
-      font-family: inherit;
-    }}
-    .chat-input:focus {{ outline: none; border-color: #3b82f6; }}
-    .send-btn {{
-      padding: 10px 18px;
-      background: #2563eb;
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 500;
-    }}
-    .send-btn:hover {{ background: #1d4ed8; }}
-    .send-btn:disabled {{ background: #334155; color: #64748b; cursor: default; }}
-    .thinking {{ color: #475569; font-style: italic; font-size: 13px; padding: 8px 0; }}
-    .empty-state {{
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      color: #334155;
-      gap: 8px;
-    }}
-    .empty-state .icon {{ font-size: 40px; }}
-    .empty-state h2 {{ margin: 0; font-size: 18px; color: #475569; }}
-    .empty-state p {{ margin: 0; font-size: 13px; }}
+    html,body{{margin:0;min-height:100%;background:var(--main-bg);color:#e2e8f0;font-family:Inter,ui-sans-serif,system-ui,sans-serif;}}
+    .sagwan-wrap{{display:flex;height:calc(100svh - var(--closed-header-height,52px));}}
+    /* sidebar */
+    .sagwan-sidebar{{width:260px;flex-shrink:0;background:var(--sb-bg);border-right:1px solid var(--sb-border);display:flex;flex-direction:column;overflow:hidden;}}
+    .sidebar-top{{padding:12px 10px 8px;border-bottom:1px solid var(--sb-border);}}
+    .new-chat-btn{{width:100%;padding:9px 12px;background:#2563eb;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;text-align:left;display:flex;align-items:center;gap:8px;}}
+    .new-chat-btn:hover{{background:#1d4ed8;}}
+    .proj-input-row{{padding:6px 4px 4px;display:none;}}
+    .proj-input-row.visible{{display:block;}}
+    .proj-input{{width:100%;padding:6px 10px;background:#1f2937;border:1px solid #374151;border-radius:6px;color:#e2e8f0;font-size:12px;box-sizing:border-box;}}
+    .proj-input:focus{{outline:none;border-color:#3b82f6;}}
+    .sidebar-body{{flex:1;overflow-y:auto;padding:8px 6px;}}
+    .proj-group{{margin-bottom:16px;}}
+    .proj-label{{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:#4b5563;padding:4px 8px;font-weight:600;}}
+    .session-item{{padding:8px 10px;border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:1px;}}
+    .session-item:hover{{background:var(--sb-hover);}}
+    .session-item.active{{background:var(--sb-active);}}
+    .session-item-title{{font-size:13px;color:#9ca3af;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}}
+    .session-item.active .session-item-title{{color:#bfdbfe;}}
+    .del-btn{{opacity:0;background:none;border:none;color:#6b7280;cursor:pointer;padding:2px 4px;border-radius:4px;font-size:12px;}}
+    .session-item:hover .del-btn{{opacity:1;}}
+    .del-btn:hover{{color:#ef4444;background:rgba(239,68,68,.1);}}
+    /* main */
+    .sagwan-main{{flex:1;display:flex;flex-direction:column;min-width:0;background:var(--main-bg);}}
+    .chat-topbar{{padding:11px 20px;border-bottom:1px solid #1e293b;display:flex;align-items:center;justify-content:space-between;gap:12px;}}
+    .chat-title-edit{{background:none;border:none;color:#e2e8f0;font-size:14px;font-weight:600;font-family:inherit;padding:2px 6px;border-radius:5px;width:300px;}}
+    .chat-title-edit:focus{{outline:none;background:#1e293b;border:1px solid #3b82f6;}}
+    .cap-chips{{display:flex;gap:5px;flex-wrap:wrap;}}
+    .cap-chip{{font-size:11px;padding:2px 8px;border-radius:99px;background:#1e293b;color:#64748b;border:1px solid #2d3748;}}
+    .chat-messages{{flex:1;overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:20px;}}
+    .msg-row{{display:flex;gap:12px;max-width:840px;width:100%;}}
+    .msg-row.user{{align-self:flex-end;flex-direction:row-reverse;}}
+    .msg-row.sagwan{{align-self:flex-start;}}
+    .msg-avatar{{width:32px;height:32px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;}}
+    .msg-row.user .msg-avatar{{background:#1d4ed8;color:#bfdbfe;}}
+    .msg-row.sagwan .msg-avatar{{background:#065f46;color:#6ee7b7;}}
+    .msg-body{{flex:1;min-width:0;}}
+    .msg-name{{font-size:11px;color:#4b5563;margin-bottom:5px;font-weight:500;}}
+    .msg-row.user .msg-name{{text-align:right;}}
+    .msg-bubble{{padding:12px 16px;border-radius:12px;font-size:14px;line-height:1.65;white-space:pre-wrap;word-break:break-word;}}
+    .msg-row.user .msg-bubble{{background:var(--msg-user-bg);color:#bfdbfe;border-bottom-right-radius:3px;}}
+    .msg-row.sagwan .msg-bubble{{background:var(--msg-sagwan-bg);color:#e2e8f0;border:1px solid var(--msg-border);border-bottom-left-radius:3px;}}
+    .chat-input-wrap{{padding:14px 20px 18px;border-top:1px solid #1e293b;}}
+    .chat-input-box{{display:flex;align-items:flex-end;gap:10px;background:#1e293b;border:1px solid #334155;border-radius:12px;padding:10px 14px;}}
+    .chat-input-box:focus-within{{border-color:#3b82f6;}}
+    .chat-textarea{{flex:1;background:none;border:none;color:#e2e8f0;font-size:14px;resize:none;min-height:24px;max-height:160px;font-family:inherit;line-height:1.6;}}
+    .chat-textarea:focus{{outline:none;}}
+    .chat-textarea::placeholder{{color:#4b5563;}}
+    .send-btn{{padding:8px 16px;background:#2563eb;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;flex-shrink:0;}}
+    .send-btn:hover{{background:#1d4ed8;}}
+    .send-btn:disabled{{background:#1e293b;color:#4b5563;cursor:default;}}
+    .empty-chat{{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:#374151;}}
+    .empty-chat .oa-icon{{font-size:48px;opacity:.5;}}
+    .empty-chat h2{{margin:0;font-size:20px;color:#6b7280;font-weight:600;}}
+    .empty-chat p{{margin:0;font-size:13px;}}
+    .starter-pills{{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:8px;}}
+    .starter-pill{{padding:7px 14px;background:#1e293b;border:1px solid #2d3748;color:#9ca3af;border-radius:20px;cursor:pointer;font-size:12px;}}
+    .starter-pill:hover{{background:#1e3a5f;color:#bfdbfe;border-color:#3b82f6;}}
+    .thinking-dots{{display:flex;gap:4px;padding:10px 0 4px;}}
+    .thinking-dots span{{width:7px;height:7px;background:#4b5563;border-radius:50%;animation:bounce 1.2s infinite;}}
+    .thinking-dots span:nth-child(2){{animation-delay:.2s;}}
+    .thinking-dots span:nth-child(3){{animation-delay:.4s;}}
+    @keyframes bounce{{0%,60%,100%{{transform:translateY(0);}}30%{{transform:translateY(-6px);background:#6b7280;}}}}
   </style>
 </head>
 <body>
-  {shared_header}
-  {shared_shell}
-  <div class="chat-layout">
-    <!-- Session list -->
-    <div class="session-panel">
-      <button class="new-session-btn" onclick="newSession()">+ 새 대화</button>
-      <h3>최근 대화</h3>
-      <div id="sessionList"></div>
-    </div>
-	    <!-- Chat main -->
-	    <div class="chat-main">
-	      <div class="chat-status">
-	        <span><strong>사관 상태</strong> · 대화 대기 중</span>
-	        <span id="runtimeStatus">자율 큐레이션 루프는 별도로 실행 중입니다.</span>
-	      </div>
-	      <div class="capability-chips">
-        <span class="chip">🔍 지식 검색</span>
-        <span class="chip">📖 노트 읽기</span>
-        <span class="chip">✏️ 노트 작성</span>
-        <span class="chip">🔬 연구 요청</span>
-        <span class="chip">📊 현황 조회</span>
-        <span class="chip">🤖 자율 큐레이션 중</span>
-      </div>
-      <div id="messages" class="chat-messages">
-        <div class="empty-state" id="emptyState">
-          <div class="icon">📚</div>
-          <h2>사관에게 말을 걸어보세요</h2>
-          <p>지식 검색, 노트 작성, 연구 요청 등 무엇이든 도와드립니다.</p>
+  {{shared_header}}
+  {{shared_shell}}
+  <div class="sagwan-wrap">
+    <aside class="sagwan-sidebar">
+      <div class="sidebar-top">
+        <button class="new-chat-btn" onclick="newChat()">&#9998; 새 대화</button>
+        <div class="proj-input-row" id="projInputRow">
+          <input class="proj-input" id="projInput" placeholder="프로젝트 이름 (선택)" />
         </div>
       </div>
-      <div class="chat-input-area">
-        <textarea
-          id="msgInput"
-          class="chat-input"
-          placeholder="사관에게 메시지를 보내세요… (Shift+Enter 줄바꿈, Enter 전송)"
-          rows="1"
-          onkeydown="handleKey(event)"
-          oninput="autoResize(this)"
-        ></textarea>
-        <button class="send-btn" id="sendBtn" onclick="sendMessage()">전송</button>
+      <div class="sidebar-body" id="sidebarBody"></div>
+    </aside>
+    <main class="sagwan-main">
+      <div class="chat-topbar">
+        <input class="chat-title-edit" id="chatTitleInput" value="새 대화" onchange="updateTitle(this.value)" />
+        <div class="cap-chips">
+          <span class="cap-chip">🔍 검색</span>
+          <span class="cap-chip">📖 읽기</span>
+          <span class="cap-chip">✏️ 노트</span>
+          <span class="cap-chip">🔬 연구</span>
+          <span class="cap-chip">🤖 자율큐레이션 중</span>
+        </div>
       </div>
-    </div>
+      <div class="chat-messages" id="messages">
+        <div class="empty-chat" id="emptyState">
+          <div class="oa-icon">📚</div>
+          <h2>사관에게 말을 걸어보세요</h2>
+          <p>vault 검색, 노트 작성, 연구 요청 등 무엇이든 도와드립니다.</p>
+          <div class="starter-pills">
+            <button class="starter-pill" onclick="sendStarter(this)">vault에서 가장 많이 다루는 주제는?</button>
+            <button class="starter-pill" onclick="sendStarter(this)">최근 연구한 내용을 요약해줘</button>
+            <button class="starter-pill" onclick="sendStarter(this)">OpenAkashic MCP 사용법</button>
+            <button class="starter-pill" onclick="sendStarter(this)">FastAPI 인증 관련 캡슐 찾아줘</button>
+          </div>
+        </div>
+      </div>
+      <div class="chat-input-wrap">
+        <div class="chat-input-box">
+          <textarea id="msgInput" class="chat-textarea"
+            placeholder="사관에게 메시지를 보내세요… (Enter 전송, Shift+Enter 줄바꿈)"
+            rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+          <button class="send-btn" id="sendBtn" onclick="sendMessage()">전송</button>
+        </div>
+      </div>
+    </main>
   </div>
 
   <script>
     let currentSessionId = null;
+    let currentProject = '';
 
-	    function apiHeaders() {{
-	      const stored = window.localStorage.getItem('closed-akashic-token') || '';
-	      const cookie = document.cookie.split(';').map(c => c.trim())
-	        .find(c => c.startsWith('closed_akashic_token='));
-	      const h = {{'Content-Type': 'application/json', 'Accept': 'application/json'}};
-	      const token = stored || (cookie ? decodeURIComponent(cookie.split('=').slice(1).join('=')) : '');
-	      if (token) h['Authorization'] = 'Bearer ' + token;
-	      return h;
-	    }}
+    function apiHeaders() {{
+      const stored = window.localStorage.getItem('closed-akashic-token') || '';
+      const h = {{'Content-Type': 'application/json', 'Accept': 'application/json'}};
+      if (stored) h['Authorization'] = 'Bearer ' + stored;
+      return h;
+    }}
 
-    async function loadSessions() {{
+    async function loadSidebar() {{
       try {{
         const r = await fetch('/api/sagwan/sessions', {{headers: apiHeaders()}});
         if (!r.ok) return;
-	        const d = await r.json();
-	        const list = document.getElementById('sessionList');
-	        list.innerHTML = '';
-	        const status = document.getElementById('runtimeStatus');
-	        if (status) status.textContent = (d.sessions || []).length
-	          ? '최근 세션 ' + (d.sessions || []).length + '개 로드됨'
-	          : '새 대화를 시작할 수 있습니다.';
-	        for (const s of (d.sessions || [])) {{
-	          const sid = s.id || s.session_id;
-	          const el = document.createElement('div');
-	          el.className = 'session-item' + (sid === currentSessionId ? ' active' : '');
-	          el.onclick = () => loadSession(sid);
-	          const date = s.updated_at ? s.updated_at.slice(0,10) : '';
-	          el.innerHTML = '<div>' + escHtml(s.title || sid) + '</div>'
-            + '<div class="s-date">' + date + ' · ' + (s.message_count||0) + '개</div>';
-          list.appendChild(el);
+        const {{sessions}} = await r.json();
+        const body = document.getElementById('sidebarBody');
+        body.innerHTML = '';
+        const groups = {{}};
+        for (const s of (sessions || [])) {{
+          const p = s.project || '일반';
+          (groups[p] = groups[p] || []).push(s);
         }}
+        const order = Object.keys(groups).sort((a, b) => a === '일반' ? 1 : b === '일반' ? -1 : a.localeCompare(b));
+        for (const proj of order) {{
+          const grp = document.createElement('div');
+          grp.className = 'proj-group';
+          grp.innerHTML = '<div class="proj-label">' + esc(proj) + '</div>';
+          for (const s of groups[proj]) {{
+            const el = document.createElement('div');
+            el.className = 'session-item' + (s.session_id === currentSessionId ? ' active' : '');
+            el.innerHTML = '<div class="session-item-title">' + esc(s.title || s.session_id) + '</div>'
+              + '<button class="del-btn" title="삭제" onclick="delSess(event,'' + s.session_id + '',this.closest('.session-item'))">✕</button>';
+            el.addEventListener('click', () => loadSession(s.session_id));
+            grp.appendChild(el);
+          }}
+          body.appendChild(grp);
+        }}
+        if (!sessions?.length) body.innerHTML = '<div style="padding:12px 8px;font-size:12px;color:#374151">대화가 없습니다.</div>';
       }} catch(e) {{}}
     }}
 
     async function loadSession(sid) {{
       currentSessionId = sid;
-      try {{
-        const r = await fetch('/api/sagwan/sessions/' + sid, {{headers: apiHeaders()}});
-        if (!r.ok) return;
-        const d = await r.json();
-        renderMessages(d.messages || []);
-        loadSessions();
-      }} catch(e) {{}}
+      const r = await fetch('/api/sagwan/sessions/' + sid, {{headers: apiHeaders()}});
+      if (!r.ok) return;
+      const d = await r.json();
+      currentProject = d.project || '';
+      document.getElementById('chatTitleInput').value = d.title || ('Chat ' + sid);
+      renderMessages(d.messages || []);
+      loadSidebar();
     }}
 
     function renderMessages(msgs) {{
       const area = document.getElementById('messages');
-      document.getElementById('emptyState')?.remove();
       area.innerHTML = '';
-      for (const m of msgs) {{
-        appendBubble(m.role, m.content);
-      }}
+      for (const m of msgs) addBubble(m.role, m.content, false);
       area.scrollTop = area.scrollHeight;
     }}
 
-    function appendBubble(role, content) {{
+    function addBubble(role, content, scroll = true) {{
       const area = document.getElementById('messages');
-      const empty = document.getElementById('emptyState');
-      if (empty) empty.remove();
-      const div = document.createElement('div');
-      div.className = 'msg ' + (role === 'user' ? 'user' : 'sagwan');
-      const label = role === 'user' ? '{nickname}' : '사관';
-      div.innerHTML = '<div class="msg-label">' + escHtml(label) + '</div>'
-        + '<div class="msg-bubble">' + escHtml(content) + '</div>';
-      area.appendChild(div);
-      area.scrollTop = area.scrollHeight;
-      return div;
+      document.getElementById('emptyState')?.remove();
+      const row = document.createElement('div');
+      row.className = 'msg-row ' + (role === 'user' ? 'user' : 'sagwan');
+      const initial = role === 'user' ? '{nick_initial}' : '사';
+      row.innerHTML = '<div class="msg-avatar">' + initial + '</div>'
+        + '<div class="msg-body"><div class="msg-name">'
+        + (role === 'user' ? '{nickname}' : '사관 (Sagwan)') + '</div>'
+        + '<div class="msg-bubble">' + esc(content) + '</div></div>';
+      area.appendChild(row);
+      if (scroll) area.scrollTop = area.scrollHeight;
     }}
 
     function showThinking() {{
       const area = document.getElementById('messages');
-      const div = document.createElement('div');
-      div.id = 'thinking';
-      div.className = 'thinking';
-      div.textContent = '사관이 생각 중…';
-      area.appendChild(div);
+      const row = document.createElement('div');
+      row.id = 'thinking-row';
+      row.className = 'msg-row sagwan';
+      row.innerHTML = '<div class="msg-avatar">사</div><div class="msg-body"><div class="thinking-dots"><span></span><span></span><span></span></div></div>';
+      area.appendChild(row);
       area.scrollTop = area.scrollHeight;
-    }}
-
-    function hideThinking() {{
-      document.getElementById('thinking')?.remove();
     }}
 
     async function sendMessage() {{
@@ -10433,66 +10335,59 @@ def sagwan_chat_html(*, auth: Any = None, route_prefix: str = "") -> str:
       const btn = document.getElementById('sendBtn');
       const msg = (input.value || '').trim();
       if (!msg) return;
-      input.value = '';
-      input.style.height = '';
-      btn.disabled = true;
-      appendBubble('user', msg);
+      input.value = ''; input.style.height = ''; btn.disabled = true;
+      addBubble('user', msg);
       showThinking();
       try {{
+        const proj = (document.getElementById('projInput')?.value || '').trim();
         const body = {{message: msg}};
         if (currentSessionId) body.session_id = currentSessionId;
-        const r = await fetch('/api/sagwan/chat', {{
-          method: 'POST',
-          headers: apiHeaders(),
-          body: JSON.stringify(body),
-        }});
-        hideThinking();
-        if (!r.ok) {{
-          appendBubble('sagwan', '(오류: ' + r.status + ')');
-        }} else {{
+        if (proj) body.project = proj;
+        const r = await fetch('/api/sagwan/chat', {{method:'POST', headers:apiHeaders(), body:JSON.stringify(body)}});
+        document.getElementById('thinking-row')?.remove();
+        if (!r.ok) {{ addBubble('sagwan', '(오류: ' + r.status + ')'); }}
+        else {{
           const d = await r.json();
           currentSessionId = d.session_id;
-          appendBubble('sagwan', d.reply || '(응답 없음)');
-          loadSessions();
+          addBubble('sagwan', d.reply || '(응답 없음)');
+          loadSidebar();
         }}
       }} catch(e) {{
-        hideThinking();
-        appendBubble('sagwan', '(네트워크 오류)');
+        document.getElementById('thinking-row')?.remove();
+        addBubble('sagwan', '(네트워크 오류)');
       }}
       btn.disabled = false;
       input.focus();
     }}
 
-    function newSession() {{
-      currentSessionId = null;
+    function sendStarter(el) {{ document.getElementById('msgInput').value = el.textContent; sendMessage(); }}
+
+    function newChat() {{
+      currentSessionId = null; currentProject = '';
+      document.getElementById('chatTitleInput').value = '새 대화';
       const area = document.getElementById('messages');
-      area.innerHTML = '<div class="empty-state" id="emptyState">'
-        + '<div class="icon">📚</div>'
-        + '<h2>새 대화를 시작합니다</h2>'
-        + '<p>사관에게 무엇이든 물어보세요.</p></div>';
-      loadSessions();
+      area.innerHTML = '<div class="empty-chat" id="emptyState"><div class="oa-icon">📚</div><h2>새 대화를 시작합니다</h2><p>사관에게 무엇이든 물어보세요.</p></div>';
+      document.getElementById('projInputRow').classList.add('visible');
+      loadSidebar();
+      document.getElementById('msgInput').focus();
     }}
 
-    function handleKey(e) {{
-      if (e.key === 'Enter' && !e.shiftKey) {{
-        e.preventDefault();
-        sendMessage();
-      }}
+    async function delSess(e, sid, el) {{
+      e.stopPropagation();
+      if (!confirm('삭제할까요?')) return;
+      await fetch('/api/sagwan/sessions/' + sid, {{method:'DELETE', headers:apiHeaders()}});
+      if (currentSessionId === sid) newChat();
+      else loadSidebar();
     }}
 
-    function autoResize(el) {{
-      el.style.height = 'auto';
-      el.style.height = Math.min(el.scrollHeight, 140) + 'px';
-    }}
+    function updateTitle(val) {{ /* 향후 PATCH 엔드포인트 연동 */ }}
+    function handleKey(e) {{ if (e.key === 'Enter' && !e.shiftKey) {{ e.preventDefault(); sendMessage(); }} }}
+    function autoResize(el) {{ el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 160) + 'px'; }}
+    function esc(s) {{ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }}
 
-    function escHtml(s) {{
-      return String(s||'')
-        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-        .replace(/"/g,'&quot;');
-    }}
-
-    // init
-    loadSessions();
+    loadSidebar();
+    document.getElementById('msgInput').focus();
   </script>
 </body>
 </html>"""
+

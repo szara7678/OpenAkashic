@@ -307,6 +307,7 @@ class LibrarianChatRequest(BaseModel):
 class SagwanChatRequest(BaseModel):
     message: str = Field(min_length=1)
     session_id: str | None = None
+    project: str | None = None
 
 
 class PublicationRequestPayload(BaseModel):
@@ -1304,10 +1305,11 @@ def api_sagwan_chat(
     if existing.get("participant"):
         _require_sagwan_session_access(existing, auth)
     history = existing.get("messages") or []
-    append_chat_message(session_id, "user", message, participant=str(auth.nickname or auth.username or "user"))
+    project = str(payload.project or "").strip()
+    append_chat_message(session_id, "user", message, participant=str(auth.nickname or auth.username or "user"), project=project)
     result = _sagwan_chat_respond(message, session_id, history, auth_nickname=str(auth.nickname or "user"))
     reply = result.get("reply") or ""
-    append_chat_message(session_id, "sagwan", reply)
+    append_chat_message(session_id, "sagwan", reply, project=project)
     return {
         "reply": reply,
         "session_id": session_id,
