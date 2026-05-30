@@ -21,17 +21,17 @@ agent_memory.py
     remember(actor, subject, outcome, kind)   # 끝난 후: episodic append
     after_task(actor, llm_invoke=...)         # 끝난 후: distill 임계치 체크 → 장기 정제
 
-actor ∈ {"sagwan", "busagwan"} 만 지원. 그 외엔 ValueError.
+actor ∈ {"sagwan", "busagwan"} 는 전용 경로를 쓰고, 그 외 actor 는 agent-experience 에 기록한다.
 """
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Any, Literal
+from typing import Any
 
 from app.site import get_closed_note, search_closed_notes
 from app.vault import append_section, ensure_folder, load_document, write_document
 
-Actor = Literal["sagwan", "busagwan"]
+Actor = str
 
 # _ensure_activity_note 중복 생성 방지 캐시 (프로세스 수명 동안 유효)
 _activity_notes_seen: set[str] = set()
@@ -59,7 +59,7 @@ def _memory_path(actor: Actor) -> str:
         return SAGWAN_MEMORY_PATH
     if actor == "busagwan":
         return BUSAGWAN_MEMORY_PATH
-    raise ValueError(f"unknown actor: {actor}")
+    return f"personal_vault/knowledge/agent-experience/{actor}/working-memory.md"
 
 
 def _distilled_path(actor: Actor) -> str:
@@ -74,7 +74,9 @@ def _persona_paths(actor: Actor) -> list[str]:
     """계층 1 — 페르소나: 프로파일 + 정책 파일 목록 (불변, 검색 없음)."""
     if actor == "sagwan":
         return [SAGWAN_PROFILE_PATH, SAGWAN_POLICY_PATH]
-    return [BUSAGWAN_PROFILE_PATH, BUSAGWAN_PLAYBOOK_PATH]
+    if actor == "busagwan":
+        return [BUSAGWAN_PROFILE_PATH, BUSAGWAN_PLAYBOOK_PATH]
+    return []
 
 
 def _now_iso() -> str:
@@ -92,6 +94,8 @@ def remember(
     Working Memory 가 _WORKING_MEMORY_MAX_CHARS 를 초과하면 oldest 섹션을 자동 trim."""
     ts = _now_iso()
     mem_path = _memory_path(actor)
+    if actor not in {"sagwan", "busagwan"}:
+        _ensure_working_memory_note(mem_path, actor)
     append_section(
         mem_path,
         f"{ts} {kind}",
@@ -120,6 +124,29 @@ def remember(
             f"- subject: {subject[:240]}",
             f"- outcome: {outcome[:700]}",
         ]),
+    )
+
+
+def _ensure_working_memory_note(path: str, actor: Actor) -> None:
+    try:
+        load_document(path)
+        return
+    except Exception:
+        pass
+    from pathlib import Path
+    ensure_folder(str(Path(path).parent))
+    write_document(
+        path=path,
+        title=f"{actor} Working Memory",
+        kind="reference",
+        project="agent-experience",
+        tags=["memory", "agent-experience", actor],
+        body="\n".join([
+            "## Summary",
+            f"{actor} 에이전트의 작업 결과 환류 메모리.",
+        ]),
+        metadata={"visibility": "private", "publication_status": "none"},
+        allow_owner_change=True,
     )
 
 

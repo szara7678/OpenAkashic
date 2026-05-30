@@ -20,6 +20,7 @@ import json
 import logging
 from pathlib import Path
 import re
+import subprocess
 import time
 from typing import Any
 
@@ -72,6 +73,7 @@ _SAGWAN_STAGE_MODEL_DEFAULTS = {
     "claim_guardrail": "proxy:gpt-5.4",
     "claim_integration": "proxy:gpt-5.4",
     "publication_judge": "proxy:gpt-5.4",
+    "experience_seed": "proxy:gpt-5.4",
     "revalidate": "proxy:gpt-5.4",
     "distill": "proxy:gpt-5.4-mini",
     "topic_proposal": "proxy:gpt-5.4",
@@ -118,6 +120,7 @@ def _default_sagwan_settings() -> dict[str, Any]:
         "research_max_fetches": 3,
         "research_topic_cooldown_cycles": 5,
         "research_dedup_similarity_threshold": 0.85,
+        "experience_seed_enabled": True,
         "consolidate_enabled": True,
         "consolidate_interval_sec": 21600,  # 6시간
         "consolidate_min_reviews": 3,
@@ -218,6 +221,7 @@ def load_sagwan_settings() -> dict[str, Any]:
                 ),
             ),
         ),
+        "experience_seed_enabled": bool(raw.get("experience_seed_enabled", defaults["experience_seed_enabled"])),
         "maintenance_enabled": bool(raw.get("maintenance_enabled", defaults["maintenance_enabled"])),
         "maintenance_interval_sec": min(
             86400,
@@ -320,6 +324,7 @@ def save_sagwan_settings(payload: dict[str, Any]) -> dict[str, Any]:
             6,
             max(1, int(payload.get("research_max_fetches") or current["research_max_fetches"])),
         ),
+        "experience_seed_enabled": bool(payload.get("experience_seed_enabled", current.get("experience_seed_enabled", True))),
         "maintenance_enabled": bool(payload.get("maintenance_enabled", current["maintenance_enabled"])),
         "maintenance_interval_sec": min(
             86400,
@@ -1686,6 +1691,16 @@ def run_sagwan_curation_cycle(*, reason: str = "scheduled") -> dict[str, Any]:
             logger.error("sagwan curation I (meta) failed: %s", exc)
             i_meta = {"error": str(exc)}
 
+    try:
+        settings = load_sagwan_settings()
+        if settings.get("experience_seed_enabled", True):
+            experience_seed = _curate_experience_seed_mining()
+        else:
+            experience_seed = {"status": "disabled"}
+    except Exception as exc:
+        logger.error("sagwan curation experience seed mining failed: %s", exc)
+        experience_seed = {"error": str(exc)}
+
     # Stage K (research): under task_queue, default kill-switched. Bootstrap
     # silently no-ops if `research_gap` is in task_queue_kinds_disabled.
     if settings.get("task_queue_enabled"):
@@ -1776,6 +1791,7 @@ def run_sagwan_curation_cycle(*, reason: str = "scheduled") -> dict[str, Any]:
         "capsule_gen": e, "conflict_detect": f_conflict, "signal_scans": g_signals,
         "topic_proposals": h_topics,
         "meta_curation": i_meta,
+        "experience_seed": experience_seed,
         "research_gaps": k_research,
         "consolidate_reviews": l_consolidate,
         "maintenance": m_maintenance,
@@ -3383,6 +3399,269 @@ def _touch_research_state(
         metadata=next_frontmatter,
         allow_owner_change=True,
     )
+
+
+def _extract_json_value(text: str) -> Any:
+    raw = str(text or "").strip()
+    if not raw:
+        return None
+    if raw.startswith("```"):
+        lines = raw.splitlines()
+        if len(lines) >= 2:
+            lines = lines[1:]
+            if lines and lines[-1].strip().startswith("```"):
+                lines = lines[:-1]
+            raw = "\n".join(lines).strip()
+
+    for candidate in [raw]:
+        try:
+            return json.loads(candidate)
+        except Exception:
+            pass
+
+    spans = [
+        (raw.find("["), raw.rfind("]")),
+        (raw.find("{"), raw.rfind("}")),
+    ]
+    for start, end in spans:
+        if start == -1 or end == -1 or end <= start:
+            continue
+        try:
+            return json.loads(raw[start:end + 1])
+        except Exception:
+            continue
+    return None
+
+
+def _parse_experience_seed_items(raw: str) -> list[dict[str, Any]]:
+    payload = _extract_json_value(raw)
+    if isinstance(payload, dict):
+        for key in ("items", "patterns", "lessons", "seeds", "results"):
+            if isinstance(payload.get(key), list):
+                payload = payload[key]
+                break
+        else:
+            payload = [payload]
+    if not isinstance(payload, list):
+        return []
+
+    items: list[dict[str, Any]] = []
+    for entry in payload:
+        if not isinstance(entry, dict):
+            continue
+        topic = str(entry.get("topic") or entry.get("title") or "").strip()
+        problem = str(entry.get("problem") or "").strip()
+        solution = str(entry.get("solution") or "").strip()
+        raw_failure_modes = entry.get("failure_modes")
+        if isinstance(raw_failure_modes, list):
+            failure_modes = [str(item).strip() for item in raw_failure_modes if str(item).strip()]
+        elif raw_failure_modes:
+            failure_modes = [item.strip() for item in re.split(r"[\n;]+", str(raw_failure_modes)) if item.strip()]
+        else:
+            failure_modes = []
+        raw_tags = entry.get("tags")
+        if isinstance(raw_tags, list):
+            tags = [str(tag).strip().lower() for tag in raw_tags if str(tag).strip()]
+        elif raw_tags:
+            tags = [tag.strip().lower() for tag in re.split(r"[,;\s]+", str(raw_tags)) if tag.strip()]
+        else:
+            tags = []
+        project = str(entry.get("project") or "").strip().lower()
+        if not project:
+            searchable = " ".join([topic, problem, solution, " ".join(tags)]).lower()
+            if "ichimozzi" in searchable:
+                project = "ichimozzi"
+            elif "openakashic" in searchable or "akashic" in searchable:
+                project = "openakashic"
+            else:
+                project = "cross-project"
+        if project not in {"ichimozzi", "openakashic", "cross-project"}:
+            project = _topic_slug(project)
+        if not topic or not (problem or solution):
+            continue
+        items.append(
+            {
+                "topic": topic[:200],
+                "problem": problem[:2000],
+                "solution": solution[:3000],
+                "failure_modes": failure_modes[:8],
+                "tags": list(dict.fromkeys(tags))[:12],
+                "project": project or "cross-project",
+            }
+        )
+        if len(items) >= 3:
+            break
+    return items
+
+
+def _touch_git_mining_state(now_iso: str) -> None:
+    _ensure_research_log_document()
+    doc = load_document(_RESEARCH_LOG_PATH)
+    next_frontmatter = dict(doc.frontmatter or {})
+    next_frontmatter["last_git_mining_at"] = now_iso
+    write_document(
+        path=_RESEARCH_LOG_PATH,
+        body=doc.body,
+        metadata=next_frontmatter,
+        allow_owner_change=True,
+    )
+
+
+def _curate_experience_seed_mining() -> dict[str, Any]:
+    _ensure_research_log_document()
+    state_doc = load_document(_RESEARCH_LOG_PATH)
+    state = dict(state_doc.frontmatter or {})
+    last_git_mining_at = str(state.get("last_git_mining_at") or "").strip()
+    if last_git_mining_at:
+        last_dt = _parse_iso_datetime(last_git_mining_at)
+        if last_dt is not None:
+            next_allowed = last_dt + timedelta(days=7)
+            if datetime.now(UTC) < next_allowed:
+                return {
+                    "status": "cooldown",
+                    "last_git_mining_at": last_git_mining_at,
+                    "next_run_after": next_allowed.replace(microsecond=0).isoformat().replace("+00:00", "Z"),
+                }
+
+    repo_specs = [
+        {"project": "ichimozzi", "path": "/home/insu/insu_server/apps/ichimozzi", "exclude_closed_web": False},
+        {"project": "openakashic", "path": "/home/insu/insu_server/apps/openakashic", "exclude_closed_web": True},
+    ]
+    repo_results: list[dict[str, Any]] = []
+    for spec in repo_specs:
+        repo_path = str(spec["path"])
+        cmd = [
+            "git",
+            "-C",
+            repo_path,
+            "log",
+            "--oneline",
+            "--since=30 days ago",
+            "--format=%H %s",
+        ]
+        if bool(spec.get("exclude_closed_web")):
+            cmd.extend(["--", ".", ":(exclude)closed-web"])
+        proc = subprocess.run(cmd, capture_output=True, text=True)
+        commits = [line.strip() for line in (proc.stdout or "").splitlines() if line.strip()]
+        repo_results.append(
+            {
+                "project": str(spec["project"]),
+                "repo_path": repo_path,
+                "commits": commits[:50],
+                "commit_count": len(commits),
+                "returncode": proc.returncode,
+                "stderr": (proc.stderr or "").strip()[:500],
+            }
+        )
+
+    commit_payload = [
+        {
+            "project": item["project"],
+            "repo_path": item["repo_path"],
+            "commit_count": item["commit_count"],
+            "commits": item["commits"],
+            **({"error": item["stderr"]} if item["returncode"] else {}),
+        }
+        for item in repo_results
+    ]
+    total_commits = sum(len(item["commits"]) for item in repo_results)
+    now_iso = _now_iso()
+    if total_commits <= 0:
+        _touch_git_mining_state(now_iso)
+        return {"status": "no_commits", "repos": commit_payload}
+
+    prompt = "\n\n".join(
+        [
+            "다음 git 커밋 이력에서 다른 에이전트에게 재사용 가능한 패턴/교훈을 추출하라. 형식: {topic, problem, solution, failure_modes, tags}. 3개 이하로.",
+            "반드시 JSON만 출력하라. 배열 또는 {\"items\":[...]} 형식만 허용한다.",
+            "각 항목은 어느 repo에서 온 교훈인지 알 수 있게 tags에 ichimozzi 또는 openakashic를 포함하라.",
+            "",
+            "## Git commits",
+            json.dumps(commit_payload, ensure_ascii=False, indent=2),
+        ]
+    )
+    try:
+        raw = _invoke_for_stage("experience_seed", prompt)
+    except StageRateLimitExceeded:
+        return {"status": "rate_limit_skipped", "repos": commit_payload}
+    items = _parse_experience_seed_items(raw)
+    if not items:
+        return {"status": "llm_parse_error", "raw": str(raw or "")[:500], "repos": commit_payload}
+
+    written_paths: list[str] = []
+    used_paths: set[str] = set()
+    for index, item in enumerate(items, start=1):
+        project = str(item.get("project") or "cross-project").strip() or "cross-project"
+        base_slug = _topic_slug(str(item.get("topic") or "")) or f"experience-seed-{index}"
+        slug = base_slug
+        path = f"personal_vault/knowledge/agent-experience/{project}/{slug}.md"
+        suffix = 2
+        while path in used_paths:
+            slug = f"{base_slug}-{suffix}"
+            path = f"personal_vault/knowledge/agent-experience/{project}/{slug}.md"
+            suffix += 1
+        used_paths.add(path)
+        tags = list(
+            dict.fromkeys(
+                [
+                    "capsule",
+                    "agent-experience",
+                    "git-mined",
+                    project,
+                    *[tag for tag in item.get("tags", []) if tag],
+                ]
+            )
+        )
+        failure_modes = [str(mode).strip() for mode in (item.get("failure_modes") or []) if str(mode).strip()]
+        failure_lines = [f"- {mode}" for mode in failure_modes] if failure_modes else ["- (not specified)"]
+        body_lines = [
+            "## Summary",
+            str(item.get("topic") or "").strip(),
+            "",
+            "## Problem",
+            str(item.get("problem") or "").strip() or "(not specified)",
+            "",
+            "## Solution",
+            str(item.get("solution") or "").strip() or "(not specified)",
+            "",
+            "## Failure Modes",
+            *failure_lines,
+            "",
+            "## Source",
+            "- mined_from: git log --since=30 days ago",
+            f"- projects: {', '.join(item['project'] for item in repo_results if item.get('commits'))}",
+            f"- mined_at: {now_iso}",
+        ]
+        doc = write_document(
+            path=path,
+            title=str(item.get("topic") or f"Git-mined agent experience {index}"),
+            kind="capsule",
+            project=project,
+            status="active",
+            tags=tags,
+            body="\n".join(body_lines).rstrip() + "\n",
+            metadata={
+                "visibility": "public",
+                "publication_status": "published",
+                "owner": SAGWAN_DECIDER,
+                "created_by": SAGWAN_DECIDER,
+                "generated_by": "sagwan-experience-seed",
+                "source": "git-mining",
+                "source_repos": [item["repo_path"] for item in repo_results if item.get("commits")],
+                "source_commit_count": total_commits,
+                "mined_at": now_iso,
+            },
+            allow_owner_change=True,
+        )
+        written_paths.append(doc.path)
+
+    _touch_git_mining_state(now_iso)
+    return {
+        "status": "ok",
+        "written": len(written_paths),
+        "paths": written_paths,
+        "repos": commit_payload,
+    }
 
 
 def _ensure_consolidation_log_document() -> None:

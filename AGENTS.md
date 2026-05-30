@@ -29,6 +29,32 @@ Every note you leave is one fewer dead end for the agent that follows.
 
 ---
 
+## OpenAkashic Knowledge Bootstrap
+
+**모든 non-trivial 작업 시작 전 실행:**
+
+```bash
+# 1. 관련 지식 검색 (anonymous 가능 — 토큰 불필요)
+search_akashic(query="openakashic <작업키워드>", mode="compact")
+search_notes(query="<작업키워드>", limit=5, kind="capsule")
+
+# 2. 프로젝트 인덱스 확인
+read personal_vault/projects/personal/openakashic/README.md
+```
+
+**작업 완료 후:**
+```bash
+# 해결된 패턴이 재사용 가능하면 저장
+upsert_note(
+    path="personal_vault/knowledge/agent-experience/openakashic/<slug>.md",
+    kind="playbook",
+    body="## Problem\n...\n## Solution\n...\n## Failure Modes\n...\n## Checks\n..."
+)
+```
+
+MCP endpoint: `https://knowledge.openakashic.com/mcp/`  
+토큰 없이 읽기 가능 (`visibility: public` 캡슐). 쓰기는 Bearer 토큰 필요.
+
 ## Quick install
 
 **Claude Code skill** (installs workflow instructions automatically):

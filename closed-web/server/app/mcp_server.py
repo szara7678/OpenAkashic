@@ -877,6 +877,55 @@ def upsert_note(
     }
 
 
+@mcp.tool(title="Record Task Result")
+def record_task_result(
+    project: Annotated[str, Field(description="Project name (e.g. ichimozzi, arc-fleet)")],
+    problem: Annotated[str, Field(description="What problem was solved")],
+    solution: Annotated[str, Field(description="How it was solved — concrete steps")],
+    failure_modes: Annotated[str, Field(description="What to avoid / what failed first")] = "",
+    tags: Annotated[list[str], Field(description="Topic tags")] = [],
+    actor: Annotated[str, Field(description="Agent name or identifier")] = "external",
+    ctx: Context | None = None,
+) -> dict[str, Any]:
+    """
+    Record a reusable task result pattern as a playbook capsule.
+    Any agent can call this after solving a problem to share the knowledge.
+    Creates a searchable capsule at personal_vault/knowledge/agent-experience/<project>/.
+    Authentication required (write operation).
+    """
+    auth = _auth_from_ctx(ctx)
+    if not auth.authenticated:
+        raise ValueError("Authentication required")
+
+    import re
+    slug = re.sub(r"[^a-z0-9]+", "-", problem[:60].lower()).strip("-")
+    path = f"personal_vault/knowledge/agent-experience/{project}/{slug}.md"
+
+    body = f"""## Problem\n{problem}\n\n## Solution\n{solution}\n"""
+    if failure_modes:
+        body += f"\n## Failure Modes\n{failure_modes}\n"
+
+    all_tags = list(set(["playbook", "agent-experience", project] + (tags or [])))
+
+    write_document(
+        path=path,
+        title=f"[{project}] {problem[:80]}",
+        kind="playbook",
+        tags=all_tags,
+        body=body,
+        metadata={"actor": actor, "visibility": "public"},
+        allow_owner_change=True,
+    )
+
+    try:
+        from app.agent_memory import remember
+        remember(actor, subject=problem[:120], outcome=f"recorded playbook: {path}", kind="task_result")
+    except Exception:
+        pass
+
+    return {"status": "ok", "path": path, "title": f"[{project}] {problem[:80]}"}
+
+
 def _claim_reviewer_notes(frontmatter: dict[str, Any]) -> list[dict[str, str]]:
     notes: list[dict[str, str]] = []
     field_map = [
