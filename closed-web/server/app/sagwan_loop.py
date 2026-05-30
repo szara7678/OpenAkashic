@@ -7484,16 +7484,26 @@ def _sagwan_chat_respond(
         ]
     )
 
+    # CF 100s 타임아웃 이내로 제한 — 도구 필요 키워드 있을 때만 tool loop 사용
     try:
-        from app.librarian import _invoke_chatgpt_responses_with_tools
-        tools = ["search_notes", "read_note", "search_akashic", "search_and_read_top", "upsert_note"]
-        reply = _invoke_chatgpt_responses_with_tools(
-            full_prompt,
-            model="gpt-5.5",
-            tools=tools,
-            system=system,
-            timeout=120,
-        )
+        from app.librarian import _invoke_chatgpt_responses_with_tools, _invoke_chatgpt_responses
+        needs_tools = any(kw in message for kw in [
+            "검색", "찾아", "읽어", "노트", "써줘", "작성", "저장", "조회", "보여줘",
+            "search", "read", "write", "find", "look",
+        ])
+        if needs_tools:
+            reply = _invoke_chatgpt_responses_with_tools(
+                full_prompt,
+                model="gpt-5.5",
+                tools=["search_notes", "read_note", "search_akashic", "search_and_read_top"],
+                system=system,
+                timeout=80,
+                max_iterations=5,
+            )
+        else:
+            reply = _invoke_chatgpt_responses(
+                full_prompt, model="gpt-5.5", system=system, timeout=80,
+            )
     except Exception as exc:
         logger.warning("sagwan chat LLM error: %s", exc)
         reply = f"(오류: {exc})"
