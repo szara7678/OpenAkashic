@@ -10102,3 +10102,397 @@ def _rewrite_markdown_image(match: re.Match[str], route_prefix: str) -> str:
     if src.startswith("#"):
         return match.group(0)
     return f"![{alt}]({file_href(src, route_prefix)})"
+
+
+def sagwan_chat_html(*, auth: Any = None, route_prefix: str = "") -> str:
+    """Sagwan 채팅 UI — /sagwan 라우트용."""
+    shared_styles = _shared_ui_styles()
+    shared_header = _shared_header_html(route_prefix, "사관 대화")
+    shared_shell = _shared_ui_shell(route_prefix)
+    nickname = str(getattr(auth, "nickname", "") or getattr(auth, "username", "") or "you")
+    return f"""<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <link rel="icon" href="data:,"/>
+  <title>사관 대화 — OpenAkashic</title>
+  <script>document.documentElement.setAttribute('data-theme', 'dark');</script>
+  <style>
+    {shared_styles}
+    :root {{
+      --chat-user-bg: #1e3a5f;
+      --chat-sagwan-bg: #1a2535;
+      --chat-border: #2d3748;
+    }}
+    html, body {{
+      margin: 0;
+      min-height: 100%;
+      background: #0d0d0d;
+      color: #e2e8f0;
+    }}
+    .chat-layout {{
+      display: grid;
+      grid-template-columns: 240px minmax(0,1fr);
+      height: calc(100svh - var(--closed-header-height, 52px));
+    }}
+    /* session list */
+    .session-panel {{
+      border-right: 1px solid var(--chat-border);
+      overflow-y: auto;
+      padding: 12px 8px;
+      background: #101828;
+    }}
+    .session-panel h3 {{
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: #64748b;
+      margin: 0 0 8px 4px;
+    }}
+    .session-item {{
+      padding: 8px 10px;
+      border-radius: 7px;
+      cursor: pointer;
+      margin-bottom: 2px;
+      font-size: 13px;
+      color: #94a3b8;
+    }}
+    .session-item:hover, .session-item.active {{
+      background: #1e293b;
+      color: #e2e8f0;
+    }}
+    .session-item .s-date {{
+      font-size: 10px;
+      color: #475569;
+      margin-top: 2px;
+    }}
+    .new-session-btn {{
+      width: 100%;
+      padding: 8px;
+      background: #1e3a5f;
+      color: #93c5fd;
+      border: none;
+      border-radius: 7px;
+      cursor: pointer;
+      font-size: 13px;
+      margin-bottom: 12px;
+    }}
+    .new-session-btn:hover {{ background: #1d4ed8; color: #fff; }}
+    /* main chat */
+    .chat-main {{
+      display: flex;
+      flex-direction: column;
+      background: #0d0d0d;
+    }}
+    .chat-status {{
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 24px;
+      border-bottom: 1px solid #1e293b;
+      background: #101010;
+      color: #94a3b8;
+      font-size: 13px;
+    }}
+    .chat-status strong {{
+      color: #e2e8f0;
+      font-weight: 700;
+    }}
+    .chat-status span:last-child {{
+      color: #64748b;
+      font-size: 12px;
+    }}
+    .chat-messages {{
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }}
+    .msg {{
+      display: flex;
+      flex-direction: column;
+      max-width: 78%;
+    }}
+    .msg.user {{ align-self: flex-end; align-items: flex-end; }}
+    .msg.sagwan {{ align-self: flex-start; }}
+    .msg-label {{
+      font-size: 11px;
+      color: #475569;
+      margin-bottom: 4px;
+      padding: 0 4px;
+    }}
+    .msg-bubble {{
+      padding: 11px 15px;
+      border-radius: 12px;
+      font-size: 14px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+    }}
+    .msg.user .msg-bubble {{ background: var(--chat-user-bg); color: #bfdbfe; border-bottom-right-radius: 3px; }}
+    .msg.sagwan .msg-bubble {{ background: var(--chat-sagwan-bg); color: #e2e8f0; border-bottom-left-radius: 3px; border: 1px solid #2d3748; }}
+    .capability-chips {{
+      display: flex;
+      gap: 6px;
+      padding: 10px 24px;
+      border-bottom: 1px solid #1e293b;
+      flex-wrap: wrap;
+    }}
+    .chip {{
+      font-size: 11px;
+      padding: 3px 9px;
+      border-radius: 99px;
+      background: #1e293b;
+      color: #64748b;
+      border: 1px solid #334155;
+    }}
+    .chat-input-area {{
+      padding: 14px 24px 18px;
+      border-top: 1px solid #1e293b;
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }}
+    .chat-input {{
+      flex: 1;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      color: #e2e8f0;
+      font-size: 14px;
+      padding: 10px 14px;
+      resize: none;
+      min-height: 42px;
+      max-height: 140px;
+      font-family: inherit;
+    }}
+    .chat-input:focus {{ outline: none; border-color: #3b82f6; }}
+    .send-btn {{
+      padding: 10px 18px;
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+    }}
+    .send-btn:hover {{ background: #1d4ed8; }}
+    .send-btn:disabled {{ background: #334155; color: #64748b; cursor: default; }}
+    .thinking {{ color: #475569; font-style: italic; font-size: 13px; padding: 8px 0; }}
+    .empty-state {{
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #334155;
+      gap: 8px;
+    }}
+    .empty-state .icon {{ font-size: 40px; }}
+    .empty-state h2 {{ margin: 0; font-size: 18px; color: #475569; }}
+    .empty-state p {{ margin: 0; font-size: 13px; }}
+  </style>
+</head>
+<body>
+  {shared_header}
+  {shared_shell}
+  <div class="chat-layout">
+    <!-- Session list -->
+    <div class="session-panel">
+      <button class="new-session-btn" onclick="newSession()">+ 새 대화</button>
+      <h3>최근 대화</h3>
+      <div id="sessionList"></div>
+    </div>
+	    <!-- Chat main -->
+	    <div class="chat-main">
+	      <div class="chat-status">
+	        <span><strong>사관 상태</strong> · 대화 대기 중</span>
+	        <span id="runtimeStatus">자율 큐레이션 루프는 별도로 실행 중입니다.</span>
+	      </div>
+	      <div class="capability-chips">
+        <span class="chip">🔍 지식 검색</span>
+        <span class="chip">📖 노트 읽기</span>
+        <span class="chip">✏️ 노트 작성</span>
+        <span class="chip">🔬 연구 요청</span>
+        <span class="chip">📊 현황 조회</span>
+        <span class="chip">🤖 자율 큐레이션 중</span>
+      </div>
+      <div id="messages" class="chat-messages">
+        <div class="empty-state" id="emptyState">
+          <div class="icon">📚</div>
+          <h2>사관에게 말을 걸어보세요</h2>
+          <p>지식 검색, 노트 작성, 연구 요청 등 무엇이든 도와드립니다.</p>
+        </div>
+      </div>
+      <div class="chat-input-area">
+        <textarea
+          id="msgInput"
+          class="chat-input"
+          placeholder="사관에게 메시지를 보내세요… (Shift+Enter 줄바꿈, Enter 전송)"
+          rows="1"
+          onkeydown="handleKey(event)"
+          oninput="autoResize(this)"
+        ></textarea>
+        <button class="send-btn" id="sendBtn" onclick="sendMessage()">전송</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentSessionId = null;
+
+	    function apiHeaders() {{
+	      const stored = window.localStorage.getItem('closed-akashic-token') || '';
+	      const cookie = document.cookie.split(';').map(c => c.trim())
+	        .find(c => c.startsWith('closed_akashic_token='));
+	      const h = {{'Content-Type': 'application/json', 'Accept': 'application/json'}};
+	      const token = stored || (cookie ? decodeURIComponent(cookie.split('=').slice(1).join('=')) : '');
+	      if (token) h['Authorization'] = 'Bearer ' + token;
+	      return h;
+	    }}
+
+    async function loadSessions() {{
+      try {{
+        const r = await fetch('/api/sagwan/sessions', {{headers: apiHeaders()}});
+        if (!r.ok) return;
+	        const d = await r.json();
+	        const list = document.getElementById('sessionList');
+	        list.innerHTML = '';
+	        const status = document.getElementById('runtimeStatus');
+	        if (status) status.textContent = (d.sessions || []).length
+	          ? '최근 세션 ' + (d.sessions || []).length + '개 로드됨'
+	          : '새 대화를 시작할 수 있습니다.';
+	        for (const s of (d.sessions || [])) {{
+	          const sid = s.id || s.session_id;
+	          const el = document.createElement('div');
+	          el.className = 'session-item' + (sid === currentSessionId ? ' active' : '');
+	          el.onclick = () => loadSession(sid);
+	          const date = s.updated_at ? s.updated_at.slice(0,10) : '';
+	          el.innerHTML = '<div>' + escHtml(s.title || sid) + '</div>'
+            + '<div class="s-date">' + date + ' · ' + (s.message_count||0) + '개</div>';
+          list.appendChild(el);
+        }}
+      }} catch(e) {{}}
+    }}
+
+    async function loadSession(sid) {{
+      currentSessionId = sid;
+      try {{
+        const r = await fetch('/api/sagwan/sessions/' + sid, {{headers: apiHeaders()}});
+        if (!r.ok) return;
+        const d = await r.json();
+        renderMessages(d.messages || []);
+        loadSessions();
+      }} catch(e) {{}}
+    }}
+
+    function renderMessages(msgs) {{
+      const area = document.getElementById('messages');
+      document.getElementById('emptyState')?.remove();
+      area.innerHTML = '';
+      for (const m of msgs) {{
+        appendBubble(m.role, m.content);
+      }}
+      area.scrollTop = area.scrollHeight;
+    }}
+
+    function appendBubble(role, content) {{
+      const area = document.getElementById('messages');
+      const empty = document.getElementById('emptyState');
+      if (empty) empty.remove();
+      const div = document.createElement('div');
+      div.className = 'msg ' + (role === 'user' ? 'user' : 'sagwan');
+      const label = role === 'user' ? '{nickname}' : '사관';
+      div.innerHTML = '<div class="msg-label">' + escHtml(label) + '</div>'
+        + '<div class="msg-bubble">' + escHtml(content) + '</div>';
+      area.appendChild(div);
+      area.scrollTop = area.scrollHeight;
+      return div;
+    }}
+
+    function showThinking() {{
+      const area = document.getElementById('messages');
+      const div = document.createElement('div');
+      div.id = 'thinking';
+      div.className = 'thinking';
+      div.textContent = '사관이 생각 중…';
+      area.appendChild(div);
+      area.scrollTop = area.scrollHeight;
+    }}
+
+    function hideThinking() {{
+      document.getElementById('thinking')?.remove();
+    }}
+
+    async function sendMessage() {{
+      const input = document.getElementById('msgInput');
+      const btn = document.getElementById('sendBtn');
+      const msg = (input.value || '').trim();
+      if (!msg) return;
+      input.value = '';
+      input.style.height = '';
+      btn.disabled = true;
+      appendBubble('user', msg);
+      showThinking();
+      try {{
+        const body = {{message: msg}};
+        if (currentSessionId) body.session_id = currentSessionId;
+        const r = await fetch('/api/sagwan/chat', {{
+          method: 'POST',
+          headers: apiHeaders(),
+          body: JSON.stringify(body),
+        }});
+        hideThinking();
+        if (!r.ok) {{
+          appendBubble('sagwan', '(오류: ' + r.status + ')');
+        }} else {{
+          const d = await r.json();
+          currentSessionId = d.session_id;
+          appendBubble('sagwan', d.reply || '(응답 없음)');
+          loadSessions();
+        }}
+      }} catch(e) {{
+        hideThinking();
+        appendBubble('sagwan', '(네트워크 오류)');
+      }}
+      btn.disabled = false;
+      input.focus();
+    }}
+
+    function newSession() {{
+      currentSessionId = null;
+      const area = document.getElementById('messages');
+      area.innerHTML = '<div class="empty-state" id="emptyState">'
+        + '<div class="icon">📚</div>'
+        + '<h2>새 대화를 시작합니다</h2>'
+        + '<p>사관에게 무엇이든 물어보세요.</p></div>';
+      loadSessions();
+    }}
+
+    function handleKey(e) {{
+      if (e.key === 'Enter' && !e.shiftKey) {{
+        e.preventDefault();
+        sendMessage();
+      }}
+    }}
+
+    function autoResize(el) {{
+      el.style.height = 'auto';
+      el.style.height = Math.min(el.scrollHeight, 140) + 'px';
+    }}
+
+    function escHtml(s) {{
+      return String(s||'')
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;');
+    }}
+
+    // init
+    loadSessions();
+  </script>
+</body>
+</html>"""

@@ -14,6 +14,7 @@ from collections import defaultdict
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from typing import Any
+from uuid import uuid4
 
 # ── 인증 엔드포인트 rate limit ────────────────────────────────────────────────
 # signup: IP당 1시간 내 10회
@@ -164,10 +165,16 @@ from app.site import (
     get_closed_home_note,
     get_closed_note,
     get_closed_note_by_slug,
+    sagwan_chat_html,
     search_closed_notes,
 )
 from app.sagwan_loop import (
     _migrate_legacy_none_claims,
+    _sagwan_chat_respond,
+    append_chat_message,
+    chat_session_path,
+    list_chat_sessions,
+    load_chat_session,
     load_sagwan_settings,
     pending_publication_request_count,
     run_sagwan_approval_cycle,
@@ -295,6 +302,11 @@ class LibrarianChatRequest(BaseModel):
     thread: list[dict[str, str]] = Field(default_factory=list)
     current_note_path: str | None = None
     current_note_slug: str | None = None
+
+
+class SagwanChatRequest(BaseModel):
+    message: str = Field(min_length=1)
+    session_id: str | None = None
 
 
 class PublicationRequestPayload(BaseModel):
@@ -1259,6 +1271,98 @@ def api_admin_sagwan_self_edits(
     auth: AuthState = Depends(require_admin_token),
 ) -> dict[str, Any]:
     return _sagwan_self_edit.get_self_edit_snapshot(lookback_hours=max(1, min(720, int(lookback_hours))))
+
+
+# ─── Sagwan Chat API ──────────────────────────────────────────────────────────
+
+
+def _require_sagwan_session_access(session: dict[str, Any], auth: AuthState) -> None:
+    participant = str(session.get("participant") or "").strip()
+    caller = str(auth.nickname or auth.username or "").strip()
+    if not participant and not session.get("messages"):
+        raise HTTPException(status_code=404, detail="session not found")
+    if participant and participant != caller and not _is_admin(auth):
+        raise HTTPException(status_code=403, detail="session belongs to another participant")
+
+
+@api.post("/api/sagwan/chat")
+def api_sagwan_chat(
+    payload: SagwanChatRequest,
+    request: Request,
+) -> dict[str, Any]:
+    auth = _auth_from_request(request)
+    if not auth.authenticated:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    message = str(payload.message or "").strip()
+    if not message:
+        raise HTTPException(status_code=400, detail="message required")
+    session_id = str(payload.session_id or "").strip() or uuid4().hex[:8]
+    try:
+        existing = load_chat_session(session_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    if existing.get("participant"):
+        _require_sagwan_session_access(existing, auth)
+    history = existing.get("messages") or []
+    append_chat_message(session_id, "user", message, participant=str(auth.nickname or auth.username or "user"))
+    result = _sagwan_chat_respond(message, session_id, history, auth_nickname=str(auth.nickname or "user"))
+    reply = result.get("reply") or ""
+    append_chat_message(session_id, "sagwan", reply)
+    return {
+        "reply": reply,
+        "session_id": session_id,
+        "tool_calls": result.get("tool_calls") or [],
+        "status": result.get("status") or "ok",
+    }
+
+
+@api.get("/api/sagwan/sessions")
+def api_sagwan_sessions(request: Request) -> dict[str, Any]:
+    auth = _auth_from_request(request)
+    if not auth.authenticated:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    participant = None if _is_admin(auth) else str(auth.nickname or auth.username or "")
+    return {"sessions": list_chat_sessions(limit=10, participant=participant)}
+
+
+@api.get("/api/sagwan/sessions/{session_id}")
+def api_sagwan_session(session_id: str, request: Request) -> dict[str, Any]:
+    auth = _auth_from_request(request)
+    if not auth.authenticated:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    try:
+        session = load_chat_session(session_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    _require_sagwan_session_access(session, auth)
+    return session
+
+
+@api.delete("/api/sagwan/sessions/{session_id}")
+def api_sagwan_delete_session(session_id: str, request: Request) -> dict[str, Any]:
+    auth = _auth_from_request(request)
+    if not auth.authenticated:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    try:
+        session = load_chat_session(session_id)
+        _require_sagwan_session_access(session, auth)
+        path = chat_session_path(session_id)
+        delete_document(path)
+        return {"status": "deleted", "session_id": session_id}
+    except HTTPException:
+        raise
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=404, detail="session not found") from exc
+
+
+@api.get("/sagwan", response_class=HTMLResponse)
+def sagwan_chat_page(request: Request) -> str:
+    auth = _auth_from_request(request)
+    if not auth.authenticated:
+        return RedirectResponse(url="/", status_code=303)
+    return HTMLResponse(sagwan_chat_html(auth=auth, route_prefix=_route_prefix(request)))
 
 
 # v7 — autonomous sweep observability

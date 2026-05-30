@@ -7421,3 +7421,194 @@ def _build_capsule_gen_prompt(*, seed_title: str, seed_body: str,
         "",
         "출력은 마크다운 본문만. Frontmatter 금지. YAML 금지. '## Summary' 로 시작하라.",
     ])
+
+
+# ─── Sagwan Chat ───────────────────────────────────────────────────────────────
+
+_SAGWAN_CHAT_SYSTEM = """너는 OpenAkashic의 사서장(sagwan)이다.
+- vault의 지식을 검색·읽기·정리할 수 있다
+- 연구 주제를 제안하거나 큐에 enqueue할 수 있다
+- vault 노트를 작성하거나 수정할 수 있다 (인증된 사용자 요청 시)
+- 자율 큐레이션 작업은 별도로 계속 진행 중이다
+- 대화는 기억하고 다음 대화에서 참조할 수 있다
+응답은 한국어로, 간결하게. 도구가 필요하면 사용하라."""
+
+_CHAT_SESSION_FOLDER = "personal_vault/projects/ops/librarian/sessions"
+_CHAT_HISTORY_LIMIT = 10  # LLM에 전달할 최근 메시지 수
+_CHAT_SESSION_ID_RE = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
+
+
+def _validate_chat_session_id(session_id: str) -> str:
+    value = str(session_id or "").strip()
+    if not value or not _CHAT_SESSION_ID_RE.match(value):
+        raise ValueError("invalid session_id")
+    return value
+
+
+def chat_session_path(session_id: str) -> str:
+    return f"{_CHAT_SESSION_FOLDER}/chat-{_validate_chat_session_id(session_id)}.md"
+
+
+def _sagwan_chat_respond(
+    message: str,
+    session_id: str,
+    history: list[dict[str, str]],
+    *,
+    auth_nickname: str = "user",
+) -> dict[str, Any]:
+    """사관이 사용자 메시지에 응답한다. 4계층 메모리 + 도구 호출 가능."""
+    ctx = before_task_context("sagwan", message, current_note_path=None, total_chars=4000)
+    memory_block = ctx.get("combined", "")
+
+    system = _SAGWAN_CHAT_SYSTEM
+    if memory_block:
+        system += f"\n\n## 현재 vault/사관 기억 상태\n{memory_block}"
+
+    history_lines: list[str] = []
+    for msg in history[-_CHAT_HISTORY_LIMIT:]:
+        role_label = "사용자" if msg.get("role") == "user" else "사관"
+        content = str(msg.get("content") or "").strip()
+        if content:
+            history_lines.append(f"{role_label}: {content}")
+
+    full_prompt = "\n".join(
+        [
+            f"세션: {session_id}",
+            f"참여자: {auth_nickname}",
+            "",
+            "## 최근 대화",
+            "\n".join(history_lines) or "(이전 대화 없음)",
+            "",
+            "## 현재 사용자 메시지",
+            message,
+        ]
+    )
+
+    try:
+        from app.librarian import _invoke_chatgpt_responses_with_tools
+        tools = ["search_notes", "read_note", "search_akashic", "search_and_read_top", "upsert_note"]
+        reply = _invoke_chatgpt_responses_with_tools(
+            full_prompt,
+            model="gpt-5.5",
+            tools=tools,
+            system=system,
+            timeout=120,
+        )
+    except Exception as exc:
+        logger.warning("sagwan chat LLM error: %s", exc)
+        reply = f"(오류: {exc})"
+
+    try:
+        remember("sagwan", subject=message[:120], outcome=reply[:200], kind="chat")
+    except Exception:
+        pass
+
+    return {
+        "reply": str(reply or "").strip(),
+        "session_id": session_id,
+        "tool_calls": [],
+        "status": "ok",
+    }
+
+
+def load_chat_session(session_id: str) -> dict[str, Any]:
+    """세션 파일을 읽어 메시지 목록 반환."""
+    session_id = _validate_chat_session_id(session_id)
+    path = chat_session_path(session_id)
+    try:
+        doc = load_document(path)
+        messages: list[dict[str, str]] = []
+        body = str(doc.body or "")
+        for m in re.finditer(
+            r"^## (\S+) (user|sagwan)\s*\n([\s\S]*?)(?=^## |\Z)", body, re.MULTILINE
+        ):
+            messages.append({"ts": m.group(1), "role": m.group(2), "content": m.group(3).strip()})
+        fm = dict(doc.frontmatter or {})
+        return {
+            "session_id": session_id,
+            "title": str(fm.get("title") or f"Chat Session {session_id}"),
+            "participant": str(fm.get("participant") or ""),
+            "created_at": str(fm.get("created_at") or ""),
+            "updated_at": str(fm.get("updated_at") or ""),
+            "message_count": len(messages),
+            "messages": messages,
+        }
+    except Exception:
+        return {"session_id": session_id, "messages": [], "message_count": 0, "title": f"Chat Session {session_id}"}
+
+
+def append_chat_message(session_id: str, role: str, content: str, *, participant: str = "user") -> None:
+    """세션 파일에 메시지 append."""
+    session_id = _validate_chat_session_id(session_id)
+    if role not in {"user", "sagwan"}:
+        raise ValueError("role must be user or sagwan")
+    path = chat_session_path(session_id)
+    ts = _now_iso()
+    section = f"\n\n## {ts} {role}\n{str(content or '').strip()}\n"
+    try:
+        doc = load_document(path)
+        fm = dict(doc.frontmatter or {})
+        count = int(fm.get("message_count") or 0) + 1
+        fm.update({"updated_at": ts, "message_count": count})
+        write_document(
+            path=path,
+            body=(doc.body or "") + section,
+            metadata=fm,
+            allow_owner_change=True,
+            metadata_replace=True,
+        )
+    except Exception:
+        # 신규 세션 생성
+        write_document(
+            path=path,
+            title=f"Chat Session {session_id}",
+            kind="reference",
+            project="ops/librarian",
+            tags=["chat", "sagwan-session"],
+            body=section.strip() + "\n",
+            metadata={
+                "owner": "sagwan",
+                "visibility": "private",
+                "publication_status": "none",
+                "session_id": session_id,
+                "participant": participant,
+                "created_at": ts,
+                "updated_at": ts,
+                "message_count": 1,
+            },
+            allow_owner_change=True,
+        )
+
+
+def list_chat_sessions(*, limit: int = 20, participant: str | None = None) -> list[dict[str, Any]]:
+    """최근 채팅 세션 목록 반환."""
+    try:
+        paths = [
+            path for path in list_note_paths()
+            if path.startswith(f"{_CHAT_SESSION_FOLDER}/chat-") and path.endswith(".md")
+        ]
+    except Exception:
+        return []
+    sessions = []
+    for p in paths:
+        if not p.endswith(".md"):
+            continue
+        try:
+            doc = load_document(p)
+            fm = dict(doc.frontmatter or {})
+            sid = str(fm.get("session_id") or Path(p).stem.replace("chat-", ""))
+            session_participant = str(fm.get("participant") or "")
+            if participant and session_participant != participant:
+                continue
+            sessions.append({
+                "id": sid,
+                "session_id": sid,
+                "title": str(fm.get("title") or f"Chat Session {sid}"),
+                "participant": session_participant,
+                "updated_at": str(fm.get("updated_at") or ""),
+                "message_count": int(fm.get("message_count") or 0),
+            })
+        except Exception:
+            continue
+    sessions.sort(key=lambda s: s.get("updated_at") or "", reverse=True)
+    return sessions[:limit]
