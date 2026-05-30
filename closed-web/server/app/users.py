@@ -123,20 +123,26 @@ def _system_user_record(username: str, *, nickname: str, role: str, api_token: s
 
 def _seed_system_users(users: list[dict[str, Any]]) -> list[dict[str, Any]]:
     by_username = {str(user.get("username") or "").casefold(): user for user in users}
-    master_token = get_settings().bearer_token.strip()
+    settings = get_settings()
+    master_token = settings.bearer_token.strip()
     master_password_seed = _default_password_seed()
-    aaron = by_username.get("aaron")
-    if not aaron:
-        users.append(_system_user_record("aaron", nickname="aaron", role="admin", api_token=master_token or None))
+    # admin_username 설정 우선, 없으면 기존 "aaron" 유지 (하위 호환)
+    admin_uname = (settings.admin_username.strip() or "aaron").casefold()
+    if admin_uname not in USERNAME_PATTERN.pattern:
+        admin_uname = re.sub(r"[^A-Za-z0-9._-]+", "-", admin_uname).strip("-") or "aaron"
+    # 기존 aaron 레코드도 함께 검색 (마이그레이션)
+    admin_record = by_username.get(admin_uname) or by_username.get("aaron")
+    if not admin_record:
+        users.append(_system_user_record(admin_uname, nickname=admin_uname, role="admin", api_token=master_token or None))
     else:
-        aaron.setdefault("username", "aaron")
-        aaron["nickname"] = str(aaron.get("nickname") or "aaron")
-        aaron["role"] = "admin"
-        aaron["system"] = True
-        aaron["password_salt"] = "system-aaron-seed"
-        aaron["password_hash"] = _password_digest(master_password_seed, aaron["password_salt"])
+        admin_record["username"] = admin_uname
+        admin_record["nickname"] = admin_uname
+        admin_record["role"] = "admin"
+        admin_record["system"] = True
+        admin_record["password_salt"] = f"system-{admin_uname}-seed"
+        admin_record["password_hash"] = _password_digest(master_password_seed, admin_record["password_salt"])
         if master_token:
-            aaron["api_token"] = master_token
+            admin_record["api_token"] = master_token
     sagwan = by_username.get("sagwan")
     if not sagwan:
         users.append(_system_user_record("sagwan", nickname="sagwan", role="manager"))
