@@ -95,7 +95,12 @@ def _nickname_exists(users: list[dict[str, Any]], nickname: str, *, excluding: s
 
 
 def _default_password_seed() -> str:
-    token = get_settings().bearer_token.strip()
+    settings = get_settings()
+    # admin_password가 설정되면 웹 로그인 비밀번호로 사용 (bearer_token과 분리)
+    admin_pw = settings.admin_password.strip()
+    if admin_pw:
+        return admin_pw
+    token = settings.bearer_token.strip()
     return token or "openakashic-bootstrap-password"
 
 

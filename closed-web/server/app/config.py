@@ -18,6 +18,11 @@ class Settings(BaseSettings):
         default="",
         validation_alias=AliasChoices("CLOSED_AKASHIC_BEARER_TOKEN", "CLOSED_AKASHIC_TOKEN"),
     )
+    admin_password: str = Field(
+        default="",
+        alias="CLOSED_AKASHIC_ADMIN_PASSWORD",
+        description="Web login password for the admin (aaron) account. Falls back to bearer_token if not set.",
+    )
     log_dir: str = Field(
         default=str(PROJECT_ROOT / "server" / "logs"),
         alias="CLOSED_AKASHIC_LOG_DIR",
