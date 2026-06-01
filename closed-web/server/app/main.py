@@ -169,6 +169,11 @@ from app.site import (
     search_closed_notes,
 )
 from app.sagwan_loop import (
+    get_sagwan_memory_snapshot,
+    update_sagwan_distilled_memory,
+    get_sagwan_persona,
+    update_sagwan_persona,
+    get_sagwan_status_snapshot,
     _migrate_legacy_none_claims,
     _sagwan_chat_respond,
     append_chat_message,
@@ -1357,6 +1362,123 @@ def api_sagwan_delete_session(session_id: str, request: Request) -> dict[str, An
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=404, detail="session not found") from exc
+
+
+
+
+@api.get("/api/sagwan/memory")
+def api_sagwan_memory_get(request: Request) -> dict:
+    auth = _auth_from_request(request)
+    if not auth.authenticated:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    return get_sagwan_memory_snapshot()
+
+
+class SagwanDistilledUpdateRequest(BaseModel):
+    body: str
+
+
+@api.put("/api/sagwan/memory/distilled")
+def api_sagwan_memory_distilled_put(
+    payload: SagwanDistilledUpdateRequest,
+    request: Request,
+) -> dict:
+    auth = _auth_from_request(request)
+    if not auth.authenticated:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    result = update_sagwan_distilled_memory(payload.body)
+    if not result.get("ok"):
+        raise HTTPException(status_code=422, detail=result.get("reason", "update rejected"))
+    return result
+
+@api.get("/api/sagwan/status")
+def api_sagwan_status(request: Request) -> dict[str, Any]:
+    auth = _auth_from_request(request)
+    if not auth.authenticated:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    return get_sagwan_status_snapshot()
+
+
+@api.get("/api/sagwan/persona")
+def api_sagwan_get_persona(request: Request) -> dict[str, Any]:
+    auth = _auth_from_request(request)
+    if not auth.authenticated:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    return get_sagwan_persona()
+
+
+@api.put("/api/sagwan/persona/{field}")
+def api_sagwan_update_persona(field: str, payload: dict[str, Any], request: Request) -> dict[str, Any]:
+    auth = _auth_from_request(request)
+    if not auth.authenticated:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    body = str((payload or {}).get("body") or "")
+    if not body:
+        raise HTTPException(status_code=400, detail="body required")
+    try:
+        return update_sagwan_persona(field=field, body=body)
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+
+
+@api.get("/api/sagwan/tools")
+def api_sagwan_tools(request: Request) -> dict[str, Any]:
+    auth = _auth_from_request(request)
+    if not auth.authenticated:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    from app import mcp_server as _mcp
+    tools = []
+    for t in _mcp.mcp._tool_manager._tools.values():
+        name = t.name
+        desc = (t.description or "")[:120]
+        if any(k in name for k in ("search", "read", "query")):
+            cat = "read"
+        elif any(k in name for k in ("upsert", "append", "write", "record", "request_note")):
+            cat = "write"
+        elif any(k in name for k in ("research", "bootstrap")):
+            cat = "research"
+        else:
+            cat = "utility"
+        tools.append({"name": name, "description": desc, "category": cat})
+    return {"tools": sorted(tools, key=lambda t: t["category"] + t["name"])}
+
+
+@api.post("/api/sagwan/upload")
+async def api_sagwan_upload(request: Request) -> dict[str, Any]:
+    from fastapi import UploadFile
+    import io
+    auth = _auth_from_request(request)
+    if not auth.authenticated:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    form = await request.form()
+    file = form.get("file")
+    if not file or not hasattr(file, "filename"):
+        raise HTTPException(status_code=400, detail="file required")
+    filename: str = file.filename or "upload"
+    ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
+    allowed = {"jpg", "jpeg", "png", "gif", "webp", "pdf", "md", "txt"}
+    if ext not in allowed:
+        raise HTTPException(status_code=415, detail=f"File type .{ext} not allowed")
+    content = await file.read()
+    if len(content) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="File too large (max 10MB)")
+    import re, secrets
+    safe_name = re.sub(r"[^a-zA-Z0-9._-]", "_", filename)
+    uid = secrets.token_hex(4)
+    vault_path = f"personal_vault/uploads/{uid}-{safe_name}"
+    if ext in {"jpg", "jpeg", "png", "gif", "webp"}:
+        kind = "image"
+        save_image(vault_path, content)
+    else:
+        kind = "document"
+        text = content.decode("utf-8", errors="replace")
+        write_document(
+            path=vault_path, title=safe_name, kind="reference",
+            body=text,
+            metadata={"owner": str(auth.nickname or "user"), "visibility": "private", "publication_status": "none"},
+            allow_owner_change=True,
+        )
+    return {"path": vault_path, "kind": kind, "filename": filename, "size": len(content)}
 
 
 @api.get("/sagwan", response_class=HTMLResponse)

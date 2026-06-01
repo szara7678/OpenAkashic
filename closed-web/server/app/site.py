@@ -10113,12 +10113,22 @@ def _rewrite_markdown_image(match: re.Match[str], route_prefix: str) -> str:
 
 
 def sagwan_chat_html(*, auth: Any = None, route_prefix: str = "") -> str:
-    """Sagwan 채팅 UI — OpenAkashic 기존 톤앤매너 일치, 상단바 포함."""
+    """Sagwan 5탭 UI — 채팅 / 현황 / 메모리 / 페르소나 / 도구."""
+    from app.site import (
+        _sagwan_status_panel_html,
+        _sagwan_memory_panel_html,
+        _sagwan_persona_panel_html,
+        _sagwan_tools_panel_html,
+    )
     shared_styles = _shared_ui_styles()
     shared_header = _shared_header_html(route_prefix, "사관")
     shared_shell = _shared_ui_shell(route_prefix)
     nickname = str(getattr(auth, "nickname", "") or getattr(auth, "username", "") or "you")
     nick_initial = nickname[0].upper() if nickname else "U"
+    status_panel = _sagwan_status_panel_html()
+    memory_panel = _sagwan_memory_panel_html()
+    persona_panel = _sagwan_persona_panel_html()
+    tools_panel = _sagwan_tools_panel_html()
     return f"""<!doctype html>
 <html lang="ko">
 <head>
@@ -10127,18 +10137,17 @@ def sagwan_chat_html(*, auth: Any = None, route_prefix: str = "") -> str:
   <link rel="icon" href="data:,"/>
   <title>사관 — OpenAkashic</title>
   <style>
-    {{shared_styles}}
-    /* ── sagwan-specific layout ── */
+    {shared_styles}
+    /* ── layout ── */
     .sagwan-wrap {{
       display: grid;
-      grid-template-columns: 260px minmax(0,1fr);
+      grid-template-columns: 240px minmax(0,1fr);
       height: calc(100svh - var(--closed-header-height));
     }}
     /* ── sidebar ── */
     .sagwan-sidebar {{
       position: sticky;
       top: var(--closed-header-height);
-      align-self: start;
       height: calc(100svh - var(--closed-header-height));
       display: flex;
       flex-direction: column;
@@ -10150,348 +10159,260 @@ def sagwan_chat_html(*, auth: Any = None, route_prefix: str = "") -> str:
     html[data-theme="dark"] .sagwan-sidebar {{
       background: rgba(16,22,36,.88);
     }}
+    /* ── 상단 탭 바 ── */
+    .sagwan-tab-bar {{
+      display: flex;
+      border-bottom: 1px solid var(--line);
+      background: var(--surface);
+      flex-shrink: 0;
+      overflow-x: auto;
+    }}
+    .sagwan-tab {{
+      padding: 10px 14px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: var(--muted);
+      font-family: inherit;
+      white-space: nowrap;
+      border-bottom: 2px solid transparent;
+      transition: color .15s, border-color .15s;
+    }}
+    .sagwan-tab:hover {{ color: var(--ink); }}
+    .sagwan-tab.active {{
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }}
+    /* ── session list in sidebar ── */
     .sidebar-top {{
-      padding: 16px 14px 10px;
+      padding: 12px 10px 8px;
       border-bottom: 1px solid var(--line);
       flex-shrink: 0;
     }}
     .new-chat-btn {{
       width: 100%;
-      padding: 8px 12px;
+      padding: 8px 11px;
       background: var(--accent);
       color: #fff;
       border: none;
-      border-radius: 8px;
+      border-radius: 7px;
       cursor: pointer;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 500;
       font-family: inherit;
       text-align: left;
       display: flex;
       align-items: center;
-      gap: 7px;
+      gap: 6px;
     }}
     .new-chat-btn:hover {{ filter: brightness(1.1); }}
-    .proj-input-row {{
-      padding: 6px 0 0;
-      display: none;
-    }}
+    .proj-input-row {{ padding: 5px 0 0; display: none; }}
     .proj-input-row.visible {{ display: block; }}
     .proj-input {{
       width: 100%;
-      padding: 5px 9px;
+      padding: 5px 8px;
       background: var(--surface);
       border: 1px solid var(--line);
       border-radius: 6px;
       color: var(--ink);
-      font-size: 12px;
+      font-size: 11px;
       font-family: inherit;
       box-sizing: border-box;
     }}
     .proj-input:focus {{ outline: none; border-color: var(--accent); }}
-    .sidebar-body {{
-      flex: 1;
-      overflow-y: auto;
-      padding: 8px 6px;
-    }}
-    .proj-group {{ margin-bottom: 14px; }}
-    .proj-label {{
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: .07em;
-      color: var(--muted);
-      padding: 3px 8px;
-      font-weight: 600;
-    }}
+    .sidebar-body {{ flex: 1; overflow-y: auto; padding: 6px 4px; }}
+    .proj-group {{ margin-bottom: 12px; }}
+    .proj-label {{ font-size: 10px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); padding: 3px 6px; font-weight: 600; }}
     .session-item {{
-      padding: 7px 10px;
-      border-radius: 7px;
+      padding: 6px 8px;
+      border-radius: 6px;
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       margin-bottom: 1px;
     }}
     .session-item:hover {{ background: var(--panel,rgba(0,0,0,.04)); }}
-    .session-item.active {{
-      background: rgba(37,99,235,.10);
-    }}
-    html[data-theme="dark"] .session-item.active {{
-      background: rgba(96,165,250,.12);
-    }}
-    .session-item-title {{
-      font-size: 13px;
-      color: var(--muted);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      flex: 1;
-    }}
+    .session-item.active {{ background: rgba(37,99,235,.10); }}
+    html[data-theme="dark"] .session-item.active {{ background: rgba(96,165,250,.12); }}
+    .session-item-title {{ font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }}
     .session-item.active .session-item-title {{ color: var(--accent); }}
-    .del-btn {{
-      opacity: 0;
-      background: none;
-      border: none;
-      color: var(--muted);
-      cursor: pointer;
-      padding: 2px 4px;
-      border-radius: 4px;
-      font-size: 11px;
-      flex-shrink: 0;
-    }}
+    .del-btn {{ opacity: 0; background: none; border: none; color: var(--muted); cursor: pointer; padding: 1px 3px; border-radius: 3px; font-size: 10px; }}
     .session-item:hover .del-btn {{ opacity: 1; }}
     .del-btn:hover {{ color: var(--warn,#c2410c); }}
-    /* ── main ── */
-    .sagwan-main {{
-      display: flex;
-      flex-direction: column;
-      min-width: 0;
-      background: var(--bg);
-    }}
+    /* ── main area ── */
+    .sagwan-main {{ display: flex; flex-direction: column; min-width: 0; background: var(--bg); }}
     .chat-topbar {{
-      padding: 10px 20px;
+      padding: 9px 18px;
       border-bottom: 1px solid var(--line);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
+      gap: 10px;
       background: var(--surface);
       backdrop-filter: blur(10px);
+      flex-shrink: 0;
     }}
     .chat-title-edit {{
-      background: none;
-      border: none;
-      color: var(--ink);
-      font-size: 14px;
-      font-weight: 600;
-      font-family: inherit;
-      padding: 3px 7px;
-      border-radius: 5px;
-      max-width: 320px;
-      width: 100%;
+      background: none; border: none; color: var(--ink);
+      font-size: 13px; font-weight: 600; font-family: inherit;
+      padding: 2px 6px; border-radius: 5px; max-width: 300px; width: 100%;
     }}
-    .chat-title-edit:focus {{
-      outline: none;
-      background: var(--surface);
-      border: 1px solid var(--accent);
-    }}
-    .cap-chips {{
-      display: flex;
-      gap: 5px;
-      flex-wrap: wrap;
-      flex-shrink: 0;
-    }}
-    .cap-chip {{
-      font-size: 11px;
-      padding: 2px 8px;
-      border-radius: 99px;
-      background: var(--panel,rgba(0,0,0,.04));
-      color: var(--muted);
-      border: 1px solid var(--line);
-      white-space: nowrap;
-    }}
-    /* ── messages ── */
-    .chat-messages {{
-      flex: 1;
-      overflow-y: auto;
-      padding: 24px 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-    }}
-    .msg-row {{
-      display: flex;
-      gap: 11px;
-      max-width: 820px;
-      width: 100%;
-    }}
-    .msg-row.user {{
-      align-self: flex-end;
-      flex-direction: row-reverse;
-    }}
+    .chat-title-edit:focus {{ outline: none; background: var(--surface); border: 1px solid var(--accent); }}
+    .cap-chips {{ display: flex; gap: 4px; flex-wrap: wrap; flex-shrink: 0; }}
+    .cap-chip {{ font-size: 11px; padding: 2px 7px; border-radius: 99px; background: var(--panel,rgba(0,0,0,.04)); color: var(--muted); border: 1px solid var(--line); white-space: nowrap; }}
+    .chat-messages {{ flex: 1; overflow-y: auto; padding: 20px 18px; display: flex; flex-direction: column; gap: 16px; }}
+    .msg-row {{ display: flex; gap: 10px; max-width: 800px; width: 100%; }}
+    .msg-row.user {{ align-self: flex-end; flex-direction: row-reverse; }}
     .msg-row.sagwan {{ align-self: flex-start; }}
     .msg-avatar {{
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      font-weight: 700;
+      width: 28px; height: 28px; border-radius: 50%;
+      flex-shrink: 0; display: flex; align-items: center;
+      justify-content: center; font-size: 11px; font-weight: 700;
     }}
-    .msg-row.user .msg-avatar {{
-      background: var(--accent);
-      color: #fff;
-    }}
-    .msg-row.sagwan .msg-avatar {{
-      background: var(--accent-2,#0f766e);
-      color: #fff;
-    }}
+    .msg-row.user .msg-avatar {{ background: var(--accent); color: #fff; }}
+    .msg-row.sagwan .msg-avatar {{ background: var(--accent-2,#0f766e); color: #fff; }}
     .msg-body {{ flex: 1; min-width: 0; }}
-    .msg-name {{
-      font-size: 11px;
-      color: var(--muted);
-      margin-bottom: 4px;
-      font-weight: 500;
-    }}
+    .msg-name {{ font-size: 10px; color: var(--muted); margin-bottom: 3px; font-weight: 500; }}
     .msg-row.user .msg-name {{ text-align: right; }}
     .msg-bubble {{
-      padding: 11px 15px;
-      border-radius: 11px;
-      font-size: 14px;
-      line-height: 1.65;
-      white-space: pre-wrap;
-      word-break: break-word;
+      padding: 10px 14px; border-radius: 10px;
+      font-size: 13px; line-height: 1.65;
+      white-space: pre-wrap; word-break: break-word;
       border: 1px solid var(--line);
     }}
-    .msg-row.user .msg-bubble {{
-      background: rgba(37,99,235,.08);
-      border-color: rgba(37,99,235,.18);
-      color: var(--ink);
-      border-bottom-right-radius: 3px;
-    }}
-    html[data-theme="dark"] .msg-row.user .msg-bubble {{
-      background: rgba(96,165,250,.10);
-      border-color: rgba(96,165,250,.20);
-    }}
-    .msg-row.sagwan .msg-bubble {{
-      background: var(--surface);
-      color: var(--ink);
-      border-bottom-left-radius: 3px;
-    }}
-    /* ── input ── */
-    .chat-input-wrap {{
-      padding: 12px 20px 16px;
-      border-top: 1px solid var(--line);
-      background: var(--surface);
-    }}
+    .msg-row.user .msg-bubble {{ background: rgba(37,99,235,.07); border-color: rgba(37,99,235,.15); border-bottom-right-radius: 3px; }}
+    html[data-theme="dark"] .msg-row.user .msg-bubble {{ background: rgba(96,165,250,.09); border-color: rgba(96,165,250,.18); }}
+    .msg-row.sagwan .msg-bubble {{ background: var(--surface); border-bottom-left-radius: 3px; }}
+    .chat-input-wrap {{ padding: 10px 18px 14px; border-top: 1px solid var(--line); background: var(--surface); flex-shrink: 0; }}
     .chat-input-box {{
-      display: flex;
-      align-items: flex-end;
-      gap: 8px;
-      background: var(--bg);
-      border: 1px solid var(--line);
-      border-radius: 11px;
-      padding: 9px 13px;
+      display: flex; align-items: flex-end; gap: 7px;
+      background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px;
     }}
     .chat-input-box:focus-within {{ border-color: var(--accent); }}
     .chat-textarea {{
-      flex: 1;
-      background: none;
-      border: none;
-      color: var(--ink);
-      font-size: 14px;
-      resize: none;
-      min-height: 22px;
-      max-height: 150px;
-      font-family: inherit;
-      line-height: 1.6;
+      flex: 1; background: none; border: none; color: var(--ink);
+      font-size: 13px; resize: none; min-height: 22px; max-height: 140px;
+      font-family: inherit; line-height: 1.6;
     }}
     .chat-textarea:focus {{ outline: none; }}
-    .chat-textarea::placeholder {{ color: var(--muted); }}
+    .chat-textarea::placeholder {{ color: var(--muted); opacity: .7; }}
     .send-btn {{
-      padding: 7px 15px;
-      background: var(--accent);
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: 500;
-      font-family: inherit;
-      flex-shrink: 0;
+      padding: 7px 14px; background: var(--accent); color: #fff;
+      border: none; border-radius: 7px; cursor: pointer;
+      font-size: 12px; font-weight: 500; font-family: inherit; flex-shrink: 0;
     }}
     .send-btn:hover {{ filter: brightness(1.1); }}
-    .send-btn:disabled {{
-      background: var(--line);
-      color: var(--muted);
-      cursor: default;
-      filter: none;
-    }}
-    /* ── empty state ── */
+    .send-btn:disabled {{ background: var(--line); color: var(--muted); cursor: default; filter: none; }}
     .empty-chat {{
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      color: var(--muted);
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 10px; color: var(--muted);
     }}
     .empty-chat .oa-mark {{
-      width: 48px;
-      height: 48px;
-      border-radius: 14px;
-      background: var(--accent);
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 22px;
-      font-weight: 800;
-      opacity: .7;
+      width: 44px; height: 44px; border-radius: 12px;
+      background: var(--accent); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; font-weight: 800; opacity: .65;
     }}
-    .empty-chat h2 {{
-      margin: 0;
-      font-size: 18px;
-      color: var(--ink);
-      font-weight: 600;
-    }}
-    .empty-chat p {{ margin: 0; font-size: 13px; }}
-    .starter-pills {{
-      display: flex;
-      flex-wrap: wrap;
-      gap: 7px;
-      justify-content: center;
-      margin-top: 6px;
-    }}
+    .empty-chat h2 {{ margin: 0; font-size: 17px; color: var(--ink); font-weight: 600; }}
+    .empty-chat p {{ margin: 0; font-size: 12px; }}
+    .starter-pills {{ display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 6px; }}
     .starter-pill {{
-      padding: 6px 13px;
-      background: var(--surface);
-      border: 1px solid var(--line);
-      color: var(--muted);
-      border-radius: 99px;
-      cursor: pointer;
-      font-size: 12px;
-      font-family: inherit;
+      padding: 5px 12px; background: var(--surface);
+      border: 1px solid var(--line); color: var(--muted);
+      border-radius: 99px; cursor: pointer; font-size: 11px; font-family: inherit;
     }}
-    .starter-pill:hover {{
-      border-color: var(--accent);
-      color: var(--accent);
-      background: rgba(37,99,235,.05);
-    }}
-    /* ── thinking dots ── */
-    .thinking-dots {{
-      display: flex;
-      gap: 4px;
-      padding: 8px 0 3px;
-    }}
+    .starter-pill:hover {{ border-color: var(--accent); color: var(--accent); background: rgba(37,99,235,.04); }}
+    .thinking-dots {{ display: flex; gap: 3px; padding: 7px 0 2px; }}
     .thinking-dots span {{
-      width: 6px; height: 6px;
-      background: var(--muted);
-      border-radius: 50%;
-      animation: tdot 1.2s infinite;
+      width: 5px; height: 5px; background: var(--muted);
+      border-radius: 50%; animation: tdot 1.2s infinite;
     }}
-    .thinking-dots span:nth-child(2) {{ animation-delay: .2s; }}
-    .thinking-dots span:nth-child(3) {{ animation-delay: .4s; }}
-    @keyframes tdot {{
-      0%,60%,100% {{ transform:translateY(0); opacity:.5; }}
-      30% {{ transform:translateY(-5px); opacity:1; }}
+    .thinking-dots span:nth-child(2) {{ animation-delay:.2s; }}
+    .thinking-dots span:nth-child(3) {{ animation-delay:.4s; }}
+    @keyframes tdot {{ 0%,60%,100%{{transform:translateY(0);opacity:.5;}} 30%{{transform:translateY(-5px);opacity:1;}} }}
+    /* ── sagwan-panel shared styles ── */
+    .sagwan-panel {{ flex: 1; overflow-y: auto; }}
+    .panel-inner {{ padding: 20px; max-width: 860px; }}
+    .panel-warn {{
+      padding: 10px 14px; border-radius: 7px; margin-bottom: 14px;
+      font-size: 12px; color: var(--warn,#c2410c);
+      background: rgba(194,65,12,.07); border: 1px solid rgba(194,65,12,.2);
     }}
+    .panel-tabs {{ display: flex; gap: 2px; margin-bottom: 14px; border-bottom: 1px solid var(--line); }}
+    .ptab {{
+      padding: 7px 14px; font-size: 12px; font-weight: 500;
+      cursor: pointer; border: none; background: none; color: var(--muted);
+      font-family: inherit; border-bottom: 2px solid transparent;
+    }}
+    .ptab:hover {{ color: var(--ink); }}
+    .ptab.active {{ color: var(--accent); border-bottom-color: var(--accent); }}
+    .mono-editor {{
+      width: 100%; box-sizing: border-box;
+      background: var(--surface); border: 1px solid var(--line);
+      color: var(--ink); font-family: ui-monospace, Menlo, Consolas, monospace;
+      font-size: 12px; line-height: 1.6; padding: 12px;
+      border-radius: 8px; resize: vertical;
+    }}
+    .mono-editor:focus {{ outline: none; border-color: var(--accent); }}
+    .panel-save-btn {{
+      margin-top: 10px; padding: 8px 20px;
+      background: var(--accent); color: #fff;
+      border: none; border-radius: 7px; cursor: pointer;
+      font-size: 13px; font-weight: 500; font-family: inherit;
+    }}
+    .panel-save-btn:hover {{ filter: brightness(1.1); }}
+    .panel-meta {{ font-size: 11px; color: var(--muted); margin-bottom: 7px; }}
+    .panel-section {{ margin-top: 20px; }}
+    .panel-section-title {{ font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px; }}
+    .stat-grid-4 {{ display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 20px; }}
+    .stat-card {{
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: 10px; padding: 14px; text-align: center;
+    }}
+    .sc-val {{ font-size: 22px; font-weight: 700; color: var(--accent); }}
+    .sc-lbl {{ font-size: 11px; color: var(--muted); margin-top: 3px; }}
+    .episode-list {{ display: flex; flex-direction: column; gap: 4px; }}
+    .episode-row {{
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 6px 10px; border-radius: 6px;
+      background: var(--surface); border: 1px solid var(--line);
+      font-size: 12px;
+    }}
+    .ep-ts {{ color: var(--muted); white-space: nowrap; flex-shrink: 0; font-family: ui-monospace, monospace; font-size: 11px; }}
+    .ep-sub {{ color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }}
+    /* ── tools panel ── */
+    .tools-grid {{ display: grid; grid-template-columns: repeat(auto-fill,minmax(200px,1fr)); gap: 10px; }}
+    .tool-card {{
+      padding: 12px; border-radius: 8px;
+      background: var(--surface); border: 1px solid var(--line);
+    }}
+    .tool-name {{ font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 4px; }}
+    .tool-desc {{ font-size: 11px; color: var(--muted); line-height: 1.5; margin-bottom: 6px; }}
+    .tool-badge {{ font-size: 10px; font-weight: 600; text-transform: uppercase; }}
+    /* ── upload zone ── */
+    .upload-zone {{
+      border: 2px dashed var(--line); border-radius: 10px;
+      padding: 32px 20px; text-align: center; cursor: pointer;
+      transition: border-color .2s;
+    }}
+    .upload-zone:hover {{ border-color: var(--accent); }}
+    #upload-result {{ margin-top: 12px; font-size: 13px; color: var(--ink); }}
+    #upload-result code {{ background: var(--panel,rgba(0,0,0,.04)); padding: 2px 5px; border-radius: 3px; font-size: 11px; }}
+    /* ── stats grid ── */
+    .stats-grid {{ display: grid; grid-template-columns: repeat(auto-fill,minmax(140px,1fr)); gap: 12px; }}
   </style>
 </head>
 <body>
-  {{shared_header}}
-  {{shared_shell}}
+  {shared_header}
+  {shared_shell}
   <div class="sagwan-wrap">
     <!-- ── 사이드바 ── -->
     <aside class="sagwan-sidebar">
       <div class="sidebar-top">
-        <button class="new-chat-btn" onclick="newChat()">
-          <span>✏️</span> 새 대화
-        </button>
+        <button class="new-chat-btn" onclick="newChat()">✏️ 새 대화</button>
         <div class="proj-input-row" id="projInputRow">
           <input class="proj-input" id="projInput" placeholder="프로젝트 이름 (선택)" />
         </div>
@@ -10501,184 +10422,205 @@ def sagwan_chat_html(*, auth: Any = None, route_prefix: str = "") -> str:
 
     <!-- ── 메인 ── -->
     <main class="sagwan-main">
-      <div class="chat-topbar">
-        <input class="chat-title-edit" id="chatTitleInput" value="새 대화" onchange="updateTitle(this.value)" />
-        <div class="cap-chips">
-          <span class="cap-chip">🔍 검색</span>
-          <span class="cap-chip">📖 읽기</span>
-          <span class="cap-chip">✏️ 노트</span>
-          <span class="cap-chip">🔬 연구</span>
-          <span class="cap-chip">🤖 자율큐레이션 중</span>
-        </div>
+      <!-- 탭 바 -->
+      <div class="sagwan-tab-bar">
+        <button class="sagwan-tab active" onclick="switchTab('chat',this)">💬 채팅</button>
+        <button class="sagwan-tab" onclick="switchTab('status',this)">📊 현황</button>
+        <button class="sagwan-tab" onclick="switchTab('memory',this)">🧠 메모리</button>
+        <button class="sagwan-tab" onclick="switchTab('persona',this)">🪪 페르소나</button>
+        <button class="sagwan-tab" onclick="switchTab('tools',this)">🔧 도구</button>
       </div>
 
-      <div class="chat-messages" id="messages">
-        <div class="empty-chat" id="emptyState">
-          <div class="oa-mark">OA</div>
-          <h2>사관에게 말을 걸어보세요</h2>
-          <p>vault 검색, 노트 작성, 연구 요청 등 무엇이든 도와드립니다.</p>
-          <div class="starter-pills">
-            <button class="starter-pill" onclick="sendStarter(this)">vault에서 가장 많이 다루는 주제는?</button>
-            <button class="starter-pill" onclick="sendStarter(this)">최근 연구한 내용을 요약해줘</button>
-            <button class="starter-pill" onclick="sendStarter(this)">OpenAkashic MCP 사용법</button>
-            <button class="starter-pill" onclick="sendStarter(this)">FastAPI 인증 관련 캡슐 찾아줘</button>
+      <!-- 채팅 탭 -->
+      <div id="tab-chat" class="sagwan-tab-content" style="display:flex;flex-direction:column;flex:1;min-height:0">
+        <div class="chat-topbar">
+          <input class="chat-title-edit" id="chatTitleInput" value="새 대화" onchange="updateTitle(this.value)" />
+          <div class="cap-chips">
+            <span class="cap-chip">🔍 검색</span>
+            <span class="cap-chip">📖 읽기</span>
+            <span class="cap-chip">✏️ 노트</span>
+            <span class="cap-chip">🔬 연구</span>
+            <span class="cap-chip">🤖 자율큐레이션 중</span>
+          </div>
+        </div>
+        <div class="chat-messages" id="messages">
+          <div class="empty-chat" id="emptyState">
+            <div class="oa-mark">OA</div>
+            <h2>사관에게 말을 걸어보세요</h2>
+            <p>vault 검색, 노트 작성, 연구 요청 등 무엇이든 도와드립니다.</p>
+            <div class="starter-pills">
+              <button class="starter-pill" onclick="sendStarter(this)">vault에서 가장 많이 다루는 주제는?</button>
+              <button class="starter-pill" onclick="sendStarter(this)">최근 연구한 내용을 요약해줘</button>
+              <button class="starter-pill" onclick="sendStarter(this)">OpenAkashic MCP 사용법</button>
+              <button class="starter-pill" onclick="sendStarter(this)">FastAPI 인증 관련 캡슐 찾아줘</button>
+            </div>
+          </div>
+        </div>
+        <div class="chat-input-wrap">
+          <div class="chat-input-box">
+            <textarea id="msgInput" class="chat-textarea"
+              placeholder="사관에게 메시지를 보내세요… (Enter 전송, Shift+Enter 줄바꿈)"
+              rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+            <button class="send-btn" id="sendBtn" onclick="sendMessage()">전송</button>
           </div>
         </div>
       </div>
 
-      <div class="chat-input-wrap">
-        <div class="chat-input-box">
-          <textarea id="msgInput" class="chat-textarea"
-            placeholder="사관에게 메시지를 보내세요… (Enter 전송, Shift+Enter 줄바꿈)"
-            rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
-          <button class="send-btn" id="sendBtn" onclick="sendMessage()">전송</button>
-        </div>
-      </div>
+      <!-- 현황 / 메모리 / 페르소나 / 도구 패널 -->
+      {status_panel}
+      {memory_panel}
+      {persona_panel}
+      {tools_panel}
     </main>
   </div>
 
   <script>
-    let currentSessionId = null;
-    let currentProject = '';
-
-    function apiHeaders() {{
+    /* ── API 헤더 (전역 공유) ── */
+    window._sagwanApiHeaders = function() {{
       const stored = window.localStorage.getItem('closed-akashic-token') || '';
-      const h = {{'Content-Type': 'application/json', 'Accept': 'application/json'}};
+      const h = {{'Content-Type':'application/json','Accept':'application/json'}};
       if (stored) h['Authorization'] = 'Bearer ' + stored;
       return h;
+    }};
+    function apiHeaders() {{ return window._sagwanApiHeaders(); }}
+
+    /* ── 탭 전환 ── */
+    const TAB_PANELS = ['chat','status','memory','persona','tools'];
+    function switchTab(name, btn) {{
+      TAB_PANELS.forEach(n => {{
+        const el = document.getElementById('tab-'+n) || document.getElementById(n+'-panel');
+        if (el) el.style.display = 'none';
+      }});
+      // chat tab 특수 처리
+      const chatEl = document.getElementById('tab-chat');
+      if (chatEl) chatEl.style.display = name==='chat' ? 'flex' : 'none';
+      if (name !== 'chat') {{
+        const p = document.getElementById(name+'-panel');
+        if (p) p.style.display = '';
+      }}
+      document.querySelectorAll('.sagwan-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      // 탭별 데이터 로드
+      if (name==='status') loadStatus();
+      if (name==='memory') loadMemory();
+      if (name==='persona') loadPersona();
+      if (name==='tools') loadTools();
     }}
 
+    /* ── 세션 목록 ── */
+    let currentSessionId = null;
     async function loadSidebar() {{
       try {{
-        const r = await fetch('/api/sagwan/sessions', {{headers: apiHeaders()}});
+        const r = await fetch('/api/sagwan/sessions', {{headers:apiHeaders()}});
         if (!r.ok) return;
         const {{sessions}} = await r.json();
         const body = document.getElementById('sidebarBody');
         body.innerHTML = '';
         const groups = {{}};
-        for (const s of (sessions || [])) {{
-          const p = s.project || '일반';
-          (groups[p] = groups[p] || []).push(s);
-        }}
-        const order = Object.keys(groups).sort((a,b) => a === '일반' ? 1 : b === '일반' ? -1 : a.localeCompare(b));
+        for (const s of (sessions||[])) {{ const p=s.project||'일반'; (groups[p]=groups[p]||[]).push(s); }}
+        const order = Object.keys(groups).sort((a,b) => a==='일반'?1:b==='일반'?-1:a.localeCompare(b));
         for (const proj of order) {{
-          const grp = document.createElement('div');
-          grp.className = 'proj-group';
-          grp.innerHTML = '<div class="proj-label">' + esc(proj) + '</div>';
+          const grp = document.createElement('div'); grp.className='proj-group';
+          grp.innerHTML='<div class="proj-label">'+esc(proj)+'</div>';
           for (const s of groups[proj]) {{
-            const el = document.createElement('div');
-            el.className = 'session-item' + (s.session_id === currentSessionId ? ' active' : '');
-            el.innerHTML = '<div class="session-item-title">' + esc(s.title || s.session_id) + '</div>'
-              + '<button class="del-btn" onclick="delSess(event,\'' + s.session_id + '\',this.closest(\'.session-item\'))">✕</button>';
-            el.addEventListener('click', () => loadSession(s.session_id));
+            const el=document.createElement('div');
+            el.className='session-item'+(s.session_id===currentSessionId?' active':'');
+            el.innerHTML='<div class="session-item-title">'+esc(s.title||s.session_id)+'</div>'
+              +'<button class="del-btn" onclick="delSess(event,\''+s.session_id+'\',this.closest(\'.session-item\'))">✕</button>';
+            el.addEventListener('click',()=>loadSession(s.session_id));
             grp.appendChild(el);
           }}
           body.appendChild(grp);
         }}
-        if (!sessions?.length) body.innerHTML = '<div style="padding:12px 8px;font-size:12px;color:var(--muted)">대화가 없습니다.</div>';
+        if (!sessions?.length) body.innerHTML='<div style="padding:10px 6px;font-size:11px;color:var(--muted)">대화가 없습니다.</div>';
       }} catch(e) {{}}
     }}
 
     async function loadSession(sid) {{
-      currentSessionId = sid;
-      const r = await fetch('/api/sagwan/sessions/' + sid, {{headers: apiHeaders()}});
-      if (!r.ok) return;
-      const d = await r.json();
-      currentProject = d.project || '';
-      document.getElementById('chatTitleInput').value = d.title || ('Chat ' + sid);
-      renderMessages(d.messages || []);
+      currentSessionId=sid;
+      // 채팅 탭으로 전환
+      document.querySelectorAll('.sagwan-tab')[0].click();
+      const r=await fetch('/api/sagwan/sessions/'+sid,{{headers:apiHeaders()}});
+      if(!r.ok) return;
+      const d=await r.json();
+      document.getElementById('chatTitleInput').value=d.title||('Chat '+sid);
+      renderMessages(d.messages||[]);
       loadSidebar();
     }}
 
     function renderMessages(msgs) {{
-      const area = document.getElementById('messages');
-      area.innerHTML = '';
-      for (const m of msgs) addBubble(m.role, m.content, false);
-      area.scrollTop = area.scrollHeight;
+      const area=document.getElementById('messages');
+      area.innerHTML='';
+      for (const m of msgs) addBubble(m.role,m.content,false);
+      area.scrollTop=area.scrollHeight;
     }}
 
-    function addBubble(role, content, scroll=true) {{
-      const area = document.getElementById('messages');
+    function addBubble(role,content,scroll=true) {{
+      const area=document.getElementById('messages');
       document.getElementById('emptyState')?.remove();
-      const row = document.createElement('div');
-      row.className = 'msg-row ' + (role === 'user' ? 'user' : 'sagwan');
-      const initial = role === 'user' ? '{nick_initial}' : '사';
-      row.innerHTML = '<div class="msg-avatar">' + initial + '</div>'
-        + '<div class="msg-body"><div class="msg-name">'
-        + (role === 'user' ? '{nickname}' : '사관 (Sagwan)') + '</div>'
-        + '<div class="msg-bubble">' + esc(content) + '</div></div>';
+      const row=document.createElement('div');
+      row.className='msg-row '+(role==='user'?'user':'sagwan');
+      const init=role==='user'?'{nick_initial}':'사';
+      row.innerHTML='<div class="msg-avatar">'+init+'</div>'
+        +'<div class="msg-body"><div class="msg-name">'+(role==='user'?'{nickname}':'사관 (Sagwan)')+'</div>'
+        +'<div class="msg-bubble">'+esc(content)+'</div></div>';
       area.appendChild(row);
-      if (scroll) area.scrollTop = area.scrollHeight;
+      if(scroll) area.scrollTop=area.scrollHeight;
     }}
 
     function showThinking() {{
-      const area = document.getElementById('messages');
+      const area=document.getElementById('messages');
       document.getElementById('emptyState')?.remove();
-      const row = document.createElement('div');
-      row.id = 'thinking-row';
-      row.className = 'msg-row sagwan';
-      row.innerHTML = '<div class="msg-avatar">사</div><div class="msg-body"><div class="thinking-dots"><span></span><span></span><span></span></div></div>';
-      area.appendChild(row);
-      area.scrollTop = area.scrollHeight;
+      const row=document.createElement('div');
+      row.id='thinking-row';row.className='msg-row sagwan';
+      row.innerHTML='<div class="msg-avatar">사</div><div class="msg-body"><div class="thinking-dots"><span></span><span></span><span></span></div></div>';
+      area.appendChild(row);area.scrollTop=area.scrollHeight;
     }}
 
     async function sendMessage() {{
-      const input = document.getElementById('msgInput');
-      const btn = document.getElementById('sendBtn');
-      const msg = (input.value || '').trim();
-      if (!msg) return;
-      input.value = ''; input.style.height = ''; btn.disabled = true;
-      addBubble('user', msg);
-      showThinking();
+      const input=document.getElementById('msgInput');
+      const btn=document.getElementById('sendBtn');
+      const msg=(input.value||'').trim();
+      if(!msg) return;
+      input.value='';input.style.height='';btn.disabled=true;
+      addBubble('user',msg);showThinking();
       try {{
-        const proj = (document.getElementById('projInput')?.value || '').trim();
-        const body = {{message: msg}};
-        if (currentSessionId) body.session_id = currentSessionId;
-        if (proj) body.project = proj;
-        const r = await fetch('/api/sagwan/chat', {{method:'POST', headers:apiHeaders(), body:JSON.stringify(body)}});
+        const proj=(document.getElementById('projInput')?.value||'').trim();
+        const body={{message:msg}};
+        if(currentSessionId) body.session_id=currentSessionId;
+        if(proj) body.project=proj;
+        const r=await fetch('/api/sagwan/chat',{{method:'POST',headers:apiHeaders(),body:JSON.stringify(body)}});
         document.getElementById('thinking-row')?.remove();
-        if (!r.ok) {{ addBubble('sagwan', '(오류: ' + r.status + ')'); }}
-        else {{
-          const d = await r.json();
-          currentSessionId = d.session_id;
-          addBubble('sagwan', d.reply || '(응답 없음)');
-          loadSidebar();
-        }}
+        if(!r.ok) {{ addBubble('sagwan','(오류: '+r.status+')'); }}
+        else {{ const d=await r.json(); currentSessionId=d.session_id; addBubble('sagwan',d.reply||'(응답 없음)'); loadSidebar(); }}
       }} catch(e) {{
         document.getElementById('thinking-row')?.remove();
-        addBubble('sagwan', '(네트워크 오류)');
+        addBubble('sagwan','(네트워크 오류)');
       }}
-      btn.disabled = false;
-      input.focus();
+      btn.disabled=false;input.focus();
     }}
 
-    function sendStarter(el) {{ document.getElementById('msgInput').value = el.textContent; sendMessage(); }}
-
+    function sendStarter(el) {{ document.getElementById('msgInput').value=el.textContent; sendMessage(); }}
     function newChat() {{
-      currentSessionId = null; currentProject = '';
-      document.getElementById('chatTitleInput').value = '새 대화';
-      const area = document.getElementById('messages');
-      area.innerHTML = '<div class="empty-chat" id="emptyState">'
-        + '<div class="oa-mark">OA</div><h2>새 대화를 시작합니다</h2>'
-        + '<p>사관에게 무엇이든 물어보세요.</p></div>';
+      currentSessionId=null;
+      document.getElementById('chatTitleInput').value='새 대화';
+      const area=document.getElementById('messages');
+      area.innerHTML='<div class="empty-chat" id="emptyState"><div class="oa-mark">OA</div><h2>새 대화를 시작합니다</h2><p>사관에게 무엇이든 물어보세요.</p></div>';
       document.getElementById('projInputRow').classList.add('visible');
-      loadSidebar();
-      document.getElementById('msgInput').focus();
+      loadSidebar();document.getElementById('msgInput').focus();
     }}
-
-    async function delSess(e, sid, el) {{
+    async function delSess(e,sid,el) {{
       e.stopPropagation();
-      if (!confirm('삭제할까요?')) return;
-      await fetch('/api/sagwan/sessions/' + sid, {{method:'DELETE', headers:apiHeaders()}});
-      if (currentSessionId === sid) newChat();
-      else loadSidebar();
+      if(!confirm('삭제할까요?')) return;
+      await fetch('/api/sagwan/sessions/'+sid,{{method:'DELETE',headers:apiHeaders()}});
+      if(currentSessionId===sid) newChat(); else loadSidebar();
     }}
-
-    function updateTitle(val) {{ /* TODO: PATCH 연동 */ }}
-    function handleKey(e) {{ if (e.key==='Enter'&&!e.shiftKey) {{ e.preventDefault(); sendMessage(); }} }}
-    function autoResize(el) {{ el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,150)+'px'; }}
+    function updateTitle(val) {{}}
+    function handleKey(e) {{ if(e.key==='Enter'&&!e.shiftKey){{e.preventDefault();sendMessage();}} }}
+    function autoResize(el) {{ el.style.height='auto';el.style.height=Math.min(el.scrollHeight,140)+'px'; }}
     function esc(s) {{ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }}
 
+    // init
     loadSidebar();
     document.getElementById('msgInput').focus();
   </script>
@@ -10686,3 +10628,523 @@ def sagwan_chat_html(*, auth: Any = None, route_prefix: str = "") -> str:
 </html>"""
 
 
+
+
+
+def _sagwan_memory_panel_html() -> str:
+    """사관 메모리 에디터 패널 — 3탭 (Distilled / Working / Stats).
+
+    반환값: <div id="memory-panel" class="sagwan-panel" style="display:none">...</div>
+    CSS는 var(--*) 변수만 사용. 하드코딩 색상 없음.
+    """
+    return """<div id="memory-panel" class="sagwan-panel" style="display:none">
+  <style>
+    .mem-tabs {{
+      display: flex;
+      gap: 2px;
+      padding: 10px 14px 0;
+      border-bottom: 1px solid var(--line);
+      flex-shrink: 0;
+    }}
+    .mem-tab {{
+      padding: 7px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      border-radius: 6px 6px 0 0;
+      border-bottom: 2px solid transparent;
+      transition: color .15s, border-color .15s;
+    }}
+    .mem-tab.active {{
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }}
+    .mem-tab:hover:not(.active) {{ color: var(--ink); }}
+    .mem-pane {{
+      display: none;
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px;
+      flex-direction: column;
+      gap: 10px;
+    }}
+    .mem-pane.active {{ display: flex; }}
+    .mem-meta {{
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }}
+    .mem-textarea {{
+      flex: 1;
+      min-height: 320px;
+      resize: vertical;
+      font-family: "Fira Mono", "Consolas", monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--ink);
+      box-sizing: border-box;
+      width: 100%;
+    }}
+    .mem-textarea:focus {{ outline: none; border-color: var(--accent); }}
+    .mem-save-btn {{
+      align-self: flex-end;
+      padding: 7px 20px;
+      background: var(--accent);
+      color: var(--surface-strong, #fff);
+      border: none;
+      border-radius: 7px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: inherit;
+      transition: filter .15s;
+    }}
+    .mem-save-btn:hover {{ filter: brightness(1.1); }}
+    .mem-save-btn:disabled {{ opacity: .5; cursor: not-allowed; }}
+    .mem-toast {{
+      font-size: 12px;
+      padding: 5px 10px;
+      border-radius: 6px;
+      display: none;
+      align-self: flex-end;
+    }}
+    .mem-toast.ok {{ background: var(--surface); color: var(--accent); border: 1px solid var(--line); }}
+    .mem-toast.err {{ background: var(--surface); color: var(--danger, #c0392b); border: 1px solid var(--line); }}
+    .mem-working-list {{
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }}
+    .mem-working-item {{
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--surface);
+      font-size: 12px;
+      color: var(--ink);
+      word-break: break-word;
+    }}
+    .mem-stats-grid {{
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }}
+    .mem-stat-card {{
+      padding: 14px 16px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--surface);
+    }}
+    .mem-stat-label {{
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }}
+    .mem-stat-value {{
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--ink);
+    }}
+  </style>
+
+  <!-- 탭 헤더 -->
+  <div class="mem-tabs">
+    <button class="mem-tab active" onclick="memSwitchTab('distilled', this)">Distilled</button>
+    <button class="mem-tab" onclick="memSwitchTab('working', this)">Working</button>
+    <button class="mem-tab" onclick="memSwitchTab('stats', this)">Stats</button>
+  </div>
+
+  <!-- Pane 1: Distilled -->
+  <div id="mem-pane-distilled" class="mem-pane active">
+    <div class="mem-meta" id="mem-distilled-meta">마지막 증류: —</div>
+    <textarea class="mem-textarea" id="mem-distilled-textarea" placeholder="Distilled Memory 내용이 여기에 표시됩니다..."></textarea>
+    <div style="display:flex;align-items:center;gap:8px;justify-content:flex-end">
+      <span class="mem-toast" id="mem-distilled-toast"></span>
+      <button class="mem-save-btn" id="mem-save-btn" onclick="memSaveDistilled()">저장</button>
+    </div>
+  </div>
+
+  <!-- Pane 2: Working -->
+  <div id="mem-pane-working" class="mem-pane">
+    <div class="mem-meta">최근 에피소드 (최대 20개, 읽기 전용)</div>
+    <ol class="mem-working-list" id="mem-working-list">
+      <li class="mem-working-item" style="color:var(--muted)">로딩 중...</li>
+    </ol>
+  </div>
+
+  <!-- Pane 3: Stats -->
+  <div id="mem-pane-stats" class="mem-pane">
+    <div class="mem-stats-grid">
+      <div class="mem-stat-card">
+        <div class="mem-stat-label">총 에피소드 수</div>
+        <div class="mem-stat-value" id="mem-stat-episodes">—</div>
+      </div>
+      <div class="mem-stat-card">
+        <div class="mem-stat-label">No-change Streak</div>
+        <div class="mem-stat-value" id="mem-stat-streak">—</div>
+      </div>
+      <div class="mem-stat-card" style="grid-column:1/-1">
+        <div class="mem-stat-label">마지막 증류</div>
+        <div class="mem-stat-value" id="mem-stat-distilled" style="font-size:15px;font-weight:500">—</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function() {{
+      function memApiHeaders() {{
+        const stored = window.localStorage.getItem('closed-akashic-token') || '';
+        const h = {{'Content-Type': 'application/json', 'Accept': 'application/json'}};
+        if (stored) h['Authorization'] = 'Bearer ' + stored;
+        return h;
+      }}
+
+      window.memSwitchTab = function(tab, btn) {{
+        document.querySelectorAll('.mem-tab').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.mem-pane').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('mem-pane-' + tab).classList.add('active');
+      }};
+
+      async function memLoadMemory() {{
+        try {{
+          const r = await fetch('/api/sagwan/memory', {{headers: memApiHeaders()}});
+          if (!r.ok) return;
+          const d = await r.json();
+          // Distilled tab
+          document.getElementById('mem-distilled-textarea').value = (d.distilled && d.distilled.body) || '';
+          const lu = (d.distilled && d.distilled.last_updated) || '';
+          document.getElementById('mem-distilled-meta').textContent = '마지막 증류: ' + (lu || '—');
+          // Working tab
+          const list = document.getElementById('mem-working-list');
+          const items = d.working_tail || [];
+          if (items.length === 0) {{
+            list.innerHTML = '<li class="mem-working-item" style="color:var(--muted)">에피소드 없음</li>';
+          }} else {{
+            list.innerHTML = items.map(function(s) {{
+              return '<li class="mem-working-item">' + memEsc(s) + '</li>';
+            }}).join('');
+          }}
+          // Stats tab
+          document.getElementById('mem-stat-episodes').textContent = (d.episode_count != null ? d.episode_count : '—');
+          document.getElementById('mem-stat-streak').textContent = (d.no_change_streak != null ? d.no_change_streak : '—');
+          document.getElementById('mem-stat-distilled').textContent = lu || '—';
+        }} catch(e) {{}}
+      }}
+
+      window.memSaveDistilled = async function() {{
+        const btn = document.getElementById('mem-save-btn');
+        const toast = document.getElementById('mem-distilled-toast');
+        const body = document.getElementById('mem-distilled-textarea').value;
+        btn.disabled = true;
+        toast.style.display = 'none';
+        try {{
+          const r = await fetch('/api/sagwan/memory/distilled', {{
+            method: 'PUT',
+            headers: memApiHeaders(),
+            body: JSON.stringify({{body: body}}),
+          }});
+          if (r.ok) {{
+            toast.textContent = '저장 완료';
+            toast.className = 'mem-toast ok';
+          }} else {{
+            const err = await r.json().catch(() => ({{}}));
+            toast.textContent = '오류: ' + (err.detail || r.status);
+            toast.className = 'mem-toast err';
+          }}
+          toast.style.display = 'inline-block';
+          setTimeout(() => {{ toast.style.display = 'none'; }}, 3000);
+        }} catch(e) {{
+          toast.textContent = '네트워크 오류';
+          toast.className = 'mem-toast err';
+          toast.style.display = 'inline-block';
+          setTimeout(() => {{ toast.style.display = 'none'; }}, 3000);
+        }}
+        btn.disabled = false;
+      }};
+
+      function memEsc(s) {{
+        return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      }}
+
+      // 패널이 표시될 때 자동 로드
+      document.addEventListener('DOMContentLoaded', function() {{
+        var panel = document.getElementById('memory-panel');
+        if (panel && panel.style.display !== 'none') {{
+          memLoadMemory();
+        }}
+      }});
+
+      // 외부에서 패널을 열 때 호출할 수 있도록 전역 노출
+      window.memLoadMemory = memLoadMemory;
+    }})();
+  </script>
+</div>"""
+
+
+def _sagwan_persona_panel_html() -> str:
+    """페르소나 에디터 패널 HTML."""
+    return """
+<div id="persona-panel" class="sagwan-panel" style="display:none">
+  <div class="panel-inner">
+    <div class="panel-warn">⚠️ 직접 편집은 사관 동작에 즉시 영향을 미칩니다. 신중하게 수정하세요.</div>
+    <div class="panel-tabs">
+      <button class="ptab active" onclick="showPTab('profile',this)">프로필</button>
+      <button class="ptab" onclick="showPTab('policy',this)">정책</button>
+    </div>
+    <div id="persona-profile" class="ptab-content">
+      <div class="panel-meta" id="profile-meta">불러오는 중...</div>
+      <textarea id="profile-body" class="mono-editor" rows="24" placeholder="Librarian Profile.md"></textarea>
+      <button class="panel-save-btn" onclick="savePersona('profile')">저장</button>
+    </div>
+    <div id="persona-policy" class="ptab-content" style="display:none">
+      <div class="panel-meta" id="policy-meta">불러오는 중...</div>
+      <textarea id="policy-body" class="mono-editor" rows="24" placeholder="Librarian Policy.md"></textarea>
+      <button class="panel-save-btn" onclick="savePersona('policy')">저장</button>
+    </div>
+  </div>
+</div>
+<script>
+function showPTab(name, btn) {
+  ['profile','policy'].forEach(n => {
+    document.getElementById('persona-'+n).style.display = n===name ? '' : 'none';
+  });
+  document.querySelectorAll('.ptab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+async function loadPersona() {
+  const h = window._sagwanApiHeaders ? window._sagwanApiHeaders() : {};
+  const r = await fetch('/api/sagwan/persona', {headers: h});
+  if (!r.ok) return;
+  const d = await r.json();
+  document.getElementById('profile-body').value = d.profile?.body || '';
+  document.getElementById('policy-body').value = d.policy?.body || '';
+  document.getElementById('profile-meta').textContent = '수정: ' + (d.profile?.updated_at || '-');
+  document.getElementById('policy-meta').textContent = '수정: ' + (d.policy?.updated_at || '-');
+}
+async function savePersona(field) {
+  const body = document.getElementById(field+'-body').value;
+  const h = Object.assign({'Content-Type':'application/json'}, window._sagwanApiHeaders ? window._sagwanApiHeaders() : {});
+  const r = await fetch('/api/sagwan/persona/'+field, {method:'PUT', headers:h, body:JSON.stringify({body})});
+  if (r.ok) { alert(field+' 저장 완료'); }
+  else { const e=await r.json(); alert('오류: '+(e.detail||r.status)); }
+}
+</script>
+"""
+
+
+def _sagwan_memory_panel_html() -> str:
+    """메모리 에디터 패널 HTML."""
+    return """
+<div id="memory-panel" class="sagwan-panel" style="display:none">
+  <div class="panel-inner">
+    <div class="panel-tabs">
+      <button class="ptab active" onclick="showMTab('distilled',this)">증류 기억</button>
+      <button class="ptab" onclick="showMTab('working',this)">에피소드</button>
+      <button class="ptab" onclick="showMTab('stats',this)">통계</button>
+    </div>
+    <div id="mem-distilled" class="ptab-content">
+      <div class="panel-meta" id="distilled-meta">불러오는 중...</div>
+      <textarea id="distilled-body" class="mono-editor" rows="24" placeholder="Distilled Memory"></textarea>
+      <button class="panel-save-btn" onclick="saveDistilled()">저장</button>
+    </div>
+    <div id="mem-working" class="ptab-content" style="display:none">
+      <div class="panel-meta">최근 에피소드 (읽기 전용)</div>
+      <div id="episode-list" class="episode-list"></div>
+    </div>
+    <div id="mem-stats" class="ptab-content" style="display:none">
+      <div class="stats-grid" id="mem-stats-grid"></div>
+    </div>
+  </div>
+</div>
+<script>
+function showMTab(name, btn) {
+  ['distilled','working','stats'].forEach(n => {
+    document.getElementById('mem-'+n).style.display = n===name ? '' : 'none';
+  });
+  document.querySelectorAll('#memory-panel .ptab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+async function loadMemory() {
+  const h = window._sagwanApiHeaders ? window._sagwanApiHeaders() : {};
+  const r = await fetch('/api/sagwan/memory', {headers: h});
+  if (!r.ok) return;
+  const d = await r.json();
+  // distilled
+  document.getElementById('distilled-body').value = d.distilled?.body || '';
+  document.getElementById('distilled-meta').textContent =
+    '마지막 증류: ' + (d.distilled?.last_distilled_at || '-') + ' | 증류 횟수: ' + (d.distilled?.distill_count || 0);
+  // working tail
+  const list = document.getElementById('episode-list');
+  list.innerHTML = '';
+  for (const ep of (d.working_tail || []).reverse()) {
+    const row = document.createElement('div');
+    row.className = 'episode-row';
+    row.innerHTML = '<span class="ep-ts">' + (ep.ts||'').slice(0,16) + '</span>'
+      + '<span class="ep-sub">' + (ep.subject||'').replace(/</g,'&lt;') + '</span>';
+    list.appendChild(row);
+  }
+  // stats
+  const sg = document.getElementById('mem-stats-grid');
+  sg.innerHTML = '<div class="stat-card"><div class="sc-val">' + (d.episode_count||0) + '</div><div class="sc-lbl">전체 에피소드</div></div>'
+    + '<div class="stat-card"><div class="sc-val">' + (d.distilled?.distill_count||0) + '</div><div class="sc-lbl">증류 횟수</div></div>';
+}
+async function saveDistilled() {
+  const body = document.getElementById('distilled-body').value;
+  const h = Object.assign({'Content-Type':'application/json'}, window._sagwanApiHeaders ? window._sagwanApiHeaders() : {});
+  const r = await fetch('/api/sagwan/memory/distilled', {method:'PUT', headers:h, body:JSON.stringify({body})});
+  if (r.ok) { alert('저장 완료'); }
+  else { const e=await r.json(); alert('오류: '+(e.detail||r.status)); }
+}
+</script>
+"""
+
+
+def _sagwan_status_panel_html() -> str:
+    """현황 대시보드 패널 HTML."""
+    return """
+<div id="status-panel" class="sagwan-panel" style="display:none">
+  <div class="panel-inner">
+    <div class="stat-grid-4" id="status-cards">
+      <div class="stat-card"><div class="sc-val" id="sc-pending">-</div><div class="sc-lbl">큐 대기</div></div>
+      <div class="stat-card"><div class="sc-val" id="sc-total">-</div><div class="sc-lbl">큐 전체</div></div>
+      <div class="stat-card"><div class="sc-val" id="sc-si">-</div><div class="sc-lbl">Self-improve</div></div>
+      <div class="stat-card"><div class="sc-val" id="sc-concerns">-</div><div class="sc-lbl">Concerns</div></div>
+    </div>
+    <div class="panel-section">
+      <div class="panel-section-title">활성 목표</div>
+      <div id="goal-list"></div>
+    </div>
+    <div class="panel-section">
+      <div class="panel-section-title">최근 활동</div>
+      <div id="activity-list" class="episode-list"></div>
+    </div>
+    <div style="margin-top:10px">
+      <span id="status-updated" style="font-size:11px;color:var(--muted)"></span>
+      <button onclick="loadStatus()" style="margin-left:8px;font-size:11px;padding:2px 8px;background:var(--panel,rgba(0,0,0,.04));border:1px solid var(--line);border-radius:4px;cursor:pointer;color:var(--ink)">새로고침</button>
+    </div>
+  </div>
+</div>
+<script>
+async function loadStatus() {
+  const h = window._sagwanApiHeaders ? window._sagwanApiHeaders() : {};
+  const r = await fetch('/api/sagwan/status', {headers: h});
+  if (!r.ok) return;
+  const d = await r.json();
+  document.getElementById('sc-pending').textContent = d.queue?.pending ?? '-';
+  document.getElementById('sc-total').textContent = d.queue?.total ?? '-';
+  const si = d.self_improve || {};
+  document.getElementById('sc-si').textContent = si.last_outcome ? si.last_outcome + ' ×' + (si.consecutive_no_change||0) : '-';
+  document.getElementById('sc-concerns').textContent = d.agenda?.concerns_count ?? '-';
+  // goals
+  const gl = document.getElementById('goal-list');
+  gl.innerHTML = '';
+  for (const g of (d.agenda?.active_goals || [])) {
+    const div = document.createElement('div');
+    div.className = 'episode-row';
+    div.innerHTML = '<span class="ep-sub">' + g.statement.replace(/</g,'&lt;') + '</span>';
+    gl.appendChild(div);
+  }
+  if (!(d.agenda?.active_goals?.length)) gl.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:8px">활성 목표 없음</div>';
+  // activity
+  const al = document.getElementById('activity-list');
+  al.innerHTML = '';
+  for (const a of (d.recent_activity || [])) {
+    const div = document.createElement('div');
+    div.className = 'episode-row';
+    div.innerHTML = '<span class="ep-ts">' + (a.ts||'').slice(0,16) + '</span>'
+      + '<span class="ep-sub">' + (a.subject||'').replace(/</g,'&lt;') + '</span>';
+    al.appendChild(div);
+  }
+  document.getElementById('status-updated').textContent = '갱신: ' + new Date().toLocaleTimeString();
+}
+// 30초 자동 갱신
+setInterval(() => { if (document.getElementById('status-panel').style.display !== 'none') loadStatus(); }, 30000);
+</script>
+"""
+
+
+def _sagwan_tools_panel_html() -> str:
+    """도구/파일 업로드 패널 HTML."""
+    return """
+<div id="tools-panel" class="sagwan-panel" style="display:none">
+  <div class="panel-inner">
+    <div class="panel-tabs">
+      <button class="ptab active" onclick="showTTab('toollist',this)">도구 목록</button>
+      <button class="ptab" onclick="showTTab('upload',this)">파일 업로드</button>
+    </div>
+    <div id="tab-toollist" class="ptab-content">
+      <div id="tools-grid" class="tools-grid">불러오는 중...</div>
+    </div>
+    <div id="tab-upload" class="ptab-content" style="display:none">
+      <div class="upload-zone" id="uploadZone"
+        ondragover="event.preventDefault()" ondrop="handleDrop(event)">
+        <div style="font-size:28px;opacity:.5">📎</div>
+        <div style="font-size:14px;color:var(--muted)">파일을 드래그하거나 클릭해서 선택</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px">jpg, png, gif, webp, pdf, md, txt · 최대 10MB</div>
+        <input type="file" id="fileInput" style="display:none"
+          accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.md,.txt"
+          onchange="handleFileSelect(this)"/>
+      </div>
+      <div id="upload-result"></div>
+    </div>
+  </div>
+</div>
+<script>
+function showTTab(name, btn) {
+  ['toollist','upload'].forEach(n => {
+    document.getElementById('tab-'+n).style.display = n===name ? '' : 'none';
+  });
+  document.querySelectorAll('#tools-panel .ptab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+async function loadTools() {
+  const h = window._sagwanApiHeaders ? window._sagwanApiHeaders() : {};
+  const r = await fetch('/api/sagwan/tools', {headers: h});
+  if (!r.ok) return;
+  const {tools} = await r.json();
+  const catColor = {read:'var(--accent-2,#0f766e)', write:'var(--accent)', research:'#7c3aed', utility:'var(--muted)'};
+  const grid = document.getElementById('tools-grid');
+  grid.innerHTML = '';
+  for (const t of tools) {
+    const card = document.createElement('div');
+    card.className = 'tool-card';
+    card.innerHTML = '<div class="tool-name">' + t.name + '</div>'
+      + '<div class="tool-desc">' + (t.description||'').replace(/</g,'&lt;').slice(0,100) + '</div>'
+      + '<div class="tool-badge" style="color:' + (catColor[t.category]||'var(--muted)') + '">' + t.category + '</div>';
+    grid.appendChild(card);
+  }
+}
+document.getElementById('uploadZone').onclick = () => document.getElementById('fileInput').click();
+function handleDrop(e) { e.preventDefault(); const f = e.dataTransfer.files[0]; if(f) uploadFile(f); }
+function handleFileSelect(input) { if(input.files[0]) uploadFile(input.files[0]); }
+async function uploadFile(file) {
+  const res = document.getElementById('upload-result');
+  res.textContent = '업로드 중...';
+  const fd = new FormData(); fd.append('file', file);
+  const h = window._sagwanApiHeaders ? window._sagwanApiHeaders() : {};
+  delete h['Content-Type'];
+  const r = await fetch('/api/sagwan/upload', {method:'POST', headers:h, body:fd});
+  if (r.ok) {
+    const d = await r.json();
+    res.innerHTML = '✅ 저장 완료: <code>' + d.path + '</code>';
+  } else {
+    const e = await r.json();
+    res.textContent = '❌ ' + (e.detail||r.status);
+  }
+}
+</script>
+"""

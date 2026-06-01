@@ -6731,6 +6731,7 @@ def _maybe_update_librarian_profile(state_fm: dict[str, Any]) -> dict[str, Any]:
 
 _SELF_IMPROVE_STATE_PATH = "personal_vault/projects/ops/librarian/activity/self-improve-state.md"
 _SELF_IMPROVE_DEFAULT_INTERVAL_HOURS = 12
+_LIBRARIAN_PROFILE_PATH = "personal_vault/projects/ops/librarian/profile/Librarian Profile.md"
 _LIBRARIAN_POLICY_PATH = "personal_vault/projects/ops/librarian/policy/Librarian Policy.md"
 
 
@@ -7629,3 +7630,264 @@ def list_chat_sessions(*, limit: int = 20, participant: str | None = None) -> li
             continue
     sessions.sort(key=lambda s: s.get("updated_at") or "", reverse=True)
     return sessions[:limit]
+
+
+def get_sagwan_persona() -> dict:
+    """Return profile + policy document bodies and updated_at timestamps."""
+    profile_doc = load_document(_LIBRARIAN_PROFILE_PATH)
+    policy_doc = load_document(_LIBRARIAN_POLICY_PATH)
+    profile_fm = dict(profile_doc.frontmatter or {})
+    policy_fm = dict(policy_doc.frontmatter or {})
+    return {
+        "profile": {
+            "path": profile_doc.path,
+            "body": profile_doc.body or "",
+            "updated_at": str(profile_fm.get("updated_at") or ""),
+        },
+        "policy": {
+            "path": policy_doc.path,
+            "body": policy_doc.body or "",
+            "updated_at": str(policy_fm.get("updated_at") or ""),
+        },
+    }
+
+
+def update_sagwan_persona(*, field: str, body: str) -> dict:
+    """Update profile or policy body."""
+    paths = {
+        "profile": _LIBRARIAN_PROFILE_PATH,
+        "policy": _LIBRARIAN_POLICY_PATH,
+    }
+    if field not in paths:
+        raise ValueError("field must be 'profile' or 'policy'")
+    path = paths[field]
+    doc = load_document(path)
+    existing_body = doc.body or ""
+    next_body = str(body or "")
+    if len(existing_body) > 0 and len(next_body) < len(existing_body) * 0.2:
+        raise ValueError(
+            f"Refusing to update {field}: new body is less than 20% of the existing body length"
+        )
+    write_document(
+        path=path,
+        body=next_body,
+        metadata=dict(doc.frontmatter or {}),
+        allow_owner_change=True,
+        metadata_replace=True,
+    )
+    return {"field": field, "updated": True, "path": path}
+
+
+# ── Memory Editor API helpers ────────────────────────────────────────────────
+
+def get_sagwan_memory_snapshot() -> dict[str, Any]:
+    """Distilled + Working Memory tail + episode count를 반환."""
+    from app.agent_memory import (
+        SAGWAN_MEMORY_PATH,
+        SAGWAN_DISTILLED_PATH,
+        _split_sections,
+    )
+
+    # Distilled Memory
+    distilled_body = ""
+    distilled_updated = ""
+    try:
+        dist_doc = load_document(SAGWAN_DISTILLED_PATH)
+        distilled_body = dist_doc.body or ""
+        distilled_updated = str((dist_doc.frontmatter or {}).get("updated_at") or "")
+    except Exception:
+        pass
+
+    # Working Memory — 마지막 20개 섹션 헤더 추출
+    working_tail: list[str] = []
+    episode_count = 0
+    try:
+        mem_doc = load_document(SAGWAN_MEMORY_PATH)
+        sections = _split_sections(mem_doc.body or "")
+        episode_count = len(sections)
+        tail_sections = sections[-20:]
+        for sec in tail_sections:
+            first_line = sec.splitlines()[0] if sec else ""
+            snippet = sec[:200].replace("\n", " ").strip()
+            working_tail.append(snippet or first_line)
+    except Exception:
+        pass
+
+    # no_change_streak: sagwan_settings에서 가져오기 (없으면 0)
+    no_change_streak = 0
+    try:
+        settings = load_sagwan_settings()
+        no_change_streak = int(settings.get("no_change_streak") or 0)
+    except Exception:
+        pass
+
+    return {
+        "distilled": {
+            "body": distilled_body,
+            "last_updated": distilled_updated,
+        },
+        "working_tail": working_tail,
+        "episode_count": episode_count,
+        "no_change_streak": no_change_streak,
+    }
+
+
+def update_sagwan_distilled_memory(new_body: str) -> dict[str, Any]:
+    """Distilled Memory 본문 업데이트. 안전 게이트: 기존 대비 30% 미만이면 거부."""
+    from app.agent_memory import SAGWAN_DISTILLED_PATH
+
+    new_body = str(new_body or "").strip()
+
+    # 기존 문서 로드
+    current_body = ""
+    current_fm: dict[str, Any] = {}
+    try:
+        dist_doc = load_document(SAGWAN_DISTILLED_PATH)
+        current_body = dist_doc.body or ""
+        current_fm = dict(dist_doc.frontmatter or {})
+    except Exception:
+        pass
+
+    # 안전 게이트: 기존 내용의 30% 미만이면 거부
+    if current_body and len(new_body) < 0.30 * len(current_body):
+        return {
+            "ok": False,
+            "reason": f"too short: new body ({len(new_body)} chars) is less than 30% of existing ({len(current_body)} chars)",
+        }
+
+    ts = _now_iso()
+    current_fm["updated_at"] = ts
+
+    try:
+        write_document(
+            path=SAGWAN_DISTILLED_PATH,
+            body=new_body + "\n",
+            metadata=current_fm,
+            allow_owner_change=True,
+            metadata_replace=True,
+        )
+    except Exception as exc:
+        return {"ok": False, "reason": str(exc)}
+
+    return {"ok": True, "updated_at": ts}
+
+
+# ─── Memory + Status helpers ──────────────────────────────────────────────────
+
+def get_sagwan_memory_snapshot() -> dict[str, Any]:
+    """Distilled + Working Memory tail 반환."""
+    from app.agent_memory import (
+        SAGWAN_DISTILLED_PATH, SAGWAN_MEMORY_PATH,
+        _split_sections, _segment_ts,
+    )
+    try:
+        distilled_doc = load_document(SAGWAN_DISTILLED_PATH)
+        distilled_fm = dict(distilled_doc.frontmatter or {})
+        distilled_body = distilled_doc.body or ""
+        distill_count = int(distilled_fm.get("distill_count") or 0)
+        last_distilled = str(distilled_fm.get("last_distilled_at") or "")
+    except Exception:
+        distilled_body = ""
+        distill_count = 0
+        last_distilled = ""
+
+    try:
+        working_doc = load_document(SAGWAN_MEMORY_PATH)
+        sections = _split_sections(working_doc.body or "")
+        tail = []
+        for sec in sections[-20:]:
+            ts = _segment_ts(sec)
+            lines = [l.strip() for l in sec.strip().splitlines() if l.strip()]
+            subject = lines[1] if len(lines) > 1 else ""
+            tail.append({"ts": ts, "subject": subject[:100]})
+        episode_count = len(sections)
+    except Exception:
+        tail = []
+        episode_count = 0
+
+    return {
+        "distilled": {"body": distilled_body, "last_distilled_at": last_distilled, "distill_count": distill_count},
+        "working_tail": tail,
+        "episode_count": episode_count,
+    }
+
+
+def update_sagwan_distilled_memory(new_body: str) -> dict[str, Any]:
+    """Distilled Memory 본문 업데이트. 과도한 삭제 방지 게이트 포함."""
+    from app.agent_memory import SAGWAN_DISTILLED_PATH
+    doc = load_document(SAGWAN_DISTILLED_PATH)
+    existing = doc.body or ""
+    new_body = str(new_body or "")
+    if len(existing) > 0 and len(new_body) < len(existing) * 0.3:
+        raise ValueError("Refusing: new body is less than 30% of existing — too much deletion")
+    fm = dict(doc.frontmatter or {})
+    fm["updated_at"] = _now_iso()
+    write_document(path=SAGWAN_DISTILLED_PATH, body=new_body, metadata=fm, allow_owner_change=True, metadata_replace=True)
+    return {"updated": True, "path": SAGWAN_DISTILLED_PATH}
+
+
+def get_sagwan_status_snapshot() -> dict[str, Any]:
+    """현재 사관 상태 스냅샷 반환."""
+    import json as _json
+    from pathlib import Path as _Path
+    settings_path = _Path(get_settings().user_store_path).with_name("sagwan-agenda.json")
+    try:
+        agenda_data = _json.loads(settings_path.read_text()) if settings_path.exists() else {}
+    except Exception:
+        agenda_data = {}
+
+    # Research log frontmatter
+    try:
+        rlog = load_document(_RESEARCH_LOG_PATH)
+        rfm = dict(rlog.frontmatter or {})
+        last_run_at = str(rfm.get("last_run_at") or "")
+        topics_status = str(rfm.get("topics_status") or "")
+    except Exception:
+        last_run_at = ""
+        topics_status = ""
+
+    # Self-improve state
+    _SELF_IMPROVE_STATE_PATH = "personal_vault/projects/ops/librarian/activity/self-improve-state.md"
+    try:
+        si_doc = load_document(_SELF_IMPROVE_STATE_PATH)
+        si_fm = dict(si_doc.frontmatter or {})
+        si = {
+            "last_run_at": str(si_fm.get("last_run_at") or ""),
+            "last_outcome": str(si_fm.get("last_outcome") or ""),
+            "consecutive_no_change": int(si_fm.get("consecutive_no_change") or 0),
+        }
+    except Exception:
+        si = {}
+
+    # Queue stats from sagwan-queue.json
+    queue_path = _Path(get_settings().user_store_path).with_name("sagwan-queue.json")
+    try:
+        q = _json.loads(queue_path.read_text()) if queue_path.exists() else {}
+        tasks = q.get("tasks") or []
+        pending = sum(1 for t in tasks if t.get("status") == "pending")
+        by_kind: dict[str, int] = {}
+        for t in tasks:
+            k = str(t.get("kind") or "?")
+            by_kind[k] = by_kind.get(k, 0) + 1
+        queue_info = {"total": len(tasks), "pending": pending, "by_kind": by_kind}
+    except Exception:
+        queue_info = {"total": 0, "pending": 0, "by_kind": {}}
+
+    # Active goals / concerns
+    goals = [g for g in (agenda_data.get("goals") or []) if g.get("status") == "active"]
+    concerns = [c for c in (agenda_data.get("concerns") or []) if c.get("status") == "active"]
+
+    # Recent activity (last 8 episodes from Working Memory)
+    mem = get_sagwan_memory_snapshot()
+    recent = list(reversed(mem.get("working_tail") or []))[:8]
+
+    return {
+        "curation": {"last_run_at": last_run_at, "topics_status": topics_status},
+        "queue": queue_info,
+        "self_improve": si,
+        "agenda": {
+            "active_goals": [{"id": g["id"], "statement": g["statement"], "status": g["status"]} for g in goals],
+            "concerns_count": len(concerns),
+        },
+        "recent_activity": recent,
+    }
