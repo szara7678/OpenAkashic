@@ -10113,12 +10113,12 @@ def _rewrite_markdown_image(match: re.Match[str], route_prefix: str) -> str:
 
 
 def sagwan_chat_html(*, auth: Any = None, route_prefix: str = "") -> str:
-    """Sagwan 채팅 UI — Claude 스타일 멀티세션."""
+    """Sagwan 채팅 UI — OpenAkashic 기존 톤앤매너 일치, 상단바 포함."""
     shared_styles = _shared_ui_styles()
     shared_header = _shared_header_html(route_prefix, "사관")
     shared_shell = _shared_ui_shell(route_prefix)
     nickname = str(getattr(auth, "nickname", "") or getattr(auth, "username", "") or "you")
-    nick_initial = (nickname[0].upper()) if nickname else "U"
+    nick_initial = nickname[0].upper() if nickname else "U"
     return f"""<!doctype html>
 <html lang="ko">
 <head>
@@ -10128,89 +10128,378 @@ def sagwan_chat_html(*, auth: Any = None, route_prefix: str = "") -> str:
   <title>사관 — OpenAkashic</title>
   <style>
     {{shared_styles}}
-    :root {{
-      --sb-bg: #111827; --sb-hover: #1f2937; --sb-active: #1e3a5f;
-      --sb-border: #1f2937; --main-bg: #0d1117;
-      --msg-user-bg: #1e3a5f; --msg-sagwan-bg: #161d27; --msg-border: #1e293b;
+    /* ── sagwan-specific layout ── */
+    .sagwan-wrap {{
+      display: grid;
+      grid-template-columns: 260px minmax(0,1fr);
+      height: calc(100svh - var(--closed-header-height));
     }}
-    html,body{{margin:0;min-height:100%;background:var(--main-bg);color:#e2e8f0;font-family:Inter,ui-sans-serif,system-ui,sans-serif;}}
-    .sagwan-wrap{{display:flex;height:calc(100svh - var(--closed-header-height,52px));}}
-    /* sidebar */
-    .sagwan-sidebar{{width:260px;flex-shrink:0;background:var(--sb-bg);border-right:1px solid var(--sb-border);display:flex;flex-direction:column;overflow:hidden;}}
-    .sidebar-top{{padding:12px 10px 8px;border-bottom:1px solid var(--sb-border);}}
-    .new-chat-btn{{width:100%;padding:9px 12px;background:#2563eb;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;text-align:left;display:flex;align-items:center;gap:8px;}}
-    .new-chat-btn:hover{{background:#1d4ed8;}}
-    .proj-input-row{{padding:6px 4px 4px;display:none;}}
-    .proj-input-row.visible{{display:block;}}
-    .proj-input{{width:100%;padding:6px 10px;background:#1f2937;border:1px solid #374151;border-radius:6px;color:#e2e8f0;font-size:12px;box-sizing:border-box;}}
-    .proj-input:focus{{outline:none;border-color:#3b82f6;}}
-    .sidebar-body{{flex:1;overflow-y:auto;padding:8px 6px;}}
-    .proj-group{{margin-bottom:16px;}}
-    .proj-label{{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:#4b5563;padding:4px 8px;font-weight:600;}}
-    .session-item{{padding:8px 10px;border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:1px;}}
-    .session-item:hover{{background:var(--sb-hover);}}
-    .session-item.active{{background:var(--sb-active);}}
-    .session-item-title{{font-size:13px;color:#9ca3af;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}}
-    .session-item.active .session-item-title{{color:#bfdbfe;}}
-    .del-btn{{opacity:0;background:none;border:none;color:#6b7280;cursor:pointer;padding:2px 4px;border-radius:4px;font-size:12px;}}
-    .session-item:hover .del-btn{{opacity:1;}}
-    .del-btn:hover{{color:#ef4444;background:rgba(239,68,68,.1);}}
-    /* main */
-    .sagwan-main{{flex:1;display:flex;flex-direction:column;min-width:0;background:var(--main-bg);}}
-    .chat-topbar{{padding:11px 20px;border-bottom:1px solid #1e293b;display:flex;align-items:center;justify-content:space-between;gap:12px;}}
-    .chat-title-edit{{background:none;border:none;color:#e2e8f0;font-size:14px;font-weight:600;font-family:inherit;padding:2px 6px;border-radius:5px;width:300px;}}
-    .chat-title-edit:focus{{outline:none;background:#1e293b;border:1px solid #3b82f6;}}
-    .cap-chips{{display:flex;gap:5px;flex-wrap:wrap;}}
-    .cap-chip{{font-size:11px;padding:2px 8px;border-radius:99px;background:#1e293b;color:#64748b;border:1px solid #2d3748;}}
-    .chat-messages{{flex:1;overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:20px;}}
-    .msg-row{{display:flex;gap:12px;max-width:840px;width:100%;}}
-    .msg-row.user{{align-self:flex-end;flex-direction:row-reverse;}}
-    .msg-row.sagwan{{align-self:flex-start;}}
-    .msg-avatar{{width:32px;height:32px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;}}
-    .msg-row.user .msg-avatar{{background:#1d4ed8;color:#bfdbfe;}}
-    .msg-row.sagwan .msg-avatar{{background:#065f46;color:#6ee7b7;}}
-    .msg-body{{flex:1;min-width:0;}}
-    .msg-name{{font-size:11px;color:#4b5563;margin-bottom:5px;font-weight:500;}}
-    .msg-row.user .msg-name{{text-align:right;}}
-    .msg-bubble{{padding:12px 16px;border-radius:12px;font-size:14px;line-height:1.65;white-space:pre-wrap;word-break:break-word;}}
-    .msg-row.user .msg-bubble{{background:var(--msg-user-bg);color:#bfdbfe;border-bottom-right-radius:3px;}}
-    .msg-row.sagwan .msg-bubble{{background:var(--msg-sagwan-bg);color:#e2e8f0;border:1px solid var(--msg-border);border-bottom-left-radius:3px;}}
-    .chat-input-wrap{{padding:14px 20px 18px;border-top:1px solid #1e293b;}}
-    .chat-input-box{{display:flex;align-items:flex-end;gap:10px;background:#1e293b;border:1px solid #334155;border-radius:12px;padding:10px 14px;}}
-    .chat-input-box:focus-within{{border-color:#3b82f6;}}
-    .chat-textarea{{flex:1;background:none;border:none;color:#e2e8f0;font-size:14px;resize:none;min-height:24px;max-height:160px;font-family:inherit;line-height:1.6;}}
-    .chat-textarea:focus{{outline:none;}}
-    .chat-textarea::placeholder{{color:#4b5563;}}
-    .send-btn{{padding:8px 16px;background:#2563eb;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;flex-shrink:0;}}
-    .send-btn:hover{{background:#1d4ed8;}}
-    .send-btn:disabled{{background:#1e293b;color:#4b5563;cursor:default;}}
-    .empty-chat{{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:#374151;}}
-    .empty-chat .oa-icon{{font-size:48px;opacity:.5;}}
-    .empty-chat h2{{margin:0;font-size:20px;color:#6b7280;font-weight:600;}}
-    .empty-chat p{{margin:0;font-size:13px;}}
-    .starter-pills{{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:8px;}}
-    .starter-pill{{padding:7px 14px;background:#1e293b;border:1px solid #2d3748;color:#9ca3af;border-radius:20px;cursor:pointer;font-size:12px;}}
-    .starter-pill:hover{{background:#1e3a5f;color:#bfdbfe;border-color:#3b82f6;}}
-    .thinking-dots{{display:flex;gap:4px;padding:10px 0 4px;}}
-    .thinking-dots span{{width:7px;height:7px;background:#4b5563;border-radius:50%;animation:bounce 1.2s infinite;}}
-    .thinking-dots span:nth-child(2){{animation-delay:.2s;}}
-    .thinking-dots span:nth-child(3){{animation-delay:.4s;}}
-    @keyframes bounce{{0%,60%,100%{{transform:translateY(0);}}30%{{transform:translateY(-6px);background:#6b7280;}}}}
+    /* ── sidebar ── */
+    .sagwan-sidebar {{
+      position: sticky;
+      top: var(--closed-header-height);
+      align-self: start;
+      height: calc(100svh - var(--closed-header-height));
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid var(--line);
+      background: rgba(248,250,252,.84);
+      backdrop-filter: blur(14px);
+      overflow: hidden;
+    }}
+    html[data-theme="dark"] .sagwan-sidebar {{
+      background: rgba(16,22,36,.88);
+    }}
+    .sidebar-top {{
+      padding: 16px 14px 10px;
+      border-bottom: 1px solid var(--line);
+      flex-shrink: 0;
+    }}
+    .new-chat-btn {{
+      width: 100%;
+      padding: 8px 12px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      font-family: inherit;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }}
+    .new-chat-btn:hover {{ filter: brightness(1.1); }}
+    .proj-input-row {{
+      padding: 6px 0 0;
+      display: none;
+    }}
+    .proj-input-row.visible {{ display: block; }}
+    .proj-input {{
+      width: 100%;
+      padding: 5px 9px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      color: var(--ink);
+      font-size: 12px;
+      font-family: inherit;
+      box-sizing: border-box;
+    }}
+    .proj-input:focus {{ outline: none; border-color: var(--accent); }}
+    .sidebar-body {{
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 6px;
+    }}
+    .proj-group {{ margin-bottom: 14px; }}
+    .proj-label {{
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: var(--muted);
+      padding: 3px 8px;
+      font-weight: 600;
+    }}
+    .session-item {{
+      padding: 7px 10px;
+      border-radius: 7px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 1px;
+    }}
+    .session-item:hover {{ background: var(--panel,rgba(0,0,0,.04)); }}
+    .session-item.active {{
+      background: rgba(37,99,235,.10);
+    }}
+    html[data-theme="dark"] .session-item.active {{
+      background: rgba(96,165,250,.12);
+    }}
+    .session-item-title {{
+      font-size: 13px;
+      color: var(--muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+    }}
+    .session-item.active .session-item-title {{ color: var(--accent); }}
+    .del-btn {{
+      opacity: 0;
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 2px 4px;
+      border-radius: 4px;
+      font-size: 11px;
+      flex-shrink: 0;
+    }}
+    .session-item:hover .del-btn {{ opacity: 1; }}
+    .del-btn:hover {{ color: var(--warn,#c2410c); }}
+    /* ── main ── */
+    .sagwan-main {{
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      background: var(--bg);
+    }}
+    .chat-topbar {{
+      padding: 10px 20px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: var(--surface);
+      backdrop-filter: blur(10px);
+    }}
+    .chat-title-edit {{
+      background: none;
+      border: none;
+      color: var(--ink);
+      font-size: 14px;
+      font-weight: 600;
+      font-family: inherit;
+      padding: 3px 7px;
+      border-radius: 5px;
+      max-width: 320px;
+      width: 100%;
+    }}
+    .chat-title-edit:focus {{
+      outline: none;
+      background: var(--surface);
+      border: 1px solid var(--accent);
+    }}
+    .cap-chips {{
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      flex-shrink: 0;
+    }}
+    .cap-chip {{
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 99px;
+      background: var(--panel,rgba(0,0,0,.04));
+      color: var(--muted);
+      border: 1px solid var(--line);
+      white-space: nowrap;
+    }}
+    /* ── messages ── */
+    .chat-messages {{
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }}
+    .msg-row {{
+      display: flex;
+      gap: 11px;
+      max-width: 820px;
+      width: 100%;
+    }}
+    .msg-row.user {{
+      align-self: flex-end;
+      flex-direction: row-reverse;
+    }}
+    .msg-row.sagwan {{ align-self: flex-start; }}
+    .msg-avatar {{
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+    }}
+    .msg-row.user .msg-avatar {{
+      background: var(--accent);
+      color: #fff;
+    }}
+    .msg-row.sagwan .msg-avatar {{
+      background: var(--accent-2,#0f766e);
+      color: #fff;
+    }}
+    .msg-body {{ flex: 1; min-width: 0; }}
+    .msg-name {{
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 4px;
+      font-weight: 500;
+    }}
+    .msg-row.user .msg-name {{ text-align: right; }}
+    .msg-bubble {{
+      padding: 11px 15px;
+      border-radius: 11px;
+      font-size: 14px;
+      line-height: 1.65;
+      white-space: pre-wrap;
+      word-break: break-word;
+      border: 1px solid var(--line);
+    }}
+    .msg-row.user .msg-bubble {{
+      background: rgba(37,99,235,.08);
+      border-color: rgba(37,99,235,.18);
+      color: var(--ink);
+      border-bottom-right-radius: 3px;
+    }}
+    html[data-theme="dark"] .msg-row.user .msg-bubble {{
+      background: rgba(96,165,250,.10);
+      border-color: rgba(96,165,250,.20);
+    }}
+    .msg-row.sagwan .msg-bubble {{
+      background: var(--surface);
+      color: var(--ink);
+      border-bottom-left-radius: 3px;
+    }}
+    /* ── input ── */
+    .chat-input-wrap {{
+      padding: 12px 20px 16px;
+      border-top: 1px solid var(--line);
+      background: var(--surface);
+    }}
+    .chat-input-box {{
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      padding: 9px 13px;
+    }}
+    .chat-input-box:focus-within {{ border-color: var(--accent); }}
+    .chat-textarea {{
+      flex: 1;
+      background: none;
+      border: none;
+      color: var(--ink);
+      font-size: 14px;
+      resize: none;
+      min-height: 22px;
+      max-height: 150px;
+      font-family: inherit;
+      line-height: 1.6;
+    }}
+    .chat-textarea:focus {{ outline: none; }}
+    .chat-textarea::placeholder {{ color: var(--muted); }}
+    .send-btn {{
+      padding: 7px 15px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      font-family: inherit;
+      flex-shrink: 0;
+    }}
+    .send-btn:hover {{ filter: brightness(1.1); }}
+    .send-btn:disabled {{
+      background: var(--line);
+      color: var(--muted);
+      cursor: default;
+      filter: none;
+    }}
+    /* ── empty state ── */
+    .empty-chat {{
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      color: var(--muted);
+    }}
+    .empty-chat .oa-mark {{
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background: var(--accent);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      font-weight: 800;
+      opacity: .7;
+    }}
+    .empty-chat h2 {{
+      margin: 0;
+      font-size: 18px;
+      color: var(--ink);
+      font-weight: 600;
+    }}
+    .empty-chat p {{ margin: 0; font-size: 13px; }}
+    .starter-pills {{
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      justify-content: center;
+      margin-top: 6px;
+    }}
+    .starter-pill {{
+      padding: 6px 13px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      color: var(--muted);
+      border-radius: 99px;
+      cursor: pointer;
+      font-size: 12px;
+      font-family: inherit;
+    }}
+    .starter-pill:hover {{
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(37,99,235,.05);
+    }}
+    /* ── thinking dots ── */
+    .thinking-dots {{
+      display: flex;
+      gap: 4px;
+      padding: 8px 0 3px;
+    }}
+    .thinking-dots span {{
+      width: 6px; height: 6px;
+      background: var(--muted);
+      border-radius: 50%;
+      animation: tdot 1.2s infinite;
+    }}
+    .thinking-dots span:nth-child(2) {{ animation-delay: .2s; }}
+    .thinking-dots span:nth-child(3) {{ animation-delay: .4s; }}
+    @keyframes tdot {{
+      0%,60%,100% {{ transform:translateY(0); opacity:.5; }}
+      30% {{ transform:translateY(-5px); opacity:1; }}
+    }}
   </style>
 </head>
 <body>
   {{shared_header}}
   {{shared_shell}}
   <div class="sagwan-wrap">
+    <!-- ── 사이드바 ── -->
     <aside class="sagwan-sidebar">
       <div class="sidebar-top">
-        <button class="new-chat-btn" onclick="newChat()">&#9998; 새 대화</button>
+        <button class="new-chat-btn" onclick="newChat()">
+          <span>✏️</span> 새 대화
+        </button>
         <div class="proj-input-row" id="projInputRow">
           <input class="proj-input" id="projInput" placeholder="프로젝트 이름 (선택)" />
         </div>
       </div>
       <div class="sidebar-body" id="sidebarBody"></div>
     </aside>
+
+    <!-- ── 메인 ── -->
     <main class="sagwan-main">
       <div class="chat-topbar">
         <input class="chat-title-edit" id="chatTitleInput" value="새 대화" onchange="updateTitle(this.value)" />
@@ -10222,9 +10511,10 @@ def sagwan_chat_html(*, auth: Any = None, route_prefix: str = "") -> str:
           <span class="cap-chip">🤖 자율큐레이션 중</span>
         </div>
       </div>
+
       <div class="chat-messages" id="messages">
         <div class="empty-chat" id="emptyState">
-          <div class="oa-icon">📚</div>
+          <div class="oa-mark">OA</div>
           <h2>사관에게 말을 걸어보세요</h2>
           <p>vault 검색, 노트 작성, 연구 요청 등 무엇이든 도와드립니다.</p>
           <div class="starter-pills">
@@ -10235,6 +10525,7 @@ def sagwan_chat_html(*, auth: Any = None, route_prefix: str = "") -> str:
           </div>
         </div>
       </div>
+
       <div class="chat-input-wrap">
         <div class="chat-input-box">
           <textarea id="msgInput" class="chat-textarea"
@@ -10269,7 +10560,7 @@ def sagwan_chat_html(*, auth: Any = None, route_prefix: str = "") -> str:
           const p = s.project || '일반';
           (groups[p] = groups[p] || []).push(s);
         }}
-        const order = Object.keys(groups).sort((a, b) => a === '일반' ? 1 : b === '일반' ? -1 : a.localeCompare(b));
+        const order = Object.keys(groups).sort((a,b) => a === '일반' ? 1 : b === '일반' ? -1 : a.localeCompare(b));
         for (const proj of order) {{
           const grp = document.createElement('div');
           grp.className = 'proj-group';
@@ -10278,13 +10569,13 @@ def sagwan_chat_html(*, auth: Any = None, route_prefix: str = "") -> str:
             const el = document.createElement('div');
             el.className = 'session-item' + (s.session_id === currentSessionId ? ' active' : '');
             el.innerHTML = '<div class="session-item-title">' + esc(s.title || s.session_id) + '</div>'
-              + '<button class="del-btn" title="삭제" onclick="delSess(event,'' + s.session_id + '',this.closest('.session-item'))">✕</button>';
+              + '<button class="del-btn" onclick="delSess(event,\'' + s.session_id + '\',this.closest(\'.session-item\'))">✕</button>';
             el.addEventListener('click', () => loadSession(s.session_id));
             grp.appendChild(el);
           }}
           body.appendChild(grp);
         }}
-        if (!sessions?.length) body.innerHTML = '<div style="padding:12px 8px;font-size:12px;color:#374151">대화가 없습니다.</div>';
+        if (!sessions?.length) body.innerHTML = '<div style="padding:12px 8px;font-size:12px;color:var(--muted)">대화가 없습니다.</div>';
       }} catch(e) {{}}
     }}
 
@@ -10306,7 +10597,7 @@ def sagwan_chat_html(*, auth: Any = None, route_prefix: str = "") -> str:
       area.scrollTop = area.scrollHeight;
     }}
 
-    function addBubble(role, content, scroll = true) {{
+    function addBubble(role, content, scroll=true) {{
       const area = document.getElementById('messages');
       document.getElementById('emptyState')?.remove();
       const row = document.createElement('div');
@@ -10322,6 +10613,7 @@ def sagwan_chat_html(*, auth: Any = None, route_prefix: str = "") -> str:
 
     function showThinking() {{
       const area = document.getElementById('messages');
+      document.getElementById('emptyState')?.remove();
       const row = document.createElement('div');
       row.id = 'thinking-row';
       row.className = 'msg-row sagwan';
@@ -10366,7 +10658,9 @@ def sagwan_chat_html(*, auth: Any = None, route_prefix: str = "") -> str:
       currentSessionId = null; currentProject = '';
       document.getElementById('chatTitleInput').value = '새 대화';
       const area = document.getElementById('messages');
-      area.innerHTML = '<div class="empty-chat" id="emptyState"><div class="oa-icon">📚</div><h2>새 대화를 시작합니다</h2><p>사관에게 무엇이든 물어보세요.</p></div>';
+      area.innerHTML = '<div class="empty-chat" id="emptyState">'
+        + '<div class="oa-mark">OA</div><h2>새 대화를 시작합니다</h2>'
+        + '<p>사관에게 무엇이든 물어보세요.</p></div>';
       document.getElementById('projInputRow').classList.add('visible');
       loadSidebar();
       document.getElementById('msgInput').focus();
@@ -10380,9 +10674,9 @@ def sagwan_chat_html(*, auth: Any = None, route_prefix: str = "") -> str:
       else loadSidebar();
     }}
 
-    function updateTitle(val) {{ /* 향후 PATCH 엔드포인트 연동 */ }}
-    function handleKey(e) {{ if (e.key === 'Enter' && !e.shiftKey) {{ e.preventDefault(); sendMessage(); }} }}
-    function autoResize(el) {{ el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 160) + 'px'; }}
+    function updateTitle(val) {{ /* TODO: PATCH 연동 */ }}
+    function handleKey(e) {{ if (e.key==='Enter'&&!e.shiftKey) {{ e.preventDefault(); sendMessage(); }} }}
+    function autoResize(el) {{ el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,150)+'px'; }}
     function esc(s) {{ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }}
 
     loadSidebar();
@@ -10390,4 +10684,5 @@ def sagwan_chat_html(*, auth: Any = None, route_prefix: str = "") -> str:
   </script>
 </body>
 </html>"""
+
 
