@@ -10405,7 +10405,7 @@ def sagwan_chat_html(*, auth: Any = None, route_prefix: str = "") -> str:
     .stats-grid {{ display: grid; grid-template-columns: repeat(auto-fill,minmax(140px,1fr)); gap: 12px; }}
   </style>
 </head>
-<body>
+<body class="closed-with-header">
   {shared_header}
   {shared_shell}
   <div class="sagwan-wrap">
