@@ -10525,8 +10525,13 @@ def sagwan_chat_html(*, auth: Any = None, route_prefix: str = "") -> str:
           for (const s of groups[proj]) {{
             const el=document.createElement('div');
             el.className='session-item'+(s.session_id===currentSessionId?' active':'');
-            el.innerHTML='<div class="session-item-title">'+esc(s.title||s.session_id)+'</div>'
-              +'<button class="del-btn" onclick="delSess(event,\''+s.session_id+'\',this.closest(\'.session-item\'))">✕</button>';
+            const titleDiv=document.createElement('div');
+            titleDiv.className='session-item-title';
+            titleDiv.textContent=s.title||s.session_id;
+            const delBtn=document.createElement('button');
+            delBtn.className='del-btn'; delBtn.textContent='✕';
+            delBtn.addEventListener('click',(ev)=>delSess(ev,s.session_id,el));
+            el.appendChild(titleDiv); el.appendChild(delBtn);
             el.addEventListener('click',()=>loadSession(s.session_id));
             grp.appendChild(el);
           }}
