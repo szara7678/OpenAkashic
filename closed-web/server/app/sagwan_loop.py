@@ -7456,6 +7456,7 @@ def _sagwan_chat_respond(
     history: list[dict[str, str]],
     *,
     auth_nickname: str = "user",
+    is_admin: bool = False,
 ) -> dict[str, Any]:
     """사관이 사용자 메시지에 응답한다. 4계층 메모리 + 도구 호출 가능."""
     ctx = before_task_context("sagwan", message, current_note_path=None, total_chars=4000)
@@ -7491,6 +7492,7 @@ def _sagwan_chat_respond(
         needs_tools = any(kw in message for kw in [
             "검색", "찾아", "읽어", "노트", "써줘", "작성", "저장", "조회", "보여줘",
             "search", "read", "write", "find", "look",
+            "shell", "command", "run", "execute", "file", "directory", "list", "workspace",
         ])
         if needs_tools:
             reply = _invoke_chatgpt_responses_with_tools(
@@ -7500,6 +7502,7 @@ def _sagwan_chat_respond(
                 system=system,
                 timeout=80,
                 max_iterations=5,
+                is_admin=is_admin,
             )
         else:
             reply = _invoke_chatgpt_responses(

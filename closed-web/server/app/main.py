@@ -1312,7 +1312,13 @@ def api_sagwan_chat(
     history = existing.get("messages") or []
     project = str(payload.project or "").strip()
     append_chat_message(session_id, "user", message, participant=str(auth.nickname or auth.username or "user"), project=project)
-    result = _sagwan_chat_respond(message, session_id, history, auth_nickname=str(auth.nickname or "user"))
+    result = _sagwan_chat_respond(
+        message,
+        session_id,
+        history,
+        auth_nickname=str(auth.nickname or "user"),
+        is_admin=(auth.role == "admin"),
+    )
     reply = result.get("reply") or ""
     append_chat_message(session_id, "sagwan", reply, project=project)
     return {

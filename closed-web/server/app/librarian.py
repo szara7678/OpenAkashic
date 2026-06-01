@@ -550,6 +550,7 @@ def _invoke_chatgpt_responses_with_tools(
     timeout: int = 240,
     system: str | None = None,
     max_iterations: int = 10,
+    is_admin: bool = False,
 ) -> str:
     if not tools:
         return _invoke_chatgpt_responses(prompt, model=model, timeout=timeout, system=system)
@@ -624,7 +625,14 @@ def _invoke_chatgpt_responses_with_tools(
             },
         },
     }
-    allowed_defs = [chatgpt_tool_defs[name] for name in tools if name in chatgpt_tool_defs]
+    allowed_tool_names = list(tools)
+    if is_admin:
+        from app.system_access import SYSTEM_TOOL_DEFS, SYSTEM_TOOL_NAMES
+
+        chatgpt_tool_defs.update({str(tool["name"]): tool for tool in SYSTEM_TOOL_DEFS})
+        allowed_tool_names.extend(name for name in SYSTEM_TOOL_NAMES if name not in allowed_tool_names)
+
+    allowed_defs = [chatgpt_tool_defs[name] for name in allowed_tool_names if name in chatgpt_tool_defs]
     if not allowed_defs:
         return _invoke_chatgpt_responses(prompt, model=model, timeout=timeout, system=system)
 
@@ -685,6 +693,10 @@ def _invoke_chatgpt_responses_with_tools(
                         }
                         result["count"] = len(result["reviews"])
                 return json.dumps(result, ensure_ascii=False)[:8000]
+            if is_admin and name in {"run_shell", "read_workspace_file", "write_workspace_file", "list_workspace_dir"}:
+                from app.system_access import execute_system_tool
+
+                return execute_system_tool(name, arguments)
             return json.dumps({"error": f"unknown tool {name}"}, ensure_ascii=False)
         except Exception as exc:
             return json.dumps({"error": f"tool_exception: {str(exc)[:200]}"}, ensure_ascii=False)
