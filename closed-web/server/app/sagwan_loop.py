@@ -7798,8 +7798,20 @@ def get_sagwan_memory_snapshot() -> dict[str, Any]:
         for sec in sections[-20:]:
             ts = _segment_ts(sec)
             lines = [l.strip() for l in sec.strip().splitlines() if l.strip()]
-            subject = lines[1] if len(lines) > 1 else ""
-            tail.append({"ts": ts, "subject": subject[:100]})
+            # "- subject: ..." 라인을 우선 추출 (없으면 heading 텍스트 fallback)
+            subject = ""
+            kind = ""
+            for ln in lines:
+                low = ln.lower()
+                if low.startswith("- subject:"):
+                    subject = ln.split(":", 1)[1].strip()
+                elif ln.startswith("## "):
+                    parts = ln[3:].strip().split(" ", 1)
+                    kind = parts[1] if len(parts) > 1 else ""
+            if not subject and len(lines) > 1:
+                subject = lines[1]
+            label = f"[{kind}] {subject}" if kind else subject
+            tail.append({"ts": ts, "subject": label[:120], "kind": kind})
         episode_count = len(sections)
     except Exception:
         tail = []
