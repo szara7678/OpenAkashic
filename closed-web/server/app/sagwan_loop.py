@@ -40,6 +40,7 @@ from app.librarian import (
     _invoke_proxy_chat,
     load_librarian_settings,
 )
+from app.system_access import WORKSPACE_ROOT
 from app.vault import (
     PUBLICATION_REQUEST_FOLDER,
     append_section,
@@ -3634,8 +3635,8 @@ def _curate_experience_seed_mining() -> dict[str, Any]:
                 }
 
     repo_specs = [
-        {"project": "ichimozzi", "path": "/home/insu/insu_server/apps/ichimozzi", "exclude_closed_web": False},
-        {"project": "openakashic", "path": "/home/insu/insu_server/apps/openakashic", "exclude_closed_web": True},
+        {"project": "ichimozzi", "path": WORKSPACE_ROOT / "apps" / "ichimozzi", "exclude_closed_web": False},
+        {"project": "openakashic", "path": WORKSPACE_ROOT / "apps" / "openakashic", "exclude_closed_web": True},
     ]
     repo_results: list[dict[str, Any]] = []
     for spec in repo_specs:
@@ -3651,16 +3652,24 @@ def _curate_experience_seed_mining() -> dict[str, Any]:
         ]
         if bool(spec.get("exclude_closed_web")):
             cmd.extend(["--", ".", ":(exclude)closed-web"])
-        proc = subprocess.run(cmd, capture_output=True, text=True)
-        commits = [line.strip() for line in (proc.stdout or "").splitlines() if line.strip()]
+        try:
+            proc = subprocess.run(cmd, capture_output=True, text=True)
+            returncode = proc.returncode
+            stdout = proc.stdout or ""
+            stderr = proc.stderr or ""
+        except OSError as exc:
+            returncode = 1
+            stdout = ""
+            stderr = str(exc)
+        commits = [line.strip() for line in stdout.splitlines() if line.strip()]
         repo_results.append(
             {
                 "project": str(spec["project"]),
                 "repo_path": repo_path,
                 "commits": commits[:50],
                 "commit_count": len(commits),
-                "returncode": proc.returncode,
-                "stderr": (proc.stderr or "").strip()[:500],
+                "returncode": returncode,
+                "stderr": stderr.strip()[:500],
             }
         )
 
@@ -3675,9 +3684,11 @@ def _curate_experience_seed_mining() -> dict[str, Any]:
         for item in repo_results
     ]
     total_commits = sum(len(item["commits"]) for item in repo_results)
+    git_failed = any(int(item["returncode"]) != 0 for item in repo_results)
     now_iso = _now_iso()
     if total_commits <= 0:
-        _touch_git_mining_state(now_iso)
+        if not git_failed:
+            _touch_git_mining_state(now_iso)
         return {"status": "no_commits", "repos": commit_payload}
 
     prompt = "\n\n".join(
@@ -3765,7 +3776,8 @@ def _curate_experience_seed_mining() -> dict[str, Any]:
         )
         written_paths.append(doc.path)
 
-    _touch_git_mining_state(now_iso)
+    if not git_failed:
+        _touch_git_mining_state(now_iso)
     return {
         "status": "ok",
         "written": len(written_paths),
