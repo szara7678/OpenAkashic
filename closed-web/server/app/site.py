@@ -10191,6 +10191,7 @@ def sagwan_chat_html(*, auth: Any = None, route_prefix: str = "") -> str:
       grid-template-columns: 240px minmax(0,1fr);
       height: calc(100svh - var(--closed-header-height));
       min-height: 0;
+      align-items: stretch;
       overflow: hidden;
     }}
     .sagwan-wrap.sidebar-hidden {{
@@ -10198,9 +10199,7 @@ def sagwan_chat_html(*, auth: Any = None, route_prefix: str = "") -> str:
     }}
     /* ── sidebar ── */
     .sagwan-sidebar {{
-      position: sticky;
-      top: var(--closed-header-height);
-      height: calc(100svh - var(--closed-header-height));
+      height: 100%;
       min-height: 0;
       display: flex;
       flex-direction: column;
@@ -10211,16 +10210,13 @@ def sagwan_chat_html(*, auth: Any = None, route_prefix: str = "") -> str:
     }}
     /* ── 상단 탭 바 ── */
     .sagwan-tab-bar {{
-      position: sticky;
-      top: var(--closed-header-height, 66px);
-      z-index: 42;
       display: flex;
       align-items: center;
       min-height: 46px;
       padding-top: 2px;
       border-bottom: 1px solid var(--line);
       background: var(--surface);
-      flex-shrink: 0;
+      flex: 0 0 auto;
       overflow-x: auto;
       box-sizing: border-box;
     }}
@@ -10307,8 +10303,21 @@ def sagwan_chat_html(*, auth: Any = None, route_prefix: str = "") -> str:
     .session-item:hover .del-btn {{ opacity: 1; }}
     .del-btn:hover {{ color: var(--accent); }}
     /* ── main area ── */
-    .sagwan-main {{ display: flex; flex-direction: column; min-width: 0; min-height: 0; background: var(--bg); }}
-    .sagwan-tab-content {{ min-height: 0; }}
+    .sagwan-main {{
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      min-height: 0;
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+    }}
+    .sagwan-tab-content {{
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow: auto;
+    }}
+    #tab-chat.sagwan-tab-content {{ overflow: hidden; }}
     .chat-topbar {{
       padding: 10px 18px;
       border-bottom: 1px solid var(--line);
@@ -10324,9 +10333,10 @@ def sagwan_chat_html(*, auth: Any = None, route_prefix: str = "") -> str:
       background: none; border: none; color: var(--ink);
       font-size: 13px; font-weight: 600; font-family: inherit;
       padding: 2px 6px; border-radius: 5px; max-width: 300px; width: 100%;
+      flex: 1 1 auto; min-width: 140px;
     }}
     .chat-title-edit:focus {{ outline: none; background: var(--surface); border: 1px solid var(--accent); }}
-    .cap-chips {{ display: flex; gap: 4px; flex-wrap: wrap; flex-shrink: 0; }}
+    .cap-chips {{ display: flex; align-items: center; gap: 4px; flex-wrap: wrap; flex: 0 0 auto; margin-left: auto; }}
     .cap-chip {{ font-size: 11px; padding: 2px 7px; border-radius: 99px; background: var(--bg); color: var(--muted); border: 1px solid var(--line); white-space: nowrap; }}
     .chat-messages {{ flex: 1; min-height: 0; overflow-y: auto; padding: 22px 22px 24px; display: flex; flex-direction: column; gap: 16px; scroll-behavior: smooth; }}
     .msg-row {{ display: flex; gap: 10px; max-width: 860px; width: 100%; }}
@@ -10354,6 +10364,7 @@ def sagwan_chat_html(*, auth: Any = None, route_prefix: str = "") -> str:
     .chat-input-box {{
       display: flex; align-items: flex-end; gap: 7px;
       background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px;
+      box-sizing: border-box; width: 100%; min-height: 52px;
     }}
     .chat-input-box:focus-within {{ border-color: var(--accent); }}
     .chat-textarea {{
@@ -10399,7 +10410,7 @@ def sagwan_chat_html(*, auth: Any = None, route_prefix: str = "") -> str:
     .thinking-dots span:nth-child(3) {{ animation-delay:.4s; }}
     @keyframes tdot {{ 0%,60%,100%{{transform:translateY(0);opacity:.5;}} 30%{{transform:translateY(-5px);opacity:1;}} }}
     /* ── sagwan-panel shared styles ── */
-    .sagwan-panel {{ flex: 1; overflow-y: auto; }}
+    .sagwan-panel {{ flex: 1 1 auto; min-height: 0; overflow-y: auto; }}
     .panel-inner {{ padding: 20px; max-width: 860px; }}
     .panel-warn {{
       padding: 10px 14px; border-radius: 7px; margin-bottom: 14px;
