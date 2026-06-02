@@ -169,6 +169,8 @@ from app.site import (
     search_closed_notes,
 )
 from app.sagwan_loop import (
+    _CHAT_PROGRESS,
+    _CHAT_PROGRESS_LOCK,
     get_sagwan_memory_snapshot,
     update_sagwan_distilled_memory,
     get_sagwan_persona,
@@ -1326,6 +1328,25 @@ def api_sagwan_chat(
         "session_id": session_id,
         "tool_calls": result.get("tool_calls") or [],
         "status": result.get("status") or "ok",
+    }
+
+
+@api.get("/api/sagwan/chat/progress")
+def api_sagwan_chat_progress(
+    request: Request,
+    session_id: str = Query(min_length=1),
+) -> dict[str, Any]:
+    auth = _auth_from_request(request)
+    if not auth.authenticated:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    with _CHAT_PROGRESS_LOCK:
+        progress = dict(_CHAT_PROGRESS.get(session_id) or {})
+    if not progress:
+        return {"state": "idle", "detail": "", "updated_at": 0.0}
+    return {
+        "state": progress.get("state", "idle"),
+        "detail": progress.get("detail", ""),
+        "updated_at": progress.get("updated_at", 0.0),
     }
 
 

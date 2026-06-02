@@ -7,7 +7,7 @@ import re
 from pathlib import Path
 import subprocess
 import time
-from typing import Any
+from typing import Any, Callable, Optional
 from urllib import error as urlerror
 from urllib import request as urlrequest
 
@@ -551,7 +551,10 @@ def _invoke_chatgpt_responses_with_tools(
     system: str | None = None,
     max_iterations: int = 10,
     is_admin: bool = False,
+    progress_callback: Optional[Callable[[str, str], None]] = None,
 ) -> str:
+    if progress_callback is not None:
+        progress_callback("thinking", "생각 중")
     if not tools:
         return _invoke_chatgpt_responses(prompt, model=model, timeout=timeout, system=system)
 
@@ -756,6 +759,7 @@ def _invoke_chatgpt_responses_with_tools(
         completed = False
         pending_calls: dict[str, dict[str, str]] = {}
         pending_order: list[str] = []
+        generating_reported = False
 
         def _slot_key(obj: dict[str, Any]) -> str:
             return str(
@@ -798,6 +802,9 @@ def _invoke_chatgpt_responses_with_tools(
                 if obj_type == "response.output_text.delta":
                     delta = obj.get("delta")
                     if isinstance(delta, str):
+                        if progress_callback is not None and not generating_reported:
+                            progress_callback("generating", "응답 생성 중")
+                            generating_reported = True
                         text_chunks.append(delta)
                     continue
                 if obj_type in ("response.output_item.added", "response.output_item.done"):
@@ -844,6 +851,9 @@ def _invoke_chatgpt_responses_with_tools(
                             for piece in (item.get("content") or []):
                                 if piece.get("type") == "output_text" and isinstance(piece.get("text"), str):
                                     if not text_chunks:
+                                        if progress_callback is not None and not generating_reported:
+                                            progress_callback("generating", "응답 생성 중")
+                                            generating_reported = True
                                         text_chunks.append(piece["text"])
                     break
                 if obj_type in ("response.failed", "response.error", "error"):
@@ -876,10 +886,24 @@ def _invoke_chatgpt_responses_with_tools(
                 parsed_arguments = json.loads(raw_arguments)
             except json.JSONDecodeError as exc:
                 return f"[chatgpt 오류] Invalid function arguments for {name}: {exc}"
+            if progress_callback is not None:
+                tool_detail = {
+                    "search_notes": "노트 검색 중",
+                    "read_note": "노트 읽는 중",
+                    "search_akashic": "공개 지식 검색 중",
+                    "run_shell": "명령 실행 중",
+                    "read_workspace_file": "파일 읽는 중",
+                    "write_workspace_file": "파일 작성 중",
+                    "list_workspace_dir": "디렉토리 탐색 중",
+                }.get(name, f"{name} 실행 중")
+                progress_callback("tool", tool_detail)
+            tool_output = _execute_chatgpt_tool_call(name, parsed_arguments)
+            if progress_callback is not None:
+                progress_callback("thinking", "응답 생성 중")
             history.append({
                 "type": "function_call_output",
                 "call_id": call_id,
-                "output": _execute_chatgpt_tool_call(name, parsed_arguments),
+                "output": tool_output,
             })
             executed_count += 1
         if executed_count == 0:

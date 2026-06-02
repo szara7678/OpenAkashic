@@ -21,8 +21,10 @@ import logging
 from pathlib import Path
 import re
 import subprocess
+import threading
 import time
 from typing import Any
+from uuid import uuid4
 
 from app.agent_memory import (
     after_task,
@@ -7449,6 +7451,8 @@ _SAGWAN_CHAT_SYSTEM = """너는 OpenAkashic의 사서장(sagwan)이다.
 _CHAT_SESSION_FOLDER = "personal_vault/projects/ops/librarian/sessions"
 _CHAT_HISTORY_LIMIT = 10  # LLM에 전달할 최근 메시지 수
 _CHAT_SESSION_ID_RE = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
+_CHAT_PROGRESS: dict[str, dict] = {}
+_CHAT_PROGRESS_LOCK: threading.Lock = threading.Lock()
 
 
 def _validate_chat_session_id(session_id: str) -> str:
@@ -7471,35 +7475,46 @@ def _sagwan_chat_respond(
     is_admin: bool = False,
 ) -> dict[str, Any]:
     """사관이 사용자 메시지에 응답한다. 4계층 메모리 + 도구 호출 가능."""
-    ctx = before_task_context("sagwan", message, current_note_path=None, total_chars=4000)
-    memory_block = ctx.get("combined", "")
+    session_id = _validate_chat_session_id(str(session_id or "").strip() or uuid4().hex[:8])
 
-    system = _SAGWAN_CHAT_SYSTEM
-    if memory_block:
-        system += f"\n\n## 현재 vault/사관 기억 상태\n{memory_block}"
+    def progress_callback(state: str, detail: str) -> None:
+        with _CHAT_PROGRESS_LOCK:
+            _CHAT_PROGRESS[session_id] = {
+                "state": state,
+                "detail": detail,
+                "updated_at": time.time(),
+            }
 
-    history_lines: list[str] = []
-    for msg in history[-_CHAT_HISTORY_LIMIT:]:
-        role_label = "사용자" if msg.get("role") == "user" else "사관"
-        content = str(msg.get("content") or "").strip()
-        if content:
-            history_lines.append(f"{role_label}: {content}")
-
-    full_prompt = "\n".join(
-        [
-            f"세션: {session_id}",
-            f"참여자: {auth_nickname}",
-            "",
-            "## 최근 대화",
-            "\n".join(history_lines) or "(이전 대화 없음)",
-            "",
-            "## 현재 사용자 메시지",
-            message,
-        ]
-    )
-
-    # CF 100s 타임아웃 이내로 제한 — 도구 필요 키워드 있을 때만 tool loop 사용
+    progress_callback("thinking", "생각 중")
     try:
+        ctx = before_task_context("sagwan", message, current_note_path=None, total_chars=4000)
+        memory_block = ctx.get("combined", "")
+
+        system = _SAGWAN_CHAT_SYSTEM
+        if memory_block:
+            system += f"\n\n## 현재 vault/사관 기억 상태\n{memory_block}"
+
+        history_lines: list[str] = []
+        for msg in history[-_CHAT_HISTORY_LIMIT:]:
+            role_label = "사용자" if msg.get("role") == "user" else "사관"
+            content = str(msg.get("content") or "").strip()
+            if content:
+                history_lines.append(f"{role_label}: {content}")
+
+        full_prompt = "\n".join(
+            [
+                f"세션: {session_id}",
+                f"참여자: {auth_nickname}",
+                "",
+                "## 최근 대화",
+                "\n".join(history_lines) or "(이전 대화 없음)",
+                "",
+                "## 현재 사용자 메시지",
+                message,
+            ]
+        )
+
+        # CF 100s 타임아웃 이내로 제한 — 도구 필요 키워드 있을 때만 tool loop 사용
         from app.librarian import _invoke_chatgpt_responses_with_tools, _invoke_chatgpt_responses
         needs_tools = any(kw in message for kw in [
             "검색", "찾아", "읽어", "노트", "써줘", "작성", "저장", "조회", "보여줘",
@@ -7515,13 +7530,17 @@ def _sagwan_chat_respond(
                 timeout=80,
                 max_iterations=5,
                 is_admin=is_admin,
+                progress_callback=progress_callback,
             )
         else:
+            progress_callback("generating", "응답 생성 중")
             reply = _invoke_chatgpt_responses(
                 full_prompt, model="gpt-5.5", system=system, timeout=80,
             )
+        progress_callback("done", "")
     except Exception as exc:
         logger.warning("sagwan chat LLM error: %s", exc)
+        progress_callback("error", str(exc))
         reply = f"(오류: {exc})"
 
     try:

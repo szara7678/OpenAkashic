@@ -10112,8 +10112,55 @@ def _rewrite_markdown_image(match: re.Match[str], route_prefix: str) -> str:
     return f"![{alt}]({file_href(src, route_prefix)})"
 
 
+def _ensure_sagwan_progress_route() -> None:
+    """Register the Sagwan chat progress route from site.py when the app is loaded."""
+    import sys
+
+    main_mod = sys.modules.get("app.main")
+    if main_mod is None or getattr(main_mod, "_SAGWAN_PROGRESS_ROUTE_READY", False):
+        return
+    api = getattr(main_mod, "api", None)
+    if api is None:
+        return
+    for route in getattr(api, "routes", []):
+        if getattr(route, "path", "") == "/api/sagwan/chat/progress":
+            setattr(main_mod, "_SAGWAN_PROGRESS_ROUTE_READY", True)
+            return
+
+    from fastapi import HTTPException, Request
+    from app.sagwan_loop import _CHAT_PROGRESS, _CHAT_PROGRESS_LOCK, _validate_chat_session_id
+
+    @api.get("/api/sagwan/chat/progress")
+    def api_sagwan_chat_progress(session_id: str, request: Request) -> dict[str, Any]:
+        auth = main_mod._auth_from_request(request)
+        if not auth.authenticated:
+            raise HTTPException(status_code=401, detail="Authentication required")
+        try:
+            sid = _validate_chat_session_id(session_id)
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        with _CHAT_PROGRESS_LOCK:
+            progress = dict(_CHAT_PROGRESS.get(sid) or {})
+        state = str(progress.get("state") or "idle")
+        if state not in {"thinking", "tool", "generating", "done", "idle"}:
+            state = "done"
+        updated_at = progress.get("updated_at")
+        if isinstance(updated_at, (int, float)):
+            updated_at_text = datetime.fromtimestamp(float(updated_at)).isoformat()
+        else:
+            updated_at_text = str(updated_at or "")
+        return {
+            "state": state,
+            "detail": str(progress.get("detail") or ""),
+            "updated_at": updated_at_text,
+        }
+
+    setattr(main_mod, "_SAGWAN_PROGRESS_ROUTE_READY", True)
+
+
 def sagwan_chat_html(*, auth: Any = None, route_prefix: str = "") -> str:
     """Sagwan 5탭 UI — 채팅 / 현황 / 메모리 / 페르소나 / 도구."""
+    _ensure_sagwan_progress_route()
     from app.site import (
         _sagwan_status_panel_html,
         _sagwan_memory_panel_html,
@@ -10143,71 +10190,89 @@ def sagwan_chat_html(*, auth: Any = None, route_prefix: str = "") -> str:
       display: grid;
       grid-template-columns: 240px minmax(0,1fr);
       height: calc(100svh - var(--closed-header-height));
+      min-height: 0;
+      overflow: hidden;
+    }}
+    .sagwan-wrap.sidebar-hidden {{
+      grid-template-columns: minmax(0,1fr);
     }}
     /* ── sidebar ── */
     .sagwan-sidebar {{
       position: sticky;
       top: var(--closed-header-height);
       height: calc(100svh - var(--closed-header-height));
+      min-height: 0;
       display: flex;
       flex-direction: column;
       border-right: 1px solid var(--line);
-      background: rgba(248,250,252,.84);
+      background: var(--surface);
       backdrop-filter: blur(14px);
       overflow: hidden;
     }}
-    html[data-theme="dark"] .sagwan-sidebar {{
-      background: rgba(16,22,36,.88);
-    }}
     /* ── 상단 탭 바 ── */
     .sagwan-tab-bar {{
+      position: sticky;
+      top: var(--closed-header-height, 66px);
+      z-index: 42;
       display: flex;
+      align-items: center;
+      min-height: 46px;
+      padding-top: 2px;
       border-bottom: 1px solid var(--line);
       background: var(--surface);
       flex-shrink: 0;
       overflow-x: auto;
+      box-sizing: border-box;
     }}
     .sagwan-tab {{
-      padding: 10px 14px;
+      min-height: 42px;
+      padding: 0 14px;
       font-size: 12px;
-      font-weight: 500;
+      font-weight: 600;
       cursor: pointer;
       border: none;
       background: none;
       color: var(--muted);
       font-family: inherit;
       white-space: nowrap;
-      border-bottom: 2px solid transparent;
-      transition: color .15s, border-color .15s;
+      border-bottom: 2px solid var(--surface);
+      transition: color .15s, border-color .15s, background .15s;
     }}
-    .sagwan-tab:hover {{ color: var(--ink); }}
+    .sagwan-tab:hover {{ color: var(--ink); background: var(--bg); }}
     .sagwan-tab.active {{
       color: var(--accent);
       border-bottom-color: var(--accent);
     }}
     /* ── session list in sidebar ── */
     .sidebar-top {{
-      padding: 12px 10px 8px;
+      padding: 14px 12px 10px;
       border-bottom: 1px solid var(--line);
       flex-shrink: 0;
+      display: grid;
+      gap: 8px;
     }}
     .new-chat-btn {{
       width: 100%;
-      padding: 8px 11px;
-      background: var(--accent);
-      color: #fff;
+      min-height: 40px;
+      padding: 0 12px;
+      background: var(--ink);
+      color: var(--bg);
       border: none;
       border-radius: 7px;
       cursor: pointer;
       font-size: 12px;
-      font-weight: 500;
+      font-weight: 700;
       font-family: inherit;
       text-align: left;
       display: flex;
       align-items: center;
+      justify-content: flex-start;
       gap: 6px;
+      line-height: 1.2;
+      white-space: nowrap;
+      box-sizing: border-box;
     }}
-    .new-chat-btn:hover {{ filter: brightness(1.1); }}
+    .new-chat-btn:hover {{ background: var(--accent); }}
     .proj-input-row {{ padding: 5px 0 0; display: none; }}
     .proj-input-row.visible {{ display: block; }}
     .proj-input {{
@@ -10234,18 +10299,18 @@ def sagwan_chat_html(*, auth: Any = None, route_prefix: str = "") -> str:
       gap: 5px;
       margin-bottom: 1px;
     }}
-    .session-item:hover {{ background: var(--panel,rgba(0,0,0,.04)); }}
-    .session-item.active {{ background: rgba(37,99,235,.10); }}
-    html[data-theme="dark"] .session-item.active {{ background: rgba(96,165,250,.12); }}
+    .session-item:hover {{ background: var(--bg); }}
+    .session-item.active {{ background: var(--surface); }}
     .session-item-title {{ font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }}
     .session-item.active .session-item-title {{ color: var(--accent); }}
     .del-btn {{ opacity: 0; background: none; border: none; color: var(--muted); cursor: pointer; padding: 1px 3px; border-radius: 3px; font-size: 10px; }}
     .session-item:hover .del-btn {{ opacity: 1; }}
-    .del-btn:hover {{ color: var(--warn,#c2410c); }}
+    .del-btn:hover {{ color: var(--accent); }}
     /* ── main area ── */
-    .sagwan-main {{ display: flex; flex-direction: column; min-width: 0; background: var(--bg); }}
+    .sagwan-main {{ display: flex; flex-direction: column; min-width: 0; min-height: 0; background: var(--bg); }}
+    .sagwan-tab-content {{ min-height: 0; }}
     .chat-topbar {{
-      padding: 9px 18px;
+      padding: 10px 18px;
       border-bottom: 1px solid var(--line);
       display: flex;
       align-items: center;
@@ -10262,9 +10327,9 @@ def sagwan_chat_html(*, auth: Any = None, route_prefix: str = "") -> str:
     }}
     .chat-title-edit:focus {{ outline: none; background: var(--surface); border: 1px solid var(--accent); }}
     .cap-chips {{ display: flex; gap: 4px; flex-wrap: wrap; flex-shrink: 0; }}
-    .cap-chip {{ font-size: 11px; padding: 2px 7px; border-radius: 99px; background: var(--panel,rgba(0,0,0,.04)); color: var(--muted); border: 1px solid var(--line); white-space: nowrap; }}
-    .chat-messages {{ flex: 1; overflow-y: auto; padding: 20px 18px; display: flex; flex-direction: column; gap: 16px; }}
-    .msg-row {{ display: flex; gap: 10px; max-width: 800px; width: 100%; }}
+    .cap-chip {{ font-size: 11px; padding: 2px 7px; border-radius: 99px; background: var(--bg); color: var(--muted); border: 1px solid var(--line); white-space: nowrap; }}
+    .chat-messages {{ flex: 1; min-height: 0; overflow-y: auto; padding: 22px 22px 24px; display: flex; flex-direction: column; gap: 16px; scroll-behavior: smooth; }}
+    .msg-row {{ display: flex; gap: 10px; max-width: 860px; width: 100%; }}
     .msg-row.user {{ align-self: flex-end; flex-direction: row-reverse; }}
     .msg-row.sagwan {{ align-self: flex-start; }}
     .msg-avatar {{
@@ -10272,8 +10337,8 @@ def sagwan_chat_html(*, auth: Any = None, route_prefix: str = "") -> str:
       flex-shrink: 0; display: flex; align-items: center;
       justify-content: center; font-size: 11px; font-weight: 700;
     }}
-    .msg-row.user .msg-avatar {{ background: var(--accent); color: #fff; }}
-    .msg-row.sagwan .msg-avatar {{ background: var(--accent-2,#0f766e); color: #fff; }}
+    .msg-row.user .msg-avatar {{ background: var(--ink); color: var(--bg); }}
+    .msg-row.sagwan .msg-avatar {{ background: var(--accent); color: var(--bg); }}
     .msg-body {{ flex: 1; min-width: 0; }}
     .msg-name {{ font-size: 10px; color: var(--muted); margin-bottom: 3px; font-weight: 500; }}
     .msg-row.user .msg-name {{ text-align: right; }}
@@ -10283,8 +10348,7 @@ def sagwan_chat_html(*, auth: Any = None, route_prefix: str = "") -> str:
       white-space: pre-wrap; word-break: break-word;
       border: 1px solid var(--line);
     }}
-    .msg-row.user .msg-bubble {{ background: rgba(37,99,235,.07); border-color: rgba(37,99,235,.15); border-bottom-right-radius: 3px; }}
-    html[data-theme="dark"] .msg-row.user .msg-bubble {{ background: rgba(96,165,250,.09); border-color: rgba(96,165,250,.18); }}
+    .msg-row.user .msg-bubble {{ background: var(--surface); border-color: var(--accent); border-bottom-right-radius: 3px; }}
     .msg-row.sagwan .msg-bubble {{ background: var(--surface); border-bottom-left-radius: 3px; }}
     .chat-input-wrap {{ padding: 10px 18px 14px; border-top: 1px solid var(--line); background: var(--surface); flex-shrink: 0; }}
     .chat-input-box {{
@@ -10300,11 +10364,11 @@ def sagwan_chat_html(*, auth: Any = None, route_prefix: str = "") -> str:
     .chat-textarea:focus {{ outline: none; }}
     .chat-textarea::placeholder {{ color: var(--muted); opacity: .7; }}
     .send-btn {{
-      padding: 7px 14px; background: var(--accent); color: #fff;
+      min-height: 34px; padding: 0 15px; background: var(--ink); color: var(--bg);
       border: none; border-radius: 7px; cursor: pointer;
-      font-size: 12px; font-weight: 500; font-family: inherit; flex-shrink: 0;
+      font-size: 12px; font-weight: 700; font-family: inherit; flex-shrink: 0;
     }}
-    .send-btn:hover {{ filter: brightness(1.1); }}
+    .send-btn:hover {{ background: var(--accent); }}
     .send-btn:disabled {{ background: var(--line); color: var(--muted); cursor: default; filter: none; }}
     .empty-chat {{
       flex: 1; display: flex; flex-direction: column;
@@ -10312,7 +10376,7 @@ def sagwan_chat_html(*, auth: Any = None, route_prefix: str = "") -> str:
     }}
     .empty-chat .oa-mark {{
       width: 44px; height: 44px; border-radius: 12px;
-      background: var(--accent); color: #fff;
+      background: var(--ink); color: var(--bg);
       display: flex; align-items: center; justify-content: center;
       font-size: 20px; font-weight: 800; opacity: .65;
     }}
@@ -10324,8 +10388,9 @@ def sagwan_chat_html(*, auth: Any = None, route_prefix: str = "") -> str:
       border: 1px solid var(--line); color: var(--muted);
       border-radius: 99px; cursor: pointer; font-size: 11px; font-family: inherit;
     }}
-    .starter-pill:hover {{ border-color: var(--accent); color: var(--accent); background: rgba(37,99,235,.04); }}
-    .thinking-dots {{ display: flex; gap: 3px; padding: 7px 0 2px; }}
+    .starter-pill:hover {{ border-color: var(--accent); color: var(--accent); background: var(--bg); }}
+    .thinking-status {{ display: flex; align-items: center; gap: 10px; padding: 7px 0 2px; color: var(--muted); font-size: 12px; }}
+    .thinking-dots {{ display: flex; gap: 3px; }}
     .thinking-dots span {{
       width: 5px; height: 5px; background: var(--muted);
       border-radius: 50%; animation: tdot 1.2s infinite;
@@ -10338,14 +10403,14 @@ def sagwan_chat_html(*, auth: Any = None, route_prefix: str = "") -> str:
     .panel-inner {{ padding: 20px; max-width: 860px; }}
     .panel-warn {{
       padding: 10px 14px; border-radius: 7px; margin-bottom: 14px;
-      font-size: 12px; color: var(--warn,#c2410c);
-      background: rgba(194,65,12,.07); border: 1px solid rgba(194,65,12,.2);
+      font-size: 12px; color: var(--accent);
+      background: var(--surface); border: 1px solid var(--line);
     }}
     .panel-tabs {{ display: flex; gap: 2px; margin-bottom: 14px; border-bottom: 1px solid var(--line); }}
     .ptab {{
       padding: 7px 14px; font-size: 12px; font-weight: 500;
       cursor: pointer; border: none; background: none; color: var(--muted);
-      font-family: inherit; border-bottom: 2px solid transparent;
+      font-family: inherit; border-bottom: 2px solid var(--surface);
     }}
     .ptab:hover {{ color: var(--ink); }}
     .ptab.active {{ color: var(--accent); border-bottom-color: var(--accent); }}
@@ -10359,11 +10424,11 @@ def sagwan_chat_html(*, auth: Any = None, route_prefix: str = "") -> str:
     .mono-editor:focus {{ outline: none; border-color: var(--accent); }}
     .panel-save-btn {{
       margin-top: 10px; padding: 8px 20px;
-      background: var(--accent); color: #fff;
+      background: var(--ink); color: var(--bg);
       border: none; border-radius: 7px; cursor: pointer;
       font-size: 13px; font-weight: 500; font-family: inherit;
     }}
-    .panel-save-btn:hover {{ filter: brightness(1.1); }}
+    .panel-save-btn:hover {{ background: var(--accent); }}
     .panel-meta {{ font-size: 11px; color: var(--muted); margin-bottom: 7px; }}
     .panel-section {{ margin-top: 20px; }}
     .panel-section-title {{ font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px; }}
@@ -10400,9 +10465,36 @@ def sagwan_chat_html(*, auth: Any = None, route_prefix: str = "") -> str:
     }}
     .upload-zone:hover {{ border-color: var(--accent); }}
     #upload-result {{ margin-top: 12px; font-size: 13px; color: var(--ink); }}
-    #upload-result code {{ background: var(--panel,rgba(0,0,0,.04)); padding: 2px 5px; border-radius: 3px; font-size: 11px; }}
+    #upload-result code {{ background: var(--bg); padding: 2px 5px; border-radius: 3px; font-size: 11px; }}
     /* ── stats grid ── */
     .stats-grid {{ display: grid; grid-template-columns: repeat(auto-fill,minmax(140px,1fr)); gap: 12px; }}
+    body .mini-graph-fab,
+    body .mini-graph-widget,
+    body .librarian-fab,
+    body #librarian-status {{
+      display: none !important;
+    }}
+    @media (max-width: 720px) {{
+      .sagwan-wrap {{
+        grid-template-columns: minmax(0,1fr);
+      }}
+      .sagwan-sidebar {{
+        display: none;
+      }}
+      .chat-topbar {{
+        align-items: flex-start;
+        flex-direction: column;
+      }}
+      .chat-messages {{
+        padding: 16px 12px 18px;
+      }}
+      .msg-row {{
+        max-width: 100%;
+      }}
+      .chat-input-wrap {{
+        padding: 9px 10px 12px;
+      }}
+    }}
   </style>
 </head>
 <body class="closed-with-header">
@@ -10412,7 +10504,7 @@ def sagwan_chat_html(*, auth: Any = None, route_prefix: str = "") -> str:
     <!-- ── 사이드바 ── -->
     <aside class="sagwan-sidebar">
       <div class="sidebar-top">
-        <button class="new-chat-btn" onclick="newChat()">✏️ 새 대화</button>
+        <button class="new-chat-btn" id="newChatBtn" type="button">✏️ 새 대화</button>
         <div class="proj-input-row" id="projInputRow">
           <input class="proj-input" id="projInput" placeholder="프로젝트 이름 (선택)" />
         </div>
@@ -10424,17 +10516,17 @@ def sagwan_chat_html(*, auth: Any = None, route_prefix: str = "") -> str:
     <main class="sagwan-main">
       <!-- 탭 바 -->
       <div class="sagwan-tab-bar">
-        <button class="sagwan-tab active" onclick="switchTab('chat',this)">💬 채팅</button>
-        <button class="sagwan-tab" onclick="switchTab('status',this)">📊 현황</button>
-        <button class="sagwan-tab" onclick="switchTab('memory',this)">🧠 메모리</button>
-        <button class="sagwan-tab" onclick="switchTab('persona',this)">🪪 페르소나</button>
-        <button class="sagwan-tab" onclick="switchTab('tools',this)">🔧 도구</button>
+        <button class="sagwan-tab active" type="button" data-sagwan-tab="chat">💬 채팅</button>
+        <button class="sagwan-tab" type="button" data-sagwan-tab="status">📊 현황</button>
+        <button class="sagwan-tab" type="button" data-sagwan-tab="memory">🧠 메모리</button>
+        <button class="sagwan-tab" type="button" data-sagwan-tab="persona">🪪 페르소나</button>
+        <button class="sagwan-tab" type="button" data-sagwan-tab="tools">🔧 도구</button>
       </div>
 
       <!-- 채팅 탭 -->
       <div id="tab-chat" class="sagwan-tab-content" style="display:flex;flex-direction:column;flex:1;min-height:0">
         <div class="chat-topbar">
-          <input class="chat-title-edit" id="chatTitleInput" value="새 대화" onchange="updateTitle(this.value)" />
+          <input class="chat-title-edit" id="chatTitleInput" value="새 대화" />
           <div class="cap-chips">
             <span class="cap-chip">🔍 검색</span>
             <span class="cap-chip">📖 읽기</span>
@@ -10449,10 +10541,10 @@ def sagwan_chat_html(*, auth: Any = None, route_prefix: str = "") -> str:
             <h2>사관에게 말을 걸어보세요</h2>
             <p>vault 검색, 노트 작성, 연구 요청 등 무엇이든 도와드립니다.</p>
             <div class="starter-pills">
-              <button class="starter-pill" onclick="sendStarter(this)">vault에서 가장 많이 다루는 주제는?</button>
-              <button class="starter-pill" onclick="sendStarter(this)">최근 연구한 내용을 요약해줘</button>
-              <button class="starter-pill" onclick="sendStarter(this)">OpenAkashic MCP 사용법</button>
-              <button class="starter-pill" onclick="sendStarter(this)">FastAPI 인증 관련 캡슐 찾아줘</button>
+              <button class="starter-pill" type="button" data-starter>vault에서 가장 많이 다루는 주제는?</button>
+              <button class="starter-pill" type="button" data-starter>최근 연구한 내용을 요약해줘</button>
+              <button class="starter-pill" type="button" data-starter>OpenAkashic MCP 사용법</button>
+              <button class="starter-pill" type="button" data-starter>FastAPI 인증 관련 캡슐 찾아줘</button>
             </div>
           </div>
         </div>
@@ -10460,8 +10552,8 @@ def sagwan_chat_html(*, auth: Any = None, route_prefix: str = "") -> str:
           <div class="chat-input-box">
             <textarea id="msgInput" class="chat-textarea"
               placeholder="사관에게 메시지를 보내세요… (Enter 전송, Shift+Enter 줄바꿈)"
-              rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
-            <button class="send-btn" id="sendBtn" onclick="sendMessage()">전송</button>
+              rows="1"></textarea>
+            <button class="send-btn" id="sendBtn" type="button">전송</button>
           </div>
         </div>
       </div>
@@ -10491,6 +10583,11 @@ def sagwan_chat_html(*, auth: Any = None, route_prefix: str = "") -> str:
         const el = document.getElementById('tab-'+n) || document.getElementById(n+'-panel');
         if (el) el.style.display = 'none';
       }});
+      const wrap = document.querySelector('.sagwan-wrap');
+      const sidebar = document.querySelector('.sagwan-sidebar');
+      const wideLayout = !window.matchMedia || !window.matchMedia('(max-width: 720px)').matches;
+      if (sidebar) sidebar.style.display = name === 'chat' && wideLayout ? 'flex' : 'none';
+      if (wrap) wrap.classList.toggle('sidebar-hidden', name !== 'chat');
       // chat tab 특수 처리
       const chatEl = document.getElementById('tab-chat');
       if (chatEl) chatEl.style.display = name==='chat' ? 'flex' : 'none';
@@ -10578,8 +10675,46 @@ def sagwan_chat_html(*, auth: Any = None, route_prefix: str = "") -> str:
       document.getElementById('emptyState')?.remove();
       const row=document.createElement('div');
       row.id='thinking-row';row.className='msg-row sagwan';
-      row.innerHTML='<div class="msg-avatar">사</div><div class="msg-body"><div class="thinking-dots"><span></span><span></span><span></span></div></div>';
+      row.innerHTML='<div class="msg-avatar">사</div><div class="msg-body"><div class="thinking-status"><div class="thinking-dots"><span></span><span></span><span></span></div><span id="thinking-detail">생각 중</span></div></div>';
       area.appendChild(row);area.scrollTop=area.scrollHeight;
+    }}
+
+    let progressPollId = null;
+    function stopProgressPolling() {{
+      if (progressPollId) window.clearInterval(progressPollId);
+      progressPollId = null;
+    }}
+    function setThinkingDetail(detail) {{
+      const el = document.getElementById('thinking-detail');
+      if (el && detail) el.textContent = detail;
+    }}
+    function ensureSessionId() {{
+      if (currentSessionId) return currentSessionId;
+      let suffix = '';
+      try {{
+        const bytes = new Uint32Array(2);
+        window.crypto.getRandomValues(bytes);
+        suffix = Array.from(bytes).map(v => v.toString(36)).join('');
+      }} catch(e) {{
+        suffix = Math.random().toString(36).slice(2, 10);
+      }}
+      currentSessionId = 'web_' + Date.now().toString(36) + '_' + suffix;
+      return currentSessionId;
+    }}
+    function startProgressPolling(sessionId) {{
+      stopProgressPolling();
+      if (!sessionId) return;
+      const poll = async () => {{
+        try {{
+          const r = await fetch('/api/sagwan/chat/progress?session_id=' + encodeURIComponent(sessionId), {{headers:apiHeaders()}});
+          if (!r.ok) return;
+          const d = await r.json();
+          setThinkingDetail(d.detail || '');
+          if (d.state === 'done') stopProgressPolling();
+        }} catch(e) {{}}
+      }};
+      poll();
+      progressPollId = window.setInterval(poll, 600);
     }}
 
     async function sendMessage() {{
@@ -10587,18 +10722,22 @@ def sagwan_chat_html(*, auth: Any = None, route_prefix: str = "") -> str:
       const btn=document.getElementById('sendBtn');
       const msg=(input.value||'').trim();
       if(!msg) return;
+      const sessionId = ensureSessionId();
       input.value='';input.style.height='';btn.disabled=true;
       addBubble('user',msg);showThinking();
+      startProgressPolling(sessionId);
       try {{
         const proj=(document.getElementById('projInput')?.value||'').trim();
         const body={{message:msg}};
-        if(currentSessionId) body.session_id=currentSessionId;
+        if(sessionId) body.session_id=sessionId;
         if(proj) body.project=proj;
         const r=await fetch('/api/sagwan/chat',{{method:'POST',headers:apiHeaders(),body:JSON.stringify(body)}});
+        stopProgressPolling();
         document.getElementById('thinking-row')?.remove();
         if(!r.ok) {{ addBubble('sagwan','(오류: '+r.status+')'); }}
         else {{ const d=await r.json(); currentSessionId=d.session_id; addBubble('sagwan',d.reply||'(응답 없음)'); loadSidebar(); }}
       }} catch(e) {{
+        stopProgressPolling();
         document.getElementById('thinking-row')?.remove();
         addBubble('sagwan','(네트워크 오류)');
       }}
@@ -10624,8 +10763,22 @@ def sagwan_chat_html(*, auth: Any = None, route_prefix: str = "") -> str:
     function handleKey(e) {{ if(e.key==='Enter'&&!e.shiftKey){{e.preventDefault();sendMessage();}} }}
     function autoResize(el) {{ el.style.height='auto';el.style.height=Math.min(el.scrollHeight,140)+'px'; }}
     function esc(s) {{ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }}
+    function bindSagwanEvents() {{
+      document.querySelectorAll('[data-sagwan-tab]').forEach(btn => {{
+        btn.addEventListener('click', () => switchTab(btn.dataset.sagwanTab, btn));
+      }});
+      document.querySelectorAll('[data-starter]').forEach(btn => {{
+        btn.addEventListener('click', () => sendStarter(btn));
+      }});
+      document.getElementById('newChatBtn')?.addEventListener('click', newChat);
+      document.getElementById('sendBtn')?.addEventListener('click', sendMessage);
+      document.getElementById('msgInput')?.addEventListener('keydown', handleKey);
+      document.getElementById('msgInput')?.addEventListener('input', ev => autoResize(ev.currentTarget));
+      document.getElementById('chatTitleInput')?.addEventListener('change', ev => updateTitle(ev.currentTarget.value));
+    }}
 
     // init
+    bindSagwanEvents();
     loadSidebar();
     document.getElementById('msgInput').focus();
   </script>
@@ -11039,7 +11192,7 @@ def _sagwan_status_panel_html() -> str:
     </div>
     <div style="margin-top:10px">
       <span id="status-updated" style="font-size:11px;color:var(--muted)"></span>
-      <button onclick="loadStatus()" style="margin-left:8px;font-size:11px;padding:2px 8px;background:var(--panel,rgba(0,0,0,.04));border:1px solid var(--line);border-radius:4px;cursor:pointer;color:var(--ink)">새로고침</button>
+      <button onclick="loadStatus()" style="margin-left:8px;font-size:11px;padding:2px 8px;background:var(--surface);border:1px solid var(--line);border-radius:4px;cursor:pointer;color:var(--ink)">새로고침</button>
     </div>
   </div>
 </div>
@@ -11121,7 +11274,7 @@ async function loadTools() {
   const r = await fetch('/api/sagwan/tools', {headers: h});
   if (!r.ok) return;
   const {tools} = await r.json();
-  const catColor = {read:'var(--accent-2,#0f766e)', write:'var(--accent)', research:'#7c3aed', utility:'var(--muted)'};
+  const catColor = {read:'var(--accent)', write:'var(--accent)', research:'var(--accent)', utility:'var(--muted)'};
   const grid = document.getElementById('tools-grid');
   grid.innerHTML = '';
   for (const t of tools) {
