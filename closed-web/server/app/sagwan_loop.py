@@ -24,6 +24,7 @@ import subprocess
 import threading
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from typing import Any
 from uuid import uuid4
@@ -187,6 +188,7 @@ def _default_sagwan_settings() -> dict[str, Any]:
         "research_dedup_similarity_threshold": 0.85,
         "experience_seed_enabled": True,
         "github_experience_enabled": True,
+        "stackoverflow_experience_enabled": True,
         "consolidate_enabled": True,
         "consolidate_interval_sec": 21600,  # 6시간
         "consolidate_min_reviews": 3,
@@ -289,6 +291,9 @@ def load_sagwan_settings() -> dict[str, Any]:
         ),
         "experience_seed_enabled": bool(raw.get("experience_seed_enabled", defaults["experience_seed_enabled"])),
         "github_experience_enabled": bool(raw.get("github_experience_enabled", defaults["github_experience_enabled"])),
+        "stackoverflow_experience_enabled": bool(
+            raw.get("stackoverflow_experience_enabled", defaults["stackoverflow_experience_enabled"])
+        ),
         "maintenance_enabled": bool(raw.get("maintenance_enabled", defaults["maintenance_enabled"])),
         "maintenance_interval_sec": min(
             86400,
@@ -394,6 +399,9 @@ def save_sagwan_settings(payload: dict[str, Any]) -> dict[str, Any]:
         "experience_seed_enabled": bool(payload.get("experience_seed_enabled", current.get("experience_seed_enabled", True))),
         "github_experience_enabled": bool(
             payload.get("github_experience_enabled", current.get("github_experience_enabled", True))
+        ),
+        "stackoverflow_experience_enabled": bool(
+            payload.get("stackoverflow_experience_enabled", current.get("stackoverflow_experience_enabled", True))
         ),
         "maintenance_enabled": bool(payload.get("maintenance_enabled", current["maintenance_enabled"])),
         "maintenance_interval_sec": min(
@@ -1771,10 +1779,17 @@ def run_sagwan_curation_cycle(*, reason: str = "scheduled") -> dict[str, Any]:
             github_experience = _curate_github_experience_mining()
         else:
             github_experience = {"status": "disabled"}
+        if settings.get("stackoverflow_experience_enabled", True) and settings.get("so_ingest_enabled", False):
+            stackoverflow_experience = _curate_stackoverflow_experience_mining()
+        elif not settings.get("stackoverflow_experience_enabled", True):
+            stackoverflow_experience = {"status": "disabled"}
+        else:
+            stackoverflow_experience = {"status": "disabled", "reason": "so_ingest_disabled"}
     except Exception as exc:
         logger.error("sagwan curation experience seed mining failed: %s", exc)
         experience_seed = {"error": str(exc)}
         github_experience = {"error": str(exc)}
+        stackoverflow_experience = {"error": str(exc)}
 
     # Stage K (research): under task_queue, default kill-switched. Bootstrap
     # silently no-ops if `research_gap` is in task_queue_kinds_disabled.
@@ -1868,6 +1883,7 @@ def run_sagwan_curation_cycle(*, reason: str = "scheduled") -> dict[str, Any]:
         "meta_curation": i_meta,
         "experience_seed": experience_seed,
         "github_experience": github_experience,
+        "stackoverflow_experience": stackoverflow_experience,
         "research_gaps": k_research,
         "consolidate_reviews": l_consolidate,
         "maintenance": m_maintenance,
@@ -4015,13 +4031,118 @@ def _curate_github_experience_mining() -> dict[str, Any]:
                     "next_run_after": next_allowed.replace(microsecond=0).isoformat().replace("+00:00", "Z"),
                 }
 
-    repos = [
-        ("tiangolo", "fastapi"),
-        ("facebook", "react"),
-        ("django", "django"),
-        ("pallets", "flask"),
-        ("kubernetes", "kubernetes"),
+    domain_pool = [
+        "backend python",
+        "frontend javascript",
+        "kubernetes devops",
+        "machine learning",
+        "rust systems",
+        "go backend",
+        "database",
+        "web framework",
+        "cli tools",
+        "security",
     ]
+
+    def _state_list(name: str) -> list[str]:
+        value = state.get(name)
+        if isinstance(value, list):
+            return [str(item).strip() for item in value if str(item).strip()]
+        if isinstance(value, str):
+            return [item.strip() for item in value.split(",") if item.strip()]
+        return []
+
+    last_github_domains = set(_state_list("last_github_domains"))
+    last_github_repos = set(_state_list("last_github_repos"))
+    candidate_domains = [domain for domain in domain_pool if domain not in last_github_domains] or list(domain_pool)
+    selected_domains = candidate_domains[:3]
+    fallback_repo_specs = [
+        "tiangolo/fastapi",
+        "facebook/react",
+        "django/django",
+        "pallets/flask",
+        "kubernetes/kubernetes",
+    ]
+
+    fetched_repo_specs: list[str] = []
+    search_errors: list[dict[str, str]] = []
+    search_call_count = 0
+    planned_search_calls = len(selected_domains) * 2
+    for domain in selected_domains:
+        search_queries = [
+            f"{domain} stars:>2000 pushed:>2025-06-01",
+            f"{domain} stars:>20000",
+        ]
+        for query in search_queries:
+            if planned_search_calls > 5 and search_call_count > 0:
+                time.sleep(0.5)
+            search_call_count += 1
+            search_url = (
+                "https://api.github.com/search/repositories?"
+                + urllib.parse.urlencode(
+                    {
+                        "q": query,
+                        "sort": "stars",
+                        "order": "desc",
+                        "per_page": "3",
+                    }
+                )
+            )
+            try:
+                request = urllib.request.Request(
+                    search_url,
+                    headers={
+                        "Accept": "application/vnd.github+json",
+                        "User-Agent": "OpenAkashic-Sagwan/1.0",
+                    },
+                )
+                with urllib.request.urlopen(request, timeout=20) as response:
+                    payload = json.loads(response.read().decode("utf-8") or "{}")
+            except urllib.error.HTTPError as exc:
+                search_errors.append({"domain": domain, "error": f"HTTP {exc.code}: {exc.reason}"})
+                continue
+            except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exc:
+                search_errors.append({"domain": domain, "error": str(exc)})
+                continue
+            if not isinstance(payload, dict):
+                search_errors.append({"domain": domain, "error": "unexpected GitHub search response"})
+                continue
+            for item in payload.get("items") or []:
+                if not isinstance(item, dict):
+                    continue
+                full_name = str(item.get("full_name") or "").strip()
+                if full_name and "/" in full_name:
+                    fetched_repo_specs.append(full_name)
+
+    repo_specs: list[str] = []
+    seen_repo_specs: set[str] = set()
+    for full_name in [*fetched_repo_specs, *fallback_repo_specs]:
+        if full_name in seen_repo_specs or full_name in last_github_repos:
+            continue
+        seen_repo_specs.add(full_name)
+        repo_specs.append(full_name)
+        if len(repo_specs) >= 5:
+            break
+    if len(repo_specs) < 3:
+        for full_name in fallback_repo_specs:
+            if full_name in seen_repo_specs:
+                continue
+            seen_repo_specs.add(full_name)
+            repo_specs.append(full_name)
+            if len(repo_specs) >= 3:
+                break
+
+    next_frontmatter = dict(state)
+    next_frontmatter["last_github_domains"] = selected_domains
+    next_frontmatter["last_github_repos"] = repo_specs
+    write_document(
+        path=_RESEARCH_LOG_PATH,
+        body=state_doc.body,
+        metadata=next_frontmatter,
+        allow_owner_change=True,
+    )
+
+    repos = [tuple(repo_spec.split("/", 1)) for repo_spec in repo_specs if "/" in repo_spec]
     repo_results: list[dict[str, Any]] = []
     merged_prs: list[dict[str, Any]] = []
     for owner, repo in repos:
@@ -4191,6 +4312,208 @@ def _curate_github_experience_mining() -> dict[str, Any]:
         "paths": written_paths,
         "source_pr_count": len(merged_prs),
         "repos": repo_results,
+    }
+
+
+_STACKOVERFLOW_EXPERIENCE_QUERIES = [
+    "fastapi authentication best practices",
+    "react hooks common pitfalls",
+    "kubernetes deployment failure",
+    "python async await gotchas",
+    "docker compose production",
+    "postgresql query optimization",
+]
+
+
+def _touch_stackoverflow_mining_state(now_iso: str) -> None:
+    _ensure_research_log_document()
+    doc = load_document(_RESEARCH_LOG_PATH)
+    next_frontmatter = dict(doc.frontmatter or {})
+    next_frontmatter["last_stackoverflow_mining_at"] = now_iso
+    write_document(
+        path=_RESEARCH_LOG_PATH,
+        body=doc.body,
+        metadata=next_frontmatter,
+        allow_owner_change=True,
+    )
+
+
+def _curate_stackoverflow_experience_mining() -> dict[str, Any]:
+    if not _SO_INGEST_AVAILABLE or search_stackoverflow is None:
+        return {"status": "unavailable", "reason": "so_ingest_unavailable"}
+
+    _ensure_research_log_document()
+    state_doc = load_document(_RESEARCH_LOG_PATH)
+    state = dict(state_doc.frontmatter or {})
+    last_stackoverflow_mining_at = str(state.get("last_stackoverflow_mining_at") or "").strip()
+    if last_stackoverflow_mining_at:
+        last_dt = _parse_iso_datetime(last_stackoverflow_mining_at)
+        if last_dt is not None:
+            next_allowed = last_dt + timedelta(days=7)
+            if datetime.now(UTC) < next_allowed:
+                return {
+                    "status": "cooldown",
+                    "last_stackoverflow_mining_at": last_stackoverflow_mining_at,
+                    "next_run_after": next_allowed.replace(microsecond=0).isoformat().replace("+00:00", "Z"),
+                }
+
+    query_results: list[dict[str, Any]] = []
+    stackoverflow_results: list[dict[str, Any]] = []
+    for query in _STACKOVERFLOW_EXPERIENCE_QUERIES:
+        result: dict[str, Any] = {"query": query, "results": []}
+        try:
+            results = search_stackoverflow(query, max_results=3) or []
+        except Exception as exc:
+            result["error"] = str(exc)[:500]
+            query_results.append(result)
+            continue
+        if not results:
+            query_results.append(result)
+            continue
+        for item in results[:3]:
+            if isinstance(item, dict):
+                result["results"].append(item)
+                stackoverflow_results.append({"query": query, **item})
+        query_results.append(result)
+
+    fetch_failed = any(result.get("error") for result in query_results)
+    now_iso = _now_iso()
+    if not stackoverflow_results:
+        if not fetch_failed:
+            _touch_stackoverflow_mining_state(now_iso)
+        return {"status": "no_results", "queries": query_results}
+
+    prompt_results: list[dict[str, Any]] = []
+    for item in stackoverflow_results:
+        prompt_results.append(
+            {
+                "query": str(item.get("query") or ""),
+                "title": str(item.get("title") or "")[:300],
+                "source_url": str(item.get("source_url") or item.get("link") or ""),
+                "score": item.get("score"),
+                "tags": item.get("tags") or [],
+                "author": str(item.get("author") or "unknown"),
+                "license": str(item.get("license") or "CC-BY-SA-4.0"),
+                "fetched_at": str(item.get("fetched_at") or ""),
+                "answer_body": str(item.get("answer_body") or "")[:1200],
+            }
+        )
+    source_urls = list(
+        dict.fromkeys(
+            str(item.get("source_url") or item.get("link") or "").strip()
+            for item in stackoverflow_results
+            if str(item.get("source_url") or item.get("link") or "").strip()
+        )
+    )
+    prompt = "\n\n".join(
+        [
+            "Extract reusable lessons for future coding agents from these StackOverflow results. Return at most 3 items.",
+            "Output JSON only. Use an array or {\"items\":[...]} with fields: topic, problem, solution, failure_modes, tags.",
+            "Each item must make the external StackOverflow source clear by including stackoverflow or external-mined in tags.",
+            "",
+            "## StackOverflow results",
+            json.dumps(prompt_results, ensure_ascii=False, indent=2),
+        ]
+    )
+    try:
+        raw = _invoke_for_stage("experience_seed", prompt)
+    except StageRateLimitExceeded:
+        return {"status": "rate_limit_skipped", "queries": query_results}
+    items = _parse_experience_seed_items(raw)[:3]
+    if not items:
+        return {"status": "llm_parse_error", "raw": str(raw or "")[:500], "queries": query_results}
+
+    written_paths: list[str] = []
+    skipped_duplicates: list[dict[str, Any]] = []
+    used_paths: set[str] = set()
+    for index, item in enumerate(items, start=1):
+        duplicate_match = _experience_seed_duplicate_guard(
+            item,
+            project="external",
+            threshold=_DEDUP_GUARD_OVERLAP_THRESHOLD,
+        )
+        if duplicate_match.get("matched"):
+            skipped = {
+                "topic": str(item.get("topic") or "").strip(),
+                "project": "external",
+                "existing_path": str(duplicate_match.get("path") or ""),
+                "existing_title": str(duplicate_match.get("title") or ""),
+                "score": duplicate_match.get("score"),
+                "threshold": duplicate_match.get("threshold"),
+                "shared_terms": duplicate_match.get("shared_terms") or [],
+            }
+            skipped_duplicates.append(skipped)
+            logger.info(
+                "sagwan stackoverflow experience seed: %s",
+                json.dumps({"skipped_duplicate_experience": skipped}, ensure_ascii=False),
+            )
+            continue
+
+        title = str(item.get("topic") or f"StackOverflow experience lesson {index}").strip()
+        base_slug = _topic_slug(title)[:60] or f"stackoverflow-experience-{index}"
+        slug = base_slug
+        path = f"personal_vault/knowledge/agent-experience/external/{slug}.md"
+        suffix = 2
+        while path in used_paths:
+            slug = f"{base_slug[:57]}-{suffix}"
+            path = f"personal_vault/knowledge/agent-experience/external/{slug}.md"
+            suffix += 1
+        used_paths.add(path)
+
+        failure_modes = [str(mode).strip() for mode in (item.get("failure_modes") or []) if str(mode).strip()]
+        failure_lines = [f"- {mode}" for mode in failure_modes] if failure_modes else ["- (not specified)"]
+        source_lines = [f"- {url}" for url in source_urls] or ["- (not specified)"]
+        body_lines = [
+            "## Summary",
+            title,
+            "",
+            "## Problem",
+            str(item.get("problem") or "").strip() or "(not specified)",
+            "",
+            "## Solution",
+            str(item.get("solution") or "").strip() or "(not specified)",
+            "",
+            "## Failure Modes",
+            *failure_lines,
+            "",
+            "## Sources",
+            *source_lines,
+            f"- mined_at: {now_iso}",
+        ]
+        doc = write_document(
+            path=path,
+            title=title,
+            kind="capsule",
+            project="external",
+            status="active",
+            tags=["capsule", "agent-experience", "external-mined", "stackoverflow"],
+            body="\n".join(body_lines).rstrip() + "\n",
+            metadata={
+                "visibility": "public",
+                "publication_status": "published",
+                "owner": SAGWAN_DECIDER,
+                "created_by": SAGWAN_DECIDER,
+                "generated_by": "sagwan-stackoverflow-experience",
+                "source_type": "stackoverflow",
+                "source_queries": list(_STACKOVERFLOW_EXPERIENCE_QUERIES),
+                "source_urls": source_urls,
+                "source_result_count": len(stackoverflow_results),
+                "mined_at": now_iso,
+            },
+            allow_owner_change=True,
+        )
+        written_paths.append(doc.path)
+
+    if not fetch_failed:
+        _touch_stackoverflow_mining_state(now_iso)
+    return {
+        "status": "ok",
+        "written": len(written_paths),
+        "skipped_duplicates": len(skipped_duplicates),
+        "duplicate_matches": skipped_duplicates[:10],
+        "paths": written_paths,
+        "source_result_count": len(stackoverflow_results),
+        "queries": query_results,
     }
 
 
