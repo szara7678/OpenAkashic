@@ -2875,11 +2875,85 @@ def _list_recent_research_topics(*, max_age_days: int = 7, max_entries: int = 20
     return list(reversed(entries))[:max_entries]
 
 
+def _list_blocked_research_topics(*, max_age_days: int = 7, max_entries: int = 30) -> list[str]:
+    """Return topics that were recently blocked (hard_duplicate, skipped, semantic_vault_duplicate).
+    Used to build an explicit AVOID list in the gap selection prompt."""
+    try:
+        doc = load_document(_RESEARCH_LOG_PATH)
+    except Exception:
+        return []
+    body = str(doc.body or "")
+    cutoff = datetime.now(UTC) - timedelta(days=max_age_days)
+    blocked_statuses = {"hard_duplicate", "skipped_duplicate", "semantic_vault_duplicate", "skipped_recent_topic"}
+    blocked: list[str] = []
+    for match in re.finditer(r"^##\s+(\S+)\s+research-gap\s*$([\s\S]*?)(?=^##\s+|\Z)", body, re.MULTILINE):
+        ts_str = match.group(1)
+        section = match.group(2)
+        ts = _parse_iso_datetime(ts_str)
+        if ts is not None and ts < cutoff:
+            continue
+        status_match = re.search(r"^\s*-\s*status:\s*(\S+)", section, re.MULTILINE)
+        if not status_match:
+            continue
+        status = status_match.group(1).strip()
+        if status not in blocked_statuses:
+            continue
+        topic_match = re.search(r"^\s*-\s*topic:\s*(.+?)\s*$", section, re.MULTILINE)
+        if not topic_match:
+            continue
+        topic = topic_match.group(1).strip()
+        if topic and topic not in blocked:
+            blocked.append(topic)
+        if len(blocked) >= max_entries:
+            break
+    return blocked
+
+
+def _extract_root_domains(recent_topics: list[dict[str, Any]], *, limit: int = 10) -> list[str]:
+    """Extract distinct root domain labels from recent research topics for diversity enforcement."""
+    # Map common topic keywords to canonical domain names
+    domain_keywords: list[tuple[list[str], str]] = [
+        (["ichimozzi", "ichi", "jlpt", "japanese", "일본어", "이치모찌"], "ichimozzi/japanese-learning"),
+        (["arc-fleet", "arcfleet", "sagwan", "openakashic", "akashic", "사관"], "internal-project"),
+        (["docker", "container", "compose", "k8s", "kubernetes", "helm"], "devops/containers"),
+        (["auth", "authentication", "oauth", "jwt", "session", "cookie"], "auth/security"),
+        (["react", "hooks", "frontend", "component", "ui", "css", "tailwind"], "frontend/react"),
+        (["rag", "retrieval", "vector", "embedding", "llm", "ai", "model"], "ai/rag"),
+        (["ci", "cd", "pipeline", "github actions", "deploy", "release"], "ci-cd"),
+        (["postgres", "sql", "database", "db", "redis", "mongo"], "database"),
+        (["python", "fastapi", "django", "flask", "backend"], "backend/python"),
+        (["typescript", "node", "nest", "express"], "backend/nodejs"),
+    ]
+    domains: list[str] = []
+    for entry in recent_topics[:limit]:
+        topic_lower = (entry.get("topic") or "").lower()
+        slug = entry.get("topic_slug") or ""
+        combined = f"{topic_lower} {slug}".lower()
+        matched = False
+        for keywords, domain in domain_keywords:
+            if any(kw in combined for kw in keywords):
+                if domain not in domains:
+                    domains.append(domain)
+                matched = True
+                break
+        if not matched:
+            # Use first two words of topic as fallback domain label
+            words = topic_lower.split()
+            if words:
+                fallback = words[0] if len(words) == 1 else f"{words[0]}-{words[1]}"
+                if fallback not in domains:
+                    domains.append(fallback)
+    return domains
+
+
+
 def _build_gap_selection_prompt(
     inventory: dict[str, Any],
     memory_snippet: str,
     recent_topics: list[dict[str, Any]] | None = None,
     worked_well_patterns: list[str] | None = None,
+    blocked_topics: list[str] | None = None,
+    recent_domains: list[str] | None = None,
 ) -> str:
     top_thin = inventory.get("top_thin") or []
     gap_queries = inventory.get("recent_gap_queries") or []
@@ -2914,6 +2988,35 @@ def _build_gap_selection_prompt(
     if recent_topics:
         topic_lines = "\n".join(f"- {entry['topic']}" for entry in recent_topics[:20])
         sections.append("\n## Recently researched (중복 선택 금지)\n" + topic_lines)
+    # [개선1] 최근 차단된 주제 명시 — 이 주제들은 이미 vault에 충분히 커버됨
+    if blocked_topics:
+        avoid_lines = "\n".join(f"- {t}" for t in blocked_topics[:30])
+        sections.append(
+            "\n## ⛔ 이미 충분히 커버됨 — 절대 선택 금지 (최근 7일 중복 차단 목록)\n"
+            + avoid_lines
+            + "\n위 주제와 같은 root topic(변형/파생 포함)은 모두 제외하라."
+        )
+    # [개선2] 미개척 우선 영역 — 현재 arc-fleet/ichimozzi 내부 프로젝트로 편향 심함
+    sections.append(
+        "\n## 🎯 HIGH-PRIORITY: 미개척 일반 도메인 (우선 탐색 요망)\n"
+        "아래 도메인은 vault coverage 가 낮고 외부 수요가 높다. 다른 신호가 불분명하면 이 영역에서 고를 것:\n"
+        "- Backend auth patterns (JWT refresh rotation, OAuth 2.1, session fixation)"
+        "\n- Frontend React hooks (useSyncExternalStore, useOptimistic, concurrent patterns)"
+        "\n- RAG evaluation (RAGAS, context precision/recall, chunk strategy tradeoffs)"
+        "\n- Kubernetes (HPA tuning, PodDisruptionBudget, KEDA event-driven scaling)"
+        "\n- CI/CD pipelines (GitHub Actions reusable workflows, ArgoCD GitOps patterns)"
+        "\n- General software engineering (CQRS, saga pattern, hexagonal architecture, event sourcing)"
+        "\n- Observability (OpenTelemetry spans, distributed tracing, SLO error budgets)"
+        "\n내부 프로젝트(ichimozzi, arc-fleet, sagwan, openakashic 운영) 주제는 위 일반 도메인 후보가 없을 때만 선택하라."
+    )
+    # [개선3] Root domain 다양성 강제 — 최근 N회와 같은 도메인 반복 금지
+    if recent_domains:
+        domain_lines = "\n".join(f"- {d}" for d in recent_domains[:10])
+        sections.append(
+            "\n## 🔄 도메인 다양성 강제 — 최근 연구 도메인 (동일 도메인 반복 금지)\n"
+            + domain_lines
+            + "\n위 도메인과 같거나 유사한 영역을 또 선택하지 말라. 다른 root domain을 선택하라."
+        )
     if worked_well_patterns:
         sections.append(
             "\n## Worked-well topic patterns from distilled memory\n"
@@ -3620,6 +3723,64 @@ def _touch_git_mining_state(now_iso: str) -> None:
     )
 
 
+def _experience_seed_duplicate_guard(
+    item: dict[str, Any],
+    *,
+    project: str,
+    threshold: float,
+) -> dict[str, Any]:
+    candidate_title = str(item.get("topic") or item.get("title") or "").strip()
+    candidate_terms = _topic_terms(candidate_title)
+    if not candidate_terms:
+        return {"matched": False, "checked": 0}
+
+    prefix = f"personal_vault/knowledge/agent-experience/{project}/"
+    checked = 0
+    try:
+        paths = [
+            path for path in list_note_paths()
+            if path.startswith(prefix)
+            and path.endswith(".md")
+            and "/" not in path[len(prefix):]
+        ]
+    except Exception as exc:
+        logger.debug("experience seed dedup inventory failed: %s", exc)
+        return {"matched": False, "checked": 0, "inventory": "failed"}
+
+    for path in paths:
+        try:
+            doc = load_document(path)
+        except Exception:
+            continue
+        fm = dict(doc.frontmatter or {})
+        raw_tags = fm.get("tags") or []
+        tags = (
+            {str(tag).lower() for tag in raw_tags}
+            if isinstance(raw_tags, list)
+            else {str(raw_tags).lower()}
+        )
+        if fm.get("generated_by") != "sagwan-experience-seed" and "agent-experience" not in tags:
+            continue
+        if not _capsule_is_live(fm):
+            continue
+        existing_title = str(fm.get("title") or Path(path).stem).strip()
+        existing_terms = _topic_terms(existing_title)
+        score, shared = _topic_overlap_score(candidate_terms, existing_terms)
+        checked += 1
+        if score >= threshold and shared:
+            return {
+                "matched": True,
+                "method": "token_overlap",
+                "score": round(score, 4),
+                "threshold": round(float(threshold), 4),
+                "path": path,
+                "title": existing_title,
+                "shared_terms": shared,
+                "checked": checked,
+            }
+    return {"matched": False, "checked": checked}
+
+
 def _curate_experience_seed_mining() -> dict[str, Any]:
     _ensure_research_log_document()
     state_doc = load_document(_RESEARCH_LOG_PATH)
@@ -3712,9 +3873,31 @@ def _curate_experience_seed_mining() -> dict[str, Any]:
         return {"status": "llm_parse_error", "raw": str(raw or "")[:500], "repos": commit_payload}
 
     written_paths: list[str] = []
+    skipped_duplicates: list[dict[str, Any]] = []
     used_paths: set[str] = set()
     for index, item in enumerate(items, start=1):
         project = str(item.get("project") or "cross-project").strip() or "cross-project"
+        duplicate_match = _experience_seed_duplicate_guard(
+            item,
+            project=project,
+            threshold=_DEDUP_GUARD_OVERLAP_THRESHOLD,
+        )
+        if duplicate_match.get("matched"):
+            skipped = {
+                "topic": str(item.get("topic") or "").strip(),
+                "project": project,
+                "existing_path": str(duplicate_match.get("path") or ""),
+                "existing_title": str(duplicate_match.get("title") or ""),
+                "score": duplicate_match.get("score"),
+                "threshold": duplicate_match.get("threshold"),
+                "shared_terms": duplicate_match.get("shared_terms") or [],
+            }
+            skipped_duplicates.append(skipped)
+            logger.info(
+                "sagwan experience seed: %s",
+                json.dumps({"skipped_duplicate_experience": skipped}, ensure_ascii=False),
+            )
+            continue
         base_slug = _topic_slug(str(item.get("topic") or "")) or f"experience-seed-{index}"
         slug = base_slug
         path = f"personal_vault/knowledge/agent-experience/{project}/{slug}.md"
@@ -3783,6 +3966,8 @@ def _curate_experience_seed_mining() -> dict[str, Any]:
     return {
         "status": "ok",
         "written": len(written_paths),
+        "skipped_duplicates": len(skipped_duplicates),
+        "duplicate_matches": skipped_duplicates[:10],
         "paths": written_paths,
         "repos": commit_payload,
     }
@@ -4234,11 +4419,16 @@ def _curate_research_gaps(force: bool = False) -> dict[str, Any]:
     )
     recent_topics = _list_recent_research_topics(max_age_days=7, max_entries=15)
     worked_well_patterns = _extract_worked_well_topic_patterns(memory_snippet, limit=3)
+    # [개선1-3] 차단 주제 AVOID 리스트 + root domain 다양성 신호 수집
+    blocked_topics = _list_blocked_research_topics(max_age_days=7, max_entries=30)
+    recent_domains = _extract_root_domains(recent_topics, limit=10)
     selection_prompt = _build_gap_selection_prompt(
         inventory,
         memory_snippet,
         recent_topics,
         worked_well_patterns,
+        blocked_topics=blocked_topics,
+        recent_domains=recent_domains,
     )
     try:
         raw_selection = _invoke_for_stage("research_selection", selection_prompt)
