@@ -23,6 +23,8 @@ import re
 import subprocess
 import threading
 import time
+import urllib.error
+import urllib.request
 from typing import Any
 from uuid import uuid4
 
@@ -184,6 +186,7 @@ def _default_sagwan_settings() -> dict[str, Any]:
         "research_topic_cooldown_cycles": 5,
         "research_dedup_similarity_threshold": 0.85,
         "experience_seed_enabled": True,
+        "github_experience_enabled": True,
         "consolidate_enabled": True,
         "consolidate_interval_sec": 21600,  # 6시간
         "consolidate_min_reviews": 3,
@@ -285,6 +288,7 @@ def load_sagwan_settings() -> dict[str, Any]:
             ),
         ),
         "experience_seed_enabled": bool(raw.get("experience_seed_enabled", defaults["experience_seed_enabled"])),
+        "github_experience_enabled": bool(raw.get("github_experience_enabled", defaults["github_experience_enabled"])),
         "maintenance_enabled": bool(raw.get("maintenance_enabled", defaults["maintenance_enabled"])),
         "maintenance_interval_sec": min(
             86400,
@@ -388,6 +392,9 @@ def save_sagwan_settings(payload: dict[str, Any]) -> dict[str, Any]:
             max(1, int(payload.get("research_max_fetches") or current["research_max_fetches"])),
         ),
         "experience_seed_enabled": bool(payload.get("experience_seed_enabled", current.get("experience_seed_enabled", True))),
+        "github_experience_enabled": bool(
+            payload.get("github_experience_enabled", current.get("github_experience_enabled", True))
+        ),
         "maintenance_enabled": bool(payload.get("maintenance_enabled", current["maintenance_enabled"])),
         "maintenance_interval_sec": min(
             86400,
@@ -1760,9 +1767,14 @@ def run_sagwan_curation_cycle(*, reason: str = "scheduled") -> dict[str, Any]:
             experience_seed = _curate_experience_seed_mining()
         else:
             experience_seed = {"status": "disabled"}
+        if settings.get("github_experience_enabled", True):
+            github_experience = _curate_github_experience_mining()
+        else:
+            github_experience = {"status": "disabled"}
     except Exception as exc:
         logger.error("sagwan curation experience seed mining failed: %s", exc)
         experience_seed = {"error": str(exc)}
+        github_experience = {"error": str(exc)}
 
     # Stage K (research): under task_queue, default kill-switched. Bootstrap
     # silently no-ops if `research_gap` is in task_queue_kinds_disabled.
@@ -1855,6 +1867,7 @@ def run_sagwan_curation_cycle(*, reason: str = "scheduled") -> dict[str, Any]:
         "topic_proposals": h_topics,
         "meta_curation": i_meta,
         "experience_seed": experience_seed,
+        "github_experience": github_experience,
         "research_gaps": k_research,
         "consolidate_reviews": l_consolidate,
         "maintenance": m_maintenance,
@@ -3970,6 +3983,214 @@ def _curate_experience_seed_mining() -> dict[str, Any]:
         "duplicate_matches": skipped_duplicates[:10],
         "paths": written_paths,
         "repos": commit_payload,
+    }
+
+
+def _touch_github_mining_state(now_iso: str) -> None:
+    _ensure_research_log_document()
+    doc = load_document(_RESEARCH_LOG_PATH)
+    next_frontmatter = dict(doc.frontmatter or {})
+    next_frontmatter["last_github_mining_at"] = now_iso
+    write_document(
+        path=_RESEARCH_LOG_PATH,
+        body=doc.body,
+        metadata=next_frontmatter,
+        allow_owner_change=True,
+    )
+
+
+def _curate_github_experience_mining() -> dict[str, Any]:
+    _ensure_research_log_document()
+    state_doc = load_document(_RESEARCH_LOG_PATH)
+    state = dict(state_doc.frontmatter or {})
+    last_github_mining_at = str(state.get("last_github_mining_at") or "").strip()
+    if last_github_mining_at:
+        last_dt = _parse_iso_datetime(last_github_mining_at)
+        if last_dt is not None:
+            next_allowed = last_dt + timedelta(days=7)
+            if datetime.now(UTC) < next_allowed:
+                return {
+                    "status": "cooldown",
+                    "last_github_mining_at": last_github_mining_at,
+                    "next_run_after": next_allowed.replace(microsecond=0).isoformat().replace("+00:00", "Z"),
+                }
+
+    repos = [
+        ("tiangolo", "fastapi"),
+        ("facebook", "react"),
+        ("django", "django"),
+        ("pallets", "flask"),
+        ("kubernetes", "kubernetes"),
+    ]
+    repo_results: list[dict[str, Any]] = []
+    merged_prs: list[dict[str, Any]] = []
+    for owner, repo in repos:
+        url = f"https://api.github.com/repos/{owner}/{repo}/pulls?state=closed&sort=updated&direction=desc&per_page=15"
+        result: dict[str, Any] = {"repo": f"{owner}/{repo}", "url": url, "prs": []}
+        try:
+            request = urllib.request.Request(
+                url,
+                headers={
+                    "Accept": "application/vnd.github+json",
+                    "User-Agent": "OpenAkashic-Sagwan/1.0",
+                },
+            )
+            with urllib.request.urlopen(request, timeout=20) as response:
+                payload = json.loads(response.read().decode("utf-8") or "[]")
+        except urllib.error.HTTPError as exc:
+            result["error"] = f"HTTP {exc.code}: {exc.reason}"
+            repo_results.append(result)
+            continue
+        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exc:
+            result["error"] = str(exc)
+            repo_results.append(result)
+            continue
+        if not isinstance(payload, list):
+            result["error"] = "unexpected GitHub response"
+            repo_results.append(result)
+            continue
+
+        for pr in payload:
+            if not isinstance(pr, dict):
+                continue
+            if not pr.get("merged_at"):
+                continue
+            title = str(pr.get("title") or "").strip()
+            body = pr.get("body")
+            if re.match(r"^(typo|fix typo|docs?|chore|minor)", title, flags=re.IGNORECASE):
+                continue
+            if body is None or not str(body).strip():
+                continue
+            item = {
+                "repo": f"{owner}/{repo}",
+                "title": title[:300],
+                "body": str(body)[:500],
+                "html_url": str(pr.get("html_url") or "").strip(),
+                "merged_at": str(pr.get("merged_at") or "").strip(),
+            }
+            if not item["title"] or not item["html_url"]:
+                continue
+            result["prs"].append(item)
+            merged_prs.append(item)
+        result["merged_pr_count"] = len(result["prs"])
+        repo_results.append(result)
+
+    fetch_failed = any(result.get("error") for result in repo_results)
+    now_iso = _now_iso()
+    if not merged_prs:
+        if not fetch_failed:
+            _touch_github_mining_state(now_iso)
+        return {"status": "no_merged_prs", "repos": repo_results}
+
+    source_urls = list(dict.fromkeys(str(pr["html_url"]) for pr in merged_prs if pr.get("html_url")))
+    prompt = "\n\n".join(
+        [
+            "다음 GitHub merged PR 목록에서 다른 에이전트에게 재사용 가능한 패턴/교훈을 추출하라. 형식: {topic, problem, solution, failure_modes, tags}. 3개 이하로.",
+            "반드시 JSON만 출력하라. 배열 또는 {\"items\":[...]} 형식만 허용한다.",
+            "각 항목은 외부 GitHub PR에서 온 교훈임을 알 수 있게 tags에 github 또는 external-mined를 포함하라.",
+            "",
+            "## GitHub merged pull requests",
+            json.dumps(merged_prs, ensure_ascii=False, indent=2),
+        ]
+    )
+    try:
+        raw = _invoke_for_stage("experience_seed", prompt)
+    except StageRateLimitExceeded:
+        return {"status": "rate_limit_skipped", "repos": repo_results}
+    items = _parse_experience_seed_items(raw)[:3]
+    if not items:
+        return {"status": "llm_parse_error", "raw": str(raw or "")[:500], "repos": repo_results}
+
+    written_paths: list[str] = []
+    skipped_duplicates: list[dict[str, Any]] = []
+    used_paths: set[str] = set()
+    for index, item in enumerate(items, start=1):
+        duplicate_match = _experience_seed_duplicate_guard(
+            item,
+            project="external",
+            threshold=_DEDUP_GUARD_OVERLAP_THRESHOLD,
+        )
+        if duplicate_match.get("matched"):
+            skipped = {
+                "topic": str(item.get("topic") or "").strip(),
+                "project": "external",
+                "existing_path": str(duplicate_match.get("path") or ""),
+                "existing_title": str(duplicate_match.get("title") or ""),
+                "score": duplicate_match.get("score"),
+                "threshold": duplicate_match.get("threshold"),
+                "shared_terms": duplicate_match.get("shared_terms") or [],
+            }
+            skipped_duplicates.append(skipped)
+            logger.info(
+                "sagwan github experience seed: %s",
+                json.dumps({"skipped_duplicate_experience": skipped}, ensure_ascii=False),
+            )
+            continue
+
+        title = str(item.get("topic") or f"GitHub PR experience lesson {index}").strip()
+        slug = _topic_slug(title)[:60] or f"github-experience-{index}"
+        path = f"personal_vault/knowledge/agent-experience/external/{slug}.md"
+        suffix = 2
+        while path in used_paths:
+            slug = f"{_topic_slug(title)[:57]}-{suffix}"
+            path = f"personal_vault/knowledge/agent-experience/external/{slug}.md"
+            suffix += 1
+        used_paths.add(path)
+
+        failure_modes = [str(mode).strip() for mode in (item.get("failure_modes") or []) if str(mode).strip()]
+        failure_lines = [f"- {mode}" for mode in failure_modes] if failure_modes else ["- (not specified)"]
+        source_lines = [f"- {url}" for url in source_urls] or ["- (not specified)"]
+        body_lines = [
+            "## Summary",
+            title,
+            "",
+            "## Problem",
+            str(item.get("problem") or "").strip() or "(not specified)",
+            "",
+            "## Solution",
+            str(item.get("solution") or "").strip() or "(not specified)",
+            "",
+            "## Failure Modes",
+            *failure_lines,
+            "",
+            "## Sources",
+            *source_lines,
+            f"- mined_at: {now_iso}",
+        ]
+        doc = write_document(
+            path=path,
+            title=title,
+            kind="capsule",
+            project="external",
+            status="active",
+            tags=["capsule", "agent-experience", "external-mined", "github"],
+            body="\n".join(body_lines).rstrip() + "\n",
+            metadata={
+                "visibility": "public",
+                "publication_status": "published",
+                "owner": SAGWAN_DECIDER,
+                "created_by": SAGWAN_DECIDER,
+                "generated_by": "sagwan-github-experience",
+                "source_type": "github_pr",
+                "source_urls": source_urls,
+                "source_repos": [f"{owner}/{repo}" for owner, repo in repos],
+                "source_pr_count": len(merged_prs),
+                "mined_at": now_iso,
+            },
+            allow_owner_change=True,
+        )
+        written_paths.append(doc.path)
+
+    if not fetch_failed:
+        _touch_github_mining_state(now_iso)
+    return {
+        "status": "ok",
+        "written": len(written_paths),
+        "skipped_duplicates": len(skipped_duplicates),
+        "duplicate_matches": skipped_duplicates[:10],
+        "paths": written_paths,
+        "source_pr_count": len(merged_prs),
+        "repos": repo_results,
     }
 
 
