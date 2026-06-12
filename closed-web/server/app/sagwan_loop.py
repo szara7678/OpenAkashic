@@ -4023,7 +4023,7 @@ def _curate_github_experience_mining() -> dict[str, Any]:
     if last_github_mining_at:
         last_dt = _parse_iso_datetime(last_github_mining_at)
         if last_dt is not None:
-            next_allowed = last_dt + timedelta(days=7)
+            next_allowed = last_dt + timedelta(days=1)
             if datetime.now(UTC) < next_allowed:
                 return {
                     "status": "cooldown",
@@ -4349,7 +4349,7 @@ def _curate_stackoverflow_experience_mining() -> dict[str, Any]:
     if last_stackoverflow_mining_at:
         last_dt = _parse_iso_datetime(last_stackoverflow_mining_at)
         if last_dt is not None:
-            next_allowed = last_dt + timedelta(days=7)
+            next_allowed = last_dt + timedelta(days=1)
             if datetime.now(UTC) < next_allowed:
                 return {
                     "status": "cooldown",
