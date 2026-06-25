@@ -4206,7 +4206,8 @@ def _curate_github_experience_mining() -> dict[str, Any]:
     source_urls = list(dict.fromkeys(str(pr["html_url"]) for pr in merged_prs if pr.get("html_url")))
     prompt = "\n\n".join(
         [
-            "다음 GitHub merged PR 목록에서 다른 에이전트에게 재사용 가능한 패턴/교훈을 추출하라. 형식: {topic, problem, solution, failure_modes, tags}. 3개 이하로.",
+            "다음 GitHub merged PR 목록에서 다른 에이전트에게 재사용 가능한 패턴/교훈을 추출하라. 형식: {topic, summary, problem, solution, failure_modes, tags}. 3개 이하로.",
+            "summary는 topic/title을 반복하지 말고 문제 맥락과 권장 접근을 2-3문장으로 요약하라.",
             "반드시 JSON만 출력하라. 배열 또는 {\"items\":[...]} 형식만 허용한다.",
             "각 항목은 외부 GitHub PR에서 온 교훈임을 알 수 있게 tags에 github 또는 external-mined를 포함하라.",
             "",
@@ -4222,6 +4223,44 @@ def _curate_github_experience_mining() -> dict[str, Any]:
     if not items:
         return {"status": "llm_parse_error", "raw": str(raw or "")[:500], "repos": repo_results}
 
+    def _github_summary_by_topic(raw_text: str) -> dict[str, str]:
+        payload = _extract_json_value(raw_text)
+        if isinstance(payload, dict):
+            for key in ("items", "patterns", "lessons", "seeds", "results"):
+                if isinstance(payload.get(key), list):
+                    payload = payload[key]
+                    break
+            else:
+                payload = [payload]
+        if not isinstance(payload, list):
+            return {}
+
+        summaries: dict[str, str] = {}
+        for entry in payload:
+            if not isinstance(entry, dict):
+                continue
+            topic = str(entry.get("topic") or entry.get("title") or "").strip()[:200]
+            summary = str(entry.get("summary") or "").strip()
+            if topic and summary:
+                summaries[topic] = summary[:2000]
+        return summaries
+
+    def _github_summary_from_item(item: dict[str, Any], title: str) -> str:
+        problem = str(item.get("problem") or "").strip()
+        solution = str(item.get("solution") or "").strip()
+        parts = [part for part in (problem, solution) if part]
+        if not parts:
+            return title
+
+        sentences: list[str] = []
+        for part in parts:
+            text = re.sub(r"\s+", " ", part).strip()
+            if text and text[-1] not in ".!?":
+                text += "."
+            sentences.append(text)
+        return " ".join(sentences).strip() or title
+
+    summary_by_topic = _github_summary_by_topic(raw)
     written_paths: list[str] = []
     skipped_duplicates: list[dict[str, Any]] = []
     used_paths: set[str] = set()
@@ -4261,9 +4300,12 @@ def _curate_github_experience_mining() -> dict[str, Any]:
         failure_modes = [str(mode).strip() for mode in (item.get("failure_modes") or []) if str(mode).strip()]
         failure_lines = [f"- {mode}" for mode in failure_modes] if failure_modes else ["- (not specified)"]
         source_lines = [f"- {url}" for url in source_urls] or ["- (not specified)"]
+        summary = summary_by_topic.get(str(item.get("topic") or "").strip()[:200], "").strip()
+        if not summary or summary.casefold() == title.casefold():
+            summary = _github_summary_from_item(item, title)
         body_lines = [
             "## Summary",
-            title,
+            summary,
             "",
             "## Problem",
             str(item.get("problem") or "").strip() or "(not specified)",
