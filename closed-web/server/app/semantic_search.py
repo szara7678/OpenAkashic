@@ -11,7 +11,9 @@ from app.embeddings import EmbeddingError, cosine_similarity, embed_texts
 
 
 CACHE_VERSION = 1
-MIN_SEMANTIC_SCORE = 0.50
+# 0.466(무관 노이즈)과 0.486(저점수 정답) 사이를 가르는 값.
+# 0.50은 어휘 차이로 점수 낮은 유효 캡슐(영어쿼리↔한글제목 등)을 놓쳐 0.47로 조정.
+MIN_SEMANTIC_SCORE = 0.47
 _cache_lock = threading.Lock()
 
 # ── In-memory cache ───────────────────────────────────────────────────────────
