@@ -48,7 +48,12 @@ except ImportError:
 
 from app.config import get_settings
 from app.fts_search import FTSDocument, lexical_rank
-from app.semantic_search import SemanticDocument, semantic_rank
+from app.semantic_search import (
+    MIN_SEMANTIC_SCORE,
+    SemanticDocument,
+    filter_semantic_score_pairs,
+    semantic_rank,
+)
 from app.vault import file_href, kind_catalog, kind_template_sections, list_note_paths, load_document, normalize_kind
 
 
@@ -738,25 +743,26 @@ def search_closed_notes(
     # Only fall back to a global semantic pass when lexical recall is empty.
     semantic_scores: dict[str, float] = {}
     semantic_pool = [note for note in notes if not lexical_scores or note.slug in lexical_scores]
+    raw_semantic_scores = semantic_rank(
+        query,
+        [
+            SemanticDocument(
+                key=note.slug,
+                path=note.path,
+                title=note.title,
+                kind=note.kind,
+                project=note.project,
+                status=note.status,
+                summary=note.summary,
+                body=note.body,
+            )
+            for note in semantic_pool
+        ],
+        limit=max(limit * 3, len(semantic_pool), limit),
+    )
     semantic_scores = {
         key: score
-        for key, score in semantic_rank(
-            query,
-            [
-                SemanticDocument(
-                    key=note.slug,
-                    path=note.path,
-                    title=note.title,
-                    kind=note.kind,
-                    project=note.project,
-                    status=note.status,
-                    summary=note.summary,
-                    body=note.body,
-                )
-                for note in semantic_pool
-            ],
-            limit=max(limit * 3, len(semantic_pool), limit),
-        )
+        for key, score in filter_semantic_score_pairs(raw_semantic_scores)
     }
     for note in notes:
         semantic_score = semantic_scores.get(note.slug, 0.0)
@@ -853,6 +859,7 @@ def search_closed_notes(
             "rrf_k": RRF_K,
             "semantic_model": get_settings().embedding_model,
             "semantic_provider": get_settings().embedding_provider,
+            "semantic_min_score": MIN_SEMANTIC_SCORE,
             "lexical_backend": "sqlite_fts5",
         },
     }

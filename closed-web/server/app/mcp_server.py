@@ -41,6 +41,7 @@ from app.auth import AuthState, auth_state_for_token, format_json_text
 from app.config import get_settings
 from app.guidance import openakashic_guidance_payload
 from app.observability import log_tail, log_tool_event, observability_status, recent_requests, recent_tool_events
+from app.semantic_search import filter_low_confidence_semantic_results
 from app.users import SAGWAN_SYSTEM_OWNER, find_user_by_username
 from app.site import (
     _load_targeted_claims_for,
@@ -1913,6 +1914,7 @@ def search_akashic(
     try:
         with urlrequest.urlopen(req, timeout=15) as resp:
             response = json.loads(resp.read().decode("utf-8"))
+        filter_low_confidence_semantic_results(response)
         _annotate_public_search_results(response)
         if _public_result_count(response) == 0:
             _record_gap_query(resolved_query)

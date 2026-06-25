@@ -11,6 +11,7 @@ from app.embeddings import EmbeddingError, cosine_similarity, embed_texts
 
 
 CACHE_VERSION = 1
+MIN_SEMANTIC_SCORE = 0.50
 _cache_lock = threading.Lock()
 
 # ── In-memory cache ───────────────────────────────────────────────────────────
@@ -82,7 +83,7 @@ def semantic_rank(query: str, documents: list[SemanticDocument], limit: int = 12
             if not item:
                 continue
             score = cosine_similarity(query_vector[0], item.get("vector", []))
-            if score > 0.18:
+            if score >= MIN_SEMANTIC_SCORE:
                 scores.append((document.key, score))
         scores.sort(key=lambda item: item[1], reverse=True)
         return scores[:limit]
@@ -90,6 +91,48 @@ def semantic_rank(query: str, documents: list[SemanticDocument], limit: int = 12
         return []
     except Exception:
         return []
+
+
+def filter_semantic_score_pairs(scores: list[tuple[str, float]]) -> list[tuple[str, float]]:
+    return [(key, score) for key, score in scores if score >= MIN_SEMANTIC_SCORE]
+
+
+def filter_low_confidence_semantic_results(response: dict) -> int:
+    results = response.get("results")
+    if not isinstance(results, dict):
+        return 0
+
+    removed = 0
+    for section in ("capsules", "claims", "evidences"):
+        items = results.get(section)
+        if not isinstance(items, list):
+            continue
+        kept: list[object] = []
+        for item in items:
+            if not isinstance(item, dict):
+                kept.append(item)
+                continue
+            score_value = item.get("semantic_score", item.get("score"))
+            if score_value is None:
+                kept.append(item)
+                continue
+            try:
+                score = float(score_value)
+            except (TypeError, ValueError):
+                kept.append(item)
+                continue
+            if score >= MIN_SEMANTIC_SCORE:
+                kept.append(item)
+            else:
+                removed += 1
+        results[section] = kept
+
+    if removed:
+        meta = response.setdefault("meta", {})
+        if isinstance(meta, dict):
+            meta["semantic_min_score"] = MIN_SEMANTIC_SCORE
+            meta["semantic_filtered_count"] = int(meta.get("semantic_filtered_count") or 0) + removed
+    return removed
 
 
 # ── Cache identity & path ─────────────────────────────────────────────────────

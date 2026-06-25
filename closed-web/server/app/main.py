@@ -141,6 +141,7 @@ from app.auth import (
 )
 from app.config import get_settings
 from app.guidance import openakashic_guidance_payload
+from app.semantic_search import filter_low_confidence_semantic_results
 from app.librarian import (
     ensure_librarian_workspace,
     librarian_chat,
@@ -2015,6 +2016,7 @@ def api_core_search(
             body = _json.loads(resp.read().decode("utf-8"))
     except _urlerror.URLError as exc:
         raise HTTPException(status_code=502, detail=f"Core API unreachable: {exc}") from exc
+    filter_low_confidence_semantic_results(body)
     if compact:
         results = body.get("results") or {}
         body["results"] = {
