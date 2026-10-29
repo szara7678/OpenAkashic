@@ -1,0 +1,307 @@
+{
+  "tasks": [
+    {
+      "id": "T1",
+      "title": "Streamlit 1.46.0 화면 중복과 첫 실행 오류",
+      "prompt": "이 문제는 코드 검토 과제이며 실행 결과가 주어지지 않은 부분을 실제 실행했다고 주장하지 마세요. 주어진 버전과 조건에서만 판단하세요. 답은 JSON 한 개로 제출하세요. 최상위 키는 decisions, rationale, fix, limitations 네 개만 허용합니다. decisions와 rationale에는 q1~q6만 넣으세요. 각 decisions 값은 아래 지정 타입/enum과 정확히 일치해야 하며 숫자는 JSON 숫자, bool은 JSON true/false입니다. rationale 각 값은 짧은 한국어 문자열로 조건과 근거를 설명하세요. fix는 적용 가능한 수정안을 문자열로, limitations는 관찰로 확정할 수 없는 범위를 문자열로 쓰세요. 스키마 설명은 정답 예시나 교정 피드백이 아닙니다.\n\n환경: Streamlit 1.46.0. 아래 A와 B는 서로 다른 세션의 독립 파일입니다.\n\nA:\n```python\nimport streamlit as st\nif \"events\" not in st.session_state:\n    st.session_state.events = []\noutside = st.container()\n\n@st.fragment\ndef panel():\n    st.write(\"inside\")\n    outside.write(\"outside\")\n    st.session_state.events.append(\"tick\")\n    st.button(\"refresh\", key=\"refresh\")\npanel()\n```\n새 세션에서 전체 앱 실행을 한 번 끝낸 뒤, refresh 클릭으로 panel의 부분 실행을 정확히 두 번 끝냅니다. 전체 앱 재실행, 다른 이벤트, 예외는 없습니다. 화면의 텍스트 요소 수는 \"inside\"/\"outside\" 표시만 각각 셉니다.\n\nB:\n```python\nimport streamlit as st\n@st.fragment\ndef boot():\n    st.rerun(scope=\"fragment\")\nboot()\n```\n새 세션의 첫 전체 앱 실행입니다.\n\nq1: B의 rerun 호출에서 StreamlitAPIException이 발생하는가? bool.\nq2: A의 마지막 화면에서 outside 컨테이너의 \"outside\" 텍스트 요소 수는? integer.\nq3: A의 마지막 화면에서 panel 본문이 직접 그린 \"inside\" 텍스트 요소 수는? integer.\nq4: A의 마지막 events 리스트 길이는? integer.\nq5: A의 outside.write 대신 outside.button을 panel 안에서 호출하는 방식이 이 버전에서 지원되는가? bool.\nq6: 별도 장애 로그에 \"@st.fragment 함수 안에서 st.rerun(scope='fragment') 호출 직전\" 한 줄만 있고 실행을 시작한 이벤트가 없다. 그 호출의 현재 실행 범위는? enum \"full_app\", \"fragment\", \"unknown\".\n\nfix에는 A의 중복 표시/상태 기록과 B의 초기 실행 오류를 모두 처리하세요. 공개 API만으로 적용 가능한 경로를 제안하고, q6의 로그만으로 실행 범위를 추정해 예외를 삼키는 방식의 한계도 쓰세요.",
+      "answer_contract": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "decisions",
+          "rationale",
+          "fix",
+          "limitations"
+        ],
+        "properties": {
+          "decisions": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "q1",
+              "q2",
+              "q3",
+              "q4",
+              "q5",
+              "q6"
+            ],
+            "properties": {
+              "q1": {
+                "type": "boolean"
+              },
+              "q2": {
+                "type": "integer"
+              },
+              "q3": {
+                "type": "integer"
+              },
+              "q4": {
+                "type": "integer"
+              },
+              "q5": {
+                "type": "boolean"
+              },
+              "q6": {
+                "type": "string",
+                "enum": [
+                  "full_app",
+                  "fragment",
+                  "unknown"
+                ]
+              }
+            }
+          },
+          "rationale": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "q1",
+              "q2",
+              "q3",
+              "q4",
+              "q5",
+              "q6"
+            ],
+            "properties": {
+              "q1": {
+                "type": "string"
+              },
+              "q2": {
+                "type": "string"
+              },
+              "q3": {
+                "type": "string"
+              },
+              "q4": {
+                "type": "string"
+              },
+              "q5": {
+                "type": "string"
+              },
+              "q6": {
+                "type": "string"
+              }
+            }
+          },
+          "fix": {
+            "type": "string"
+          },
+          "limitations": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    {
+      "id": "T3",
+      "title": "DuckDB 0.10.0 업그레이드 뒤 문자열·날짜 SQL 장애",
+      "prompt": "이 문제는 코드 검토 과제이며 실행 결과가 주어지지 않은 부분을 실제 실행했다고 주장하지 마세요. 주어진 버전과 조건에서만 판단하세요. 답은 JSON 한 개로 제출하세요. 최상위 키는 decisions, rationale, fix, limitations 네 개만 허용합니다. decisions와 rationale에는 q1~q6만 넣으세요. 각 decisions 값은 아래 지정 타입/enum과 정확히 일치해야 하며 숫자는 JSON 숫자, bool은 JSON true/false입니다. rationale 각 값은 짧은 한국어 문자열로 조건과 근거를 설명하세요. fix는 적용 가능한 수정안을 문자열로, limitations는 관찰로 확정할 수 없는 범위를 문자열로 쓰세요. 스키마 설명은 정답 예시나 교정 피드백이 아닙니다.\n\n환경: DuckDB 0.10.0, old_implicit_casting=false. 아래 SQL은 서로 독립적으로 평가합니다. 함수 shadowing/확장 기능은 없습니다.\n\n```sql\n-- A\nSELECT substring(42, 1, 1);\n-- B\nSELECT substring(CAST(42 AS VARCHAR), 1, 1);\n-- C\nSELECT d > '1992-01-01'\nFROM (VALUES (DATE '1992-01-01')) t(d);\n-- D\nSELECT d > CAST('1992-01-01' AS VARCHAR)\nFROM (VALUES (DATE '1992-01-01')) t(d);\n-- E\nSELECT CAST(999 AS TINYINT);\n-- F: staging.raw_date는 VARCHAR 컬럼이며 NULL이 없다.\n-- 값의 실제 목록·범위는 제공되지 않는다.\nSELECT CAST(raw_date AS DATE) FROM staging;\n```\n\nq1: A의 결과 종류는? enum \"value\", \"binding_error\", \"conversion_error\".\nq2: B의 스칼라 결과는? enum \"4\", \"42\", \"binding_error\", \"conversion_error\".\nq3: C의 스칼라 결과는? bool.\nq4: D의 결과 종류는? enum \"value\", \"binding_error\", \"conversion_error\".\nq5: E의 결과 종류는? enum \"value\", \"binding_error\", \"conversion_error\". conversion_error는 바인딩은 지원되지만 해당 값의 변환이 실패하는 경우이며, 상수 최적화가 오류를 일찍 드러내도 이 분류를 씁니다.\nq6: F가 모든 행에서 변환에 성공할지는? enum \"all_rows_succeed\", \"some_rows_fail\", \"unknown\".\n\nfix에는 문자열 처리 목적의 A, 날짜 비교 목적의 D, 불량값 처리 정책이 필요한 F를 각각 수정하세요. 호환 옵션을 장기 해결책으로 선택할 때 확인할 제약을 포함하고, 실제 값을 보지 않고 전체 성공을 주장하지 마세요.",
+      "answer_contract": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "decisions",
+          "rationale",
+          "fix",
+          "limitations"
+        ],
+        "properties": {
+          "decisions": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "q1",
+              "q2",
+              "q3",
+              "q4",
+              "q5",
+              "q6"
+            ],
+            "properties": {
+              "q1": {
+                "type": "string",
+                "enum": [
+                  "value",
+                  "binding_error",
+                  "conversion_error"
+                ]
+              },
+              "q2": {
+                "type": "string",
+                "enum": [
+                  "4",
+                  "42",
+                  "binding_error",
+                  "conversion_error"
+                ]
+              },
+              "q3": {
+                "type": "boolean"
+              },
+              "q4": {
+                "type": "string",
+                "enum": [
+                  "value",
+                  "binding_error",
+                  "conversion_error"
+                ]
+              },
+              "q5": {
+                "type": "string",
+                "enum": [
+                  "value",
+                  "binding_error",
+                  "conversion_error"
+                ]
+              },
+              "q6": {
+                "type": "string",
+                "enum": [
+                  "all_rows_succeed",
+                  "some_rows_fail",
+                  "unknown"
+                ]
+              }
+            }
+          },
+          "rationale": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "q1",
+              "q2",
+              "q3",
+              "q4",
+              "q5",
+              "q6"
+            ],
+            "properties": {
+              "q1": {
+                "type": "string"
+              },
+              "q2": {
+                "type": "string"
+              },
+              "q3": {
+                "type": "string"
+              },
+              "q4": {
+                "type": "string"
+              },
+              "q5": {
+                "type": "string"
+              },
+              "q6": {
+                "type": "string"
+              }
+            }
+          },
+          "fix": {
+            "type": "string"
+          },
+          "limitations": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    {
+      "id": "T4",
+      "title": "React Query 5.90.5 비활성 목록의 새로고침 버튼 장애",
+      "prompt": "이 문제는 코드 검토 과제이며 실행 결과가 주어지지 않은 부분을 실제 실행했다고 주장하지 마세요. 주어진 버전과 조건에서만 판단하세요. 답은 JSON 한 개로 제출하세요. 최상위 키는 decisions, rationale, fix, limitations 네 개만 허용합니다. decisions와 rationale에는 q1~q6만 넣으세요. 각 decisions 값은 아래 지정 타입/enum과 정확히 일치해야 하며 숫자는 JSON 숫자, bool은 JSON true/false입니다. rationale 각 값은 짧은 한국어 문자열로 조건과 근거를 설명하세요. fix는 적용 가능한 수정안을 문자열로, limitations는 관찰로 확정할 수 없는 범위를 문자열로 쓰세요. 스키마 설명은 정답 예시나 교정 피드백이 아닙니다.\n\n환경: @tanstack/react-query 5.90.5와 같은 버전 @tanstack/query-core. 실제 React useQuery의 반환값과 queryClient API를 구분해 답하세요. retry=false, 온라인 상태, 단일 observer, 추가 observer/수동 캐시 수정 없음. 모든 작업은 이전 작업이 끝난 뒤 수행합니다.\n\nA는 캐시 없는 새 QueryClient에서 마운트합니다.\n```ts\nlet calls = 0\nconst result = useQuery({\n  queryKey: ['inventory'],\n  enabled: false,\n  retry: false,\n  queryFn: async () => { calls++; return ['fresh'] }\n})\n// 마운트 직후 상태를 기록하고 다음 두 호출을 기다린다.\nawait queryClient.invalidateQueries({ queryKey: ['inventory'] })\nawait queryClient.refetchQueries({ queryKey: ['inventory'] })\n// 여기서 캐시의 isInvalidated와 calls를 기록한 후 실행한다.\nawait result.refetch()\n```\n\nB는 A와 별개인 새 QueryClient에 queryFn: skipToken으로 useQuery를 마운트합니다. 캐시와 default queryFn이 없고 retry=false입니다. 반환된 result.refetch()를 호출합니다. 바깥에서 throwOnError를 설정하지 않습니다. 이 호출의 Promise가 reject하는지 여부가 아니라 쿼리가 보고하는 오류 종류를 판정하세요.\n\nC는 또 다른 QueryClient에서 ['inventory']에 ['cached']를 먼저 넣고, A와 같은 enabled:false 및 유효 queryFn으로 마운트합니다. 아직 refetch는 누르지 않았습니다.\n\nq1: A가 마운트 직후 가진 status/fetchStatus 조합은? enum \"pending/idle\", \"pending/fetching\", \"success/idle\", \"error/idle\".\nq2: A에서 queryClient의 두 호출 직후이자 result.refetch 전의 calls 값은? integer.\nq3: 그 시점 A의 캐시 state.isInvalidated 값은? bool.\nq4: A에서 result.refetch까지 끝난 뒤 누적 calls 값은? integer.\nq5: B의 수동 refetch에 대한 쿼리 오류 종류는? enum \"none\", \"missing_query_fn\", \"network_error\".\nq6: C가 마운트 시 success를 표시한다는 사실이 이번 마운트에서 새 네트워크 요청을 완료했다는 증거인가? bool.\n\nfix에는 수동 버튼을 유지하는 구성과 입력 준비에 따라 자동 조회하는 구성 중 적용 가능한 방식을 제안하세요. 로딩 UI의 조건, 무효화 표시와 실제 요청의 차이, B의 실행 가능한 함수 문제를 짧게 설명하세요.",
+      "answer_contract": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "decisions",
+          "rationale",
+          "fix",
+          "limitations"
+        ],
+        "properties": {
+          "decisions": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "q1",
+              "q2",
+              "q3",
+              "q4",
+              "q5",
+              "q6"
+            ],
+            "properties": {
+              "q1": {
+                "type": "string",
+                "enum": [
+                  "pending/idle",
+                  "pending/fetching",
+                  "success/idle",
+                  "error/idle"
+                ]
+              },
+              "q2": {
+                "type": "integer"
+              },
+              "q3": {
+                "type": "boolean"
+              },
+              "q4": {
+                "type": "integer"
+              },
+              "q5": {
+                "type": "string",
+                "enum": [
+                  "none",
+                  "missing_query_fn",
+                  "network_error"
+                ]
+              },
+              "q6": {
+                "type": "boolean"
+              }
+            }
+          },
+          "rationale": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "q1",
+              "q2",
+              "q3",
+              "q4",
+              "q5",
+              "q6"
+            ],
+            "properties": {
+              "q1": {
+                "type": "string"
+              },
+              "q2": {
+                "type": "string"
+              },
+              "q3": {
+                "type": "string"
+              },
+              "q4": {
+                "type": "string"
+              },
+              "q5": {
+                "type": "string"
+              },
+              "q6": {
+                "type": "string"
+              }
+            }
+          },
+          "fix": {
+            "type": "string"
+          },
+          "limitations": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,286 @@
+{
+  "tasks": [
+    {
+      "id": "T1",
+      "decisions": {
+        "q1": true,
+        "q2": 3,
+        "q3": 1,
+        "q4": 3,
+        "q5": false,
+        "q6": "unknown"
+      },
+      "justification": {
+        "q1": {
+          "source_ids": [
+            "st-rerun-146"
+          ],
+          "evidence": "execution_control.py 67-90, 113-126행: 전체 실행 중에는 fragment 범위 요청을 거부한다.",
+          "reason": "함수 장식자가 아니라 현재 실행 범위가 기준이다. B는 첫 전체 실행이다."
+        },
+        "q2": {
+          "source_ids": [
+            "st-fragment-146"
+          ],
+          "evidence": "fragment.py 326-332행: 외부에서 만든 컨테이너의 요소는 부분 실행마다 추가된다.",
+          "reason": "전체 실행 1회와 부분 실행 2회에 각 한 번 기록하므로 3개이다."
+        },
+        "q3": {
+          "source_ids": [
+            "st-fragment-146"
+          ],
+          "evidence": "fragment.py 326-332행: fragment가 직접 만든 요소는 부분 실행 때 다시 그린다.",
+          "reason": "직접 그린 inside는 마지막 1개만 남는다."
+        },
+        "q4": {
+          "source_ids": [
+            "st-fragment-146"
+          ],
+          "evidence": "fragment.py 338-341행: 외부 상태와의 상호작용은 누적된다.",
+          "reason": "세 번의 함수 호출마다 append하므로 길이 3이다."
+        },
+        "q5": {
+          "source_ids": [
+            "st-fragment-146"
+          ],
+          "evidence": "fragment.py 343-346행: fragment의 외부 컨테이너 widget 렌더링을 지원하지 않는다.",
+          "reason": "표시 텍스트를 widget으로 바꾸는 제안은 지원 범위를 벗어난다."
+        },
+        "q6": {
+          "source_ids": [
+            "st-rerun-146"
+          ],
+          "evidence": "execution_control.py 113-126행은 전체/부분 실행을 구분한다.",
+          "reason": "로그는 함수 위치만 알려 주므로 전체 실행인지 부분 실행인지 결정할 수 없다."
+        }
+      },
+      "rubric": [
+        {
+          "dimension": "조건 정확성",
+          "score_range": [
+            0,
+            2
+          ],
+          "anchors": {
+            "0": "핵심 조건을 잘못 적용하거나 근거 없이 버전을 일반화함",
+            "1": "핵심 조건 일부를 맞추나 중요한 경계를 빠뜨림",
+            "2": "직접 표시/외부 표시/상태 append와 현재 실행 범위를 모두 구분한다."
+          }
+        },
+        {
+          "dimension": "수정 가능성",
+          "score_range": [
+            0,
+            2
+          ],
+          "anchors": {
+            "0": "실행 불가능하거나 장애를 유지하는 수정",
+            "1": "방향은 맞지만 적용 위치나 검증 조건이 불완전함",
+            "2": "표시를 fragment 내부로 옮기고 기록을 의도에 맞게 중복 방지한다. B는 초기 무조건 rerun을 제거하거나 명시적인 사용자 이벤트에서 app 범위 갱신을 선택하며 반복 루프를 피한다."
+          }
+        },
+        {
+          "dimension": "불확실성 처리",
+          "score_range": [
+            0,
+            2
+          ],
+          "anchors": {
+            "0": "관찰하지 않은 결과를 단정하거나 실행했다고 주장함",
+            "1": "불확실성을 언급하지만 무엇이 미확정인지 불명확함",
+            "2": "q6은 추가 이벤트 로그가 필요함을 밝히며 비공개 runtime 검사나 예외 무시를 보편 해결책으로 삼지 않는다."
+          }
+        }
+      ]
+    },
+    {
+      "id": "T3",
+      "decisions": {
+        "q1": "binding_error",
+        "q2": "4",
+        "q3": false,
+        "q4": "binding_error",
+        "q5": "conversion_error",
+        "q6": "unknown"
+      },
+      "justification": {
+        "q1": {
+          "source_ids": [
+            "duck-release-0100",
+            "duck-typecasting-010"
+          ],
+          "evidence": "announcing-duckdb-0100.md 28-42행; typecasting.md 31-34행: 0.10.0의 문자열 함수 숫자 인수 예시와 명시 변환 대안이다.",
+          "reason": "A는 함수 바인딩 시 필요한 VARCHAR 암묵 변환에 의존한다."
+        },
+        "q2": {
+          "source_ids": [
+            "duck-release-0100"
+          ],
+          "evidence": "announcing-duckdb-0100.md 40-47행: 같은 인수를 VARCHAR로 명시 변환하는 substring 예시이다.",
+          "reason": "숫자 42를 텍스트로 만든 뒤 첫 문자 한 개를 추출하므로 문자열 4이다."
+        },
+        "q3": {
+          "source_ids": [
+            "duck-release-0100"
+          ],
+          "evidence": "announcing-duckdb-0100.md 70-85행: 문자열 리터럴은 일반 VARCHAR와 다른 바인딩 규칙을 가지며 DATE와 비교할 수 있다.",
+          "reason": "같은 날짜끼리의 엄격한 초과 비교이므로 false이다."
+        },
+        "q4": {
+          "source_ids": [
+            "duck-release-0100"
+          ],
+          "evidence": "announcing-duckdb-0100.md 90-98행: DATE와 명시 VARCHAR 사이 순서 비교는 바인딩 오류이다.",
+          "reason": "동일 텍스트여도 VARCHAR로 지정하면 문자열 리터럴 특례가 적용되지 않는다."
+        },
+        "q5": {
+          "source_ids": [
+            "duck-typecasting-010"
+          ],
+          "evidence": "typecasting.md 46-56행: 999를 TINYINT로 변환하면 표현 범위 초과로 오류가 난다.",
+          "reason": "지원 cast라는 사실은 이 값의 변환 성공을 보장하지 않는다. 문제에서 지정한 conversion_error 분류이다."
+        },
+        "q6": {
+          "source_ids": [
+            "duck-typecasting-010"
+          ],
+          "evidence": "typecasting.md 29, 66행: 타입 사이 변환이 지원되어도 입력 텍스트 파싱에 실패할 수 있다.",
+          "reason": "NULL이 없다는 조건만으로 모든 날짜 문자열의 유효성을 알 수 없다."
+        }
+      },
+      "rubric": [
+        {
+          "dimension": "조건 정확성",
+          "score_range": [
+            0,
+            2
+          ],
+          "anchors": {
+            "0": "핵심 조건을 잘못 적용하거나 근거 없이 버전을 일반화함",
+            "1": "핵심 조건 일부를 맞추나 중요한 경계를 빠뜨림",
+            "2": "함수 바인딩/값 변환 실패와 STRING_LITERAL/VARCHAR의 DATE 비교 경계를 구분한다."
+          }
+        },
+        {
+          "dimension": "수정 가능성",
+          "score_range": [
+            0,
+            2
+          ],
+          "anchors": {
+            "0": "실행 불가능하거나 장애를 유지하는 수정",
+            "1": "방향은 맞지만 적용 위치나 검증 조건이 불완전함",
+            "2": "A에 명시 VARCHAR cast, D에 명시 DATE cast를 적용하고 F는 불량값 정책에 따라 검사나 TRY_CAST와 실패 기록을 제안한다. 호환 옵션의 향후 폐기 제약을 고려한다."
+          }
+        },
+        {
+          "dimension": "불확실성 처리",
+          "score_range": [
+            0,
+            2
+          ],
+          "anchors": {
+            "0": "관찰하지 않은 결과를 단정하거나 실행했다고 주장함",
+            "1": "불확실성을 언급하지만 무엇이 미확정인지 불명확함",
+            "2": "F의 실제 값 없이 성공을 단정하지 않고 문서 버전과 미실행 상태를 구분한다."
+          }
+        }
+      ]
+    },
+    {
+      "id": "T4",
+      "decisions": {
+        "q1": "pending/idle",
+        "q2": 0,
+        "q3": true,
+        "q4": 1,
+        "q5": "missing_query_fn",
+        "q6": false
+      },
+      "justification": {
+        "q1": {
+          "source_ids": [
+            "tq-disabled-5905"
+          ],
+          "evidence": "disabling-queries.md 7-15, 86-94행: 캐시 없는 비활성 쿼리의 초기 status/fetchStatus와 isLoading 정의를 설명한다.",
+          "reason": "A는 데이터도 자동 요청도 없어서 pending/idle이다. pending 자체가 요청 진행을 뜻하지 않는다."
+        },
+        "q2": {
+          "source_ids": [
+            "tq-disabled-5905",
+            "tq-core-client-5905"
+          ],
+          "evidence": "disabling-queries.md 14행; queryClient.ts 293-311, 323-326행: client 재조회 경로는 비활성 쿼리를 제외한다.",
+          "reason": "queryClient의 두 호출은 enabled:false인 A의 queryFn을 실행하지 않는다."
+        },
+        "q3": {
+          "source_ids": [
+            "tq-core-client-5905"
+          ],
+          "evidence": "queryClient.ts 297-300행: invalidateQueries는 일치 쿼리에 invalidate를 호출한 뒤 재조회 경로로 진행한다.",
+          "reason": "무효화 표시와 요청 실행은 별개이다. 아직 수동 refetch 전이므로 isInvalidated=true이다."
+        },
+        "q4": {
+          "source_ids": [
+            "tq-disabled-5905"
+          ],
+          "evidence": "disabling-queries.md 15행: useQuery 반환 refetch는 유효 queryFn이 있는 비활성 쿼리를 수동 실행할 수 있다.",
+          "reason": "자동/클라이언트 요청은 0회였고 수동 refetch에서 1회 실행된다."
+        },
+        "q5": {
+          "source_ids": [
+            "tq-disabled-5905",
+            "tq-core-utils-5905"
+          ],
+          "evidence": "disabling-queries.md 100행; utils.ts 438-440행: skipToken은 실행 가능한 queryFn이 아니며 Missing queryFn 오류를 생성한다.",
+          "reason": "Promise 외부 throw 여부와 달리 쿼리 오류는 missing_query_fn이다. default queryFn도 없다."
+        },
+        "q6": {
+          "source_ids": [
+            "tq-disabled-5905"
+          ],
+          "evidence": "disabling-queries.md 10-13행: 비활성 쿼리는 캐시가 있으면 success로 시작하며 자동 조회하지 않는다.",
+          "reason": "C의 success는 사전 캐시로 설명되므로 이번 마운트의 네트워크 완료 증거가 아니다."
+        }
+      },
+      "rubric": [
+        {
+          "dimension": "조건 정확성",
+          "score_range": [
+            0,
+            2
+          ],
+          "anchors": {
+            "0": "핵심 조건을 잘못 적용하거나 근거 없이 버전을 일반화함",
+            "1": "핵심 조건 일부를 맞추나 중요한 경계를 빠뜨림",
+            "2": "React 반환 refetch와 queryClient API, invalidated와 요청 여부, cached success와 새 요청 성공을 모두 구분한다."
+          }
+        },
+        {
+          "dimension": "수정 가능성",
+          "score_range": [
+            0,
+            2
+          ],
+          "anchors": {
+            "0": "실행 불가능하거나 장애를 유지하는 수정",
+            "1": "방향은 맞지만 적용 위치나 검증 조건이 불완전함",
+            "2": "수동 버튼은 유효 queryFn을 유지하거나 입력 준비 후 선언적으로 enabled/queryFn을 전환한다. spinner는 pending 단독 대신 isLoading 의미를 적용한다."
+          }
+        },
+        {
+          "dimension": "불확실성 처리",
+          "score_range": [
+            0,
+            2
+          ],
+          "anchors": {
+            "0": "관찰하지 않은 결과를 단정하거나 실행했다고 주장함",
+            "1": "불확실성을 언급하지만 무엇이 미확정인지 불명확함",
+            "2": "B 오류의 내부 상태와 Promise throw를 구분하고 캐시 success를 새 네트워크 성공으로 과장하지 않는다. 실제 실행은 주장하지 않는다."
+          }
+        }
+      ]
+    }
+  ]
+}

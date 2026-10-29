@@ -1,0 +1,8 @@
+{
+  "correction": "The evaluator packet retained an obsolete four-key header. Per corrected frozen common candidate contract supplied by parent, a fifth citations key was explicitly required. Removed only the resulting erroneous schema complaint from all nine cases.",
+  "initial_grades_preserved": "blind-grades-initial.json",
+  "removed_schema_complaints": 9,
+  "numeric_scores_changed": false,
+  "numeric_score_reason": "Schema complaints were assessed separately and did not affect conditions, fix, or uncertainty scores. All numeric scores and citation_support values remain unchanged.",
+  "other_changes": "None. Existing substantive citation and paraphrase assessments remain unchanged. No arm mapping was inspected."
+}

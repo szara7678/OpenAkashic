@@ -1,0 +1,32 @@
+{
+  "decisions": {
+    "q1": "binding_error",
+    "q2": "4",
+    "q3": false,
+    "q4": "binding_error",
+    "q5": "conversion_error",
+    "q6": "unknown"
+  },
+  "rationale": {
+    "q1": "DuckDB 0.10.0에서는 숫자에서 VARCHAR로의 암묵 변환에 의존해 문자열 함수를 호출할 수 없습니다. 지원되는 substring 오버로드에 맞지 않아 바인딩 오류입니다.",
+    "q2": "명시적으로 VARCHAR로 변환하므로 바인딩됩니다. '42'의 첫 글자는 '4'입니다.",
+    "q3": "날짜 문자열 리터럴은 실제 VARCHAR 값과 다른 바인딩 규칙을 가집니다. 리터럴이 DATE로 해석되어 같은 날짜끼리 비교하므로 false입니다.",
+    "q4": "명시 VARCHAR 값은 날짜 문자열 리터럴과 다릅니다. DATE와 VARCHAR 간 비교가 지원된다고 볼 근거가 없어 바인딩 오류입니다.",
+    "q5": "CAST는 바인딩되지만 999는 TINYINT 범위를 벗어나 값 변환에 실패합니다.",
+    "q6": "실제 문자열 값이 제공되지 않아 날짜로 변환 가능한지 판단할 수 없습니다. 전체 행 성공 여부는 unknown입니다."
+  },
+  "fix": "A: 문자열 처리가 목적이면 SELECT substring(CAST(42 AS VARCHAR), 1, 1);처럼 입력을 명시적으로 VARCHAR로 변환합니다. D: 날짜 비교 목적이면 SELECT d > CAST('1992-01-01' AS DATE) ...처럼 문자열을 명시적으로 DATE로 변환합니다. F: 실패 행을 NULL로 표시해 처리할 정책이면 CAST 대신 TRY_CAST(raw_date AS DATE)를 사용하고, NULL 결과를 별도 집계·검토합니다. 호환 옵션 old_implicit_casting=true를 장기 해결책으로 고려한다면 사용하는 정확한 DuckDB 버전에서 옵션 지원 여부, 영향 범위, 기존 암묵 변환에 대한 의존성을 확인하고 회귀 검증해야 합니다. 이는 명시적 타입 정리를 대체하는 보편적 보장으로 간주하지 않습니다.",
+  "limitations": "DuckDB를 실행하지 않았으며, 근거는 제공된 공식 문서 인용과 명시된 환경에 한정됩니다. F의 입력값을 확인하지 않았으므로 모든 행 변환 성공을 주장할 수 없습니다. 날짜 리터럴의 특수 규칙을 VARCHAR 컬럼에 일반화할 수 없습니다.",
+  "citations": [
+    {
+      "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/docs/0.10/sql/data_types/typecasting.md",
+      "quote": "no longer allows implicit casts to VARCHAR",
+      "supports": ["q1", "q2"]
+    },
+    {
+      "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+      "quote": "INTEGER_LITERAL and STRING_LITERAL are separate types",
+      "supports": ["q3", "q4"]
+    }
+  ]
+}

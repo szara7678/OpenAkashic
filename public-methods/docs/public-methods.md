@@ -422,3 +422,8 @@ hashes, programs, failures and replay instructions are in
 `benchmarks/failure-transfer-2026-10-28/`. The evidence supports careful selective
 use of prior experience; it does not justify promising better outputs merely
 because more records or graph links were supplied.
+
+
+## Complete method bundles
+
+`GET /research/api/methods/bundle` returns whole stored methods within256?4096 tokens, including steps, conditions, limitations and sources. Existing `/context` is unchanged. Oversized candidates are explicitly fetch-required; method completeness does not imply original-source evidence completeness. See [bundle contract](method-bundles.md) and the [bounded source-retrieval pilot](../benchmarks/retrieval-cost-2026-10-29/README.md).

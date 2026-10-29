@@ -1,0 +1,42 @@
+{
+  "decisions": {
+    "q1": "pending/idle",
+    "q2": 0,
+    "q3": true,
+    "q4": 1,
+    "q5": "missing_query_fn",
+    "q6": false
+  },
+  "rationale": {
+    "q1": "캐시 데이터가 없는 enabled:false 쿼리는 pending/idle로 시작합니다.",
+    "q2": "invalidateQueries는 쿼리를 무효화하지만, disabled 쿼리는 뒤따르는 refetch 대상에서 제외됩니다. 별도 refetchQueries도 건너뛰므로 함수 호출은 없습니다.",
+    "q3": "무효화 표시는 refetch가 실행되지 않아도 남습니다.",
+    "q4": "useQuery 결과의 수동 refetch는 enabled:false여도 실행되어 queryFn을 한 번 호출합니다.",
+    "q5": "skipToken은 실행 가능한 queryFn이 아니므로 수동 호출은 Missing queryFn 오류를 기록합니다.",
+    "q6": "캐시 데이터가 있으면 마운트 시 success를 표시할 수 있습니다. 이는 캐시를 사용했다는 뜻이지 이번 마운트에서 네트워크 요청을 완료했다는 뜻은 아닙니다."
+  },
+  "fix": "수동 버튼을 유지하려면 enabled:false와 실제 queryFn을 두고, 첫 요청 대기 UI는 isLoading(= isPending && isFetching), 진행 중 표시는 isFetching으로 조건화하세요. 무효화는 캐시를 stale/invalidated로 표시하는 작업이고 실제 요청은 별도로 발생합니다. skipToken 구성에서는 refetch가 동작하지 않으며, 실행 가능한 queryFn이 없어 Missing queryFn 오류가 발생합니다. 입력이 준비된 뒤 자동 조회하려면 enabled: !!input처럼 조건을 선언하거나 queryKey에 입력을 포함하고 skipToken 대신 유효 queryFn을 제공하세요.",
+  "limitations": "판정은 명시된 조건과 고정된 5.90.5 소스에 한정합니다. 네트워크·재시도 실패나 추가 observer, 캐시 수정은 가정에서 제외했습니다.",
+  "citations": [
+    {
+      "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/disabling-queries.md",
+      "quote": "If the query does not have cached data, then the query will start in the `status === 'pending'` and `fetchStatus === 'idle'` state.",
+      "supports": ["q1"]
+    },
+    {
+      "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/disabling-queries.md",
+      "quote": "The query will ignore query client `invalidateQueries` and `refetchQueries` calls that would normally result in the query refetching.",
+      "supports": ["q2", "q3"]
+    },
+    {
+      "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/packages/query-core/src/utils.ts",
+      "quote": "Promise.reject(new Error(`Missing queryFn: '${options.queryHash}'`))",
+      "supports": ["q5"]
+    },
+    {
+      "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/disabling-queries.md",
+      "quote": "`isPending && isFetching`",
+      "supports": ["q1"]
+    }
+  ]
+}

@@ -210,6 +210,22 @@ def method_context(
     return pack_context(result, max_tokens)
 
 
+@router.get("/bundle")
+def method_bundle(
+    situation: Annotated[str, Query(min_length=2, max_length=500)],
+    goal: Annotated[str, Query(min_length=2, max_length=500)],
+    constraints: Annotated[str, Query(max_length=500)] = "",
+    limit: Annotated[int, Query(ge=1, le=5)] = 3,
+    mode: Literal["lexical", "semantic", "hybrid"] = "hybrid",
+    requires: Annotated[str, Query(max_length=500)] = "",
+    forbids: Annotated[str, Query(max_length=500)] = "",
+    max_tokens: Annotated[int, Query(ge=256, le=4096)] = 1024,
+):
+    from app.research_method_context import pack_bundle
+    result = search_methods(situation, goal, constraints, limit, mode, requires, forbids)
+    return pack_bundle(result, max_tokens)
+
+
 @router.get("/catalog")
 def method_catalog(
     domain: Annotated[str, Query(max_length=100)] = "",

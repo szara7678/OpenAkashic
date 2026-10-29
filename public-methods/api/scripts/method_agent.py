@@ -83,7 +83,7 @@ def run(args):
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
 
     path = API_PATH
-    if args.command in ("search", "context"):
+    if args.command in ("search", "context", "bundle"):
         query = {"situation": args.situation, "goal": args.goal, "limit": args.limit}
         if args.constraints:
             query["constraints"] = args.constraints
@@ -91,7 +91,7 @@ def run(args):
             value = getattr(args, name, None)
             if value and not (name == "mode" and value == "lexical"):
                 query[name] = value
-        if args.command == "context":
+        if args.command in ("context", "bundle"):
             query["max_tokens"] = args.max_tokens
         path += "/" + args.command + "?" + urlencode(query)
     elif args.command in ("fetch", "outcome", "opinion"):
@@ -145,6 +145,15 @@ def main(argv=None):
     context.add_argument("--forbids", default="")
     context.add_argument("--limit", type=int, choices=range(1, 6), default=3)
     context.add_argument("--max-tokens", type=int, choices=range(256, 2049), default=1024)
+    bundle = commands.add_parser("bundle", help="Get whole methods atomically within a token budget")
+    bundle.add_argument("--situation", required=True)
+    bundle.add_argument("--goal", required=True)
+    bundle.add_argument("--constraints", default="")
+    bundle.add_argument("--mode", choices=("lexical", "semantic", "hybrid"), default="hybrid")
+    bundle.add_argument("--requires", default="")
+    bundle.add_argument("--forbids", default="")
+    bundle.add_argument("--limit", type=int, choices=range(1, 6), default=3)
+    bundle.add_argument("--max-tokens", type=int, choices=range(256, 4097), default=1024)
     fetch = commands.add_parser("fetch")
     fetch.add_argument("id")
     for name in ("submit", "outcome", "opinion"):

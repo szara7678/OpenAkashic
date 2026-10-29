@@ -1,0 +1,113 @@
+{
+  "grades": [
+    {
+      "label": "case-1b0ed06e",
+      "conditions": 2,
+      "fix": 2,
+      "uncertainty": 1,
+      "citation_support": false,
+      "issues": [
+        "All decisions match gold. The answer identifies the query error but does not explicitly distinguish query error state from refetch Promise rejection/throw behavior.",
+        "The skipToken quote differs only by Markdown code formatting in its genuine source sentence. However, assigning that quote to q2/q3 is semantically unsupported: skipToken manual refetch does not establish disabled client refetch behavior or isInvalidated state.",
+        "Extra citations top-level key violates requested four-key schema; scored separately from diagnostic correctness."
+      ]
+    },
+    {
+      "label": "case-2ee10db0",
+      "conditions": 2,
+      "fix": 1,
+      "uncertainty": 2,
+      "citation_support": true,
+      "issues": [
+        "A fix is actionable. B states the initial-call restriction but offers st.rerun() without explicitly placing it behind a one-shot/event guard; a mechanical substitution in boot would loop. The alternative fragment-only path does not specify a concrete public event condition.",
+        "The cited complete source files support the linked conclusions, but the external-container excerpt alone does not support q3/q4. The full-app quote substitutes during for the source phrase if a fragment is running as part of: a faithful paraphrase presented as a quote, not only Markdown normalization.",
+        "Extra citations top-level key violates requested four-key schema."
+      ]
+    },
+    {
+      "label": "case-a50244bc",
+      "conditions": 2,
+      "fix": 1,
+      "uncertainty": 2,
+      "citation_support": true,
+      "issues": [
+        "Explicit casts and TRY_CAST/failure review are actionable, but the compatibility-option discussion omits the official warning that the flag will be deprecated in the future. Checking version support/impact does not explicitly convey that lifecycle constraint.",
+        "Cited source files semantically support their linked decisions. The separate literal types quote differs only in Markdown backticks; no substantive fabricated quote detected.",
+        "Extra citations top-level key violates requested four-key schema."
+      ]
+    },
+    {
+      "label": "case-485cefc7",
+      "conditions": 2,
+      "fix": 2,
+      "uncertainty": 1,
+      "citation_support": false,
+      "issues": [
+        "All decisions match gold. The answer does not explicitly distinguish query error state from default refetch Promise throw/rejection behavior.",
+        "The disabled-query documentation excerpt supports excluding actual refetch, but does not establish q3 isInvalidated=true; that decisive detail requires the client/core invalidation path. The answer provides no such citation. Other linked excerpts have semantic support; Markdown code formatting is harmless.",
+        "Extra citations top-level key violates requested four-key schema."
+      ]
+    },
+    {
+      "label": "case-cfb3fbd8",
+      "conditions": 2,
+      "fix": 2,
+      "uncertainty": 2,
+      "citation_support": true,
+      "issues": [
+        "No decisive unsupported diagnostic claim detected. Source files support the associated casting/literal boundaries; backtick removal in the separate-types quotation is formatting only.",
+        "Extra citations top-level key violates requested four-key schema."
+      ]
+    },
+    {
+      "label": "case-ae567369",
+      "conditions": 1,
+      "fix": 1,
+      "uncertainty": 2,
+      "citation_support": false,
+      "issues": [
+        "Decisive incorrect q3: equal dates compared with > yield false, not true. The rationale also incorrectly says same dates imply true.",
+        "The compatibility-option discussion omits its stated future deprecation constraint.",
+        "The release quote about explicit casting here refers to function binding/substring; its assignment to q4 DATE/VARCHAR comparison is not supported by that excerpt, although another passage in the same source supports the actual boundary. No citation supports the incorrect q3.",
+        "Other overflow/runtime parsing excerpts are faithful; no formatting-only mismatch should be treated as evidence fabrication.",
+        "Extra citations top-level key violates requested four-key schema."
+      ]
+    },
+    {
+      "label": "case-75ae024b",
+      "conditions": 2,
+      "fix": 2,
+      "uncertainty": 1,
+      "citation_support": false,
+      "issues": [
+        "All decisions match gold. Query error state is identified but default Promise throw/rejection behavior is not explicitly separated.",
+        "The cancellation citation does not support q6: unused/unmounted query cancellation cannot establish whether cached success proves a new request on this mount. The skipToken quote is valid after harmless Markdown backtick normalization.",
+        "Extra citations top-level key violates requested four-key schema."
+      ]
+    },
+    {
+      "label": "case-1e5bae36",
+      "conditions": 2,
+      "fix": 2,
+      "uncertainty": 2,
+      "citation_support": true,
+      "issues": [
+        "All diagnostic boundaries match gold. The fix explicitly renders initial content normally and gates subsequent fragment rerun by a condition.",
+        "Cited source files support the mapped conclusions. The interactions quotation capitalizes these and omits preceding context, while the full-app exception quote removes reStructuredText backticks and joins wrapped lines: these are harmless presentation differences, not substantive paraphrases. returned_by_tool=false alone does not negate semantic support.",
+        "Extra citations top-level key violates requested four-key schema."
+      ]
+    },
+    {
+      "label": "case-79cb1668",
+      "conditions": 2,
+      "fix": 1,
+      "uncertainty": 2,
+      "citation_support": true,
+      "issues": [
+        "A fix is actionable. B describes valid scopes but supplies no concrete event/one-shot guard for st.rerun(); replacing the initial unconditional call with it would loop.",
+        "Cited complete sources support the conclusions, but external-container accumulation excerpt alone does not establish q3/q4. The full-app quote is a faithful substantive paraphrase of if a fragment is running as part of, not merely a Markdown formatting difference.",
+        "Extra citations top-level key violates requested four-key schema."
+      ]
+    }
+  ]
+}

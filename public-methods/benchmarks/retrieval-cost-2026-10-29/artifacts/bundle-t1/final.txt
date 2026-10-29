@@ -1,0 +1,32 @@
+{
+  "decisions": {
+    "q1": true,
+    "q2": 3,
+    "q3": 1,
+    "q4": 3,
+    "q5": false,
+    "q6": "unknown"
+  },
+  "rationale": {
+    "q1": "첫 실행은 전체 앱 실행입니다. fragment 함수 안에 있더라도 그 실행 중 scope='fragment' 재실행을 요청하면 예외가 발생합니다.",
+    "q2": "outside는 전체 실행 때 만들어집니다. fragment 부분 실행은 그 컨테이너를 비우지 않으므로, 초기 표시 하나에 두 번의 표시가 더해져 3개입니다.",
+    "q3": "fragment가 직접 그린 요소는 부분 실행 때 교체되므로 마지막 화면에는 하나만 표시됩니다.",
+    "q4": "초기 전체 실행과 두 번의 부분 실행에서 각각 한 번씩 append되어 길이는 3입니다.",
+    "q5": "지원되지 않습니다. fragment 안의 위젯은 fragment 영역 안에 렌더링해야 합니다.",
+    "q6": "호출 직전 로그만으로는 현재 실행이 초기 전체 실행인지 fragment 부분 실행인지 알 수 없습니다."
+  },
+  "fix": "A에서는 outside 컨테이너에 쓰지 말고 표시 내용을 fragment 본문에서 직접 렌더링하세요. events.append('tick')도 본문 실행마다 하지 말고, tick을 기록해야 하는 특정 사용자 동작이 확인된 경우에만 수행하도록 옮기세요(예: 버튼 반환값이 참일 때). B의 초기 전체 실행에서 부분 재실행을 요청하지 않도록 하세요. 전체 앱 재실행이 목적이면 st.rerun()을 사용하고, 부분 재실행이 목적이면 fragment 부분 실행 중에만 st.rerun(scope='fragment')을 호출하세요.",
+  "limitations": "q6은 이벤트 시작 정보나 그 밖의 실행 범위 증거가 없으므로 unknown입니다. 로그 문자열만 보고 범위를 추정해 예외를 삼키면, 원인을 숨기거나 전체 앱 실행 중 잘못된 재실행 요청을 놓칠 수 있습니다. 공개 API만으로 이 한 줄에서 현재 범위를 판별할 수 있다고 단정할 근거는 없습니다. 답은 Streamlit 1.46.0 조건에 대한 문서 근거이며 실제 upstream 라이브러리 실행은 하지 않았습니다.",
+  "citations": [
+    {
+      "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py",
+      "quote": "during a full-app rerun, a fragment-scoped rerun is not allowed",
+      "supports": ["q1", "q6"]
+    },
+    {
+      "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/runtime/fragment.py",
+      "quote": "elements will accumulate in those containers",
+      "supports": ["q2", "q3", "q4"]
+    }
+  ]
+}

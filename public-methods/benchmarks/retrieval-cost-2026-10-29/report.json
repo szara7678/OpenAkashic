@@ -1,0 +1,1022 @@
+{
+  "runs": [
+    {
+      "id": "direct-t1",
+      "arm": "direct",
+      "task": "T1",
+      "decision_points": 6,
+      "decision_possible": 6,
+      "strict_grounded_pass": false,
+      "citation_requirement_pass": false,
+      "citations": [
+        {
+          "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/runtime/fragment.py",
+          "quote": "elements will accumulate in those containers with each fragment rerun",
+          "exact_source_match": true,
+          "returned_by_tool": false,
+          "known_relevant_qids": [
+            "q2"
+          ],
+          "word_count": 10,
+          "valid": false
+        },
+        {
+          "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/runtime/fragment.py",
+          "quote": "Fragments can't render widgets to externally created containers.",
+          "exact_source_match": true,
+          "returned_by_tool": false,
+          "known_relevant_qids": [
+            "q5"
+          ],
+          "word_count": 8,
+          "valid": false
+        },
+        {
+          "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/runtime/fragment.py",
+          "quote": "the elements are cleared and redrawn on each fragment rerun",
+          "exact_source_match": true,
+          "returned_by_tool": false,
+          "known_relevant_qids": [
+            "q3"
+          ],
+          "word_count": 10,
+          "valid": false
+        },
+        {
+          "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/runtime/fragment.py",
+          "quote": "These interactions are additive across multiple fragment reruns.",
+          "exact_source_match": false,
+          "returned_by_tool": false,
+          "known_relevant_qids": [
+            "q4"
+          ],
+          "word_count": 8,
+          "valid": false
+        },
+        {
+          "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py",
+          "quote": "If st.rerun(scope=\"fragment\") is called during a full-app rerun or outside of a fragment, Streamlit will raise a StreamlitAPIException.",
+          "exact_source_match": false,
+          "returned_by_tool": false,
+          "known_relevant_qids": [
+            "q1",
+            "q6"
+          ],
+          "word_count": 18,
+          "valid": false
+        }
+      ],
+      "file_disagreement": false,
+      "parse_ok": false,
+      "content_parse_ok": true,
+      "input_tokens": 36058,
+      "output_tokens": 1070,
+      "cached_input_tokens": 9984,
+      "total_tokens": 37128,
+      "model_calls": 3,
+      "retrieval_calls": 3,
+      "retrieval_errors": 0,
+      "request_seconds": 11.765354064991698,
+      "retrieval_seconds": 0.7360555891646072,
+      "wall_seconds": 21.503075674991123,
+      "actual_models": [
+        "gpt-6-luna"
+      ],
+      "usage_matches_cli": true,
+      "answer": {
+        "decisions": {
+          "q1": true,
+          "q2": 3,
+          "q3": 1,
+          "q4": 3,
+          "q5": false,
+          "q6": "unknown"
+        },
+        "rationale": {
+          "q1": "첫 전체 앱 실행 중에는 fragment 본문이 실행되더라도 fragment 범위 재실행이 허용되지 않아 StreamlitAPIException이 발생합니다.",
+          "q2": "외부에서 만든 컨테이너의 요소는 fragment 재실행마다 지워지지 않고 누적됩니다. 최초 실행 1회와 부분 실행 2회로 3개입니다.",
+          "q3": "fragment 본문 요소는 부분 실행 때마다 지워지고 다시 그려집니다. 마지막 화면에는 1개입니다.",
+          "q4": "Session State 변경은 재실행 사이에 누적되므로 최초 실행 1회와 부분 실행 2회로 길이 3입니다.",
+          "q5": "fragment는 외부에서 만든 컨테이너에 widget을 렌더링할 수 없습니다.",
+          "q6": "로그에는 rerun 호출 직전이라는 정보만 있고, 실행을 시작한 이벤트가 없어 현재 범위를 특정할 수 없습니다."
+        },
+        "fix": "A는 반복 실행 때 누적되는 외부 컨테이너 쓰기를 없애고 fragment 본문에서 표시해 부분 재실행 시 해당 표시가 교체되게 합니다. 이벤트 기록이 클릭 때만 필요하면 버튼을 누른 경우에만 append하거나, 이벤트를 고유 키로 기록해 중복을 방지합니다. B는 첫 전체 앱 실행에서 fragment 범위 rerun을 호출하지 않도록 합니다. 필요한 초기 화면은 정상 렌더링하고, 이후 fragment 재실행에서만 조건에 따라 st.rerun(scope=\"fragment\")을 호출하거나 전체 앱 재실행을 원하면 st.rerun()을 사용합니다. q6 로그만으로 실행 범위를 판별해 StreamlitAPIException을 삼키는 처리는 안전하지 않습니다. 공개 API로 현재 실행이 fragment 재실행인지 신뢰성 있게 읽는 방법은 인용한 자료에서 확인되지 않으므로, 실행 흐름을 직접 제어하는 조건을 두어야 합니다.",
+        "limitations": "이 답은 Streamlit 1.46.0에 고정된 공식 소스의 설명을 근거로 한 진단이며, upstream 코드를 실행하지 않았습니다. q6에 대해 로그 밖의 이벤트 이력이나 비공개 런타임 상태를 추정하지 않았습니다.",
+        "citations": [
+          {
+            "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/runtime/fragment.py",
+            "quote": "elements will accumulate in those containers with each fragment rerun",
+            "supports": [
+              "q2"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/runtime/fragment.py",
+            "quote": "Fragments can't render widgets to externally created containers.",
+            "supports": [
+              "q5"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/runtime/fragment.py",
+            "quote": "the elements are cleared and redrawn on each fragment rerun",
+            "supports": [
+              "q3"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/runtime/fragment.py",
+            "quote": "These interactions are additive across multiple fragment reruns.",
+            "supports": [
+              "q4"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py",
+            "quote": "If st.rerun(scope=\"fragment\") is called during a full-app rerun or outside of a fragment, Streamlit will raise a StreamlitAPIException.",
+            "supports": [
+              "q1",
+              "q6"
+            ]
+          }
+        ]
+      },
+      "blind_quality_points": 6,
+      "citation_semantic_support": true,
+      "review_issues": [
+        "All diagnostic boundaries match gold. The fix explicitly renders initial content normally and gates subsequent fragment rerun by a condition.",
+        "Cited source files support the mapped conclusions. The interactions quotation capitalizes these and omits preceding context, while the full-app exception quote removes reStructuredText backticks and joins wrapped lines: these are harmless presentation differences, not substantive paraphrases. returned_by_tool=false alone does not negate semantic support."
+      ]
+    },
+    {
+      "id": "flat-t1",
+      "arm": "flat",
+      "task": "T1",
+      "decision_points": 6,
+      "decision_possible": 6,
+      "strict_grounded_pass": false,
+      "citation_requirement_pass": false,
+      "citations": [
+        {
+          "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/runtime/fragment.py",
+          "quote": "elements will accumulate in those containers",
+          "exact_source_match": true,
+          "returned_by_tool": true,
+          "known_relevant_qids": [
+            "q2",
+            "q3",
+            "q4"
+          ],
+          "word_count": 6,
+          "valid": true
+        },
+        {
+          "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py",
+          "quote": "during a full-app rerun, a fragment-scoped rerun is not allowed",
+          "exact_source_match": false,
+          "returned_by_tool": true,
+          "known_relevant_qids": [
+            "q1",
+            "q6"
+          ],
+          "word_count": 10,
+          "valid": false
+        }
+      ],
+      "file_disagreement": false,
+      "parse_ok": false,
+      "content_parse_ok": true,
+      "input_tokens": 55747,
+      "output_tokens": 1220,
+      "cached_input_tokens": 37504,
+      "total_tokens": 56967,
+      "model_calls": 4,
+      "retrieval_calls": 3,
+      "retrieval_errors": 0,
+      "request_seconds": 14.811903430963866,
+      "retrieval_seconds": 2.0303783850977197,
+      "wall_seconds": 24.558500273968093,
+      "actual_models": [
+        "gpt-6-luna"
+      ],
+      "usage_matches_cli": true,
+      "answer": {
+        "decisions": {
+          "q1": true,
+          "q2": 3,
+          "q3": 1,
+          "q4": 3,
+          "q5": false,
+          "q6": "unknown"
+        },
+        "rationale": {
+          "q1": "B는 fragment 함수 안에서 호출하지만 첫 전체 앱 실행 중입니다. fragment 범위 rerun은 이 실행 범위에서 허용되지 않아 StreamlitAPIException이 발생합니다.",
+          "q2": "전체 앱 실행 때 한 번 쓴 외부 컨테이너 요소는 fragment 부분 실행에서 제거되지 않습니다. 두 번 더 쌓여 총 3개입니다.",
+          "q3": "fragment 본문이 직접 만든 요소는 부분 실행 때 교체되므로 마지막 화면에는 1개입니다.",
+          "q4": "본문이 최초 전체 실행과 두 번의 부분 실행에서 각각 한 번씩 append하므로 리스트 길이는 3입니다.",
+          "q5": "fragment 안에서 외부 컨테이너에 widget을 생성하는 방식은 지원되지 않습니다.",
+          "q6": "로그에는 이벤트 시작 정보가 없어 현재 실행 범위가 전체 앱인지 fragment 부분 실행인지 판별할 수 없습니다."
+        },
+        "fix": "A에서는 반복해서 갱신할 표시를 fragment 본문 안에 직접 생성해 fragment 영역의 교체 동작을 이용하세요. 상태 기록은 매 실행마다 append하지 말고, 버튼 이벤트 등 실제 기록이 필요한 조건에서만 변경하거나 중복을 막는 기준을 두세요. 외부 컨테이너를 계속 쓸 경우 fragment 재실행 때 요소가 누적된다는 점을 고려해 수명과 정리 시점을 설계하세요. B는 초기 전체 실행에서 fragment 범위 rerun을 호출하지 않도록 바꾸세요. 전체 앱 재실행이 목적이면 기본 범위의 st.rerun()을 쓰거나, 초기 실행에는 호출하지 않고 fragment가 부분 실행 중일 때만 fragment 범위 rerun을 요청하세요. q6처럼 이벤트 시작 정보 없는 한 줄 로그로 범위를 추정해 예외를 삼키면, 실제 원인과 정상 경로의 오류를 구별할 수 없고 의도한 재실행도 놓칠 수 있습니다. 실행 범위를 확정할 수 있는 이벤트·제어흐름 정보를 로그에 포함하고, 예외는 예상 가능한 경로에서만 처리하세요.",
+        "limitations": "판단은 문제에 명시된 Streamlit 1.46.0 동작 조건과 제공된 공식 소스 발췌에 근거합니다. 라이브러리를 실행해 검증하지 않았으며, 로그 한 줄만으로 q6의 실행 범위를 특정할 수 없습니다.",
+        "citations": [
+          {
+            "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/runtime/fragment.py",
+            "quote": "elements will accumulate in those containers",
+            "supports": [
+              "q2",
+              "q3",
+              "q4"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py",
+            "quote": "during a full-app rerun, a fragment-scoped rerun is not allowed",
+            "supports": [
+              "q1",
+              "q6"
+            ]
+          }
+        ]
+      },
+      "blind_quality_points": 5,
+      "citation_semantic_support": true,
+      "review_issues": [
+        "A fix is actionable. B states the initial-call restriction but offers st.rerun() without explicitly placing it behind a one-shot/event guard; a mechanical substitution in boot would loop. The alternative fragment-only path does not specify a concrete public event condition.",
+        "The cited complete source files support the linked conclusions, but the external-container excerpt alone does not support q3/q4. The full-app quote substitutes during for the source phrase if a fragment is running as part of: a faithful paraphrase presented as a quote, not only Markdown normalization."
+      ]
+    },
+    {
+      "id": "bundle-t1",
+      "arm": "bundle",
+      "task": "T1",
+      "decision_points": 6,
+      "decision_possible": 6,
+      "strict_grounded_pass": false,
+      "citation_requirement_pass": false,
+      "citations": [
+        {
+          "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py",
+          "quote": "during a full-app rerun, a fragment-scoped rerun is not allowed",
+          "exact_source_match": false,
+          "returned_by_tool": true,
+          "known_relevant_qids": [
+            "q1",
+            "q6"
+          ],
+          "word_count": 10,
+          "valid": false
+        },
+        {
+          "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/runtime/fragment.py",
+          "quote": "elements will accumulate in those containers",
+          "exact_source_match": true,
+          "returned_by_tool": true,
+          "known_relevant_qids": [
+            "q2",
+            "q3",
+            "q4"
+          ],
+          "word_count": 6,
+          "valid": true
+        }
+      ],
+      "file_disagreement": false,
+      "parse_ok": true,
+      "content_parse_ok": true,
+      "input_tokens": 38767,
+      "output_tokens": 1635,
+      "cached_input_tokens": 9984,
+      "total_tokens": 40402,
+      "model_calls": 3,
+      "retrieval_calls": 2,
+      "retrieval_errors": 0,
+      "request_seconds": 17.13311980094295,
+      "retrieval_seconds": 1.9239462679252028,
+      "wall_seconds": 26.566528053954244,
+      "actual_models": [
+        "gpt-6-luna"
+      ],
+      "usage_matches_cli": true,
+      "answer": {
+        "decisions": {
+          "q1": true,
+          "q2": 3,
+          "q3": 1,
+          "q4": 3,
+          "q5": false,
+          "q6": "unknown"
+        },
+        "rationale": {
+          "q1": "첫 실행은 전체 앱 실행입니다. fragment 함수 안에 있더라도 그 실행 중 scope='fragment' 재실행을 요청하면 예외가 발생합니다.",
+          "q2": "outside는 전체 실행 때 만들어집니다. fragment 부분 실행은 그 컨테이너를 비우지 않으므로, 초기 표시 하나에 두 번의 표시가 더해져 3개입니다.",
+          "q3": "fragment가 직접 그린 요소는 부분 실행 때 교체되므로 마지막 화면에는 하나만 표시됩니다.",
+          "q4": "초기 전체 실행과 두 번의 부분 실행에서 각각 한 번씩 append되어 길이는 3입니다.",
+          "q5": "지원되지 않습니다. fragment 안의 위젯은 fragment 영역 안에 렌더링해야 합니다.",
+          "q6": "호출 직전 로그만으로는 현재 실행이 초기 전체 실행인지 fragment 부분 실행인지 알 수 없습니다."
+        },
+        "fix": "A에서는 outside 컨테이너에 쓰지 말고 표시 내용을 fragment 본문에서 직접 렌더링하세요. events.append('tick')도 본문 실행마다 하지 말고, tick을 기록해야 하는 특정 사용자 동작이 확인된 경우에만 수행하도록 옮기세요(예: 버튼 반환값이 참일 때). B의 초기 전체 실행에서 부분 재실행을 요청하지 않도록 하세요. 전체 앱 재실행이 목적이면 st.rerun()을 사용하고, 부분 재실행이 목적이면 fragment 부분 실행 중에만 st.rerun(scope='fragment')을 호출하세요.",
+        "limitations": "q6은 이벤트 시작 정보나 그 밖의 실행 범위 증거가 없으므로 unknown입니다. 로그 문자열만 보고 범위를 추정해 예외를 삼키면, 원인을 숨기거나 전체 앱 실행 중 잘못된 재실행 요청을 놓칠 수 있습니다. 공개 API만으로 이 한 줄에서 현재 범위를 판별할 수 있다고 단정할 근거는 없습니다. 답은 Streamlit 1.46.0 조건에 대한 문서 근거이며 실제 upstream 라이브러리 실행은 하지 않았습니다.",
+        "citations": [
+          {
+            "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py",
+            "quote": "during a full-app rerun, a fragment-scoped rerun is not allowed",
+            "supports": [
+              "q1",
+              "q6"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/runtime/fragment.py",
+            "quote": "elements will accumulate in those containers",
+            "supports": [
+              "q2",
+              "q3",
+              "q4"
+            ]
+          }
+        ]
+      },
+      "blind_quality_points": 5,
+      "citation_semantic_support": true,
+      "review_issues": [
+        "A fix is actionable. B describes valid scopes but supplies no concrete event/one-shot guard for st.rerun(); replacing the initial unconditional call with it would loop.",
+        "Cited complete sources support the conclusions, but external-container accumulation excerpt alone does not establish q3/q4. The full-app quote is a faithful substantive paraphrase of if a fragment is running as part of, not merely a Markdown formatting difference."
+      ]
+    },
+    {
+      "id": "flat-t3",
+      "arm": "flat",
+      "task": "T3",
+      "decision_points": 6,
+      "decision_possible": 6,
+      "strict_grounded_pass": false,
+      "citation_requirement_pass": false,
+      "citations": [
+        {
+          "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/docs/0.10/sql/data_types/typecasting.md",
+          "quote": "no longer allows implicit casts to VARCHAR",
+          "exact_source_match": false,
+          "returned_by_tool": true,
+          "known_relevant_qids": [
+            "q1"
+          ],
+          "word_count": 7,
+          "valid": false
+        },
+        {
+          "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+          "quote": "INTEGER_LITERAL and STRING_LITERAL are separate types",
+          "exact_source_match": false,
+          "returned_by_tool": true,
+          "known_relevant_qids": [
+            "q3",
+            "q4"
+          ],
+          "word_count": 6,
+          "valid": false
+        }
+      ],
+      "file_disagreement": false,
+      "parse_ok": true,
+      "content_parse_ok": true,
+      "input_tokens": 38219,
+      "output_tokens": 1013,
+      "cached_input_tokens": 22912,
+      "total_tokens": 39232,
+      "model_calls": 3,
+      "retrieval_calls": 2,
+      "retrieval_errors": 0,
+      "request_seconds": 13.940549330902286,
+      "retrieval_seconds": 1.4440035400912166,
+      "wall_seconds": 23.511770569952205,
+      "actual_models": [
+        "gpt-6-luna"
+      ],
+      "usage_matches_cli": true,
+      "answer": {
+        "decisions": {
+          "q1": "binding_error",
+          "q2": "4",
+          "q3": false,
+          "q4": "binding_error",
+          "q5": "conversion_error",
+          "q6": "unknown"
+        },
+        "rationale": {
+          "q1": "DuckDB 0.10.0에서는 함수가 정수 인수를 문자열로 암묵 변환한다고 보장하지 않으므로 `substring(42,...)`은 바인딩 오류다.",
+          "q2": "명시적으로 VARCHAR로 변환하면 문자열 `42`의 첫 글자인 `4`를 반환한다.",
+          "q3": "문자열 리터럴은 DATE와 비교할 때 별도 바인딩 규칙을 갖는다. 같은 날짜이므로 `>` 결과는 false다.",
+          "q4": "명시적 VARCHAR 변환은 문자열 리터럴의 특수 규칙과 다르다. DATE와 VARCHAR의 비교를 위한 공통 타입이 없어 바인딩 오류다.",
+          "q5": "TINYINT로의 변환은 바인딩되지만 999는 TINYINT 범위를 벗어나므로 변환 오류다.",
+          "q6": "값 목록이 없으므로 문자열이 모두 유효한 날짜인지 판단할 수 없다. 전체 성공 여부는 알 수 없다."
+        },
+        "fix": "문자열 처리 목적의 A는 `SELECT substring(CAST(42 AS VARCHAR), 1, 1);`처럼 인수를 명시적으로 VARCHAR로 변환하세요. 날짜 비교 목적의 D는 문자열을 날짜로 비교하도록 `WHERE d > CAST('1992-01-01' AS DATE)`처럼 명시적으로 DATE로 변환하세요. F는 우선 `TRY_CAST(raw_date AS DATE)`로 변환 실패를 NULL로 표시하고, NULL 행을 집계·격리해 정한 불량값 정책(예: 거부, 수정 또는 제외)에 따라 처리하세요. 레거시 호환 옵션 `old_implicit_casting`을 장기 해결책으로 검토한다면 현재 버전의 지원 여부와 폐기 상태, 배포 환경에서의 설정 적용 범위, 그 설정에 의존하는 모든 쿼리의 영향을 확인하세요. 이를 장기적으로 전제하기보다 명시 변환으로 전환하세요. 실제 값을 검사하지 않고 F의 모든 행이 성공한다고 단정할 수 없습니다.",
+        "limitations": "제공된 참조 내용은 문서에 근거한 방법이며 이 환경에서 DuckDB를 실행해 재현한 결과가 아닙니다. 참조는 리터럴과 VARCHAR의 구별 및 함수 인수의 암묵 변환 제한을 뒷받침하지만, 개별 SQL 결과와 컬럼 값 분포를 이 실행에서 확인하지 않았습니다. 따라서 F의 실제 성공률은 알 수 없으며, TRY_CAST 결과를 바탕으로 데이터 정책을 적용해야 합니다.",
+        "citations": [
+          {
+            "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/docs/0.10/sql/data_types/typecasting.md",
+            "quote": "no longer allows implicit casts to VARCHAR",
+            "supports": [
+              "q1",
+              "q2"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+            "quote": "INTEGER_LITERAL and STRING_LITERAL are separate types",
+            "supports": [
+              "q3",
+              "q4"
+            ]
+          }
+        ]
+      },
+      "blind_quality_points": 6,
+      "citation_semantic_support": true,
+      "review_issues": [
+        "No decisive unsupported diagnostic claim detected. Source files support the associated casting/literal boundaries; backtick removal in the separate-types quotation is formatting only."
+      ]
+    },
+    {
+      "id": "bundle-t3",
+      "arm": "bundle",
+      "task": "T3",
+      "decision_points": 6,
+      "decision_possible": 6,
+      "strict_grounded_pass": false,
+      "citation_requirement_pass": false,
+      "citations": [
+        {
+          "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/docs/0.10/sql/data_types/typecasting.md",
+          "quote": "no longer allows implicit casts to VARCHAR",
+          "exact_source_match": false,
+          "returned_by_tool": true,
+          "known_relevant_qids": [
+            "q1"
+          ],
+          "word_count": 7,
+          "valid": false
+        },
+        {
+          "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+          "quote": "INTEGER_LITERAL and STRING_LITERAL are separate types",
+          "exact_source_match": false,
+          "returned_by_tool": true,
+          "known_relevant_qids": [
+            "q3",
+            "q4"
+          ],
+          "word_count": 6,
+          "valid": false
+        }
+      ],
+      "file_disagreement": false,
+      "parse_ok": true,
+      "content_parse_ok": true,
+      "input_tokens": 38720,
+      "output_tokens": 1226,
+      "cached_input_tokens": 9984,
+      "total_tokens": 39946,
+      "model_calls": 3,
+      "retrieval_calls": 2,
+      "retrieval_errors": 0,
+      "request_seconds": 15.978360708919354,
+      "retrieval_seconds": 2.253726392867975,
+      "wall_seconds": 28.11589143902529,
+      "actual_models": [
+        "gpt-6-luna"
+      ],
+      "usage_matches_cli": true,
+      "answer": {
+        "decisions": {
+          "q1": "binding_error",
+          "q2": "4",
+          "q3": false,
+          "q4": "binding_error",
+          "q5": "conversion_error",
+          "q6": "unknown"
+        },
+        "rationale": {
+          "q1": "DuckDB 0.10.0에서는 숫자에서 VARCHAR로의 암묵 변환에 의존해 문자열 함수를 호출할 수 없습니다. 지원되는 substring 오버로드에 맞지 않아 바인딩 오류입니다.",
+          "q2": "명시적으로 VARCHAR로 변환하므로 바인딩됩니다. '42'의 첫 글자는 '4'입니다.",
+          "q3": "날짜 문자열 리터럴은 실제 VARCHAR 값과 다른 바인딩 규칙을 가집니다. 리터럴이 DATE로 해석되어 같은 날짜끼리 비교하므로 false입니다.",
+          "q4": "명시 VARCHAR 값은 날짜 문자열 리터럴과 다릅니다. DATE와 VARCHAR 간 비교가 지원된다고 볼 근거가 없어 바인딩 오류입니다.",
+          "q5": "CAST는 바인딩되지만 999는 TINYINT 범위를 벗어나 값 변환에 실패합니다.",
+          "q6": "실제 문자열 값이 제공되지 않아 날짜로 변환 가능한지 판단할 수 없습니다. 전체 행 성공 여부는 unknown입니다."
+        },
+        "fix": "A: 문자열 처리가 목적이면 SELECT substring(CAST(42 AS VARCHAR), 1, 1);처럼 입력을 명시적으로 VARCHAR로 변환합니다. D: 날짜 비교 목적이면 SELECT d > CAST('1992-01-01' AS DATE) ...처럼 문자열을 명시적으로 DATE로 변환합니다. F: 실패 행을 NULL로 표시해 처리할 정책이면 CAST 대신 TRY_CAST(raw_date AS DATE)를 사용하고, NULL 결과를 별도 집계·검토합니다. 호환 옵션 old_implicit_casting=true를 장기 해결책으로 고려한다면 사용하는 정확한 DuckDB 버전에서 옵션 지원 여부, 영향 범위, 기존 암묵 변환에 대한 의존성을 확인하고 회귀 검증해야 합니다. 이는 명시적 타입 정리를 대체하는 보편적 보장으로 간주하지 않습니다.",
+        "limitations": "DuckDB를 실행하지 않았으며, 근거는 제공된 공식 문서 인용과 명시된 환경에 한정됩니다. F의 입력값을 확인하지 않았으므로 모든 행 변환 성공을 주장할 수 없습니다. 날짜 리터럴의 특수 규칙을 VARCHAR 컬럼에 일반화할 수 없습니다.",
+        "citations": [
+          {
+            "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/docs/0.10/sql/data_types/typecasting.md",
+            "quote": "no longer allows implicit casts to VARCHAR",
+            "supports": [
+              "q1",
+              "q2"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+            "quote": "INTEGER_LITERAL and STRING_LITERAL are separate types",
+            "supports": [
+              "q3",
+              "q4"
+            ]
+          }
+        ]
+      },
+      "blind_quality_points": 5,
+      "citation_semantic_support": true,
+      "review_issues": [
+        "Explicit casts and TRY_CAST/failure review are actionable, but the compatibility-option discussion omits the official warning that the flag will be deprecated in the future. Checking version support/impact does not explicitly convey that lifecycle constraint.",
+        "Cited source files semantically support their linked decisions. The separate literal types quote differs only in Markdown backticks; no substantive fabricated quote detected."
+      ]
+    },
+    {
+      "id": "direct-t3",
+      "arm": "direct",
+      "task": "T3",
+      "decision_points": 5,
+      "decision_possible": 6,
+      "strict_grounded_pass": false,
+      "citation_requirement_pass": true,
+      "citations": [
+        {
+          "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+          "quote": "Starting with this release, you will need to use an explicit cast here instead.",
+          "exact_source_match": true,
+          "returned_by_tool": true,
+          "known_relevant_qids": [
+            "q1",
+            "q2",
+            "q4"
+          ],
+          "word_count": 14,
+          "valid": true
+        },
+        {
+          "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/docs/0.10/sql/data_types/typecasting.md",
+          "quote": "Casting operations that would result in a value overflow throw an error.",
+          "exact_source_match": true,
+          "returned_by_tool": true,
+          "known_relevant_qids": [
+            "q5"
+          ],
+          "word_count": 12,
+          "valid": true
+        },
+        {
+          "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/docs/0.10/sql/data_types/typecasting.md",
+          "quote": "can raise an error at runtime if DuckDB cannot parse and convert the provided text",
+          "exact_source_match": true,
+          "returned_by_tool": true,
+          "known_relevant_qids": [
+            "q6"
+          ],
+          "word_count": 15,
+          "valid": true
+        }
+      ],
+      "file_disagreement": false,
+      "parse_ok": true,
+      "content_parse_ok": true,
+      "input_tokens": 37642,
+      "output_tokens": 1179,
+      "cached_input_tokens": 19968,
+      "total_tokens": 38821,
+      "model_calls": 3,
+      "retrieval_calls": 6,
+      "retrieval_errors": 0,
+      "request_seconds": 13.38739981688559,
+      "retrieval_seconds": 1.2260386388516054,
+      "wall_seconds": 22.907200244022533,
+      "actual_models": [
+        "gpt-6-luna"
+      ],
+      "usage_matches_cli": true,
+      "answer": {
+        "decisions": {
+          "q1": "binding_error",
+          "q2": "4",
+          "q3": true,
+          "q4": "binding_error",
+          "q5": "conversion_error",
+          "q6": "unknown"
+        },
+        "rationale": {
+          "q1": "DuckDB 0.10.0에서는 함수 바인딩 중 임의 타입을 VARCHAR로 암묵 변환하지 않으므로 substring(42, ...)는 바인딩 오류입니다.",
+          "q2": "명시적 VARCHAR 변환 뒤 substring은 문자열 '42'의 첫 글자 '4'를 반환합니다.",
+          "q3": "DATE와 날짜 문자열 리터럴의 비교는 성공하며, 같은 날짜끼리라 결과는 true입니다.",
+          "q4": "VARCHAR 컬럼과 DATE 비교는 명시적 형변환이 필요하므로 바인딩 오류입니다.",
+          "q5": "INTEGER에서 TINYINT로의 변환 자체는 지원되지만 999는 범위를 벗어나 변환 오류입니다.",
+          "q6": "VARCHAR를 DATE로 변환할 수 있지만, 실제 문자열 값이 주어지지 않아 모든 행의 성공 여부는 알 수 없습니다."
+        },
+        "fix": "A: SELECT substring(CAST(42 AS VARCHAR), 1, 1);처럼 문자열 처리를 위해 명시적으로 VARCHAR로 변환하세요. D: 날짜 비교 목적이면 SELECT d > CAST('1992-01-01' AS DATE) ...처럼 문자열을 DATE로 변환하세요. F: 불량값을 NULL로 허용하는 정책이면 CAST 대신 TRY_CAST(raw_date AS DATE)를 사용하고, NULL을 거부해야 한다면 TRY_CAST 결과의 NULL 행을 따로 식별해 격리 또는 거부하는 절차를 두세요. 실제 값을 확인하지 않고 모든 행의 변환 성공을 주장할 수 없습니다. old_implicit_casting 호환 옵션은 이전 동작을 되돌릴 수 있지만 장기 해결책으로 쓰려면 옵션이 배포 환경 전체에서 설정·유지되는지, 이 레거시 동작에 의존하는 쿼리 범위와 이행 계획을 확인해야 합니다.",
+        "limitations": "판정은 제시된 DuckDB 0.10.0, old_implicit_casting=false 및 함수 shadowing·확장 없음이라는 조건에 한정됩니다. F의 행별 값은 제공되지 않아 성공/실패 비율을 판단할 수 없습니다. upstream 라이브러리 실행은 주장하지 않습니다.",
+        "citations": [
+          {
+            "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+            "quote": "Starting with this release, you will need to use an explicit cast here instead.",
+            "supports": [
+              "q1",
+              "q2",
+              "q4"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/docs/0.10/sql/data_types/typecasting.md",
+            "quote": "Casting operations that would result in a value overflow throw an error.",
+            "supports": [
+              "q5"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/docs/0.10/sql/data_types/typecasting.md",
+            "quote": "can raise an error at runtime if DuckDB cannot parse and convert the provided text",
+            "supports": [
+              "q6"
+            ]
+          }
+        ]
+      },
+      "blind_quality_points": 4,
+      "citation_semantic_support": false,
+      "review_issues": [
+        "Decisive incorrect q3: equal dates compared with > yield false, not true. The rationale also incorrectly says same dates imply true.",
+        "The compatibility-option discussion omits its stated future deprecation constraint.",
+        "The release quote about explicit casting here refers to function binding/substring; its assignment to q4 DATE/VARCHAR comparison is not supported by that excerpt, although another passage in the same source supports the actual boundary. No citation supports the incorrect q3.",
+        "Other overflow/runtime parsing excerpts are faithful; no formatting-only mismatch should be treated as evidence fabrication."
+      ]
+    },
+    {
+      "id": "bundle-t4",
+      "arm": "bundle",
+      "task": "T4",
+      "decision_points": 6,
+      "decision_possible": 6,
+      "strict_grounded_pass": false,
+      "citation_requirement_pass": false,
+      "citations": [
+        {
+          "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/disabling-queries.md",
+          "quote": "refetch from useQuery will not work with skipToken",
+          "exact_source_match": false,
+          "returned_by_tool": true,
+          "known_relevant_qids": [
+            "q5"
+          ],
+          "word_count": 8,
+          "valid": false
+        },
+        {
+          "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md",
+          "quote": "queries that unmount or become unused before their promises are resolved are not cancelled",
+          "exact_source_match": false,
+          "returned_by_tool": true,
+          "known_relevant_qids": [],
+          "word_count": 14,
+          "valid": false
+        }
+      ],
+      "file_disagreement": false,
+      "parse_ok": true,
+      "content_parse_ok": true,
+      "input_tokens": 80512,
+      "output_tokens": 1681,
+      "cached_input_tokens": 57856,
+      "total_tokens": 82193,
+      "model_calls": 5,
+      "retrieval_calls": 4,
+      "retrieval_errors": 0,
+      "request_seconds": 23.289232381037436,
+      "retrieval_seconds": 2.313665550784208,
+      "wall_seconds": 33.27494040306192,
+      "actual_models": [
+        "gpt-6-luna"
+      ],
+      "usage_matches_cli": true,
+      "answer": {
+        "decisions": {
+          "q1": "pending/idle",
+          "q2": 0,
+          "q3": true,
+          "q4": 1,
+          "q5": "missing_query_fn",
+          "q6": false
+        },
+        "rationale": {
+          "q1": "캐시가 없고 enabled가 false이면 초기 status는 pending, fetchStatus는 idle입니다.",
+          "q2": "비활성 쿼리는 queryClient의 refetch 대상에서 제외되므로 queryFn 호출은 없습니다.",
+          "q3": "invalidateQueries는 비활성 쿼리를 다시 가져오지 않아도 캐시를 무효화 상태로 표시합니다.",
+          "q4": "유효한 queryFn을 둔 비활성 쿼리도 반환된 refetch()로 수동 실행할 수 있습니다.",
+          "q5": "skipToken은 실행 가능한 queryFn이 아니므로 수동 refetch에서 쿼리는 missing query function 오류를 보고합니다.",
+          "q6": "캐시 데이터가 이미 있으므로 마운트 시 success는 이번 마운트에서 네트워크 요청이 끝났다는 증거가 아닙니다."
+        },
+        "fix": "수동 버튼을 유지하려면 queryFn을 실행 가능한 함수로 두고 enabled:false를 사용해 버튼에서 result.refetch()를 호출하세요. 입력 준비에 따라 자동 조회하려면 준비 여부를 enabled 조건으로 표현하거나, 준비 전에는 skipToken을 쓰고 준비되면 실행 가능한 queryFn으로 전환하세요. 초기 로딩 UI는 pending만으로 표시하지 말고 isLoading 또는 isPending && isFetching처럼 실제 fetch 여부를 반영하세요. 무효화 표시는 실제 요청 완료와 다르며, skipToken 상태의 refetch에는 실행 가능한 함수가 없습니다.",
+        "limitations": "답변은 질문에 명시된 TanStack Query 버전과 조건에 근거한 판단이며 라이브러리 실행은 하지 않았습니다. 호환성이 명시되지 않은 경우는 알 수 없습니다.",
+        "citations": [
+          {
+            "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/disabling-queries.md",
+            "quote": "refetch from useQuery will not work with skipToken",
+            "supports": [
+              "q5"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md",
+            "quote": "queries that unmount or become unused before their promises are resolved are not cancelled",
+            "supports": [
+              "q6"
+            ]
+          }
+        ]
+      },
+      "blind_quality_points": 5,
+      "citation_semantic_support": false,
+      "review_issues": [
+        "All decisions match gold. Query error state is identified but default Promise throw/rejection behavior is not explicitly separated.",
+        "The cancellation citation does not support q6: unused/unmounted query cancellation cannot establish whether cached success proves a new request on this mount. The skipToken quote is valid after harmless Markdown backtick normalization."
+      ]
+    },
+    {
+      "id": "direct-t4",
+      "arm": "direct",
+      "task": "T4",
+      "decision_points": 6,
+      "decision_possible": 6,
+      "strict_grounded_pass": false,
+      "citation_requirement_pass": false,
+      "citations": [
+        {
+          "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/disabling-queries.md",
+          "quote": "If the query does not have cached data, then the query will start in the `status === 'pending'` and `fetchStatus === 'idle'` state.",
+          "exact_source_match": true,
+          "returned_by_tool": true,
+          "known_relevant_qids": [
+            "q1"
+          ],
+          "word_count": 23,
+          "valid": false
+        },
+        {
+          "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/disabling-queries.md",
+          "quote": "The query will ignore query client `invalidateQueries` and `refetchQueries` calls that would normally result in the query refetching.",
+          "exact_source_match": true,
+          "returned_by_tool": true,
+          "known_relevant_qids": [
+            "q2"
+          ],
+          "word_count": 18,
+          "valid": true
+        },
+        {
+          "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/packages/query-core/src/utils.ts",
+          "quote": "Promise.reject(new Error(`Missing queryFn: '${options.queryHash}'`))",
+          "exact_source_match": true,
+          "returned_by_tool": true,
+          "known_relevant_qids": [
+            "q5"
+          ],
+          "word_count": 4,
+          "valid": false
+        },
+        {
+          "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/disabling-queries.md",
+          "quote": "`isPending && isFetching`",
+          "exact_source_match": true,
+          "returned_by_tool": true,
+          "known_relevant_qids": [
+            "q1"
+          ],
+          "word_count": 3,
+          "valid": false
+        }
+      ],
+      "file_disagreement": false,
+      "parse_ok": true,
+      "content_parse_ok": true,
+      "input_tokens": 57819,
+      "output_tokens": 1172,
+      "cached_input_tokens": 21376,
+      "total_tokens": 58991,
+      "model_calls": 4,
+      "retrieval_calls": 6,
+      "retrieval_errors": 0,
+      "request_seconds": 12.194203264196403,
+      "retrieval_seconds": 0.7839598557911813,
+      "wall_seconds": 22.355003305943683,
+      "actual_models": [
+        "gpt-6-luna"
+      ],
+      "usage_matches_cli": true,
+      "answer": {
+        "decisions": {
+          "q1": "pending/idle",
+          "q2": 0,
+          "q3": true,
+          "q4": 1,
+          "q5": "missing_query_fn",
+          "q6": false
+        },
+        "rationale": {
+          "q1": "캐시 데이터가 없는 enabled:false 쿼리는 pending/idle로 시작합니다.",
+          "q2": "invalidateQueries는 쿼리를 무효화하지만, disabled 쿼리는 뒤따르는 refetch 대상에서 제외됩니다. 별도 refetchQueries도 건너뛰므로 함수 호출은 없습니다.",
+          "q3": "무효화 표시는 refetch가 실행되지 않아도 남습니다.",
+          "q4": "useQuery 결과의 수동 refetch는 enabled:false여도 실행되어 queryFn을 한 번 호출합니다.",
+          "q5": "skipToken은 실행 가능한 queryFn이 아니므로 수동 호출은 Missing queryFn 오류를 기록합니다.",
+          "q6": "캐시 데이터가 있으면 마운트 시 success를 표시할 수 있습니다. 이는 캐시를 사용했다는 뜻이지 이번 마운트에서 네트워크 요청을 완료했다는 뜻은 아닙니다."
+        },
+        "fix": "수동 버튼을 유지하려면 enabled:false와 실제 queryFn을 두고, 첫 요청 대기 UI는 isLoading(= isPending && isFetching), 진행 중 표시는 isFetching으로 조건화하세요. 무효화는 캐시를 stale/invalidated로 표시하는 작업이고 실제 요청은 별도로 발생합니다. skipToken 구성에서는 refetch가 동작하지 않으며, 실행 가능한 queryFn이 없어 Missing queryFn 오류가 발생합니다. 입력이 준비된 뒤 자동 조회하려면 enabled: !!input처럼 조건을 선언하거나 queryKey에 입력을 포함하고 skipToken 대신 유효 queryFn을 제공하세요.",
+        "limitations": "판정은 명시된 조건과 고정된 5.90.5 소스에 한정합니다. 네트워크·재시도 실패나 추가 observer, 캐시 수정은 가정에서 제외했습니다.",
+        "citations": [
+          {
+            "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/disabling-queries.md",
+            "quote": "If the query does not have cached data, then the query will start in the `status === 'pending'` and `fetchStatus === 'idle'` state.",
+            "supports": [
+              "q1"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/disabling-queries.md",
+            "quote": "The query will ignore query client `invalidateQueries` and `refetchQueries` calls that would normally result in the query refetching.",
+            "supports": [
+              "q2",
+              "q3"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/packages/query-core/src/utils.ts",
+            "quote": "Promise.reject(new Error(`Missing queryFn: '${options.queryHash}'`))",
+            "supports": [
+              "q5"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/disabling-queries.md",
+            "quote": "`isPending && isFetching`",
+            "supports": [
+              "q1"
+            ]
+          }
+        ]
+      },
+      "blind_quality_points": 5,
+      "citation_semantic_support": false,
+      "review_issues": [
+        "All decisions match gold. The answer does not explicitly distinguish query error state from default refetch Promise throw/rejection behavior.",
+        "The disabled-query documentation excerpt supports excluding actual refetch, but does not establish q3 isInvalidated=true; that decisive detail requires the client/core invalidation path. The answer provides no such citation. Other linked excerpts have semantic support; Markdown code formatting is harmless."
+      ]
+    },
+    {
+      "id": "flat-t4",
+      "arm": "flat",
+      "task": "T4",
+      "decision_points": 6,
+      "decision_possible": 6,
+      "strict_grounded_pass": false,
+      "citation_requirement_pass": false,
+      "citations": [
+        {
+          "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/disabling-queries.md",
+          "quote": "refetch from useQuery will not work with skipToken",
+          "exact_source_match": false,
+          "returned_by_tool": true,
+          "known_relevant_qids": [
+            "q5"
+          ],
+          "word_count": 8,
+          "valid": false
+        },
+        {
+          "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/disabling-queries.md",
+          "quote": "refetch from useQuery will not work with skipToken",
+          "exact_source_match": false,
+          "returned_by_tool": true,
+          "known_relevant_qids": [
+            "q2"
+          ],
+          "word_count": 8,
+          "valid": false
+        }
+      ],
+      "file_disagreement": false,
+      "parse_ok": true,
+      "content_parse_ok": true,
+      "input_tokens": 40067,
+      "output_tokens": 1025,
+      "cached_input_tokens": 23296,
+      "total_tokens": 41092,
+      "model_calls": 3,
+      "retrieval_calls": 2,
+      "retrieval_errors": 0,
+      "request_seconds": 11.633816776098683,
+      "retrieval_seconds": 1.4450294190319255,
+      "wall_seconds": 22.203869189019315,
+      "actual_models": [
+        "gpt-6-luna"
+      ],
+      "usage_matches_cli": true,
+      "answer": {
+        "decisions": {
+          "q1": "pending/idle",
+          "q2": 0,
+          "q3": true,
+          "q4": 1,
+          "q5": "missing_query_fn",
+          "q6": false
+        },
+        "rationale": {
+          "q1": "캐시가 없는 비활성 쿼리는 아직 성공 데이터가 없어 status는 pending이고, 비활성 상태라 fetchStatus는 idle입니다.",
+          "q2": "invalidateQueries는 쿼리를 무효화하고, 이어진 refetchQueries도 비활성 쿼리는 재조회하지 않으므로 queryFn 호출은 없습니다.",
+          "q3": "무효화된 쿼리가 재조회되지 않았으므로 isInvalidated는 true입니다.",
+          "q4": "result.refetch()는 실행 가능한 queryFn을 직접 호출하므로 누적 호출 수는 1입니다.",
+          "q5": "skipToken은 실행 가능한 queryFn이 아닙니다. 수동 refetch 시 쿼리는 네트워크 오류가 아니라 query function missing 오류를 보고합니다.",
+          "q6": "기존 캐시 데이터가 있으면 비활성 쿼리도 success일 수 있습니다. success만으로 이번 마운트에서 네트워크 요청을 완료했다고 판단할 수 없습니다."
+        },
+        "fix": "버튼으로 수동 조회하려면 queryFn을 실행 가능한 함수로 두고 enabled:false를 유지한 뒤 버튼에서 result.refetch()를 호출하세요. 입력값이 준비될 때 자동 조회하려면 유효한 queryFn과 enabled: 입력 준비 여부를 사용하세요. 초기 로딩 UI는 pending 단독 대신 isLoading(첫 fetch 중, 즉 pending과 fetching)을 기준으로 표시하고, 캐시가 있는 경우는 기존 데이터를 보여줄 수 있습니다. invalidateQueries는 무효화 표시와 활성 쿼리 재조회에 쓰이며, 비활성 쿼리를 곧바로 요청시키는 명령은 아닙니다. skipToken 상태에서는 refetch할 실행 함수가 없으므로, refetch가 필요하면 유효한 queryFn을 제공하세요.",
+        "limitations": "판정은 질문에 명시된 단일 observer, 온라인 상태, retry:false, 별도 캐시 변경 없음 조건에 한정됩니다. 공식 문서 인용은 비활성화 및 skipToken 동작을 뒷받침합니다. 세부 query-core 동작의 직접 출처 인용은 제공된 인덱스에서 확인하지 못했습니다. 라이브러리는 실행하지 않았습니다.",
+        "citations": [
+          {
+            "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/disabling-queries.md",
+            "quote": "refetch from useQuery will not work with skipToken",
+            "supports": [
+              "q5"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/disabling-queries.md",
+            "quote": "refetch from useQuery will not work with skipToken",
+            "supports": [
+              "q2",
+              "q3"
+            ]
+          }
+        ]
+      },
+      "blind_quality_points": 5,
+      "citation_semantic_support": false,
+      "review_issues": [
+        "All decisions match gold. The answer identifies the query error but does not explicitly distinguish query error state from refetch Promise rejection/throw behavior.",
+        "The skipToken quote differs only by Markdown code formatting in its genuine source sentence. However, assigning that quote to q2/q3 is semantically unsupported: skipToken manual refetch does not establish disabled client refetch behavior or isInvalidated state."
+      ]
+    }
+  ],
+  "summary": [
+    {
+      "arm": "direct",
+      "runs": 3,
+      "input_tokens": 131519,
+      "cached_input_tokens": 51328,
+      "output_tokens": 3421,
+      "total_tokens": 134940,
+      "model_calls": 10,
+      "retrieval_calls": 15,
+      "wall_seconds": 66.76527922495734,
+      "request_seconds": 37.34695714607369,
+      "retrieval_seconds": 2.746054083807394,
+      "decision_points": 17,
+      "blind_quality_points": 15,
+      "strict_grounded_pass": 0,
+      "strict_json_valid": 2,
+      "citation_semantic_support": 1
+    },
+    {
+      "arm": "flat",
+      "runs": 3,
+      "input_tokens": 134033,
+      "cached_input_tokens": 83712,
+      "output_tokens": 3258,
+      "total_tokens": 137291,
+      "model_calls": 10,
+      "retrieval_calls": 7,
+      "wall_seconds": 70.27414003293961,
+      "request_seconds": 40.386269537964836,
+      "retrieval_seconds": 4.919411344220862,
+      "decision_points": 18,
+      "blind_quality_points": 16,
+      "strict_grounded_pass": 0,
+      "strict_json_valid": 2,
+      "citation_semantic_support": 2
+    },
+    {
+      "arm": "bundle",
+      "runs": 3,
+      "input_tokens": 157999,
+      "cached_input_tokens": 77824,
+      "output_tokens": 4542,
+      "total_tokens": 162541,
+      "model_calls": 11,
+      "retrieval_calls": 8,
+      "wall_seconds": 87.95735989604145,
+      "request_seconds": 56.40071289089974,
+      "retrieval_seconds": 6.491338211577386,
+      "decision_points": 18,
+      "blind_quality_points": 15,
+      "strict_grounded_pass": 0,
+      "strict_json_valid": 3,
+      "citation_semantic_support": 2
+    }
+  ],
+  "model_grading_not_human": true
+}

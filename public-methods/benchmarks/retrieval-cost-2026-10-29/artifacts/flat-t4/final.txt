@@ -1,0 +1,32 @@
+{
+  "decisions": {
+    "q1": "pending/idle",
+    "q2": 0,
+    "q3": true,
+    "q4": 1,
+    "q5": "missing_query_fn",
+    "q6": false
+  },
+  "rationale": {
+    "q1": "캐시가 없는 비활성 쿼리는 아직 성공 데이터가 없어 status는 pending이고, 비활성 상태라 fetchStatus는 idle입니다.",
+    "q2": "invalidateQueries는 쿼리를 무효화하고, 이어진 refetchQueries도 비활성 쿼리는 재조회하지 않으므로 queryFn 호출은 없습니다.",
+    "q3": "무효화된 쿼리가 재조회되지 않았으므로 isInvalidated는 true입니다.",
+    "q4": "result.refetch()는 실행 가능한 queryFn을 직접 호출하므로 누적 호출 수는 1입니다.",
+    "q5": "skipToken은 실행 가능한 queryFn이 아닙니다. 수동 refetch 시 쿼리는 네트워크 오류가 아니라 query function missing 오류를 보고합니다.",
+    "q6": "기존 캐시 데이터가 있으면 비활성 쿼리도 success일 수 있습니다. success만으로 이번 마운트에서 네트워크 요청을 완료했다고 판단할 수 없습니다."
+  },
+  "fix": "버튼으로 수동 조회하려면 queryFn을 실행 가능한 함수로 두고 enabled:false를 유지한 뒤 버튼에서 result.refetch()를 호출하세요. 입력값이 준비될 때 자동 조회하려면 유효한 queryFn과 enabled: 입력 준비 여부를 사용하세요. 초기 로딩 UI는 pending 단독 대신 isLoading(첫 fetch 중, 즉 pending과 fetching)을 기준으로 표시하고, 캐시가 있는 경우는 기존 데이터를 보여줄 수 있습니다. invalidateQueries는 무효화 표시와 활성 쿼리 재조회에 쓰이며, 비활성 쿼리를 곧바로 요청시키는 명령은 아닙니다. skipToken 상태에서는 refetch할 실행 함수가 없으므로, refetch가 필요하면 유효한 queryFn을 제공하세요.",
+  "limitations": "판정은 질문에 명시된 단일 observer, 온라인 상태, retry:false, 별도 캐시 변경 없음 조건에 한정됩니다. 공식 문서 인용은 비활성화 및 skipToken 동작을 뒷받침합니다. 세부 query-core 동작의 직접 출처 인용은 제공된 인덱스에서 확인하지 못했습니다. 라이브러리는 실행하지 않았습니다.",
+  "citations": [
+    {
+      "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/disabling-queries.md",
+      "quote": "refetch from useQuery will not work with skipToken",
+      "supports": ["q5"]
+    },
+    {
+      "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/disabling-queries.md",
+      "quote": "refetch from useQuery will not work with skipToken",
+      "supports": ["q2", "q3"]
+    }
+  ]
+}

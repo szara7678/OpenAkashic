@@ -1,0 +1,6 @@
+{
+  "secondary_content_parse": "After detecting trailing wrappers in two final responses, additionally read the first complete JSON object with JSONDecoder.raw_decode. No values edited; strict JSON parse failure retained. This secondary analysis was not preregistered.",
+  "quote_check": "Strict raw-source whitespace-normalized exact quote remains primary. Markdown formatting can cause strict mismatch; distinguish rendered-format match from paraphrase in reviewer analysis.",
+  "citation_limit": "The uniform two-distinct-source rule overconstrains the TanStack disabled-query case where one official guide can support most requested decisions. Derived corpus has only one nonempty relevant source quote. Preserve failed denominator; do not treat this as broad answer-quality comparison.",
+  "unchanged": "No prompt, source, gold, candidate answer or run repaired or rerun."
+}

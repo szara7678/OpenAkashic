@@ -8,6 +8,8 @@ Experimental candidate discovery, not an automatic expert or truth engine. The e
 
 Latest: [24 fresh version-sensitive diagnostic runs](benchmarks/exception-transfer-2026-10-29/README.md) did not establish a quality or token-efficiency advantage over no retrieval or the same-corpus text baseline.
 
+Latest implementation: [complete method bundles](docs/method-bundles.md) avoid mandatory detail fetch when a whole method fits. [Nine source-retrieval comparison runs](benchmarks/retrieval-cost-2026-10-29/README.md) still did **not** meet the token-saving target; all results and failures are retained.
+
 ## What is here
 
 - A portable FastAPI + SQLite service; no private vault or news/time-explorer routes.
