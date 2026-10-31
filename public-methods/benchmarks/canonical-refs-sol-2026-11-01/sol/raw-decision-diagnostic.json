@@ -1,0 +1,527 @@
+{
+  "schema": "posthoc-raw-decision-diagnostic-v1",
+  "posthoc_descriptive_only": true,
+  "primary_scores_gates_and_outputs_changed": false,
+  "basis": "Typed q1-q3 decisions from a strict raw JSON object only, even if its surrounding output schema or citation IDs failed. No first-object/fuzzy repair, semantic credit or primary success is inferred.",
+  "interpretation": "A raw reference/schema workflow failure does not necessarily mean incorrect factual decisions; this diagnostic is separate from rendered/grounded primary completion.",
+  "totals": {
+    "direct": {
+      "raw_typed_correct": 27,
+      "fixed_decision_denominator": 27,
+      "raw_strict_json_objects": 9,
+      "primary_rendered_decisions_correct": 27
+    },
+    "source": {
+      "raw_typed_correct": 27,
+      "fixed_decision_denominator": 27,
+      "raw_strict_json_objects": 9,
+      "primary_rendered_decisions_correct": 27
+    }
+  },
+  "runs": [
+    {
+      "run": "direct-sol-httpx-01",
+      "arm": "direct",
+      "task": "sol-httpx-01",
+      "raw_strict_json_object": true,
+      "typed_decisions": {
+        "q1": {
+          "expected": "request",
+          "actual": "request",
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "raw_typed_correct": 3,
+      "primary_render_success": true
+    },
+    {
+      "run": "source-sol-httpx-01",
+      "arm": "source",
+      "task": "sol-httpx-01",
+      "raw_strict_json_object": true,
+      "typed_decisions": {
+        "q1": {
+          "expected": "request",
+          "actual": "request",
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "raw_typed_correct": 3,
+      "primary_render_success": true
+    },
+    {
+      "run": "direct-sol-httpx-02",
+      "arm": "direct",
+      "task": "sol-httpx-02",
+      "raw_strict_json_object": true,
+      "typed_decisions": {
+        "q1": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": "num_bytes_downloaded",
+          "actual": "num_bytes_downloaded",
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "raw_typed_correct": 3,
+      "primary_render_success": true
+    },
+    {
+      "run": "source-sol-httpx-02",
+      "arm": "source",
+      "task": "sol-httpx-02",
+      "raw_strict_json_object": true,
+      "typed_decisions": {
+        "q1": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": "num_bytes_downloaded",
+          "actual": "num_bytes_downloaded",
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "raw_typed_correct": 3,
+      "primary_render_success": true
+    },
+    {
+      "run": "direct-sol-httpx-03",
+      "arm": "direct",
+      "task": "sol-httpx-03",
+      "raw_strict_json_object": true,
+      "typed_decisions": {
+        "q1": {
+          "expected": "list_of_field_file_pairs",
+          "actual": "list_of_field_file_pairs",
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": "unknown",
+          "actual": "unknown",
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "raw_typed_correct": 3,
+      "primary_render_success": true
+    },
+    {
+      "run": "source-sol-httpx-03",
+      "arm": "source",
+      "task": "sol-httpx-03",
+      "raw_strict_json_object": true,
+      "typed_decisions": {
+        "q1": {
+          "expected": "list_of_field_file_pairs",
+          "actual": "list_of_field_file_pairs",
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": "unknown",
+          "actual": "unknown",
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "raw_typed_correct": 3,
+      "primary_render_success": true
+    },
+    {
+      "run": "direct-sol-click-01",
+      "arm": "direct",
+      "task": "sol-click-01",
+      "raw_strict_json_object": true,
+      "typed_decisions": {
+        "q1": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": "semicolon",
+          "actual": "semicolon",
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": "zero",
+          "actual": "zero",
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "raw_typed_correct": 3,
+      "primary_render_success": true
+    },
+    {
+      "run": "source-sol-click-01",
+      "arm": "source",
+      "task": "sol-click-01",
+      "raw_strict_json_object": true,
+      "typed_decisions": {
+        "q1": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": "semicolon",
+          "actual": "semicolon",
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": "zero",
+          "actual": "zero",
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "raw_typed_correct": 3,
+      "primary_render_success": true
+    },
+    {
+      "run": "direct-sol-click-02",
+      "arm": "direct",
+      "task": "sol-click-02",
+      "raw_strict_json_object": true,
+      "typed_decisions": {
+        "q1": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "raw_typed_correct": 3,
+      "primary_render_success": true
+    },
+    {
+      "run": "source-sol-click-02",
+      "arm": "source",
+      "task": "sol-click-02",
+      "raw_strict_json_object": true,
+      "typed_decisions": {
+        "q1": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "raw_typed_correct": 3,
+      "primary_render_success": true
+    },
+    {
+      "run": "direct-sol-click-03",
+      "arm": "direct",
+      "task": "sol-click-03",
+      "raw_strict_json_object": true,
+      "typed_decisions": {
+        "q1": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "raw_typed_correct": 3,
+      "primary_render_success": true
+    },
+    {
+      "run": "source-sol-click-03",
+      "arm": "source",
+      "task": "sol-click-03",
+      "raw_strict_json_object": true,
+      "typed_decisions": {
+        "q1": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "raw_typed_correct": 3,
+      "primary_render_success": true
+    },
+    {
+      "run": "direct-sol-pytest-01",
+      "arm": "direct",
+      "task": "sol-pytest-01",
+      "raw_strict_json_object": true,
+      "typed_decisions": {
+        "q1": {
+          "expected": "skip",
+          "actual": "skip",
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "raw_typed_correct": 3,
+      "primary_render_success": true
+    },
+    {
+      "run": "source-sol-pytest-01",
+      "arm": "source",
+      "task": "sol-pytest-01",
+      "raw_strict_json_object": true,
+      "typed_decisions": {
+        "q1": {
+          "expected": "skip",
+          "actual": "skip",
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "raw_typed_correct": 3,
+      "primary_render_success": true
+    },
+    {
+      "run": "direct-sol-pytest-02",
+      "arm": "direct",
+      "task": "sol-pytest-02",
+      "raw_strict_json_object": true,
+      "typed_decisions": {
+        "q1": {
+          "expected": "collection",
+          "actual": "collection",
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "raw_typed_correct": 3,
+      "primary_render_success": true
+    },
+    {
+      "run": "source-sol-pytest-02",
+      "arm": "source",
+      "task": "sol-pytest-02",
+      "raw_strict_json_object": true,
+      "typed_decisions": {
+        "q1": {
+          "expected": "collection",
+          "actual": "collection",
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "raw_typed_correct": 3,
+      "primary_render_success": true
+    },
+    {
+      "run": "direct-sol-pytest-03",
+      "arm": "direct",
+      "task": "sol-pytest-03",
+      "raw_strict_json_object": true,
+      "typed_decisions": {
+        "q1": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "raw_typed_correct": 3,
+      "primary_render_success": true
+    },
+    {
+      "run": "source-sol-pytest-03",
+      "arm": "source",
+      "task": "sol-pytest-03",
+      "raw_strict_json_object": true,
+      "typed_decisions": {
+        "q1": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "raw_typed_correct": 3,
+      "primary_render_success": true
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "model": "gpt-6.1-sol",
+  "effort": "medium",
+  "same_model_both_arms": true,
+  "source": "https://learn.chatgpt.com/docs/models",
+  "selection": "Prospective model transfer after observed Luna-medium failures; not a claim that Luna-high or all models fail. No engine or prompt tuning on next answers.",
+  "new_questions": true,
+  "new_corpus": false,
+  "prior_81_runs_preserved": true
+}

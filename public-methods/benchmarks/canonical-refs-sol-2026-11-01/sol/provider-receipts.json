@@ -1,0 +1,1073 @@
+{
+  "scope": "all 18 fresh cohort candidate runs; cached input included; money unknown",
+  "runs": [
+    {
+      "run": "direct-sol-httpx-01",
+      "original_receipts_sha256": "cde55cd35c7aa02a6349b3dbf01fd20f2b2d544a7bb9250464be7e2311a1dfc3",
+      "receipts": [
+        {
+          "status": 200,
+          "call": 1,
+          "seconds": 2.551268416107632,
+          "events": 47,
+          "model": "gpt-6.1-sol",
+          "usage": {
+            "input_tokens": 6066,
+            "input_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 53,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 6119
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 2,
+          "seconds": 3.0326442199293524,
+          "events": 56,
+          "model": "gpt-6.1-sol",
+          "usage": {
+            "input_tokens": 9171,
+            "input_tokens_details": {
+              "cached_tokens": 6016,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 62,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 9233
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 3,
+          "seconds": 2.7678558800835162,
+          "events": 56,
+          "model": "gpt-6.1-sol",
+          "usage": {
+            "input_tokens": 12536,
+            "input_tokens_details": {
+              "cached_tokens": 9088,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 62,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 12598
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 4,
+          "seconds": 11.690443969098851,
+          "events": 490,
+          "model": "gpt-6.1-sol",
+          "usage": {
+            "input_tokens": 14528,
+            "input_tokens_details": {
+              "cached_tokens": 12416,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 485,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 15013
+          },
+          "completed": true
+        }
+      ]
+    },
+    {
+      "run": "source-sol-httpx-01",
+      "original_receipts_sha256": "5a6b5fa17cbc2f45eb241600a897f23df3afbf1816e32589bf879e82dca98ec8",
+      "receipts": [
+        {
+          "status": 200,
+          "call": 1,
+          "seconds": 14.431626513949595,
+          "events": 400,
+          "model": "gpt-6.1-sol",
+          "usage": {
+            "input_tokens": 8222,
+            "input_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 500,
+            "output_tokens_details": {
+              "reasoning_tokens": 109
+            },
+            "total_tokens": 8722
+          },
+          "completed": true
+        }
+      ]
+    },
+    {
+      "run": "direct-sol-httpx-02",
+      "original_receipts_sha256": "c98071a8f12747da183c969e01c1bd26abfdb04cc3bdc9b0dece59319678d58b",
+      "receipts": [
+        {
+          "status": 200,
+          "call": 1,
+          "seconds": 2.6555992040084675,
+          "events": 41,
+          "model": "gpt-6.1-sol",
+          "usage": {
+            "input_tokens": 6062,
+            "input_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 47,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 6109
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 2,
+          "seconds": 2.414154411992058,
+          "events": 56,
+          "model": "gpt-6.1-sol",
+          "usage": {
+            "input_tokens": 9079,
+            "input_tokens_details": {
+              "cached_tokens": 6016,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 62,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 9141
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 3,
+          "seconds": 2.726039253990166,
+          "events": 56,
+          "model": "gpt-6.1-sol",
+          "usage": {
+            "input_tokens": 12322,
+            "input_tokens_details": {
+              "cached_tokens": 8960,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 62,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 12384
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 4,
+          "seconds": 10.755352898966521,
+          "events": 428,
+          "model": "gpt-6.1-sol",
+          "usage": {
+            "input_tokens": 14275,
+            "input_tokens_details": {
+              "cached_tokens": 12288,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 423,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 14698
+          },
+          "completed": true
+        }
+      ]
+    },
+    {
+      "run": "source-sol-httpx-02",
+      "original_receipts_sha256": "c7f74a40cf67074b51c1722ee757f510fc07e5fa206d4375c6a5d639ce929c85",
+      "receipts": [
+        {
+          "status": 200,
+          "call": 1,
+          "seconds": 12.642010829062201,
+          "events": 414,
+          "model": "gpt-6.1-sol",
+          "usage": {
+            "input_tokens": 8380,
+            "input_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 460,
+            "output_tokens_details": {
+              "reasoning_tokens": 51
+            },
+            "total_tokens": 8840
+          },
+          "completed": true
+        }
+      ]
+    },
+    {
+      "run": "direct-sol-httpx-03",
+      "original_receipts_sha256": "7abebfd2a2964b00459115918be4345266b8dfb54396b857df0d814e98a55b45",
+      "receipts": [
+        {
+          "status": 200,
+          "call": 1,
+          "seconds": 2.517174024018459,
+          "events": 39,
+          "model": "gpt-6.1-sol",
+          "usage": {
+            "input_tokens": 6084,
+            "input_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 45,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 6129
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 2,
+          "seconds": 2.28878868999891,
+          "events": 56,
+          "model": "gpt-6.1-sol",
+          "usage": {
+            "input_tokens": 9105,
+            "input_tokens_details": {
+              "cached_tokens": 6016,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 62,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 9167
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 3,
+          "seconds": 11.559392006951384,
+          "events": 390,
+          "model": "gpt-6.1-sol",
+          "usage": {
+            "input_tokens": 11881,
+            "input_tokens_details": {
+              "cached_tokens": 9088,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 385,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 12266
+          },
+          "completed": true
+        }
+      ]
+    },
+    {
+      "run": "source-sol-httpx-03",
+      "original_receipts_sha256": "7fdeaf0e0ecde8f74a63fd01dedd4024dc4ef1c1ee917165387d75f7a89ebf8d",
+      "receipts": [
+        {
+          "status": 200,
+          "call": 1,
+          "seconds": 11.980080803972669,
+          "events": 363,
+          "model": "gpt-6.1-sol",
+          "usage": {
+            "input_tokens": 8666,
+            "input_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 403,
+            "output_tokens_details": {
+              "reasoning_tokens": 45
+            },
+            "total_tokens": 9069
+          },
+          "completed": true
+        }
+      ]
+    },
+    {
+      "run": "direct-sol-click-01",
+      "original_receipts_sha256": "69adf8ef4873ef688953205d898657a2aa9cbe82c5321882420192947de1785c",
+      "receipts": [
+        {
+          "status": 200,
+          "call": 1,
+          "seconds": 2.8549017080804333,
+          "events": 47,
+          "model": "gpt-6.1-sol",
+          "usage": {
+            "input_tokens": 6080,
+            "input_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 53,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 6133
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 2,
+          "seconds": 3.737485105986707,
+          "events": 94,
+          "model": "gpt-6.1-sol",
+          "usage": {
+            "input_tokens": 9105,
+            "input_tokens_details": {
+              "cached_tokens": 6016,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 100,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 9205
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 3,
+          "seconds": 3.491670761955902,
+          "events": 55,
+          "model": "gpt-6.1-sol",
+          "usage": {
+            "input_tokens": 12608,
+            "input_tokens_details": {
+              "cached_tokens": 9088,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 61,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 12669
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 4,
+          "seconds": 10.600769578944892,
+          "events": 351,
+          "model": "gpt-6.1-sol",
+          "usage": {
+            "input_tokens": 14092,
+            "input_tokens_details": {
+              "cached_tokens": 12544,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 346,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 14438
+          },
+          "completed": true
+        }
+      ]
+    },
+    {
+      "run": "source-sol-click-01",
+      "original_receipts_sha256": "143841c8d9229454ae3686cb997de1c79d3d28932a0a540787d8377ebeebcf84",
+      "receipts": [
+        {
+          "status": 200,
+          "call": 1,
+          "seconds": 2.6512944069691002,
+          "events": 37,
+          "model": "gpt-6.1-sol",
+          "usage": {
+            "input_tokens": 8663,
+            "input_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 43,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 8706
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 2,
+          "seconds": 8.416273676091805,
+          "events": 286,
+          "model": "gpt-6.1-sol",
+          "usage": {
+            "input_tokens": 11678,
+            "input_tokens_details": {
+              "cached_tokens": 8576,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 281,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 11959
+          },
+          "completed": true
+        }
+      ]
+    },
+    {
+      "run": "direct-sol-click-02",
+      "original_receipts_sha256": "947feec3fd752826f3eb2a44e0fd1846af8f76c45dade79c3e93e8cb5a67085b",
+      "receipts": [
+        {
+          "status": 200,
+          "call": 1,
+          "seconds": 3.374805942061357,
+          "events": 45,
+          "model": "gpt-6.1-sol",
+          "usage": {
+            "input_tokens": 6061,
+            "input_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 51,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 6112
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 2,
+          "seconds": 3.7631305980030447,
+          "events": 91,
+          "model": "gpt-6.1-sol",
+          "usage": {
+            "input_tokens": 9051,
+            "input_tokens_details": {
+              "cached_tokens": 6016,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 97,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 9148
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 3,
+          "seconds": 5.516692508012056,
+          "events": 156,
+          "model": "gpt-6.1-sol",
+          "usage": {
+            "input_tokens": 12491,
+            "input_tokens_details": {
+              "cached_tokens": 8960,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 192,
+            "output_tokens_details": {
+              "reasoning_tokens": 34
+            },
+            "total_tokens": 12683
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 4,
+          "seconds": 5.940620367997326,
+          "events": 179,
+          "model": "gpt-6.1-sol",
+          "usage": {
+            "input_tokens": 16370,
+            "input_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 202,
+            "output_tokens_details": {
+              "reasoning_tokens": 21
+            },
+            "total_tokens": 16572
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 5,
+          "seconds": 15.981263761990704,
+          "events": 670,
+          "model": "gpt-6.1-sol",
+          "usage": {
+            "input_tokens": 17863,
+            "input_tokens_details": {
+              "cached_tokens": 16384,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 665,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 18528
+          },
+          "completed": true
+        }
+      ]
+    },
+    {
+      "run": "source-sol-click-02",
+      "original_receipts_sha256": "366a3a7d9b67b33045736008cf5155d6d2d9368ad92ff8129c4c7dc25c910b75",
+      "receipts": [
+        {
+          "status": 200,
+          "call": 1,
+          "seconds": 16.797262941021472,
+          "events": 525,
+          "model": "gpt-6.1-sol",
+          "usage": {
+            "input_tokens": 9143,
+            "input_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 641,
+            "output_tokens_details": {
+              "reasoning_tokens": 125
+            },
+            "total_tokens": 9784
+          },
+          "completed": true
+        }
+      ]
+    },
+    {
+      "run": "direct-sol-click-03",
+      "original_receipts_sha256": "9804714a50be5b0b96e79f213e568033bb3ce00ca92e239f6db5625d6b11a55d",
+      "receipts": [
+        {
+          "status": 200,
+          "call": 1,
+          "seconds": 3.6985686040716246,
+          "events": 44,
+          "model": "gpt-6.1-sol",
+          "usage": {
+            "input_tokens": 6056,
+            "input_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 50,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 6106
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 2,
+          "seconds": 4.736215217038989,
+          "events": 54,
+          "model": "gpt-6.1-sol",
+          "usage": {
+            "input_tokens": 8957,
+            "input_tokens_details": {
+              "cached_tokens": 6016,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 60,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 9017
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 3,
+          "seconds": 9.315279275993817,
+          "events": 290,
+          "model": "gpt-6.1-sol",
+          "usage": {
+            "input_tokens": 12066,
+            "input_tokens_details": {
+              "cached_tokens": 8832,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 285,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 12351
+          },
+          "completed": true
+        }
+      ]
+    },
+    {
+      "run": "source-sol-click-03",
+      "original_receipts_sha256": "f4e13d8d0bbc4bafafdfc8165c11701c02ccf6950109d1b1a2d03baf139c8cb8",
+      "receipts": [
+        {
+          "status": 200,
+          "call": 1,
+          "seconds": 12.018307129968889,
+          "events": 319,
+          "model": "gpt-6.1-sol",
+          "usage": {
+            "input_tokens": 7823,
+            "input_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 381,
+            "output_tokens_details": {
+              "reasoning_tokens": 71
+            },
+            "total_tokens": 8204
+          },
+          "completed": true
+        }
+      ]
+    },
+    {
+      "run": "direct-sol-pytest-01",
+      "original_receipts_sha256": "5553609ef8e69bd091bcc1e22081fd4992002d2c394b0832f3542bfa32e32512",
+      "receipts": [
+        {
+          "status": 200,
+          "call": 1,
+          "seconds": 3.0051968418993056,
+          "events": 44,
+          "model": "gpt-6.1-sol",
+          "usage": {
+            "input_tokens": 6080,
+            "input_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 50,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 6130
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 2,
+          "seconds": 2.689536958001554,
+          "events": 63,
+          "model": "gpt-6.1-sol",
+          "usage": {
+            "input_tokens": 9268,
+            "input_tokens_details": {
+              "cached_tokens": 6016,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 69,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 9337
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 3,
+          "seconds": 3.0173652889207006,
+          "events": 63,
+          "model": "gpt-6.1-sol",
+          "usage": {
+            "input_tokens": 12808,
+            "input_tokens_details": {
+              "cached_tokens": 9216,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 69,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 12877
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 4,
+          "seconds": 8.372974092024378,
+          "events": 69,
+          "model": "gpt-6.1-sol",
+          "usage": {
+            "input_tokens": 16258,
+            "input_tokens_details": {
+              "cached_tokens": 12672,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 120,
+            "output_tokens_details": {
+              "reasoning_tokens": 49
+            },
+            "total_tokens": 16378
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 5,
+          "seconds": 10.108601161045954,
+          "events": 478,
+          "model": "gpt-6.1-sol",
+          "usage": {
+            "input_tokens": 16641,
+            "input_tokens_details": {
+              "cached_tokens": 16256,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 473,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 17114
+          },
+          "completed": true
+        }
+      ]
+    },
+    {
+      "run": "source-sol-pytest-01",
+      "original_receipts_sha256": "d369873c481dd72b95f04abca18a0ac428d4835f95f943779afae1e5ea0638fb",
+      "receipts": [
+        {
+          "status": 200,
+          "call": 1,
+          "seconds": 6.095667858957313,
+          "events": 64,
+          "model": "gpt-6.1-sol",
+          "usage": {
+            "input_tokens": 9636,
+            "input_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 135,
+            "output_tokens_details": {
+              "reasoning_tokens": 69
+            },
+            "total_tokens": 9771
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 2,
+          "seconds": 7.719433085992932,
+          "events": 378,
+          "model": "gpt-6.1-sol",
+          "usage": {
+            "input_tokens": 13120,
+            "input_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 373,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 13493
+          },
+          "completed": true
+        }
+      ]
+    },
+    {
+      "run": "direct-sol-pytest-02",
+      "original_receipts_sha256": "dad996daf0c84c2c05afbbd28b993b19b5935958006f0c006dbac6713aa9aed3",
+      "receipts": [
+        {
+          "status": 200,
+          "call": 1,
+          "seconds": 3.5031753010116518,
+          "events": 47,
+          "model": "gpt-6.1-sol",
+          "usage": {
+            "input_tokens": 6061,
+            "input_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 53,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 6114
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 2,
+          "seconds": 4.279191015986726,
+          "events": 54,
+          "model": "gpt-6.1-sol",
+          "usage": {
+            "input_tokens": 9220,
+            "input_tokens_details": {
+              "cached_tokens": 6016,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 60,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 9280
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 3,
+          "seconds": 3.3954698389861733,
+          "events": 54,
+          "model": "gpt-6.1-sol",
+          "usage": {
+            "input_tokens": 12533,
+            "input_tokens_details": {
+              "cached_tokens": 9088,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 60,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 12593
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 4,
+          "seconds": 9.323902070056647,
+          "events": 362,
+          "model": "gpt-6.1-sol",
+          "usage": {
+            "input_tokens": 15072,
+            "input_tokens_details": {
+              "cached_tokens": 12416,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 357,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 15429
+          },
+          "completed": true
+        }
+      ]
+    },
+    {
+      "run": "source-sol-pytest-02",
+      "original_receipts_sha256": "33f99552e1898fdb3dd0862b412612480b7a09d7bb350e97af8e301e7dc2204e",
+      "receipts": [
+        {
+          "status": 200,
+          "call": 1,
+          "seconds": 7.49054175207857,
+          "events": 293,
+          "model": "gpt-6.1-sol",
+          "usage": {
+            "input_tokens": 8626,
+            "input_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 332,
+            "output_tokens_details": {
+              "reasoning_tokens": 48
+            },
+            "total_tokens": 8958
+          },
+          "completed": true
+        }
+      ]
+    },
+    {
+      "run": "direct-sol-pytest-03",
+      "original_receipts_sha256": "26916354a30fd272d8fb27b5e8bd3e4ca0d593204ce81c82e4c381ebb3fc08c3",
+      "receipts": [
+        {
+          "status": 200,
+          "call": 1,
+          "seconds": 3.4071515580872074,
+          "events": 44,
+          "model": "gpt-6.1-sol",
+          "usage": {
+            "input_tokens": 6065,
+            "input_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 50,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 6115
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 2,
+          "seconds": 3.457473662099801,
+          "events": 53,
+          "model": "gpt-6.1-sol",
+          "usage": {
+            "input_tokens": 9209,
+            "input_tokens_details": {
+              "cached_tokens": 6016,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 59,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 9268
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 3,
+          "seconds": 4.460846833069809,
+          "events": 89,
+          "model": "gpt-6.1-sol",
+          "usage": {
+            "input_tokens": 12544,
+            "input_tokens_details": {
+              "cached_tokens": 9088,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 106,
+            "output_tokens_details": {
+              "reasoning_tokens": 15
+            },
+            "total_tokens": 12650
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 4,
+          "seconds": 12.22744543501176,
+          "events": 420,
+          "model": "gpt-6.1-sol",
+          "usage": {
+            "input_tokens": 15388,
+            "input_tokens_details": {
+              "cached_tokens": 12544,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 415,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 15803
+          },
+          "completed": true
+        }
+      ]
+    },
+    {
+      "run": "source-sol-pytest-03",
+      "original_receipts_sha256": "f9e9e4dafde3e5f3110b2fc146bec111be9ecf545a469ebad42cd0f41e710e25",
+      "receipts": [
+        {
+          "status": 200,
+          "call": 1,
+          "seconds": 3.2533032490173355,
+          "events": 53,
+          "model": "gpt-6.1-sol",
+          "usage": {
+            "input_tokens": 8120,
+            "input_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 59,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 8179
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 2,
+          "seconds": 10.93518936901819,
+          "events": 344,
+          "model": "gpt-6.1-sol",
+          "usage": {
+            "input_tokens": 11334,
+            "input_tokens_details": {
+              "cached_tokens": 7936,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 339,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 11673
+          },
+          "completed": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,431 @@
+{
+  "schema_version": 1,
+  "protocol_version": "sol-same-sources-new-questions-v1",
+  "fixed_denominator": 9,
+  "tasks": [
+    {
+      "id": "sol-httpx-01",
+      "decisions": {
+        "q1": "request",
+        "q2": true,
+        "q3": true
+      },
+      "claim_semantic_anchors": {
+        "q1": "Auth falls outside headers/query/cookies merge and request value takes priority.",
+        "q2": "Client base_url prepends URL.",
+        "q3": "build_request permits arbitrary modifications then send."
+      },
+      "minimum_evidence": [
+        {
+          "url": "https://raw.githubusercontent.com/encode/httpx/26d48e0634e6ee9cdc0533996db289ce4b430177/docs/advanced/clients.md",
+          "quote": "For all other parameters, the request-level value takes priority.",
+          "supports": [
+            "q1"
+          ]
+        },
+        {
+          "url": "https://raw.githubusercontent.com/encode/httpx/26d48e0634e6ee9cdc0533996db289ce4b430177/docs/advanced/clients.md",
+          "quote": "r = client.get('https://example.com', auth=('alice', 'ecila123'))",
+          "supports": [
+            "q1"
+          ]
+        },
+        {
+          "url": "https://raw.githubusercontent.com/encode/httpx/26d48e0634e6ee9cdc0533996db289ce4b430177/docs/advanced/clients.md",
+          "quote": "`base_url` allows you to prepend an URL to all outgoing requests:",
+          "supports": [
+            "q2"
+          ]
+        },
+        {
+          "url": "https://raw.githubusercontent.com/encode/httpx/26d48e0634e6ee9cdc0533996db289ce4b430177/docs/advanced/clients.md",
+          "quote": "you can use `.build_request()` and then make arbitrary modifications to the `Request` instance.",
+          "supports": [
+            "q3"
+          ]
+        }
+      ],
+      "evidence_policy": "Cover all answerable decisions with semantically supportive references to pinned source spans actually exposed. These exact continuous example spans are acceptable examples, not mandatory answer strings or a source-count quota. Equivalent supportive spans permitted. Unknown server behavior requires explicit source-bounded abstention, not a fabricated reference. Raw exact source/exposure substrings pass; whitespace and inline Markdown/backtick normalization are optional additional allowances. No paraphrase or stitching. Reference resolution alone does not establish semantic support.",
+      "recommendation_rubric": {
+        "0": "Absent, incorrect, or materially contradicts the decisions.",
+        "1": "Sound actionable direction consistent with all decisions, with minor omissions allowed.",
+        "2": "Supply the auth override on that request; use the client base_url for shared paths; for the header exception build the request, remove X-Api-Key, then send it without mutating shared client defaults."
+      },
+      "uncertainty_rubric": {
+        "0": "Unsupported certainty, incorrect scope, or claims unobserved execution.",
+        "1": "Recognizes the relevant evidence boundary without a material unsupported assertion.",
+        "2": "Configured request exceptions are not evidence the intended request was sent or accepted; preserve appropriate destinations and inspect/test the resulting request before relying on it."
+      }
+    },
+    {
+      "id": "sol-httpx-02",
+      "decisions": {
+        "q1": false,
+        "q2": "num_bytes_downloaded",
+        "q3": true
+      },
+      "claim_semantic_anchors": {
+        "q1": "Decoded content length may differ from raw compressed length.",
+        "q2": "Streaming progress uses response.num_bytes_downloaded.",
+        "q3": "Multipart files streaming one chunk at time."
+      },
+      "minimum_evidence": [
+        {
+          "url": "https://raw.githubusercontent.com/encode/httpx/26d48e0634e6ee9cdc0533996db289ce4b430177/docs/advanced/clients.md",
+          "quote": "the total number of bytes returned by `response.content` or `response.iter_content()` will not always correspond with the raw content length of the response if HTTP response compression is being used.",
+          "supports": [
+            "q1"
+          ]
+        },
+        {
+          "url": "https://raw.githubusercontent.com/encode/httpx/26d48e0634e6ee9cdc0533996db289ce4b430177/docs/advanced/clients.md",
+          "quote": "you can use response streaming and inspect the `response.num_bytes_downloaded` property.",
+          "supports": [
+            "q2"
+          ]
+        },
+        {
+          "url": "https://raw.githubusercontent.com/encode/httpx/26d48e0634e6ee9cdc0533996db289ce4b430177/docs/advanced/clients.md",
+          "quote": "File uploads are streaming by default, meaning that only one chunk will be loaded into memory at a time.",
+          "supports": [
+            "q3"
+          ]
+        }
+      ],
+      "evidence_policy": "Cover all answerable decisions with semantically supportive references to pinned source spans actually exposed. These exact continuous example spans are acceptable examples, not mandatory answer strings or a source-count quota. Equivalent supportive spans permitted. Unknown server behavior requires explicit source-bounded abstention, not a fabricated reference. Raw exact source/exposure substrings pass; whitespace and inline Markdown/backtick normalization are optional additional allowances. No paraphrase or stitching. Reference resolution alone does not establish semantic support.",
+      "recommendation_rubric": {
+        "0": "Absent, incorrect, or materially contradicts the decisions.",
+        "1": "Sound actionable direction consistent with all decisions, with minor omissions allowed.",
+        "2": "Stream responses and use num_bytes_downloaded for transfer progress instead of treating decoded content length as raw bytes; use normal streaming file uploads and avoid assuming the whole upload must be buffered."
+      },
+      "uncertainty_rubric": {
+        "0": "Unsupported certainty, incorrect scope, or claims unobserved execution.",
+        "1": "Recognizes the relevant evidence boundary without a material unsupported assertion.",
+        "2": "These APIs describe byte accounting and chunked file reading, not measured peak process memory, accurate totals when a server omits length, or an observed completed transfer."
+      }
+    },
+    {
+      "id": "sol-httpx-03",
+      "decisions": {
+        "q1": "list_of_field_file_pairs",
+        "q2": false,
+        "q3": "unknown"
+      },
+      "claim_semantic_anchors": {
+        "q1": "Repeated multipart names use list of pairs.",
+        "q2": "Explicit None filename suppresses part content-type field per documentation.",
+        "q3": "No supplied partner endpoint contract or response."
+      },
+      "minimum_evidence": [
+        {
+          "url": "https://raw.githubusercontent.com/encode/httpx/26d48e0634e6ee9cdc0533996db289ce4b430177/docs/advanced/clients.md",
+          "quote": "pass a list of `(field, <file>)` items instead of a dictionary, allowing you to pass multiple items with the same `field`.",
+          "supports": [
+            "q1"
+          ]
+        },
+        {
+          "url": "https://raw.githubusercontent.com/encode/httpx/26d48e0634e6ee9cdc0533996db289ce4b430177/docs/advanced/clients.md",
+          "quote": "If the file name is explicitly set to `None` then HTTPX will not include a content-type MIME header field.",
+          "supports": [
+            "q2"
+          ]
+        }
+      ],
+      "evidence_policy": "Cover all answerable decisions with semantically supportive references to pinned source spans actually exposed. These exact continuous example spans are acceptable examples, not mandatory answer strings or a source-count quota. Equivalent supportive spans permitted. Unknown server behavior requires explicit source-bounded abstention, not a fabricated reference. Raw exact source/exposure substrings pass; whitespace and inline Markdown/backtick normalization are optional additional allowances. No paraphrase or stitching. Reference resolution alone does not establish semantic support.",
+      "recommendation_rubric": {
+        "0": "Absent, incorrect, or materially contradicts the decisions.",
+        "1": "Sound actionable direction consistent with all decisions, with minor omissions allowed.",
+        "2": "Represent repeated images with a list of field/file pairs, deliberately choose the filename/header behavior for the unnamed part, and obtain/test the partner contract before promising acceptance."
+      },
+      "uncertainty_rubric": {
+        "0": "Unsupported certainty, incorrect scope, or claims unobserved execution.",
+        "1": "Recognizes the relevant evidence boundary without a material unsupported assertion.",
+        "2": "Explicitly mark partner acceptance unknown; a client-side encoding capability is not evidence an unprovided endpoint accepts the payload."
+      }
+    },
+    {
+      "id": "sol-click-01",
+      "decisions": {
+        "q1": true,
+        "q2": "semicolon",
+        "q3": "zero"
+      },
+      "claim_semantic_anchors": {
+        "q1": "envvar list first found.",
+        "q2": "Windows path splitting semicolons.",
+        "q3": "Missing count option count0."
+      },
+      "minimum_evidence": [
+        {
+          "url": "https://raw.githubusercontent.com/pallets/click/fd183b2ced1cb5857784fe7fb22f4982f671f098/docs/options.md",
+          "quote": "If a list is passed to `envvar`, the first environment variable found is picked.",
+          "supports": [
+            "q1"
+          ]
+        },
+        {
+          "url": "https://raw.githubusercontent.com/pallets/click/fd183b2ced1cb5857784fe7fb22f4982f671f098/docs/options.md",
+          "quote": "for Windows, splitting on every semicolon (`;`).",
+          "supports": [
+            "q2"
+          ]
+        },
+        {
+          "url": "https://raw.githubusercontent.com/pallets/click/fd183b2ced1cb5857784fe7fb22f4982f671f098/docs/options.md",
+          "quote": "If the option is not passed in, then the count is 0.",
+          "supports": [
+            "q3"
+          ]
+        }
+      ],
+      "evidence_policy": "Cover all answerable decisions with semantically supportive references to pinned source spans actually exposed. These exact continuous example spans are acceptable examples, not mandatory answer strings or a source-count quota. Equivalent supportive spans permitted. Unknown server behavior requires explicit source-bounded abstention, not a fabricated reference. Raw exact source/exposure substrings pass; whitespace and inline Markdown/backtick normalization are optional additional allowances. No paraphrase or stitching. Reference resolution alone does not establish semantic support.",
+      "recommendation_rubric": {
+        "0": "Absent, incorrect, or materially contradicts the decisions.",
+        "1": "Sound actionable direction consistent with all decisions, with minor omissions allowed.",
+        "2": "Place the preferred username variable first, format Windows File/Path lists with semicolons, and treat absent verbosity as zero rather than one."
+      },
+      "uncertainty_rubric": {
+        "0": "Unsupported certainty, incorrect scope, or claims unobserved execution.",
+        "1": "Recognizes the relevant evidence boundary without a material unsupported assertion.",
+        "2": "The delimiter rule is type/platform-specific; these parsing settings do not prove referenced paths exist or an unattended invocation succeeded."
+      }
+    },
+    {
+      "id": "sol-click-02",
+      "decisions": {
+        "q1": true,
+        "q2": false,
+        "q3": true
+      },
+      "claim_semantic_anchors": {
+        "q1": "default_map loads overrides, may nest subcommands.",
+        "q2": "Parent callback parameters not automatically child parameters.",
+        "q3": "ctx object inherited but overridable."
+      },
+      "minimum_evidence": [
+        {
+          "url": "https://raw.githubusercontent.com/pallets/click/fd183b2ced1cb5857784fe7fb22f4982f671f098/docs/commands.rst",
+          "quote": "This allows defaults to be loaded from a configuration file to override the regular defaults.",
+          "supports": [
+            "q1"
+          ]
+        },
+        {
+          "url": "https://raw.githubusercontent.com/pallets/click/fd183b2ced1cb5857784fe7fb22f4982f671f098/docs/commands.rst",
+          "quote": "the basic command group accepts a debug argument which is passed to its callback, but not to the sync command itself.",
+          "supports": [
+            "q2"
+          ]
+        },
+        {
+          "url": "https://raw.githubusercontent.com/pallets/click/fd183b2ced1cb5857784fe7fb22f4982f671f098/docs/commands.rst",
+          "quote": "If the object is provided, each context will pass the object onwards to its children, but at any level a context's object can be overridden.",
+          "supports": [
+            "q3"
+          ]
+        }
+      ],
+      "evidence_policy": "Cover all answerable decisions with semantically supportive references to pinned source spans actually exposed. These exact continuous example spans are acceptable examples, not mandatory answer strings or a source-count quota. Equivalent supportive spans permitted. Unknown server behavior requires explicit source-bounded abstention, not a fabricated reference. Raw exact source/exposure substrings pass; whitespace and inline Markdown/backtick normalization are optional additional allowances. No paraphrase or stitching. Reference resolution alone does not establish semantic support.",
+      "recommendation_rubric": {
+        "0": "Absent, incorrect, or materially contradicts the decisions.",
+        "1": "Sound actionable direction consistent with all decisions, with minor omissions allowed.",
+        "2": "Set a nested default_map for the imported subcommand; put shared debug state in the context object and request context in children, explicitly handling the child object override and parent access."
+      },
+      "uncertainty_rubric": {
+        "0": "Unsupported certainty, incorrect scope, or claims unobserved execution.",
+        "1": "Recognizes the relevant evidence boundary without a material unsupported assertion.",
+        "2": "Context state and declared defaults are configuration mechanisms, not proof the command executed with the intended values; child object overrides need deliberate handling."
+      }
+    },
+    {
+      "id": "sol-click-03",
+      "decisions": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "claim_semantic_anchors": {
+        "q1": "Command.main standalone ignores result.",
+        "q2": "standalone false bubbles result.",
+        "q3": "Context.invoke return bubbles."
+      },
+      "minimum_evidence": [
+        {
+          "url": "https://raw.githubusercontent.com/pallets/click/fd183b2ced1cb5857784fe7fb22f4982f671f098/docs/commands.rst",
+          "quote": "When a Click script is invoked as command line application (through :meth:`Command.main`) the return value is ignored unless the `standalone_mode` is disabled in which case it's bubbled through.",
+          "supports": [
+            "q1",
+            "q2"
+          ]
+        },
+        {
+          "url": "https://raw.githubusercontent.com/pallets/click/fd183b2ced1cb5857784fe7fb22f4982f671f098/docs/commands.rst",
+          "quote": "The return value is bubbled through from the :meth:`Context.invoke` and :meth:`Context.forward` methods.",
+          "supports": [
+            "q3"
+          ]
+        }
+      ],
+      "evidence_policy": "Cover all answerable decisions with semantically supportive references to pinned source spans actually exposed. These exact continuous example spans are acceptable examples, not mandatory answer strings or a source-count quota. Equivalent supportive spans permitted. Unknown server behavior requires explicit source-bounded abstention, not a fabricated reference. Raw exact source/exposure substrings pass; whitespace and inline Markdown/backtick normalization are optional additional allowances. No paraphrase or stitching. Reference resolution alone does not establish semantic support.",
+      "recommendation_rubric": {
+        "0": "Absent, incorrect, or materially contradicts the decisions.",
+        "1": "Sound actionable direction consistent with all decisions, with minor omissions allowed.",
+        "2": "Use an explicit non-standalone invocation or an appropriate Context.invoke integration when the service needs a callback result, while keeping command-line handling as a separate boundary."
+      },
+      "uncertainty_rubric": {
+        "0": "Unsupported certainty, incorrect scope, or claims unobserved execution.",
+        "1": "Recognizes the relevant evidence boundary without a material unsupported assertion.",
+        "2": "A bubbled callback result is not proof a separate process emitted it, that service error handling is complete, or that the analysis was executed successfully."
+      }
+    },
+    {
+      "id": "sol-pytest-01",
+      "decisions": {
+        "q1": "skip",
+        "q2": false,
+        "q3": true
+      },
+      "claim_semantic_anchors": {
+        "q1": "Skip for unavailable external dependency; imperative skip in setup allowed.",
+        "q2": "Imperative xfail raises known exception stops latercode.",
+        "q3": "runxfail disables mark and imperative xfail effect."
+      },
+      "minimum_evidence": [
+        {
+          "url": "https://raw.githubusercontent.com/pytest-dev/pytest/bfae4224fd554d3d7f2c277a4cc092b6ec6af3ae/doc/en/how-to/skipping.rst",
+          "quote": "skipping tests that depend on an external resource which is not available at the moment (for example a database).",
+          "supports": [
+            "q1"
+          ]
+        },
+        {
+          "url": "https://raw.githubusercontent.com/pytest-dev/pytest/bfae4224fd554d3d7f2c277a4cc092b6ec6af3ae/doc/en/how-to/skipping.rst",
+          "quote": "Alternatively, it is also possible to skip imperatively during test execution or setup by calling the ``pytest.skip(reason)`` function:",
+          "supports": [
+            "q1"
+          ]
+        },
+        {
+          "url": "https://raw.githubusercontent.com/pytest-dev/pytest/bfae4224fd554d3d7f2c277a4cc092b6ec6af3ae/doc/en/how-to/skipping.rst",
+          "quote": "Note that no other code is executed after the :func:`pytest.xfail` call, differently from the marker.",
+          "supports": [
+            "q2"
+          ]
+        },
+        {
+          "url": "https://raw.githubusercontent.com/pytest-dev/pytest/bfae4224fd554d3d7f2c277a4cc092b6ec6af3ae/doc/en/how-to/skipping.rst",
+          "quote": "This also causes :func:`pytest.xfail` to produce no effect.",
+          "supports": [
+            "q3"
+          ]
+        }
+      ],
+      "evidence_policy": "Cover all answerable decisions with semantically supportive references to pinned source spans actually exposed. These exact continuous example spans are acceptable examples, not mandatory answer strings or a source-count quota. Equivalent supportive spans permitted. Unknown server behavior requires explicit source-bounded abstention, not a fabricated reference. Raw exact source/exposure substrings pass; whitespace and inline Markdown/backtick normalization are optional additional allowances. No paraphrase or stitching. Reference resolution alone does not establish semantic support.",
+      "recommendation_rubric": {
+        "0": "Absent, incorrect, or materially contradicts the decisions.",
+        "1": "Sound actionable direction consistent with all decisions, with minor omissions allowed.",
+        "2": "Call pytest.skip with a reason when setup discovers the missing prerequisite; reserve xfail for expected bugs, and recognize that --runxfail allows execution to continue past a normally stopping xfail call."
+      },
+      "uncertainty_rubric": {
+        "0": "Unsupported certainty, incorrect scope, or claims unobserved execution.",
+        "1": "Recognizes the relevant evidence boundary without a material unsupported assertion.",
+        "2": "A skipped or xfailed result is not completed behavioral validation; --runxfail changes the execution path and can reach the expensive operation."
+      }
+    },
+    {
+      "id": "sol-pytest-02",
+      "decisions": {
+        "q1": "collection",
+        "q2": true,
+        "q3": false
+      },
+      "claim_semantic_anchors": {
+        "q1": "Generation hook called collecting function.",
+        "q2": "This hook special discovery module/class.",
+        "q3": "Duplicate names across calls error."
+      },
+      "minimum_evidence": [
+        {
+          "url": "https://raw.githubusercontent.com/pytest-dev/pytest/bfae4224fd554d3d7f2c277a4cc092b6ec6af3ae/doc/en/how-to/parametrize.rst",
+          "quote": "you can use the ``pytest_generate_tests`` hook which is called when collecting a test function.",
+          "supports": [
+            "q1"
+          ]
+        },
+        {
+          "url": "https://raw.githubusercontent.com/pytest-dev/pytest/bfae4224fd554d3d7f2c277a4cc092b6ec6af3ae/doc/en/how-to/parametrize.rst",
+          "quote": "The :hook:`pytest_generate_tests` hook can also be implemented directly in a test module or inside a test class; unlike other hooks, pytest will discover it there as well.",
+          "supports": [
+            "q2"
+          ]
+        },
+        {
+          "url": "https://raw.githubusercontent.com/pytest-dev/pytest/bfae4224fd554d3d7f2c277a4cc092b6ec6af3ae/doc/en/how-to/parametrize.rst",
+          "quote": "all parameter names across those sets cannot be duplicated, otherwise an error will be raised.",
+          "supports": [
+            "q3"
+          ]
+        }
+      ],
+      "evidence_policy": "Cover all answerable decisions with semantically supportive references to pinned source spans actually exposed. These exact continuous example spans are acceptable examples, not mandatory answer strings or a source-count quota. Equivalent supportive spans permitted. Unknown server behavior requires explicit source-bounded abstention, not a fabricated reference. Raw exact source/exposure substrings pass; whitespace and inline Markdown/backtick normalization are optional additional allowances. No paraphrase or stitching. Reference resolution alone does not establish semantic support.",
+      "recommendation_rubric": {
+        "0": "Absent, incorrect, or materially contradicts the decisions.",
+        "1": "Sound actionable direction consistent with all decisions, with minor omissions allowed.",
+        "2": "Put the hook in a supported test class/module or conftest/plugin as appropriate, inspect the requested fixture names during collection, and keep parameter names disjoint across separate parametrize calls."
+      },
+      "uncertainty_rubric": {
+        "0": "Unsupported certainty, incorrect scope, or claims unobserved execution.",
+        "1": "Recognizes the relevant evidence boundary without a material unsupported assertion.",
+        "2": "The special discovery rule is for pytest_generate_tests and must not be generalized to all hooks; generating cases is not proof their bodies ran or passed."
+      }
+    },
+    {
+      "id": "sol-pytest-03",
+      "decisions": {
+        "q1": false,
+        "q2": true,
+        "q3": false
+      },
+      "claim_semantic_anchors": {
+        "q1": "pytest supports mixing old/new style incrementally.",
+        "q2": "Fixture functions use other fixtures.",
+        "q3": "Tests can have many fixtures."
+      },
+      "minimum_evidence": [
+        {
+          "url": "https://raw.githubusercontent.com/pytest-dev/pytest/bfae4224fd554d3d7f2c277a4cc092b6ec6af3ae/doc/en/explanation/fixtures.rst",
+          "quote": "You can mix both styles, moving incrementally from classic to new style, as you prefer.",
+          "supports": [
+            "q1"
+          ]
+        },
+        {
+          "url": "https://raw.githubusercontent.com/pytest-dev/pytest/bfae4224fd554d3d7f2c277a4cc092b6ec6af3ae/doc/en/explanation/fixtures.rst",
+          "quote": "fixtures can use other fixtures, as well.",
+          "supports": [
+            "q2"
+          ]
+        },
+        {
+          "url": "https://raw.githubusercontent.com/pytest-dev/pytest/bfae4224fd554d3d7f2c277a4cc092b6ec6af3ae/doc/en/explanation/fixtures.rst",
+          "quote": "Tests don't have to be limited to a single fixture, either. They can depend on as many fixtures as you want",
+          "supports": [
+            "q3"
+          ]
+        }
+      ],
+      "evidence_policy": "Cover all answerable decisions with semantically supportive references to pinned source spans actually exposed. These exact continuous example spans are acceptable examples, not mandatory answer strings or a source-count quota. Equivalent supportive spans permitted. Unknown server behavior requires explicit source-bounded abstention, not a fabricated reference. Raw exact source/exposure substrings pass; whitespace and inline Markdown/backtick normalization are optional additional allowances. No paraphrase or stitching. Reference resolution alone does not establish semantic support.",
+      "recommendation_rubric": {
+        "0": "Absent, incorrect, or materially contradicts the decisions.",
+        "1": "Sound actionable direction consistent with all decisions, with minor omissions allowed.",
+        "2": "Keep existing xUnit setup while introducing explicit account/dataset fixture dependencies, compose shared setup as fixtures, and request the required fixtures by test arguments rather than forcing a wholesale rewrite."
+      },
+      "uncertainty_rubric": {
+        "0": "Unsupported certainty, incorrect scope, or claims unobserved execution.",
+        "1": "Recognizes the relevant evidence boundary without a material unsupported assertion.",
+        "2": "Compatibility with incremental migration is not proof mixed setup has correct lifetimes or no duplicate side effects; verify the migrated tests and shared resource behavior."
+      }
+    }
+  ]
+}

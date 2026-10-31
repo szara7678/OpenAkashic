@@ -1,0 +1,886 @@
+{
+  "grader": "gpt-6.1-sol",
+  "human_review": false,
+  "cases": [
+    {
+      "label": "ref-case-070a4e00c5b3",
+      "recommendation": 2,
+      "uncertainty": 2,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1",
+            "q2",
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "The complete return-values passage explicitly distinguishes standalone Command.main from disabled standalone mode, and separately states Context.invoke/forward return propagation."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "The answer separates the service/helper/CLI boundaries and explicitly leaves exception handling, serialization, and wrapper behavior unestablished rather than equating propagation with complete service execution."
+      ]
+    },
+    {
+      "label": "ref-case-168b9060e802",
+      "recommendation": 2,
+      "uncertainty": 2,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "The request-priority rule is accompanied by a client-auth/request-auth example whose decoded Authorization value is the request override."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "The base_url explanation and resulting URL explicitly show prefixing the request path."
+        },
+        {
+          "index": 2,
+          "supported_qids": [
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "The documented build_request workflow modifies the inherited API-key header before client.send while retaining other built-request settings."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "The structured recommendation keeps the shared base URL and client defaults, marks actual sending/integration untested, and specifically leaves authentication that might re-add the header unverified."
+      ]
+    },
+    {
+      "label": "ref-case-2162b21dda0d",
+      "recommendation": 2,
+      "uncertainty": 2,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "The source explicitly classifies unavailable external resources as a skip use case and contrasts expected bugs/features as xfail use cases."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "An imperative skip during setup is explicitly supported."
+        },
+        {
+          "index": 2,
+          "supported_qids": [],
+          "unsupported_qids": [
+            "q1"
+          ],
+          "note": "This passage explains timing of an imperative skip condition; by itself it does not choose skip rather than xfail for the unavailable prerequisite. Citations 0 and 1 supply that support."
+        },
+        {
+          "index": 3,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "The passage explicitly states no code executes after an imperative pytest.xfail call because it raises a known exception."
+        },
+        {
+          "index": 4,
+          "supported_qids": [
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "The --runxfail passage explicitly makes imperative pytest.xfail ineffective."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "The recommendation separates absent prerequisites from expected bugs and recognizes that investigation can reach the expensive operation. Actual probe/operation/gate behavior is explicitly unverified; no skipped/xfail outcome is presented as completed validation."
+      ]
+    },
+    {
+      "label": "ref-case-48c89869b600",
+      "recommendation": 2,
+      "uncertainty": 2,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "The first-found rule for an envvar list explicitly supports SERVICE_USER precedence under the stated nonempty inputs."
+        },
+        {
+          "index": 1,
+          "supported_qids": [],
+          "unsupported_qids": [
+            "q2"
+          ],
+          "note": "The generic multi-value splitter paragraph does not identify the Windows File/Path delimiter; citation 2 supplies the type/platform-specific rule."
+        },
+        {
+          "index": 2,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "The File/Path exception explicitly uses semicolons on Windows, rather than the generic whitespace rule."
+        },
+        {
+          "index": 3,
+          "supported_qids": [
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "The absent count option explicitly has count zero."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "The proposed configuration preserves the stated variables and platform/type scope. Actual invocation, custom defaults, and path existence/validation are explicitly left unverified."
+      ]
+    },
+    {
+      "label": "ref-case-4980ed2c0564",
+      "recommendation": 2,
+      "uncertainty": 2,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1",
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "The monitoring explanation explicitly recommends num_bytes_downloaded and states that decoded content length may differ from raw compressed response length."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "The documented streaming example updates progress using successive num_bytes_downloaded differences and assumes Content-Length."
+        },
+        {
+          "index": 2,
+          "supported_qids": [
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "The tip explicitly states file uploads stream by default with one chunk loaded at a time."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "The answer distinguishes transfer accounting from total process memory, recognizes missing-length handling is not established, and does not claim a completed transfer. The separate upload-generator integration is explicitly a proposal requiring verification."
+      ]
+    },
+    {
+      "label": "ref-case-5290109cfe08",
+      "recommendation": 1,
+      "uncertainty": 2,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "The hook is explicitly called while collecting a test function."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "This particular hook is explicitly discoverable in a test module/class; the same passage restricts other hooks to conftest/plugin locations."
+        },
+        {
+          "index": 2,
+          "supported_qids": [
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "Duplicate parameter names across multiple metafunc.parametrize calls explicitly raise an error."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "The supported class/module placement and disjoint-name design are actionable, but the recommendation omits inspecting the requesting fixture names during collection required by the full 2-point rubric.",
+        "The answer keeps option registration in conftest separately from this special class-local hook and leaves the generated suite/configuration unexecuted, without generalizing all hook discovery."
+      ]
+    },
+    {
+      "label": "ref-case-7b0a4e72cb9c",
+      "recommendation": 2,
+      "uncertainty": 2,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "The source explicitly states decoded response bytes need not equal raw compressed content length."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "num_bytes_downloaded is the explicitly documented download-progress property."
+        },
+        {
+          "index": 2,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "The streaming example actually uses cumulative byte differences and a Content-Length total."
+        },
+        {
+          "index": 3,
+          "supported_qids": [],
+          "unsupported_qids": [
+            "q3"
+          ],
+          "note": "The open-file multipart example demonstrates representation and an example response, not the one-chunk/default-streaming rule assigned to q3. Citation 4 supplies that rule."
+        },
+        {
+          "index": 4,
+          "supported_qids": [
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "The tip explicitly documents default file-upload streaming and one-chunk reading."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "The recommendation and uncertainty distinguish the documented byte/chunk behavior from actual total process memory, concurrency, missing Content-Length handling, and completed transfer execution."
+      ]
+    },
+    {
+      "label": "ref-case-850c1a5c36fe",
+      "recommendation": 2,
+      "uncertainty": 2,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "The source explicitly permits mixing xUnit and fixture styles incrementally."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q2",
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "The passage explicitly allows multiple fixtures per test and fixture dependencies on other fixtures."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "The proposed migration addresses composition and checks duplicate resource creation/cleanup. Actual suite lifetimes and TestCase-method argument compatibility are explicitly not presumed verified."
+      ]
+    },
+    {
+      "label": "ref-case-8654604940f7",
+      "recommendation": 2,
+      "uncertainty": 2,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "Unavailable external dependencies are explicitly an example for skipping."
+        },
+        {
+          "index": 1,
+          "supported_qids": [],
+          "unsupported_qids": [
+            "q1"
+          ],
+          "note": "The expected-bug definition helps contrast xfail, but does not alone prescribe the outcome for an unavailable prerequisite; citation 0 provides that choice."
+        },
+        {
+          "index": 2,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "Imperative skipping in setup/test execution is explicit."
+        },
+        {
+          "index": 3,
+          "supported_qids": [],
+          "unsupported_qids": [
+            "q1"
+          ],
+          "note": "The import-time timing guidance is relevant to setup-time checking, but alone does not establish the assigned skip-versus-xfail choice."
+        },
+        {
+          "index": 4,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "The source explicitly states that imperative pytest.xfail stops later code by raising an exception."
+        },
+        {
+          "index": 5,
+          "supported_qids": [],
+          "unsupported_qids": [
+            "q3"
+          ],
+          "note": "The generic introduction to a command-line option contains no effect or option identity by itself."
+        },
+        {
+          "index": 6,
+          "supported_qids": [],
+          "unsupported_qids": [
+            "q3"
+          ],
+          "note": "The bare --runxfail invocation names the option but does not itself establish the imperative-call effect; citation 7 supplies that effect."
+        },
+        {
+          "index": 7,
+          "supported_qids": [
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "Read with the option in citation 6, the passage explicitly makes pytest.xfail have no effect under --runxfail."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "The split references jointly establish the override semantics. The answer correctly treats the expensive operation as reachable during investigation and the independent guard as an unverified proposal, without treating skip/xfail as behavioral completion."
+      ]
+    },
+    {
+      "label": "ref-case-8ce578a95809",
+      "recommendation": 1,
+      "uncertainty": 2,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "The hook description explicitly places pytest_generate_tests during collection."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "The note explicitly grants test-class/module discovery to this particular hook and states other hooks belong in conftest/plugin locations."
+        },
+        {
+          "index": 2,
+          "supported_qids": [
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "The source explicitly forbids duplicated parameter names across separate parametrize calls."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "The recommendation supplies supported placement and disjoint-name partitioning but omits inspecting requesting fixture names during collection from the full 2-point rubric.",
+        "The answer scopes the special discovery rule to this hook and explicitly leaves the suite/generated names unexecuted and unverified."
+      ]
+    },
+    {
+      "label": "ref-case-925acd7f1b90",
+      "recommendation": 2,
+      "uncertainty": 2,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "The source explicitly recommends a list of field/file pairs for repeated field names and illustrates two images under the same name."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "The tuple documentation explicitly states that filename=None suppresses the part content-type MIME header field."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "q3 is covered by explicit source-bounded abstention: these references establish client encoding only, with no partner contract or observed acceptance. The proposed exact combined-payload test is not claimed as executed."
+      ]
+    },
+    {
+      "label": "ref-case-973d51d3db72",
+      "recommendation": 2,
+      "uncertainty": 2,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "The source explicitly uses list pairs to allow multiple entries with the same field."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "The documented recipe contains two images entries in a list rather than a one-entry-per-key dictionary."
+        },
+        {
+          "index": 2,
+          "supported_qids": [],
+          "unsupported_qids": [
+            "q2"
+          ],
+          "note": "The tuple-length introduction does not establish the filename=None header rule assigned to q2; citation 3 supplies that condition and outcome."
+        },
+        {
+          "index": 3,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "The source explicitly permits filename=None and states that it omits a content-type MIME header field."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "q3 is supported by explicit abstention about an unspecified partner. The answer separates supported client representation from unverified combined endpoint acceptance and requires partner-approved validation before promising it."
+      ]
+    },
+    {
+      "label": "ref-case-a44dd58cca59",
+      "recommendation": 2,
+      "uncertainty": 2,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "The default_map paragraph explicitly states that it overrides regular declared defaults."
+        },
+        {
+          "index": 1,
+          "supported_qids": [],
+          "unsupported_qids": [
+            "q1"
+          ],
+          "note": "Arbitrary nesting establishes map shape, but does not by itself establish overriding ordinary defaults; citation 0 supplies that rule."
+        },
+        {
+          "index": 2,
+          "supported_qids": [],
+          "unsupported_qids": [
+            "q1"
+          ],
+          "note": "The declared port default alone contains no override behavior."
+        },
+        {
+          "index": 3,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "Read with the declared default in citation 2 and the rule in citation 0, the documented invocation supplies an overriding per-subcommand value through default_map."
+        },
+        {
+          "index": 4,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "The source explicitly states root debug is passed to the root callback but not the sync child callback."
+        },
+        {
+          "index": 5,
+          "supported_qids": [],
+          "unsupported_qids": [
+            "q2"
+          ],
+          "note": "Context injection is an available mechanism, but does not itself prove the negative root-keyword-forwarding claim; citation 4 does."
+        },
+        {
+          "index": 6,
+          "supported_qids": [],
+          "unsupported_qids": [
+            "q2"
+          ],
+          "note": "This root callback setup does not by itself state what keywords reach a child."
+        },
+        {
+          "index": 7,
+          "supported_qids": [],
+          "unsupported_qids": [
+            "q2"
+          ],
+          "note": "The single context-state assignment supports state-sharing advice, not callback keyword forwarding."
+        },
+        {
+          "index": 8,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "Together with the root declarations, the child recipe obtains debug through context while declaring only ctx; citation 4 independently gives the explicit no-forwarding rule."
+        },
+        {
+          "index": 9,
+          "supported_qids": [
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "The inherited object may explicitly be overridden, and parent context access remains available."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "The recommendation handles nested defaults, context injection, child object replacement, and explicit ancestor access. Actual command names, context hierarchy, intended values, and invocation are left unverified."
+      ]
+    },
+    {
+      "label": "ref-case-ab914e35d925",
+      "recommendation": 2,
+      "uncertainty": 2,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "The source explicitly supports incremental coexistence of legacy xUnit and fixtures."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q2",
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "Tests explicitly may request many fixtures and fixtures may use other fixtures."
+        },
+        {
+          "index": 2,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "The fixture modularity description explicitly permits fixture-to-fixture dependencies."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "The migration is proposed for pytest-style functions, with actual TestCase signatures, lifetimes, duplicate side effects, and cleanup ownership explicitly left for verification."
+      ]
+    },
+    {
+      "label": "ref-case-bd04dc25ad8a",
+      "recommendation": 2,
+      "uncertainty": 2,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "The envvar list rule explicitly selects the first found value and shows both names set in an example."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "The complete multi-value section explicitly scopes semicolon separation to File/Path types on Windows."
+        },
+        {
+          "index": 2,
+          "supported_qids": [
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "The count option explicitly defaults to zero when absent."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "The answer does not infer existing paths or a successful unattended invocation from delimiter configuration and leaves extra defaults/callback behavior unverified."
+      ]
+    },
+    {
+      "label": "ref-case-bd1fac6f9195",
+      "recommendation": 2,
+      "uncertainty": 2,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1",
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "The source explicitly ignores the callback result through standalone Command.main unless standalone_mode is disabled."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "Context.invoke and Context.forward explicitly bubble return values through."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "The invocation boundaries are kept separate. The uncertainty limits the propagation rule to supported return paths, leaves error/explicit-exit paths and application wrappers unverified, and does not claim completed analysis execution."
+      ]
+    },
+    {
+      "label": "ref-case-c4b0ec0e94ac",
+      "recommendation": 2,
+      "uncertainty": 2,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "The default_map description explicitly states regular defaults may be overridden."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "The source explicitly supports declaring the same override through command decorators rather than only invocation."
+        },
+        {
+          "index": 2,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "The documented context_settings recipe provides the nested subcommand default_map; its overriding semantics are supplied by citations 0 and 1."
+        },
+        {
+          "index": 3,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "The source explicitly states root debug is not passed as a child keyword and describes requesting context separately."
+        },
+        {
+          "index": 4,
+          "supported_qids": [
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "The source explicitly allows a child object override and parent access."
+        },
+        {
+          "index": 5,
+          "supported_qids": [],
+          "unsupported_qids": [
+            "q3"
+          ],
+          "note": "The shared-object example illustrates inheritance/use, but contains no object override by itself; citation 4 supplies the assigned override permission."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "The recommendation deliberately separates child-owned objects from root debug access. Actual command/context configuration and execution are explicitly unverified."
+      ]
+    },
+    {
+      "label": "ref-case-cf1b6c7f4ccc",
+      "recommendation": 2,
+      "uncertainty": 2,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "In its documented auth-merge context, the general request-level priority rule applies to auth."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "The decoded Authorization result explicitly demonstrates the request auth overriding client auth."
+        },
+        {
+          "index": 2,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "base_url is explicitly described as prepending the URL to outgoing paths."
+        },
+        {
+          "index": 3,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "The example shows the resulting combined URL after a relative-path request."
+        },
+        {
+          "index": 4,
+          "supported_qids": [
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "The documented build_request workflow explicitly permits modifications before dispatch."
+        },
+        {
+          "index": 5,
+          "supported_qids": [
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "The example deletes only the inherited API-key header from a built request and then sends it, leaving other inherited configuration available."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "The answer retains the intended shared base URL, treats actual sending/acceptance as unobserved, and specifically requires verification if custom auth/hooks could restore the removed header."
+      ]
+    }
+  ]
+}

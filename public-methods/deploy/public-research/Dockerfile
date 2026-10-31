@@ -8,7 +8,7 @@ COPY api/scripts/public_news_providers.py ./scripts/
 COPY api/app/research_memory.py ./app/
 COPY api/app/research_time.py ./app/
 COPY api/app/research_methods.py api/app/research_method_store.py api/app/research_method_search.py api/app/research_method_context.py ./app/
-COPY api/app/research_method_graph.py api/app/research_method_evidence.py ./app/
+COPY api/app/research_method_graph.py api/app/research_method_evidence.py api/app/research_evidence_refs.py api/app/research_evidence_units.py ./app/
 COPY web/research /srv/openakashic/web/research
 USER 1000:1000
 EXPOSE 8080

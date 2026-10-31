@@ -1,0 +1,85 @@
+{
+  "kind": "post-evaluation local API publication projection verification",
+  "cases": [
+    {
+      "case": "source-sol-click-01",
+      "local_http_status": 200,
+      "exact_public_projection_match": true,
+      "selection_and_quotes_ranges_actions_unchanged": true,
+      "original_packet_tokens": 2561,
+      "public_packet_tokens": 2497
+    },
+    {
+      "case": "source-sol-click-02",
+      "local_http_status": 200,
+      "exact_public_projection_match": true,
+      "selection_and_quotes_ranges_actions_unchanged": true,
+      "original_packet_tokens": 3060,
+      "public_packet_tokens": 2996
+    },
+    {
+      "case": "source-sol-click-03",
+      "local_http_status": 200,
+      "exact_public_projection_match": true,
+      "selection_and_quotes_ranges_actions_unchanged": true,
+      "original_packet_tokens": 1745,
+      "public_packet_tokens": 1713
+    },
+    {
+      "case": "source-sol-httpx-01",
+      "local_http_status": 200,
+      "exact_public_projection_match": true,
+      "selection_and_quotes_ranges_actions_unchanged": true,
+      "original_packet_tokens": 2134,
+      "public_packet_tokens": 2101
+    },
+    {
+      "case": "source-sol-httpx-02",
+      "local_http_status": 200,
+      "exact_public_projection_match": true,
+      "selection_and_quotes_ranges_actions_unchanged": true,
+      "original_packet_tokens": 2296,
+      "public_packet_tokens": 2263
+    },
+    {
+      "case": "source-sol-httpx-03",
+      "local_http_status": 200,
+      "exact_public_projection_match": true,
+      "selection_and_quotes_ranges_actions_unchanged": true,
+      "original_packet_tokens": 2560,
+      "public_packet_tokens": 2494
+    },
+    {
+      "case": "source-sol-pytest-01",
+      "local_http_status": 200,
+      "exact_public_projection_match": true,
+      "selection_and_quotes_ranges_actions_unchanged": true,
+      "original_packet_tokens": 3534,
+      "public_packet_tokens": 3466
+    },
+    {
+      "case": "source-sol-pytest-02",
+      "local_http_status": 200,
+      "exact_public_projection_match": true,
+      "selection_and_quotes_ranges_actions_unchanged": true,
+      "original_packet_tokens": 2543,
+      "public_packet_tokens": 2475
+    },
+    {
+      "case": "source-sol-pytest-03",
+      "local_http_status": 200,
+      "exact_public_projection_match": true,
+      "selection_and_quotes_ranges_actions_unchanged": true,
+      "original_packet_tokens": 2033,
+      "public_packet_tokens": 1965
+    }
+  ],
+  "all_nine_passed": true,
+  "only_license_preserved_file_and_token_counter_differ": true,
+  "model_calls": 0,
+  "indices_and_frozen_inputs_unchanged": true,
+  "scoped_tests_passed": 87,
+  "module_sha256": "37682c60acda396544c934e5dcde56f8690ad80c65545ce99ee2fb9b917f9f93",
+  "unit_module_sha256": "fad2569071dedc1f5d9196937cef3f29869460748a9359a410f5e5151ce85c9c",
+  "does_not_prove_remote_deployment": true
+}

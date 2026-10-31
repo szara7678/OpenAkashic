@@ -1,0 +1,16 @@
+{
+  "scope": "Post-evaluation publication metadata redaction, not retrieval/ranking/prompt or measured-model rerun.",
+  "original_benchmark_packet_context_and_provider_usage_unchanged": true,
+  "public_license_fields": [
+    "spdx",
+    "url",
+    "reviewed_for_publication",
+    "sha256",
+    "safe attribution/copyright/notice text"
+  ],
+  "nonpublic_license_file_pointers_removed": true,
+  "canonical_ids_source_hashes_quotes_ranges_ranking_and_policy_unchanged": true,
+  "public_response_json_tokens_recounted_after_selection": true,
+  "original_vs_public_transport_hashes_and_bytes_recorded_separately": true,
+  "released_refs_module_sha256": "37682c60acda396544c934e5dcde56f8690ad80c65545ce99ee2fb9b917f9f93"
+}

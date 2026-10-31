@@ -1,0 +1,168 @@
+{
+  "verification_model_calls": 0,
+  "runs": [
+    {
+      "run": "direct-sol-httpx-01",
+      "recorded_render_success": true,
+      "raw_hash_verified": true,
+      "host_exposure_packets": 3,
+      "same_resolver_for_both_arms": true,
+      "approved_index_reference_resolution": true,
+      "rendered_evidence_matches": true
+    },
+    {
+      "run": "source-sol-httpx-01",
+      "recorded_render_success": true,
+      "raw_hash_verified": true,
+      "host_exposure_packets": 1,
+      "same_resolver_for_both_arms": true,
+      "approved_index_reference_resolution": true,
+      "rendered_evidence_matches": true
+    },
+    {
+      "run": "direct-sol-httpx-02",
+      "recorded_render_success": true,
+      "raw_hash_verified": true,
+      "host_exposure_packets": 3,
+      "same_resolver_for_both_arms": true,
+      "approved_index_reference_resolution": true,
+      "rendered_evidence_matches": true
+    },
+    {
+      "run": "source-sol-httpx-02",
+      "recorded_render_success": true,
+      "raw_hash_verified": true,
+      "host_exposure_packets": 1,
+      "same_resolver_for_both_arms": true,
+      "approved_index_reference_resolution": true,
+      "rendered_evidence_matches": true
+    },
+    {
+      "run": "direct-sol-httpx-03",
+      "recorded_render_success": true,
+      "raw_hash_verified": true,
+      "host_exposure_packets": 2,
+      "same_resolver_for_both_arms": true,
+      "approved_index_reference_resolution": true,
+      "rendered_evidence_matches": true
+    },
+    {
+      "run": "source-sol-httpx-03",
+      "recorded_render_success": true,
+      "raw_hash_verified": true,
+      "host_exposure_packets": 1,
+      "same_resolver_for_both_arms": true,
+      "approved_index_reference_resolution": true,
+      "rendered_evidence_matches": true
+    },
+    {
+      "run": "direct-sol-click-01",
+      "recorded_render_success": true,
+      "raw_hash_verified": true,
+      "host_exposure_packets": 4,
+      "same_resolver_for_both_arms": true,
+      "approved_index_reference_resolution": true,
+      "rendered_evidence_matches": true
+    },
+    {
+      "run": "source-sol-click-01",
+      "recorded_render_success": true,
+      "raw_hash_verified": true,
+      "host_exposure_packets": 2,
+      "same_resolver_for_both_arms": true,
+      "approved_index_reference_resolution": true,
+      "rendered_evidence_matches": true
+    },
+    {
+      "run": "direct-sol-click-02",
+      "recorded_render_success": true,
+      "raw_hash_verified": true,
+      "host_exposure_packets": 7,
+      "same_resolver_for_both_arms": true,
+      "approved_index_reference_resolution": true,
+      "rendered_evidence_matches": true
+    },
+    {
+      "run": "source-sol-click-02",
+      "recorded_render_success": true,
+      "raw_hash_verified": true,
+      "host_exposure_packets": 1,
+      "same_resolver_for_both_arms": true,
+      "approved_index_reference_resolution": true,
+      "rendered_evidence_matches": true
+    },
+    {
+      "run": "direct-sol-click-03",
+      "recorded_render_success": true,
+      "raw_hash_verified": true,
+      "host_exposure_packets": 2,
+      "same_resolver_for_both_arms": true,
+      "approved_index_reference_resolution": true,
+      "rendered_evidence_matches": true
+    },
+    {
+      "run": "source-sol-click-03",
+      "recorded_render_success": true,
+      "raw_hash_verified": true,
+      "host_exposure_packets": 1,
+      "same_resolver_for_both_arms": true,
+      "approved_index_reference_resolution": true,
+      "rendered_evidence_matches": true
+    },
+    {
+      "run": "direct-sol-pytest-01",
+      "recorded_render_success": true,
+      "raw_hash_verified": true,
+      "host_exposure_packets": 6,
+      "same_resolver_for_both_arms": true,
+      "approved_index_reference_resolution": true,
+      "rendered_evidence_matches": true
+    },
+    {
+      "run": "source-sol-pytest-01",
+      "recorded_render_success": true,
+      "raw_hash_verified": true,
+      "host_exposure_packets": 2,
+      "same_resolver_for_both_arms": true,
+      "approved_index_reference_resolution": true,
+      "rendered_evidence_matches": true
+    },
+    {
+      "run": "direct-sol-pytest-02",
+      "recorded_render_success": true,
+      "raw_hash_verified": true,
+      "host_exposure_packets": 3,
+      "same_resolver_for_both_arms": true,
+      "approved_index_reference_resolution": true,
+      "rendered_evidence_matches": true
+    },
+    {
+      "run": "source-sol-pytest-02",
+      "recorded_render_success": true,
+      "raw_hash_verified": true,
+      "host_exposure_packets": 1,
+      "same_resolver_for_both_arms": true,
+      "approved_index_reference_resolution": true,
+      "rendered_evidence_matches": true
+    },
+    {
+      "run": "direct-sol-pytest-03",
+      "recorded_render_success": true,
+      "raw_hash_verified": true,
+      "host_exposure_packets": 3,
+      "same_resolver_for_both_arms": true,
+      "approved_index_reference_resolution": true,
+      "rendered_evidence_matches": true
+    },
+    {
+      "run": "source-sol-pytest-03",
+      "recorded_render_success": true,
+      "raw_hash_verified": true,
+      "host_exposure_packets": 2,
+      "same_resolver_for_both_arms": true,
+      "approved_index_reference_resolution": true,
+      "rendered_evidence_matches": true
+    }
+  ],
+  "note": "Fresh references revalidated only with frozen v4 build/index; predecessor v3 is verified in a separate process with its frozen build/index."
+}

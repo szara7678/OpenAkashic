@@ -1,0 +1,248 @@
+{
+  "schema": "method-evidence-index-v1",
+  "sources": [
+    {
+      "source_url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/runtime/fragment.py",
+      "version": "Streamlit 1.46.0 tag -> 5ab38d948223f4a3904127008e7e01abbc57017a; https://docs.streamlit.io/1.46.0/develop/api-reference/execution-flow/st.fragment 와 대조",
+      "sha256": "9e58d89d59b05d0a762ac43ab83e9ecf126e0dc75f490467aaeb97ad50120a4b",
+      "approved_scope": "version-pinned official open-source code or documentation; excerpt only",
+      "approval": "approved_public_source",
+      "license": {
+        "spdx": "Apache-2.0",
+        "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/LICENSE",
+        "reviewed_for_publication": true
+      },
+      "provenance": "streamlit/streamlit official pinned commit; immutable source SHA256 verified; no private input"
+    },
+    {
+      "source_url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py",
+      "version": "Streamlit 1.46.0 tag -> 5ab38d948223f4a3904127008e7e01abbc57017a; https://docs.streamlit.io/1.46.0/develop/api-reference/execution-flow/st.rerun 와 대조",
+      "sha256": "6f3a80c30a430e26fe08ca005989e1720642177d5959e49a4993b5109faad4dd",
+      "approved_scope": "version-pinned official open-source code or documentation; excerpt only",
+      "approval": "approved_public_source",
+      "license": {
+        "spdx": "Apache-2.0",
+        "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/LICENSE",
+        "reviewed_for_publication": true
+      },
+      "provenance": "streamlit/streamlit official pinned commit; immutable source SHA256 verified; no private input"
+    },
+    {
+      "source_url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/disabling-queries.md",
+      "version": "@tanstack/react-query@5.90.5 tag -> ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba; /v5 웹 문서는 latest로 리디렉션되므로 고정 commit 문서를 사용",
+      "sha256": "2ac06e279df6db4ac7b3abade980e24d21f8ef8453b9bd42273fda8087f121ca",
+      "approved_scope": "version-pinned official open-source code or documentation; excerpt only",
+      "approval": "approved_public_source",
+      "license": {
+        "spdx": "MIT",
+        "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/LICENSE",
+        "reviewed_for_publication": true
+      },
+      "provenance": "TanStack/query official pinned commit; immutable source SHA256 verified; no private input"
+    },
+    {
+      "source_url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md",
+      "version": "@tanstack/react-query@5.90.5 tag -> ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba; 일반 useQuery 취소 문서; Suspense hooks 예외 별도",
+      "sha256": "94c7f7f523f1d2c742c86c12fe001839ffcbb0e206ef8935d1428aaf724e10ab",
+      "approved_scope": "version-pinned official open-source code or documentation; excerpt only",
+      "approval": "approved_public_source",
+      "license": {
+        "spdx": "MIT",
+        "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/LICENSE",
+        "reviewed_for_publication": true
+      },
+      "provenance": "TanStack/query official pinned commit; immutable source SHA256 verified; no private input"
+    },
+    {
+      "source_url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/docs/0.10/sql/data_types/typecasting.md",
+      "version": "DuckDB 0.10 문서; 0.10.0 도입 변경. 문서 snapshot 343c29a3530fcb77c88a994fc3665ad3129520bd; 최신 제품 전체로 외삽하지 않음",
+      "sha256": "9fd1b8d1b63f3e3184d19f817a9f9582aa189fbcc69a0c5a0aa993a2a2230861",
+      "approved_scope": "version-pinned official open-source code or documentation; excerpt only",
+      "approval": "approved_public_source",
+      "license": {
+        "spdx": "MIT",
+        "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/LICENSE",
+        "reviewed_for_publication": true
+      },
+      "provenance": "duckdb/duckdb-web official pinned commit; immutable source SHA256 verified; no private input"
+    },
+    {
+      "source_url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+      "version": "DuckDB 0.10.0 릴리스 2024-02-13; 문서 snapshot 343c29a3530fcb77c88a994fc3665ad3129520bd; 해당 버전 SQL 바인딩 규칙",
+      "sha256": "7a931c60693ba378776ec8a8744bd6097e7b36a701f8c622279f3a8b38112cea",
+      "approved_scope": "version-pinned official open-source code or documentation; excerpt only",
+      "approval": "approved_public_source",
+      "license": {
+        "spdx": "MIT",
+        "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/LICENSE",
+        "reviewed_for_publication": true
+      },
+      "provenance": "duckdb/duckdb-web official pinned commit; immutable source SHA256 verified; no private input"
+    },
+    {
+      "source_url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/packages/query-core/src/query.ts",
+      "version": "@tanstack/query-core 5.90.5; package.json 확인; commit ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba",
+      "sha256": "71e75b3f94576d406a99d9967af4734fa2f938683b74518ad61dd464c6671fdc",
+      "approved_scope": "version-pinned official open-source code or documentation; excerpt only",
+      "approval": "approved_public_source",
+      "license": {
+        "spdx": "MIT",
+        "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/LICENSE",
+        "reviewed_for_publication": true
+      },
+      "provenance": "TanStack/query official pinned commit; immutable source SHA256 verified; no private input"
+    },
+    {
+      "source_url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/packages/query-core/src/utils.ts",
+      "version": "@tanstack/query-core 5.90.5; package.json 확인; commit ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba",
+      "sha256": "10237cfc3c434a769a1ab53416703ec909022e09fb91f3b77fb3d9e808b35705",
+      "approved_scope": "version-pinned official open-source code or documentation; excerpt only",
+      "approval": "approved_public_source",
+      "license": {
+        "spdx": "MIT",
+        "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/LICENSE",
+        "reviewed_for_publication": true
+      },
+      "provenance": "TanStack/query official pinned commit; immutable source SHA256 verified; no private input"
+    },
+    {
+      "source_url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/packages/query-core/src/queryClient.ts",
+      "version": "@tanstack/query-core 5.90.5; package.json 확인; commit ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba",
+      "sha256": "69ed302721adb82c2449c5385e33627663b23516f719ecc53405c213e1211e91",
+      "approved_scope": "version-pinned official open-source code or documentation; excerpt only",
+      "approval": "approved_public_source",
+      "license": {
+        "spdx": "MIT",
+        "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/LICENSE",
+        "reviewed_for_publication": true
+      },
+      "provenance": "TanStack/query official pinned commit; immutable source SHA256 verified; no private input"
+    },
+    {
+      "source_url": "https://raw.githubusercontent.com/encode/httpx/26d48e0634e6ee9cdc0533996db289ce4b430177/docs/advanced/clients.md",
+      "version": "httpx 0.28.1 official tag -> 26d48e0634e6ee9cdc0533996db289ce4b430177; repository documentation at pinned commit",
+      "sha256": "80d0496f33dc995d40ebb573301b0de360fbe90dffd4a0641a078701e5abaac0",
+      "approved_scope": "EXACT reviewed public official documentation file at this pinned URL and SHA256 only; retain complete source and accompanying repository license/copyright notices; evidence excerpts permitted",
+      "approval": "approved_public_source",
+      "license": {
+        "spdx": "BSD-3-Clause",
+        "url": "https://raw.githubusercontent.com/encode/httpx/26d48e0634e6ee9cdc0533996db289ce4b430177/LICENSE.md",
+        "reviewed_for_publication": true,
+        "sha256": "4ec59d544f12b5f539a3a716fd321ac58ccd8030b465221f2c880200cdf28d8d"
+      },
+      "provenance": "encode/httpx official GitHub tag resolved using GitHub git/ref API to commit 26d48e0634e6ee9cdc0533996db289ce4b430177; raw.githubusercontent.com full UTF-8 file retained; no private source; not authorization for other repository paths"
+    },
+    {
+      "source_url": "https://raw.githubusercontent.com/encode/httpx/26d48e0634e6ee9cdc0533996db289ce4b430177/docs/advanced/timeouts.md",
+      "version": "httpx 0.28.1 official tag -> 26d48e0634e6ee9cdc0533996db289ce4b430177; repository documentation at pinned commit",
+      "sha256": "48959a587ecc6430f9051ab1b1c76fcebc3f3e95ec01199281aab813a2dcfaa1",
+      "approved_scope": "EXACT reviewed public official documentation file at this pinned URL and SHA256 only; retain complete source and accompanying repository license/copyright notices; evidence excerpts permitted",
+      "approval": "approved_public_source",
+      "license": {
+        "spdx": "BSD-3-Clause",
+        "url": "https://raw.githubusercontent.com/encode/httpx/26d48e0634e6ee9cdc0533996db289ce4b430177/LICENSE.md",
+        "reviewed_for_publication": true,
+        "sha256": "4ec59d544f12b5f539a3a716fd321ac58ccd8030b465221f2c880200cdf28d8d"
+      },
+      "provenance": "encode/httpx official GitHub tag resolved using GitHub git/ref API to commit 26d48e0634e6ee9cdc0533996db289ce4b430177; raw.githubusercontent.com full UTF-8 file retained; no private source; not authorization for other repository paths"
+    },
+    {
+      "source_url": "https://raw.githubusercontent.com/encode/httpx/26d48e0634e6ee9cdc0533996db289ce4b430177/docs/advanced/resource-limits.md",
+      "version": "httpx 0.28.1 official tag -> 26d48e0634e6ee9cdc0533996db289ce4b430177; repository documentation at pinned commit",
+      "sha256": "48463dfbcc09e28b174cf07695a937119da537436dc534421b64dcca7a024559",
+      "approved_scope": "EXACT reviewed public official documentation file at this pinned URL and SHA256 only; retain complete source and accompanying repository license/copyright notices; evidence excerpts permitted",
+      "approval": "approved_public_source",
+      "license": {
+        "spdx": "BSD-3-Clause",
+        "url": "https://raw.githubusercontent.com/encode/httpx/26d48e0634e6ee9cdc0533996db289ce4b430177/LICENSE.md",
+        "reviewed_for_publication": true,
+        "sha256": "4ec59d544f12b5f539a3a716fd321ac58ccd8030b465221f2c880200cdf28d8d"
+      },
+      "provenance": "encode/httpx official GitHub tag resolved using GitHub git/ref API to commit 26d48e0634e6ee9cdc0533996db289ce4b430177; raw.githubusercontent.com full UTF-8 file retained; no private source; not authorization for other repository paths"
+    },
+    {
+      "source_url": "https://raw.githubusercontent.com/pallets/click/fd183b2ced1cb5857784fe7fb22f4982f671f098/docs/options.md",
+      "version": "click 8.2.1 official tag -> fd183b2ced1cb5857784fe7fb22f4982f671f098; repository documentation at pinned commit",
+      "sha256": "d9d94ddb6593b558d2f0bdd6190da3c2520faecb44f61cef9d67b2f9e50d9652",
+      "approved_scope": "EXACT reviewed public official documentation file at this pinned URL and SHA256 only; retain complete source and accompanying repository license/copyright notices; evidence excerpts permitted",
+      "approval": "approved_public_source",
+      "license": {
+        "spdx": "BSD-3-Clause",
+        "url": "https://raw.githubusercontent.com/pallets/click/fd183b2ced1cb5857784fe7fb22f4982f671f098/LICENSE.txt",
+        "reviewed_for_publication": true,
+        "sha256": "9a8ad106a394e853bfe21f42f4e72d592819a22805d991b5f3275029292b658d"
+      },
+      "provenance": "pallets/click official GitHub tag resolved using GitHub git/ref API to commit fd183b2ced1cb5857784fe7fb22f4982f671f098; raw.githubusercontent.com full UTF-8 file retained; no private source; not authorization for other repository paths"
+    },
+    {
+      "source_url": "https://raw.githubusercontent.com/pallets/click/fd183b2ced1cb5857784fe7fb22f4982f671f098/docs/arguments.rst",
+      "version": "click 8.2.1 official tag -> fd183b2ced1cb5857784fe7fb22f4982f671f098; repository documentation at pinned commit",
+      "sha256": "72a82703cda3bd83d8a4f72d394cae9b2eac897d68ba13ee292fee32f95754bd",
+      "approved_scope": "EXACT reviewed public official documentation file at this pinned URL and SHA256 only; retain complete source and accompanying repository license/copyright notices; evidence excerpts permitted",
+      "approval": "approved_public_source",
+      "license": {
+        "spdx": "BSD-3-Clause",
+        "url": "https://raw.githubusercontent.com/pallets/click/fd183b2ced1cb5857784fe7fb22f4982f671f098/LICENSE.txt",
+        "reviewed_for_publication": true,
+        "sha256": "9a8ad106a394e853bfe21f42f4e72d592819a22805d991b5f3275029292b658d"
+      },
+      "provenance": "pallets/click official GitHub tag resolved using GitHub git/ref API to commit fd183b2ced1cb5857784fe7fb22f4982f671f098; raw.githubusercontent.com full UTF-8 file retained; no private source; not authorization for other repository paths"
+    },
+    {
+      "source_url": "https://raw.githubusercontent.com/pallets/click/fd183b2ced1cb5857784fe7fb22f4982f671f098/docs/commands.rst",
+      "version": "click 8.2.1 official tag -> fd183b2ced1cb5857784fe7fb22f4982f671f098; repository documentation at pinned commit",
+      "sha256": "0ee02e90b2c4f03d32eb9dccb114115fa609147207004d6357b76c2b35f3a185",
+      "approved_scope": "EXACT reviewed public official documentation file at this pinned URL and SHA256 only; retain complete source and accompanying repository license/copyright notices; evidence excerpts permitted",
+      "approval": "approved_public_source",
+      "license": {
+        "spdx": "BSD-3-Clause",
+        "url": "https://raw.githubusercontent.com/pallets/click/fd183b2ced1cb5857784fe7fb22f4982f671f098/LICENSE.txt",
+        "reviewed_for_publication": true,
+        "sha256": "9a8ad106a394e853bfe21f42f4e72d592819a22805d991b5f3275029292b658d"
+      },
+      "provenance": "pallets/click official GitHub tag resolved using GitHub git/ref API to commit fd183b2ced1cb5857784fe7fb22f4982f671f098; raw.githubusercontent.com full UTF-8 file retained; no private source; not authorization for other repository paths"
+    },
+    {
+      "source_url": "https://raw.githubusercontent.com/pytest-dev/pytest/bfae4224fd554d3d7f2c277a4cc092b6ec6af3ae/doc/en/explanation/fixtures.rst",
+      "version": "pytest 8.4.2 official tag -> bfae4224fd554d3d7f2c277a4cc092b6ec6af3ae; repository documentation at pinned commit",
+      "sha256": "b75b8c9d6e376441e5d18f2040ae8220b3a450cbaca50c5eacb13a69e92ea9d0",
+      "approved_scope": "EXACT reviewed public official documentation file at this pinned URL and SHA256 only; retain complete source and accompanying repository license/copyright notices; evidence excerpts permitted",
+      "approval": "approved_public_source",
+      "license": {
+        "spdx": "MIT",
+        "url": "https://raw.githubusercontent.com/pytest-dev/pytest/bfae4224fd554d3d7f2c277a4cc092b6ec6af3ae/LICENSE",
+        "reviewed_for_publication": true,
+        "sha256": "ca836a5f9ecca3b2f350230faa20a48fb8b145653b5568d784862df864706b9b"
+      },
+      "provenance": "pytest-dev/pytest official GitHub tag resolved using GitHub git/ref API to commit bfae4224fd554d3d7f2c277a4cc092b6ec6af3ae; raw.githubusercontent.com full UTF-8 file retained; no private source; not authorization for other repository paths"
+    },
+    {
+      "source_url": "https://raw.githubusercontent.com/pytest-dev/pytest/bfae4224fd554d3d7f2c277a4cc092b6ec6af3ae/doc/en/how-to/parametrize.rst",
+      "version": "pytest 8.4.2 official tag -> bfae4224fd554d3d7f2c277a4cc092b6ec6af3ae; repository documentation at pinned commit",
+      "sha256": "6a4c5720f18d136475e9c3be081041e9e8c8070f6875290697a365e63d55cf7f",
+      "approved_scope": "EXACT reviewed public official documentation file at this pinned URL and SHA256 only; retain complete source and accompanying repository license/copyright notices; evidence excerpts permitted",
+      "approval": "approved_public_source",
+      "license": {
+        "spdx": "MIT",
+        "url": "https://raw.githubusercontent.com/pytest-dev/pytest/bfae4224fd554d3d7f2c277a4cc092b6ec6af3ae/LICENSE",
+        "reviewed_for_publication": true,
+        "sha256": "ca836a5f9ecca3b2f350230faa20a48fb8b145653b5568d784862df864706b9b"
+      },
+      "provenance": "pytest-dev/pytest official GitHub tag resolved using GitHub git/ref API to commit bfae4224fd554d3d7f2c277a4cc092b6ec6af3ae; raw.githubusercontent.com full UTF-8 file retained; no private source; not authorization for other repository paths"
+    },
+    {
+      "source_url": "https://raw.githubusercontent.com/pytest-dev/pytest/bfae4224fd554d3d7f2c277a4cc092b6ec6af3ae/doc/en/how-to/skipping.rst",
+      "version": "pytest 8.4.2 official tag -> bfae4224fd554d3d7f2c277a4cc092b6ec6af3ae; repository documentation at pinned commit",
+      "sha256": "3cf0500a6b7daf72f11e3e0fa35af89c914921ff17910c1bb83d11c721ca78e6",
+      "approved_scope": "EXACT reviewed public official documentation file at this pinned URL and SHA256 only; retain complete source and accompanying repository license/copyright notices; evidence excerpts permitted",
+      "approval": "approved_public_source",
+      "license": {
+        "spdx": "MIT",
+        "url": "https://raw.githubusercontent.com/pytest-dev/pytest/bfae4224fd554d3d7f2c277a4cc092b6ec6af3ae/LICENSE",
+        "reviewed_for_publication": true,
+        "sha256": "ca836a5f9ecca3b2f350230faa20a48fb8b145653b5568d784862df864706b9b"
+      },
+      "provenance": "pytest-dev/pytest official GitHub tag resolved using GitHub git/ref API to commit bfae4224fd554d3d7f2c277a4cc092b6ec6af3ae; raw.githubusercontent.com full UTF-8 file retained; no private source; not authorization for other repository paths"
+    }
+  ]
+}

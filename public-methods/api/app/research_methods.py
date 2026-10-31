@@ -231,7 +231,12 @@ def method_evidence(
     query: Annotated[str, Query(min_length=2, max_length=4000)],
     max_tokens: Annotated[int, Query(ge=1024, le=4096)] = 1024,
     mode: Literal["source", "method"] = "source",
+    format: Literal["legacy", "refs"] = "legacy",
 ):
+    if format == "refs":
+        from app.research_evidence_refs import reference_packet
+        return reference_packet(query, max_tokens, mode,
+                                store=method_store() if mode == "method" else None)
     from app.research_method_evidence import evidence_packet
     return evidence_packet(query, max_tokens, mode,
                            store=method_store() if mode == "method" else None)

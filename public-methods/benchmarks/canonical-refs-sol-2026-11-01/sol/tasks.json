@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "protocol_version": "sol-same-sources-new-questions-v1",
+  "fixed_denominator": 9,
+  "tasks": [
+    {
+      "id": "sol-httpx-01",
+      "product_version": "HTTPX 0.28.1",
+      "inputquery": "An HTTPX 0.28.1 integration uses a Client with base_url and default authentication. One request must use a different auth value; another must omit an inherited X-Api-Key header while retaining the rest of the built request. q1: For an explicit request-level auth value, choose the documented priority: \"request\" or \"client\". q2: Can base_url prepend the shared URL to outgoing request paths (boolean)? q3: Does the documented build_request workflow permit modifying headers before client.send (boolean)? Recommend how to implement these per-request exceptions."
+    },
+    {
+      "id": "sol-httpx-02",
+      "product_version": "HTTPX 0.28.1",
+      "inputquery": "An HTTPX 0.28.1 transfer dashboard downloads compressed responses and also uploads large files. Its progress calculation compares response.content byte length with the raw transfer length, and its memory estimate assumes multipart upload loads the entire file at once. q1: Must the content bytes always equal the raw response length when compression is used (boolean)? q2: Which documented property is intended for download progress: \"num_bytes_downloaded\" or \"status_code\"? q3: Are file uploads streaming by default (boolean)? Recommend progress accounting and upload memory expectations."
+    },
+    {
+      "id": "sol-httpx-03",
+      "product_version": "HTTPX 0.28.1",
+      "inputquery": "An HTTPX 0.28.1 multipart client must send two images under the same field name. Another part deliberately has its filename set to None. The team wants to promise an undocumented partner endpoint will accept the final multipart structure. q1: Which documented container permits repeated field names: \"list_of_field_file_pairs\" or \"dictionary_with_one_entry_per_name\"? q2: If the filename is explicitly None, does HTTPX include the content-type MIME header field for that part according to these docs (boolean)? q3: Is acceptance by the unspecified partner endpoint established here: \"established\" or \"unknown\"? Recommend the request representation and integration validation."
+    },
+    {
+      "id": "sol-click-01",
+      "product_version": "Click 8.2.1",
+      "inputquery": "A Click 8.2.1 Windows diagnostic tool reads its username from envvar=[\"SERVICE_USER\",\"USER\"], accepts repeated click.Path values from an environment variable, and uses a count=True verbosity option. Assume both username environment variables contain nonempty values and no command-line overrides are supplied. q1: Does the documented envvar-list behavior pick the first variable found (boolean)? q2: For File/Path multi-values on Windows, choose the separator: \"semicolon\" or \"whitespace_only\". q3: If the count option is absent, choose its documented value: \"zero\" or \"one\". Recommend a predictable environment configuration."
+    },
+    {
+      "id": "sol-click-02",
+      "product_version": "Click 8.2.1",
+      "inputquery": "A Click 8.2.1 application imports a subcommand with an unsuitable default port. Its root command also has a debug option that child commands need to consult, while one child requires its own context object. q1: Can Context.default_map override ordinary declared parameter defaults (boolean)? q2: Is the root debug parameter automatically passed as a keyword argument to a child callback that only declares its own arguments (boolean)? q3: Can a child override the object inherited through ctx.obj (boolean)? Recommend configuration and state sharing without global variables."
+    },
+    {
+      "id": "sol-click-03",
+      "product_version": "Click 8.2.1",
+      "inputquery": "A Click 8.2.1 command returns a structured analysis result. A Python service invokes it through Command.main with default standalone behavior and expects the result object; another helper invokes callbacks through Context.invoke. q1: Under default standalone command-line invocation, is the callback return value ignored (boolean)? q2: Does disabling standalone_mode allow the return value to bubble through (boolean)? q3: Does Context.invoke also bubble the callback return value through (boolean)? Recommend an invocation boundary for service code that needs the result."
+    },
+    {
+      "id": "sol-pytest-01",
+      "product_version": "pytest 8.4.2",
+      "inputquery": "A pytest 8.4.2 feature test discovers an unavailable external service only during setup. A different test calls pytest.xfail after a runtime probe and places an expensive operation afterward. A maintainer sometimes uses --runxfail to investigate the known issue. q1: For an unavailable prerequisite rather than an expected product bug, choose the appropriate outcome: \"skip\" or \"xfail\". q2: In normal operation, does code after an imperative pytest.xfail call execute (boolean)? q3: With --runxfail, does pytest.xfail have no effect (boolean)? Recommend how to keep prerequisite absence separate from expected failures."
+    },
+    {
+      "id": "sol-pytest-02",
+      "product_version": "pytest 8.4.2",
+      "inputquery": "A pytest 8.4.2 suite builds parameter sets dynamically from command-line configuration. The author wants to place pytest_generate_tests inside a test class and call metafunc.parametrize more than once. q1: Is pytest_generate_tests called during \"collection\" or \"test_body_execution\"? q2: Can pytest discover this particular hook directly in a test module or class (boolean)? q3: May parameter names be duplicated across multiple metafunc.parametrize calls without an error (boolean)? Recommend where to put the hook and how to partition generated parameter names."
+    },
+    {
+      "id": "sol-pytest-03",
+      "product_version": "pytest 8.4.2",
+      "inputquery": "A pytest 8.4.2 team is migrating a large xUnit-style suite incrementally. New tests need both an account fixture and a dataset fixture, and the dataset setup should reuse another fixture rather than duplicate it. A reviewer proposes removing all xUnit setup first and limiting each test to one fixture. q1: Must xUnit setup/teardown be removed before fixtures can be introduced (boolean)? q2: Can a fixture depend on another fixture (boolean)? q3: Are tests limited to a single fixture (boolean)? Recommend an incremental migration structure."
+    }
+  ]
+}

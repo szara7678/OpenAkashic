@@ -1,0 +1,39 @@
+{
+  "schema": "sol-model-transfer-scope-clarification-v1",
+  "source_summary_sha256": "e87b79405a699f92f13c8f0c6aa80dd0848de99647052cdca26e20f0be9d64cb",
+  "numeric_summary_and_raw_outputs_unchanged": true,
+  "frozen_summarizer_unchanged": true,
+  "clarification": "The summary retains inherited v3 schema/nine-source descriptive template notes. This cohort changes both candidate arms to Sol-medium after observed Luna failures, uses nine new questions and the identical previous 18-source pool, and is not a new-source-corpus evaluation. Raw numeric summary, scoring and outputs are unchanged.",
+  "freeze_schema": "canonical-reference-sol-kpi-v4",
+  "freeze_new_source_corpus": false,
+  "freeze_sha256": "cd39e08a9a3101f96de3f7f4009d3fcfe6976c093105601b4adf886f9d9c1812",
+  "frozen_files_unchanged": true,
+  "shared_source_pool_both_arms": 18,
+  "unchanged_prior_sources": 18,
+  "newly_collected_official_sources": 0,
+  "new_software_libraries": 0,
+  "software_libraries_reused": [
+    "HTTPX 0.28.1",
+    "Click 8.2.1",
+    "pytest 8.4.2"
+  ],
+  "model_transfer_after_observed_luna_failure": true,
+  "model_choice": {
+    "model": "gpt-6.1-sol",
+    "effort": "medium",
+    "same_model_both_arms": true,
+    "source": "https://learn.chatgpt.com/docs/models",
+    "selection": "Prospective model transfer after observed Luna-medium failures; not a claim that Luna-high or all models fail. No engine or prompt tuning on next answers.",
+    "new_questions": true,
+    "new_corpus": false,
+    "prior_81_runs_preserved": true
+  },
+  "new_source_identities": [],
+  "baseline": "Both arms share 18 pinned originals and identifier normalization/product scoping. Model-triggered direct search returns citable canonical cached snippets and can live-read manifest/canonical source IDs with explicit one-based line actions; no asymmetric free-quote copying requirement.",
+  "source": "Automatic original-source packet, max 4096 complete JSON tokens, no query LLM; same strengthened fallback tools and exact host renderer.",
+  "run_probe_count": 18,
+  "all_runtime_probes_block_external_network": true,
+  "all_runtime_probes_deny_private_locations": true,
+  "all_launchers_record_no_credential_mounts": true,
+  "all_runs_have_no_previous_context_links": true
+}

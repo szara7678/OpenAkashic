@@ -96,7 +96,7 @@ def run(args):
         path += "/" + args.command + "?" + urlencode(query)
     elif args.command == "evidence":
         path += "/evidence?" + urlencode({"query": args.query, "mode": args.mode,
-                                          "max_tokens": args.max_tokens})
+                                          "max_tokens": args.max_tokens, "format": args.format})
     elif args.command in ("fetch", "outcome", "opinion"):
         path += "/" + method_id(args.id)
         if args.command != "fetch":
@@ -160,6 +160,8 @@ def main(argv=None):
     evidence = commands.add_parser("evidence", help="Read exact original-source passages from an optional operator-installed index")
     evidence.add_argument("--query", required=True, help="Full user question, before answer generation")
     evidence.add_argument("--mode", choices=("source", "method"), default="source")
+    evidence.add_argument("--format", choices=("legacy", "refs"), default="legacy",
+                          help="Opt into canonical v3 IDs; legacy response remains the default")
     evidence.add_argument("--max-tokens", type=int, choices=range(1024, 4097), default=1024,
                           metavar="TOKENS", help="Complete response budget, 1024..4096 (default: 1024)")
     fetch = commands.add_parser("fetch")
