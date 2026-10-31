@@ -1,0 +1,1158 @@
+{
+  "grader": "gpt-6.1-sol",
+  "human_review": false,
+  "cases": [
+    {
+      "label": "case-00ddffa07632",
+      "recommendation": 2,
+      "uncertainty": 2,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "The actual-fragment-rerun condition excludes the initial full-app run."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "Calling st.rerun() directly from a fragment is documented to trigger an app rerun."
+        },
+        {
+          "index": 2,
+          "supported_qids": [
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "Halting with no further statements directly supports q3=false."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": []
+    },
+    {
+      "label": "case-056bfdd9fbe9",
+      "recommendation": 2,
+      "uncertainty": 2,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "The external-container paragraph explicitly states accumulation until the next app rerun."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "The widget restriction excludes externally created containers."
+        },
+        {
+          "index": 2,
+          "supported_qids": [
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "The sidebar context-manager approach is explicit."
+        },
+        {
+          "index": 3,
+          "supported_qids": [],
+          "unsupported_qids": [
+            "q1"
+          ],
+          "note": "Session State and additive side effects do not establish the assigned external-text-accumulation claim. The quote also joins separated source passages; literal-span validity is left to the mechanical review."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "Citation 3 is relevant to the counter advice but does not support its assigned q1; citation 0 supplies q1 support."
+      ]
+    },
+    {
+      "label": "case-0725240fb5a9",
+      "recommendation": 2,
+      "uncertainty": 1,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "The release explicitly permits 0.10 to read 0.9 files."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "The condition excludes files containing views."
+        },
+        {
+          "index": 2,
+          "supported_qids": [
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "The forward-looking statement is expressly a goal."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "Uncertainty identifies best-effort forward compatibility and lack of execution, but does not explicitly distinguish the future backward-compatibility goal from validation of future versions."
+      ]
+    },
+    {
+      "label": "case-0a325ade8149",
+      "recommendation": 2,
+      "uncertainty": 2,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "Interval reruns while the session is active explicitly do not require interaction."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "Session State is the stated place for values needed by the wider app."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "q3 is supported by explicit scope-based abstention: the supplied version is 1.46.0 and no 1.47.0 evidence is asserted."
+      ]
+    },
+    {
+      "label": "case-10db689f1964",
+      "recommendation": 2,
+      "uncertainty": 1,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "In its numeric-substring source context, the requirement for an explicit cast establishes the changed default binding rule."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "The STRING_LITERAL conversion rule supports conversion for a DATE comparison."
+        },
+        {
+          "index": 2,
+          "supported_qids": [
+            "q2",
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "The literal-versus-VARCHAR DATE comparison distinction directly supports both assigned claims."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "Uncertainty scopes the release and disclaims execution but does not identify that arbitrary VARCHAR date text may fail to parse."
+      ]
+    },
+    {
+      "label": "case-19d9b89e8fdf",
+      "recommendation": 1,
+      "uncertainty": 2,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "The actual-fragment-rerun condition excludes initial full-app execution."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "The default scope is explicitly app."
+        },
+        {
+          "index": 2,
+          "supported_qids": [
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "The current run halts and executes no later statements."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "The proposed branching is actionable, but the recommendation omits moving required updates before the rerun call."
+      ]
+    },
+    {
+      "label": "case-34e8db96d472",
+      "recommendation": 1,
+      "uncertainty": 2,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "The interval behavior and active-session qualification are explicit."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "The source recommends Session State for wider-app values."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "The recommendation addresses version gating but omits the Session State design action.",
+        "q3 is supported by the explicit refusal to extrapolate 1.46.0 evidence to 1.47.0."
+      ]
+    },
+    {
+      "label": "case-3e8f6dba5343",
+      "recommendation": 1,
+      "uncertainty": 1,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "The backward-read statement directly supports q1."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "Within the source list of forward-compatibility conditions, the no-views condition excludes this schema."
+        },
+        {
+          "index": 2,
+          "supported_qids": [
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "The source calls future backward compatibility a goal."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "The recommendation preserves a readable copy but does not call for testing the actual rollback artifact.",
+        "Uncertainty states best-effort and file-specific limits, but omits the future-goal-versus-future-validation boundary."
+      ]
+    },
+    {
+      "label": "case-3f09773b9dfe",
+      "recommendation": 2,
+      "uncertainty": 2,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "A disabled uncached query is explicitly pending/idle."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q2",
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "The hook refetch works manually, with an explicit skipToken exception."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "The fetching-only spinner guard meets the initial no-spinner requirement; no exact API-name match to the rubric is imposed."
+      ]
+    },
+    {
+      "label": "case-421428a10beb",
+      "recommendation": 2,
+      "uncertainty": 1,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": false
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "The numeric substring example is explicitly covered by the changed cast requirement."
+        },
+        {
+          "index": 1,
+          "supported_qids": [],
+          "unsupported_qids": [
+            "q2"
+          ],
+          "note": "Distinct literal types with their own rules do not alone establish implicit conversion to DATE."
+        },
+        {
+          "index": 2,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "The universal STRING_LITERAL implicit-conversion rule supports q2."
+        },
+        {
+          "index": 3,
+          "supported_qids": [],
+          "unsupported_qids": [
+            "q3"
+          ],
+          "note": "The possibility of failure during an explicit VARCHAR cast does not establish that DATE-versus-VARCHAR comparison fails binding without another explicit cast."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "q3 has the correct decision but lacks semantically supporting cited evidence.",
+        "Uncertainty acknowledges the missing direct comparison evidence, but the quoted explicit-cast rule does not justify the q3 inference and the uncertainty does not identify the arbitrary-text parsing boundary."
+      ]
+    },
+    {
+      "label": "case-44c9717f5596",
+      "recommendation": 2,
+      "uncertainty": 2,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "The fragment-rerun-only restriction excludes the initial full-app run."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "Direct st.rerun() from the fragment is documented to request an app rerun."
+        },
+        {
+          "index": 2,
+          "supported_qids": [
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "The quoted halt/no-further-statements rule directly supports q3=false."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": []
+    },
+    {
+      "label": "case-4d8fcd82282d",
+      "recommendation": 1,
+      "uncertainty": 1,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1",
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "Default unmount behavior and eventual caching are both explicit."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "Consuming the signal enables cancellation, and cancellation reverts query state."
+        },
+        {
+          "index": 2,
+          "supported_qids": [
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "Manual query cancellation reverts state; cancelling the transport additionally requires consuming its signal."
+        }
+      ],
+      "material_unsupported_assertions": [
+        {
+          "field": "recommendation",
+          "assertion": "The recommendation implies that the same pending query can retain completion after last-observer unmount while using the query AbortSignal to stop HTTP for a Cancel button. It does not supply an independent request-lifetime/controller design; the source ties consumed query signals to cancellation on last-observer removal."
+        }
+      ],
+      "issues": [
+        "The plan omits the tradeoff that passing the query signal to fetch also changes unmount cancellation behavior.",
+        "Uncertainty omits the garbage-collection limit on cache reuse."
+      ]
+    },
+    {
+      "label": "case-5717d1cd3ee1",
+      "recommendation": 2,
+      "uncertainty": 2,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "External output accumulates until an app rerun."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "The widget restriction is explicit."
+        },
+        {
+          "index": 2,
+          "supported_qids": [
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "Calling the fragment under with st.sidebar is explicit."
+        },
+        {
+          "index": 3,
+          "supported_qids": [],
+          "unsupported_qids": [
+            "q1"
+          ],
+          "note": "Additive Session State interactions support the counter advice, but do not themselves establish the assigned external-text-accumulation claim."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "Citation 3 is not q1 evidence; citation 0 independently supplies q1 support."
+      ]
+    },
+    {
+      "label": "case-58a2ff9f2577",
+      "recommendation": 1,
+      "uncertainty": 1,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1",
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "Default unmount non-cancellation and eventual caching are explicit."
+        },
+        {
+          "index": 1,
+          "supported_qids": [],
+          "unsupported_qids": [
+            "q3"
+          ],
+          "note": "Cancelling the Promise after signal consumption does not itself establish state reversion, the assigned q3 claim."
+        },
+        {
+          "index": 2,
+          "supported_qids": [
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "The state-reversion statement directly establishes q3."
+        }
+      ],
+      "material_unsupported_assertions": [
+        {
+          "field": "recommendation",
+          "assertion": "The recommendation implies that the same pending query can retain completion after last-observer unmount while using the query AbortSignal to stop HTTP for a Cancel button. It does not supply an independent request-lifetime/controller design; the source ties consumed query signals to cancellation on last-observer removal."
+        }
+      ],
+      "issues": [
+        "The recommendation does not resolve how background completion and signal-connected Cancel coexist for the same pending request.",
+        "Uncertainty omits both the unmount tradeoff and garbage-collection limit."
+      ]
+    },
+    {
+      "label": "case-5b0b8304c686",
+      "recommendation": 1,
+      "uncertainty": 1,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": false
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "The overflow example establishes that a supported cast can fail for a particular value."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q1",
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "Supported INTEGER-to-TINYINT conversion fails for this value and TRY_CAST substitutes NULL."
+        },
+        {
+          "index": 2,
+          "supported_qids": [],
+          "unsupported_qids": [
+            "q3"
+          ],
+          "note": "A CAST expression by itself states neither a rounding result nor a truncation result."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "q3=false is incorrect under the frozen source, which explicitly states that the number will be rounded.",
+        "The recommendation gives a useful NULL-fallback policy but omits the documented rounding policy.",
+        "The uncertainty refers to missing information in its supplied excerpt; received-excerpt scope is not adjudicated here. It does not address the NULL-fallback-versus-semantic-validity boundary."
+      ]
+    },
+    {
+      "label": "case-626607a9ae9c",
+      "recommendation": 2,
+      "uncertainty": 2,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1",
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "The supported-but-failing overflow example and NULL fallback support q1 and q2."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "The source explicitly states that fractional-to-integral casts round."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "Uncertainty leaves import-specific NULL handling unverified and disclaims execution; the recommendation separately requires handling/recording those NULLs."
+      ]
+    },
+    {
+      "label": "case-65d9855be125",
+      "recommendation": 2,
+      "uncertainty": 2,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "In the numeric-substring context, the explicit-cast requirement establishes q1=false."
+        },
+        {
+          "index": 1,
+          "supported_qids": [],
+          "unsupported_qids": [
+            "q1"
+          ],
+          "note": "The uncast SQL expression alone supplies no binding outcome."
+        },
+        {
+          "index": 2,
+          "supported_qids": [],
+          "unsupported_qids": [
+            "q1"
+          ],
+          "note": "The explicitly cast SQL expression demonstrates the proposed expression but alone does not establish that the uncast expression fails."
+        },
+        {
+          "index": 3,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "STRING_LITERAL implicit conversion to any other type supports DATE conversion."
+        },
+        {
+          "index": 4,
+          "supported_qids": [
+            "q2",
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "The explicit comparison distinction directly supports both assigned claims."
+        },
+        {
+          "index": 5,
+          "supported_qids": [],
+          "unsupported_qids": [
+            "q2"
+          ],
+          "note": "The bare comparison SQL expression contains no binding outcome; the surrounding explanatory prose is supplied in citation 4."
+        },
+        {
+          "index": 6,
+          "supported_qids": [],
+          "unsupported_qids": [
+            "q3"
+          ],
+          "note": "The bare VARCHAR comparison SQL expression contains no binding outcome; citation 4 supplies the exclusion."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "Several example-only citations lack outcomes, but citations 0, 3 and 4 provide complete semantic claim coverage."
+      ]
+    },
+    {
+      "label": "case-7a35a6320310",
+      "recommendation": 2,
+      "uncertainty": 2,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "Cast support does not guarantee runtime success."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "The source TRY_CAST fallback replaces the failing value with NULL."
+        },
+        {
+          "index": 2,
+          "supported_qids": [
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "In the fractional-to-integral source context, the statement explicitly establishes rounding."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "The uncertainty leaves the pipeline and its NULL handling unprovided/unexecuted rather than treating NULL fallback as batch validation."
+      ]
+    },
+    {
+      "label": "case-7a9c676a0591",
+      "recommendation": 2,
+      "uncertainty": 2,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "Disabled queries ignore client refetch calls."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q1",
+            "q2",
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "The refetch filter excludes disabled and static queries before fetching; under this scenario that also establishes that promise completion need not imply either endpoint ran."
+        },
+        {
+          "index": 2,
+          "supported_qids": [
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "A paused query can contribute an immediately resolved promise, so completion alone does not establish transport execution. Literal backslash-newline validity is left to the mechanical check."
+        },
+        {
+          "index": 3,
+          "supported_qids": [
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "Caught errors can become fulfilled promises without request-level verification; this supports only lack of proof of execution, not a claim that no requests ever occur. Literal backslash-newline validity is left to the mechanical check."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "The fetchQuery proposal is qualified by appropriate options and request-level verification; it is not scored as a guarantee that unchanged static options force a request."
+      ]
+    },
+    {
+      "label": "case-8010448c0469",
+      "recommendation": 2,
+      "uncertainty": 2,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "The disabled lazy-query explanation explicitly says that no data is currently being fetched; this supports idle rather than fetching in the stated binary choice."
+        },
+        {
+          "index": 1,
+          "supported_qids": [],
+          "unsupported_qids": [
+            "q1"
+          ],
+          "note": "The derived isLoading formula and first-fetch explanation do not by themselves state the current fetchStatus."
+        },
+        {
+          "index": 2,
+          "supported_qids": [
+            "q2",
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "The skipToken refetch exception, contrasted with otherwise equivalent enabled:false behavior, semantically establishes the manual-refetch difference."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "Citation 1 supports the spinner design but not its assigned current-status claim; citation 0 supports q1."
+      ]
+    },
+    {
+      "label": "case-8fefcc865cf4",
+      "recommendation": 2,
+      "uncertainty": 2,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "The external-container accumulation rule is explicit."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "External-container widgets are explicitly prohibited."
+        },
+        {
+          "index": 2,
+          "supported_qids": [
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "The supported sidebar context-manager invocation is explicit."
+        },
+        {
+          "index": 3,
+          "supported_qids": [],
+          "unsupported_qids": [
+            "q1"
+          ],
+          "note": "Session State storage advice does not establish external text accumulation, its assigned q1."
+        },
+        {
+          "index": 4,
+          "supported_qids": [],
+          "unsupported_qids": [
+            "q1"
+          ],
+          "note": "Additive interactions support counter side-effect advice, not the assigned external-text-accumulation claim."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "Citations 3 and 4 are relevant to counter advice but are not q1 evidence; citation 0 independently covers q1."
+      ]
+    },
+    {
+      "label": "case-992f13e91c33",
+      "recommendation": 1,
+      "uncertainty": 1,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1",
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "Default unmount non-cancellation and eventual caching are explicit."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "Signal consumption and resulting state reversion directly support q3."
+        },
+        {
+          "index": 2,
+          "supported_qids": [
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "Manual query cancellation reverts state; signal connection is required for the additional Promise/transport cancellation."
+        }
+      ],
+      "material_unsupported_assertions": [
+        {
+          "field": "recommendation",
+          "assertion": "The recommendation implies that the same pending query can retain completion after last-observer unmount while using the query AbortSignal to stop HTTP for a Cancel button. It does not supply an independent request-lifetime/controller design; the source ties consumed query signals to cancellation on last-observer removal."
+        }
+      ],
+      "issues": [
+        "The recommendation omits that wiring the query signal to fetch also changes last-observer-unmount behavior.",
+        "The uncertainty recognizes signal-dependent HTTP abort but omits cache reuse depending on garbage collection."
+      ]
+    },
+    {
+      "label": "case-a9d85b212a2c",
+      "recommendation": 1,
+      "uncertainty": 2,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "The release explicitly documents backward reading from 0.9."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "The forward-compatible subset explicitly excludes files with views."
+        },
+        {
+          "index": 2,
+          "supported_qids": [
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "The quoted future statement is expressly a goal."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "The plan keeps original files and calls broader compatibility unvalidated, but does not concretely require testing the actual rollback artifact."
+      ]
+    },
+    {
+      "label": "case-db1bf48bb7a6",
+      "recommendation": 2,
+      "uncertainty": 2,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1",
+            "q2",
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "The disabled/static exclusion precedes fetch invocation; under the given dashboard configuration it also supports q3=false."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "The promise catches errors when throwOnError is false; successful aggregate completion is therefore not request-level evidence."
+        },
+        {
+          "index": 2,
+          "supported_qids": [],
+          "unsupported_qids": [
+            "q2"
+          ],
+          "note": "This block describes staleness, not refetchQueries eligibility. It also first treats missing data as stale, so the static comment cannot replace the actual refetch filter for the assigned q2 claim."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "Citation 2 does not establish refetch exclusion; citation 0 supplies the necessary exclusion evidence."
+      ]
+    },
+    {
+      "label": "case-f4c17fe71192",
+      "recommendation": 2,
+      "uncertainty": 2,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "Interval reruns during an active session do not require user interaction."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "The source recommends Session State for wider-app values."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "q3 is supported by explicit scope-based abstention about absent 1.47.0 material."
+      ]
+    },
+    {
+      "label": "case-f78c9f9e29e5",
+      "recommendation": 2,
+      "uncertainty": 2,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "An uncached disabled query explicitly starts pending/idle."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "The hook refetch is explicitly usable for manual fetching."
+        },
+        {
+          "index": 2,
+          "supported_qids": [
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "The skipToken exception to manual refetch is explicit."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "A fetching-only spinner guard meets the initial no-spinner requirement; no exact API-name match to the rubric is imposed."
+      ]
+    },
+    {
+      "label": "case-fe2345ab3560",
+      "recommendation": 2,
+      "uncertainty": 2,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "Disabled queries ignore client refetch calls."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q1",
+            "q2",
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "The filter excludes disabled and static queries before query.fetch; for the given configuration this also establishes why neither required request is proven by completion."
+        },
+        {
+          "index": 2,
+          "supported_qids": [
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "In the quoted-filter source context, Promise.all aggregates only selected query promises and can complete with none."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": []
+    }
+  ]
+}

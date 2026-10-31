@@ -1,0 +1,422 @@
+{
+  "schema_version": 1,
+  "fixed_denominator": 9,
+  "tasks": [
+    {
+      "id": "validation-streamlit-01",
+      "decisions": {
+        "q1": false,
+        "q2": "main_script",
+        "q3": false
+      },
+      "claim_semantic_anchors": {
+        "q1": "Target must be recognized multipage page.",
+        "q2": "Relative to main script.",
+        "q3": "Current page execution stops."
+      },
+      "minimum_evidence": [
+        {
+          "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py",
+          "quote": "Arbitrary Python scripts cannot be passed to st.switch_page.",
+          "supports": [
+            "q1"
+          ]
+        },
+        {
+          "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py",
+          "quote": "The file path (relative to the main script) or an st.Page indicating the page to switch to.",
+          "supports": [
+            "q2"
+          ]
+        },
+        {
+          "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py",
+          "quote": "the current page execution stops and the specified page runs as if the user clicked on it in the sidebar navigation.",
+          "supports": [
+            "q3"
+          ]
+        }
+      ],
+      "evidence_policy": "Cover all answerable claims with semantically supportive continuous source spans. Equivalent spans allowed; no source-count quota. Unknown workload timing requires scope-based abstention rather than fabricated evidence.",
+      "recommendation_rubric": {
+        "0": "Absent, incorrect, or contradicts the decisions.",
+        "1": "Directionally correct but incomplete or not actionable.",
+        "2": "Perform the required audit update before switching and target the recognized review page using a main-script-relative path or st.Page."
+      },
+      "uncertainty_rubric": {
+        "0": "Unsupported certainty, incorrect scope, or claimed execution.",
+        "1": "Generic caveat missing the relevant boundary.",
+        "2": "Do not claim that the audit update was persisted or the navigation tested; the target still must be registered/recognized."
+      }
+    },
+    {
+      "id": "validation-streamlit-02",
+      "decisions": {
+        "q1": "st.stop",
+        "q2": false,
+        "q3": true
+      },
+      "claim_semantic_anchors": {
+        "q1": "stop requests stop, not rerun.",
+        "q2": "No statements run after stop.",
+        "q3": "Explain before stopping."
+      },
+      "minimum_evidence": [
+        {
+          "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py",
+          "quote": "Stops execution immediately.",
+          "supports": [
+            "q1"
+          ]
+        },
+        {
+          "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py",
+          "quote": "Streamlit will not run any statements after st.stop().",
+          "supports": [
+            "q2"
+          ]
+        },
+        {
+          "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py",
+          "quote": "We recommend rendering a message to explain why the script has stopped.",
+          "supports": [
+            "q3"
+          ]
+        }
+      ],
+      "evidence_policy": "Cover all answerable claims with semantically supportive continuous source spans. Equivalent spans allowed; no source-count quota. Unknown workload timing requires scope-based abstention rather than fabricated evidence.",
+      "recommendation_rubric": {
+        "0": "Absent, incorrect, or contradicts the decisions.",
+        "1": "Directionally correct but incomplete or not actionable.",
+        "2": "Check the field, render the explanation, then call st.stop before reaching the submission routine."
+      },
+      "uncertainty_rubric": {
+        "0": "Unsupported certainty, incorrect scope, or claimed execution.",
+        "1": "Generic caveat missing the relevant boundary.",
+        "2": "Stopping a script run does not establish submission success, validation completeness, or durable application authorization."
+      }
+    },
+    {
+      "id": "validation-streamlit-03",
+      "decisions": {
+        "q1": false,
+        "q2": true,
+        "q3": true
+      },
+      "claim_semantic_anchors": {
+        "q1": "None means user-triggered only.",
+        "q2": "Integer/float seconds.",
+        "q3": "timedelta accepted."
+      },
+      "minimum_evidence": [
+        {
+          "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/runtime/fragment.py",
+          "quote": "If run_every is None, the fragment will only rerun from user-triggered events.",
+          "supports": [
+            "q1"
+          ]
+        },
+        {
+          "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/runtime/fragment.py",
+          "quote": "An int or float specifying the interval in seconds.",
+          "supports": [
+            "q2"
+          ]
+        },
+        {
+          "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/runtime/fragment.py",
+          "quote": "A timedelta object from",
+          "supports": [
+            "q3"
+          ]
+        }
+      ],
+      "evidence_policy": "Cover all answerable claims with semantically supportive continuous source spans. Equivalent spans allowed; no source-count quota. Unknown workload timing requires scope-based abstention rather than fabricated evidence.",
+      "recommendation_rubric": {
+        "0": "Absent, incorrect, or contradicts the decisions.",
+        "1": "Directionally correct but incomplete or not actionable.",
+        "2": "Use run_every=None initially and set run_every=2.5 (or a 2.5-second timedelta) if the interval requirement is adopted."
+      },
+      "uncertainty_rubric": {
+        "0": "Unsupported certainty, incorrect scope, or claimed execution.",
+        "1": "Generic caveat missing the relevant boundary.",
+        "2": "The supported configuration is documented; it is not a measured autosave latency or proof that any save has executed."
+      }
+    },
+    {
+      "id": "validation-tanstack-01",
+      "decisions": {
+        "q1": "silent",
+        "q2": true,
+        "q3": false
+      },
+      "claim_semantic_anchors": {
+        "q1": "silent true suppresses notifications.",
+        "q2": "revert defaults true.",
+        "q3": "Suspense cancellation unsupported."
+      },
+      "minimum_evidence": [
+        {
+          "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md",
+          "quote": "When set to true, suppresses propagation of CancelledError to observers",
+          "supports": [
+            "q1"
+          ]
+        },
+        {
+          "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md",
+          "quote": "Defaults to true",
+          "supports": [
+            "q2"
+          ]
+        },
+        {
+          "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md",
+          "quote": "Cancellation does not work when working with Suspense hooks: useSuspenseQuery, useSuspenseQueries and useSuspenseInfiniteQuery.",
+          "supports": [
+            "q3"
+          ]
+        }
+      ],
+      "evidence_policy": "Cover all answerable claims with semantically supportive continuous source spans. Equivalent spans allowed; no source-count quota. Unknown workload timing requires scope-based abstention rather than fabricated evidence.",
+      "recommendation_rubric": {
+        "0": "Absent, incorrect, or contradicts the decisions.",
+        "1": "Directionally correct but incomplete or not actionable.",
+        "2": "Use ordinary useQuery for the documented cancellation requirement; cancelQueries with silent:true and retain revert:true to restore prior state."
+      },
+      "uncertainty_rubric": {
+        "0": "Unsupported certainty, incorrect scope, or claimed execution.",
+        "1": "Generic caveat missing the relevant boundary.",
+        "2": "Do not promise Suspense cancellation; hiding an error is not evidence that a transport or remote operation actually stopped."
+      }
+    },
+    {
+      "id": "validation-tanstack-02",
+      "decisions": {
+        "q1": "cached",
+        "q2": true,
+        "q3": false
+      },
+      "claim_semantic_anchors": {
+        "q1": "Stale revalidation is void prefetch and cached promise returned.",
+        "q2": "Missing cache fetchQuery path.",
+        "q3": "getQueryData nonreactive; useQuery observer."
+      },
+      "minimum_evidence": [
+        {
+          "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/packages/query-core/src/queryClient.ts",
+          "quote": "void this.prefetchQuery(defaultedOptions)\n    }\n\n    return Promise.resolve(cachedData)",
+          "supports": [
+            "q1"
+          ]
+        },
+        {
+          "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/packages/query-core/src/queryClient.ts",
+          "quote": "if (cachedData === undefined) {\n      return this.fetchQuery(options)",
+          "supports": [
+            "q2"
+          ]
+        },
+        {
+          "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/packages/query-core/src/queryClient.ts",
+          "quote": "Hint: Do not use this function inside a component, because it won't receive updates.",
+          "supports": [
+            "q3"
+          ]
+        }
+      ],
+      "evidence_policy": "Cover all answerable claims with semantically supportive continuous source spans. Equivalent spans allowed; no source-count quota. Unknown workload timing requires scope-based abstention rather than fabricated evidence.",
+      "recommendation_rubric": {
+        "0": "Absent, incorrect, or contradicts the decisions.",
+        "1": "Directionally correct but incomplete or not actionable.",
+        "2": "Subscribe the view with useQuery, keeping ensureQueryData for loader/cache readiness; treat its cached result separately from the asynchronous revalidation."
+      },
+      "uncertainty_rubric": {
+        "0": "Unsupported certainty, incorrect scope, or claimed execution.",
+        "1": "Generic caveat missing the relevant boundary.",
+        "2": "A returned cached result does not prove background revalidation completed or succeeded."
+      }
+    },
+    {
+      "id": "validation-tanstack-03",
+      "decisions": {
+        "q1": false,
+        "q2": "previous_data",
+        "q3": true
+      },
+      "claim_semantic_anchors": {
+        "q1": "Undefined early return before cache build.",
+        "q2": "functionalUpdate gets prevData.",
+        "q3": "setData manual true."
+      },
+      "minimum_evidence": [
+        {
+          "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/packages/query-core/src/queryClient.ts",
+          "quote": "if (data === undefined) {\n      return undefined\n    }",
+          "supports": [
+            "q1"
+          ]
+        },
+        {
+          "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/packages/query-core/src/queryClient.ts",
+          "quote": "const data = functionalUpdate(updater, prevData)",
+          "supports": [
+            "q2"
+          ]
+        },
+        {
+          "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/packages/query-core/src/queryClient.ts",
+          "quote": ".setData(data, { ...options, manual: true })",
+          "supports": [
+            "q3"
+          ]
+        }
+      ],
+      "evidence_policy": "Cover all answerable claims with semantically supportive continuous source spans. Equivalent spans allowed; no source-count quota. Unknown workload timing requires scope-based abstention rather than fabricated evidence.",
+      "recommendation_rubric": {
+        "0": "Absent, incorrect, or contradicts the decisions.",
+        "1": "Directionally correct but incomplete or not actionable.",
+        "2": "Use an updater that checks old===undefined and returns undefined in that case, otherwise returns the edited record; do not assume an absent record was created."
+      },
+      "uncertainty_rubric": {
+        "0": "Unsupported certainty, incorrect scope, or claimed execution.",
+        "1": "Generic caveat missing the relevant boundary.",
+        "2": "The cache code establishes this write path, not persistence to the backend or a completed optimistic-edit rollback test."
+      }
+    },
+    {
+      "id": "validation-duckdb-01",
+      "decisions": {
+        "q1": "longest_prefix",
+        "q2": true,
+        "q3": false
+      },
+      "claim_semantic_anchors": {
+        "q1": "Longest matching prefix selected.",
+        "q2": "Temporary default.",
+        "q3": "Persistent binary unencrypted."
+      },
+      "minimum_evidence": [
+        {
+          "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+          "quote": "In the case of multiple matching secrets, the longest prefix is chosen.",
+          "supports": [
+            "q1"
+          ]
+        },
+        {
+          "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+          "quote": "Temporary secrets are used by default",
+          "supports": [
+            "q2"
+          ]
+        },
+        {
+          "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+          "quote": "Persistent secrets are stored in unencrypted binary format",
+          "supports": [
+            "q3"
+          ]
+        }
+      ],
+      "evidence_policy": "Cover all answerable claims with semantically supportive continuous source spans. Equivalent spans allowed; no source-count quota. Unknown workload timing requires scope-based abstention rather than fabricated evidence.",
+      "recommendation_rubric": {
+        "0": "Absent, incorrect, or contradicts the decisions.",
+        "1": "Directionally correct but incomplete or not actionable.",
+        "2": "Scope the reports credential to its nested prefix and use CREATE PERSISTENT SECRET only if restart persistence is required with appropriate protection of the stored-secrets directory."
+      },
+      "uncertainty_rubric": {
+        "0": "Unsupported certainty, incorrect scope, or claimed execution.",
+        "1": "Generic caveat missing the relevant boundary.",
+        "2": "The documented file is unencrypted; no claim that permissions or operational secret storage have already been secured."
+      }
+    },
+    {
+      "id": "validation-duckdb-02",
+      "decisions": {
+        "q1": true,
+        "q2": true,
+        "q3": "unknown"
+      },
+      "claim_semantic_anchors": {
+        "q1": "Manager may reduce allocations; operator adapts.",
+        "q2": "Example requires disk offloading/temp directory.",
+        "q3": "MacBook example is not a production-job measurement."
+      },
+      "minimum_evidence": [
+        {
+          "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+          "quote": "The manager can approve this or respond with a reduced allocation.",
+          "supports": [
+            "q1"
+          ]
+        },
+        {
+          "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+          "quote": "Note that a temporary directory has to be set here, because the operators actually need to offload data to disk to complete this query given this memory limit.",
+          "supports": [
+            "q2"
+          ]
+        }
+      ],
+      "evidence_policy": "Cover all answerable claims with semantically supportive continuous source spans. Equivalent spans allowed; no source-count quota. Unknown workload timing requires scope-based abstention rather than fabricated evidence.",
+      "recommendation_rubric": {
+        "0": "Absent, incorrect, or contradicts the decisions.",
+        "1": "Directionally correct but incomplete or not actionable.",
+        "2": "Configure a suitable temporary directory and benchmark the actual concurrent-join workload with its memory limit, threads, and disk capacity before promising a runtime."
+      },
+      "uncertainty_rubric": {
+        "0": "Unsupported certainty, incorrect scope, or claimed execution.",
+        "1": "Generic caveat missing the relevant boundary.",
+        "2": "Explicitly abstain from the production runtime guarantee; a release example on a MacBook does not establish performance of an unprovided workload."
+      }
+    },
+    {
+      "id": "validation-duckdb-03",
+      "decisions": {
+        "q1": false,
+        "q2": true,
+        "q3": false
+      },
+      "claim_semantic_anchors": {
+        "q1": "Fixed arrays require common fixed length.",
+        "q2": "Fixed array implicitly casts to same-child-type list.",
+        "q3": "Struct field names determine reshuffle, not order."
+      },
+      "minimum_evidence": [
+        {
+          "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+          "quote": "every value must have the same fixed number of elements in them.",
+          "supports": [
+            "q1"
+          ]
+        },
+        {
+          "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/docs/0.10/sql/data_types/typecasting.md",
+          "quote": "an INTEGER[3] array can be implicitly cast to an INTEGER[] list.",
+          "supports": [
+            "q2"
+          ]
+        },
+        {
+          "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/docs/0.10/sql/data_types/typecasting.md",
+          "quote": "The fields of the struct will be reshuffled based on the names of the structs.",
+          "supports": [
+            "q3"
+          ]
+        }
+      ],
+      "evidence_policy": "Cover all answerable claims with semantically supportive continuous source spans. Equivalent spans allowed; no source-count quota. Unknown workload timing requires scope-based abstention rather than fabricated evidence.",
+      "recommendation_rubric": {
+        "0": "Absent, incorrect, or contradicts the decisions.",
+        "1": "Directionally correct but incomplete or not actionable.",
+        "2": "Validate/reject wrong-dimensional vectors for DOUBLE[3], or use variable-length lists if mixed lengths are intentional; rely on matching struct names rather than incoming field order."
+      },
+      "uncertainty_rubric": {
+        "0": "Unsupported certainty, incorrect scope, or claimed execution.",
+        "1": "Generic caveat missing the relevant boundary.",
+        "2": "Do not infer malformed rows were accepted or that mismatched struct names are supported; this is a proposed schema policy."
+      }
+    }
+  ]
+}

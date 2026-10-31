@@ -1,0 +1,122 @@
+{
+  "schema": "method-evidence-index-v1",
+  "sources": [
+    {
+      "source_url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/runtime/fragment.py",
+      "version": "Streamlit 1.46.0 tag -> 5ab38d948223f4a3904127008e7e01abbc57017a; https://docs.streamlit.io/1.46.0/develop/api-reference/execution-flow/st.fragment 와 대조",
+      "sha256": "9e58d89d59b05d0a762ac43ab83e9ecf126e0dc75f490467aaeb97ad50120a4b",
+      "approved_scope": "version-pinned official open-source code or documentation; excerpt only",
+      "approval": "approved_public_source",
+      "license": {
+        "spdx": "Apache-2.0",
+        "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/LICENSE",
+        "reviewed_for_publication": true
+      },
+      "provenance": "streamlit/streamlit official pinned commit; immutable source SHA256 verified; no private input"
+    },
+    {
+      "source_url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py",
+      "version": "Streamlit 1.46.0 tag -> 5ab38d948223f4a3904127008e7e01abbc57017a; https://docs.streamlit.io/1.46.0/develop/api-reference/execution-flow/st.rerun 와 대조",
+      "sha256": "6f3a80c30a430e26fe08ca005989e1720642177d5959e49a4993b5109faad4dd",
+      "approved_scope": "version-pinned official open-source code or documentation; excerpt only",
+      "approval": "approved_public_source",
+      "license": {
+        "spdx": "Apache-2.0",
+        "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/LICENSE",
+        "reviewed_for_publication": true
+      },
+      "provenance": "streamlit/streamlit official pinned commit; immutable source SHA256 verified; no private input"
+    },
+    {
+      "source_url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/disabling-queries.md",
+      "version": "@tanstack/react-query@5.90.5 tag -> ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba; /v5 웹 문서는 latest로 리디렉션되므로 고정 commit 문서를 사용",
+      "sha256": "2ac06e279df6db4ac7b3abade980e24d21f8ef8453b9bd42273fda8087f121ca",
+      "approved_scope": "version-pinned official open-source code or documentation; excerpt only",
+      "approval": "approved_public_source",
+      "license": {
+        "spdx": "MIT",
+        "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/LICENSE",
+        "reviewed_for_publication": true
+      },
+      "provenance": "TanStack/query official pinned commit; immutable source SHA256 verified; no private input"
+    },
+    {
+      "source_url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md",
+      "version": "@tanstack/react-query@5.90.5 tag -> ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba; 일반 useQuery 취소 문서; Suspense hooks 예외 별도",
+      "sha256": "94c7f7f523f1d2c742c86c12fe001839ffcbb0e206ef8935d1428aaf724e10ab",
+      "approved_scope": "version-pinned official open-source code or documentation; excerpt only",
+      "approval": "approved_public_source",
+      "license": {
+        "spdx": "MIT",
+        "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/LICENSE",
+        "reviewed_for_publication": true
+      },
+      "provenance": "TanStack/query official pinned commit; immutable source SHA256 verified; no private input"
+    },
+    {
+      "source_url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/docs/0.10/sql/data_types/typecasting.md",
+      "version": "DuckDB 0.10 문서; 0.10.0 도입 변경. 문서 snapshot 343c29a3530fcb77c88a994fc3665ad3129520bd; 최신 제품 전체로 외삽하지 않음",
+      "sha256": "9fd1b8d1b63f3e3184d19f817a9f9582aa189fbcc69a0c5a0aa993a2a2230861",
+      "approved_scope": "version-pinned official open-source code or documentation; excerpt only",
+      "approval": "approved_public_source",
+      "license": {
+        "spdx": "MIT",
+        "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/LICENSE",
+        "reviewed_for_publication": true
+      },
+      "provenance": "duckdb/duckdb-web official pinned commit; immutable source SHA256 verified; no private input"
+    },
+    {
+      "source_url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+      "version": "DuckDB 0.10.0 릴리스 2024-02-13; 문서 snapshot 343c29a3530fcb77c88a994fc3665ad3129520bd; 해당 버전 SQL 바인딩 규칙",
+      "sha256": "7a931c60693ba378776ec8a8744bd6097e7b36a701f8c622279f3a8b38112cea",
+      "approved_scope": "version-pinned official open-source code or documentation; excerpt only",
+      "approval": "approved_public_source",
+      "license": {
+        "spdx": "MIT",
+        "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/LICENSE",
+        "reviewed_for_publication": true
+      },
+      "provenance": "duckdb/duckdb-web official pinned commit; immutable source SHA256 verified; no private input"
+    },
+    {
+      "source_url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/packages/query-core/src/query.ts",
+      "version": "@tanstack/query-core 5.90.5; package.json 확인; commit ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba",
+      "sha256": "71e75b3f94576d406a99d9967af4734fa2f938683b74518ad61dd464c6671fdc",
+      "approved_scope": "version-pinned official open-source code or documentation; excerpt only",
+      "approval": "approved_public_source",
+      "license": {
+        "spdx": "MIT",
+        "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/LICENSE",
+        "reviewed_for_publication": true
+      },
+      "provenance": "TanStack/query official pinned commit; immutable source SHA256 verified; no private input"
+    },
+    {
+      "source_url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/packages/query-core/src/utils.ts",
+      "version": "@tanstack/query-core 5.90.5; package.json 확인; commit ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba",
+      "sha256": "10237cfc3c434a769a1ab53416703ec909022e09fb91f3b77fb3d9e808b35705",
+      "approved_scope": "version-pinned official open-source code or documentation; excerpt only",
+      "approval": "approved_public_source",
+      "license": {
+        "spdx": "MIT",
+        "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/LICENSE",
+        "reviewed_for_publication": true
+      },
+      "provenance": "TanStack/query official pinned commit; immutable source SHA256 verified; no private input"
+    },
+    {
+      "source_url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/packages/query-core/src/queryClient.ts",
+      "version": "@tanstack/query-core 5.90.5; package.json 확인; commit ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba",
+      "sha256": "69ed302721adb82c2449c5385e33627663b23516f719ecc53405c213e1211e91",
+      "approved_scope": "version-pinned official open-source code or documentation; excerpt only",
+      "approval": "approved_public_source",
+      "license": {
+        "spdx": "MIT",
+        "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/LICENSE",
+        "reviewed_for_publication": true
+      },
+      "provenance": "TanStack/query official pinned commit; immutable source SHA256 verified; no private input"
+    }
+  ]
+}

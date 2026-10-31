@@ -1,0 +1,28 @@
+{
+  "created_at": "2026-10-31T15:40:54.735702+00:00",
+  "reason": "Correct implementation of predeclared literal quote policy: raw exact source and exposure substrings pass, independently of optional normalized matching. Paired inline markup normalization is not substring-stable. This changes no quote policy and permits no paraphrases.",
+  "modified_file": "summarize.py",
+  "sha256_before": "8387d7d6f2e94addfaee3b1820c80e76e83214d2428fab5889cda9cf1eef5f07",
+  "sha256_after": "96d7b3b5b229b256dde1cc211876689504fd7695a0ac26fa1db68533ba7ca19c",
+  "citation_predicate_replacements": 3,
+  "applies_to": [
+    "coverage",
+    "all_citations_valid",
+    "valid_evidence_count"
+  ],
+  "synthetic_assertion": {
+    "source": "Use `queryFn` for the request.",
+    "quote": "queryFn` for the request.",
+    "raw_substring_match": true,
+    "normalized_substring_match": false,
+    "old_validity": false,
+    "corrected_validity": true,
+    "assertions_passed": true,
+    "nonmatching_exposure_rejected": true,
+    "normalized_only_match_retained": true
+  },
+  "gold_tasks_candidates_semantic_grades_changed": false,
+  "summary_preserved": "results/summary-before-literal-match-fix.json",
+  "summary_rerun": true,
+  "summary_rerun_exit_code": 0
+}

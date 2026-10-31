@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "fixed_denominator": 9,
+  "tasks": [
+    {
+      "id": "validation-streamlit-01",
+      "product_version": "Streamlit 1.46.0",
+      "inputquery": "A Streamlit 1.46.0 application has a navigation button that should open its registered pages/review.py page. A developer instead points st.switch_page at an arbitrary helper script and places a required audit update after the switch call. q1: Can an arbitrary Python helper be a switch target merely because its file exists (boolean)? q2: Are string page paths interpreted relative to \"main_script\" or \"current_page\"? q3: Does the current page continue executing after a successful switch (boolean)? Recommend where to put the audit update and how to choose the target. Return JSON only: {\"decisions\":{\"q1\":value,\"q2\":value,\"q3\":value},\"recommendation\":\"action to take\",\"evidence\":[{\"url\":\"source URL\",\"quote\":\"verbatim continuous source words\",\"supports\":[\"q1\"]}],\"uncertainty\":\"limits or missing evidence\"}. Ground claims in the supplied sources; distinguish a proposal from verified execution."
+    },
+    {
+      "id": "validation-streamlit-02",
+      "product_version": "Streamlit 1.46.0",
+      "inputquery": "In a Streamlit 1.46.0 intake page, an empty required field must prevent the remaining script from calling a costly submission routine. The proposed branch calls st.stop(), then displays the explanation below it. q1: Choose the control: \"st.stop\" or \"st.rerun\" to end this run without requesting another run. q2: Will an explanation placed after st.stop() execute in that run (boolean)? q3: Does the documentation recommend rendering a message explaining the stop (boolean)? Recommend the branch order. Return JSON only: {\"decisions\":{\"q1\":value,\"q2\":value,\"q3\":value},\"recommendation\":\"action to take\",\"evidence\":[{\"url\":\"source URL\",\"quote\":\"verbatim continuous source words\",\"supports\":[\"q1\"]}],\"uncertainty\":\"limits or missing evidence\"}. Ground claims in the supplied sources; distinguish a proposal from verified execution."
+    },
+    {
+      "id": "validation-streamlit-03",
+      "product_version": "Streamlit 1.46.0",
+      "inputquery": "A Streamlit 1.46.0 editor should update only when a user acts, while a separate autosave indicator may later need a fractional-second interval. The team must choose a fragment schedule without writing a custom sleep loop. q1: With run_every=None, are automatic interval reruns configured (boolean)? q2: Can a float express an interval in seconds (boolean)? q3: Does the accepted run_every input include a timedelta object (boolean)? Recommend the initial schedule and one supported way to add a 2.5-second interval later. Return JSON only: {\"decisions\":{\"q1\":value,\"q2\":value,\"q3\":value},\"recommendation\":\"action to take\",\"evidence\":[{\"url\":\"source URL\",\"quote\":\"verbatim continuous source words\",\"supports\":[\"q1\"]}],\"uncertainty\":\"limits or missing evidence\"}. Ground claims in the supplied sources; distinguish a proposal from verified execution."
+    },
+    {
+      "id": "validation-tanstack-01",
+      "product_version": "TanStack Query 5.90.5",
+      "inputquery": "A TanStack Query 5.90.5 team proposes a quiet Cancel action and is considering useSuspenseQuery for the same screen. They want cancellation errors hidden from observers and the previous query data/status restored. q1: Which option suppresses CancelledError propagation: \"silent\" or \"revert\"? q2: Is revert true by default (boolean)? q3: Does the documented cancellation support work with useSuspenseQuery (boolean)? Recommend the hook and cancellation options for this requirement. Return JSON only: {\"decisions\":{\"q1\":value,\"q2\":value,\"q3\":value},\"recommendation\":\"action to take\",\"evidence\":[{\"url\":\"source URL\",\"quote\":\"verbatim continuous source words\",\"supports\":[\"q1\"]}],\"uncertainty\":\"limits or missing evidence\"}. Ground claims in the supplied sources; distinguish a proposal from verified execution."
+    },
+    {
+      "id": "validation-tanstack-02",
+      "product_version": "TanStack Query 5.90.5",
+      "inputquery": "A TanStack Query 5.90.5 route loader calls ensureQueryData with stale cached data and revalidateIfStale:true. The view also reads getQueryData during render instead of subscribing. q1: Does ensureQueryData return the cached value while starting a prefetch rather than awaiting fresh data: \"cached\" or \"fresh\"? q2: When cachedData is undefined, does ensureQueryData delegate to fetchQuery (boolean)? q3: Does getQueryData itself subscribe a component to later changes (boolean)? Recommend how to make the view update. Return JSON only: {\"decisions\":{\"q1\":value,\"q2\":value,\"q3\":value},\"recommendation\":\"action to take\",\"evidence\":[{\"url\":\"source URL\",\"quote\":\"verbatim continuous source words\",\"supports\":[\"q1\"]}],\"uncertainty\":\"limits or missing evidence\"}. Ground claims in the supplied sources; distinguish a proposal from verified execution."
+    },
+    {
+      "id": "validation-tanstack-03",
+      "product_version": "TanStack Query 5.90.5",
+      "inputquery": "A TanStack Query 5.90.5 optimistic-edit handler must update cached records without creating a cache entry for a record never loaded. Its setQueryData updater returns undefined when old data is absent. q1: Does that undefined result reach cache.build and setData (boolean)? q2: Is the updater given the previous cached data: \"previous_data\" or \"query_key_only\"? q3: Is a defined setQueryData result written with manual:true (boolean)? Recommend an updater pattern that preserves the missing-entry policy. Return JSON only: {\"decisions\":{\"q1\":value,\"q2\":value,\"q3\":value},\"recommendation\":\"action to take\",\"evidence\":[{\"url\":\"source URL\",\"quote\":\"verbatim continuous source words\",\"supports\":[\"q1\"]}],\"uncertainty\":\"limits or missing evidence\"}. Ground claims in the supplied sources; distinguish a proposal from verified execution."
+    },
+    {
+      "id": "validation-duckdb-01",
+      "product_version": "DuckDB 0.10.0",
+      "inputquery": "A DuckDB 0.10.0 pipeline accesses two S3 prefixes with different credentials. One secret covers the bucket and a second covers a nested reports prefix. The operator wants credentials to survive restart but assumes persistent storage encrypts them. q1: When both scopes match, choose \"longest_prefix\" or \"first_created\". q2: Are temporary secrets the default (boolean)? q3: Are persistent secrets stored encrypted according to this release (boolean)? Recommend credential scope and persistence choices. Return JSON only: {\"decisions\":{\"q1\":value,\"q2\":value,\"q3\":value},\"recommendation\":\"action to take\",\"evidence\":[{\"url\":\"source URL\",\"quote\":\"verbatim continuous source words\",\"supports\":[\"q1\"]}],\"uncertainty\":\"limits or missing evidence\"}. Ground claims in the supplied sources; distinguish a proposal from verified execution."
+    },
+    {
+      "id": "validation-duckdb-02",
+      "product_version": "DuckDB 0.10.0",
+      "inputquery": "A DuckDB 0.10.0 analytics job has several concurrent memory-intensive joins under a fixed memory limit. The team plans to use the new temporary memory manager and assumes the release example guarantees its own job will finish in five seconds. q1: Can the manager answer an allocation request with a reduced allocation (boolean)? q2: In the documented constrained-memory example, is a temporary directory needed for offloading (boolean)? q3: Is this unmeasured production job guaranteed a five-second runtime: \"established\" or \"unknown\"? Recommend a deployment experiment. Return JSON only: {\"decisions\":{\"q1\":value,\"q2\":value,\"q3\":value},\"recommendation\":\"action to take\",\"evidence\":[{\"url\":\"source URL\",\"quote\":\"verbatim continuous source words\",\"supports\":[\"q1\"]}],\"uncertainty\":\"limits or missing evidence\"}. Ground claims in the supplied sources; distinguish a proposal from verified execution."
+    },
+    {
+      "id": "validation-duckdb-03",
+      "product_version": "DuckDB 0.10.0",
+      "inputquery": "A DuckDB 0.10.0 geometry importer proposes DOUBLE[3] for vectors, but some records have four coordinates. It also passes fixed arrays to a list-oriented interface and casts structs whose fields arrive in different orders. q1: Can every value in the same fixed-length array type have a different element count (boolean)? q2: Can an INTEGER[3] array implicitly become INTEGER[] (boolean)? q3: Must struct field order match for a cast when the names match (boolean)? Recommend the representation and struct handling. Return JSON only: {\"decisions\":{\"q1\":value,\"q2\":value,\"q3\":value},\"recommendation\":\"action to take\",\"evidence\":[{\"url\":\"source URL\",\"quote\":\"verbatim continuous source words\",\"supports\":[\"q1\"]}],\"uncertainty\":\"limits or missing evidence\"}. Ground claims in the supplied sources; distinguish a proposal from verified execution."
+    }
+  ]
+}

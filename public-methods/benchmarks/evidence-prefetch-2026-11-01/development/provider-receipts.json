@@ -1,0 +1,1540 @@
+{
+  "scope": "candidate provider receipts; cached tokens included; billed money unknown",
+  "runs": [
+    {
+      "run": "direct-streamlit-01",
+      "receipts": [
+        {
+          "status": 200,
+          "call": 1,
+          "seconds": 1.8869947859784588,
+          "events": 105,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 9854,
+            "input_tokens_details": {
+              "cached_tokens": 7680,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 110,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 9964
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 2,
+          "seconds": 1.5052607610123232,
+          "events": 59,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 11072,
+            "input_tokens_details": {
+              "cached_tokens": 9728,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 62,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 11134
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 3,
+          "seconds": 3.5758104809792712,
+          "events": 437,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 12635,
+            "input_tokens_details": {
+              "cached_tokens": 10880,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 432,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 13067
+          },
+          "completed": true
+        }
+      ]
+    },
+    {
+      "run": "source-streamlit-01",
+      "receipts": [
+        {
+          "status": 200,
+          "call": 1,
+          "seconds": 7.793060138006695,
+          "events": 446,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 12399,
+            "input_tokens_details": {
+              "cached_tokens": 7680,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 441,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 12840
+          },
+          "completed": true
+        }
+      ]
+    },
+    {
+      "run": "method-streamlit-01",
+      "receipts": [
+        {
+          "status": 200,
+          "call": 1,
+          "seconds": 4.596373078995384,
+          "events": 500,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 13018,
+            "input_tokens_details": {
+              "cached_tokens": 7680,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 495,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 13513
+          },
+          "completed": true
+        }
+      ]
+    },
+    {
+      "run": "direct-streamlit-02",
+      "receipts": [
+        {
+          "status": 200,
+          "call": 1,
+          "seconds": 1.9238021878991276,
+          "events": 96,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 9863,
+            "input_tokens_details": {
+              "cached_tokens": 7680,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 101,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 9964
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 2,
+          "seconds": 2.7881927069975063,
+          "events": 177,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 10900,
+            "input_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 180,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 11080
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 3,
+          "seconds": 5.05323535494972,
+          "events": 532,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 15151,
+            "input_tokens_details": {
+              "cached_tokens": 10752,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 527,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 15678
+          },
+          "completed": true
+        }
+      ]
+    },
+    {
+      "run": "source-streamlit-02",
+      "receipts": [
+        {
+          "status": 200,
+          "call": 1,
+          "seconds": 1.5305858999490738,
+          "events": 59,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 12295,
+            "input_tokens_details": {
+              "cached_tokens": 7680,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 62,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 12357
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 2,
+          "seconds": 1.4110230850055814,
+          "events": 58,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 13473,
+            "input_tokens_details": {
+              "cached_tokens": 12160,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 61,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 13534
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 3,
+          "seconds": 4.880363133037463,
+          "events": 618,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 15022,
+            "input_tokens_details": {
+              "cached_tokens": 13312,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 613,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 15635
+          },
+          "completed": true
+        }
+      ]
+    },
+    {
+      "run": "method-streamlit-02",
+      "receipts": [
+        {
+          "status": 200,
+          "call": 1,
+          "seconds": 2.0424527069553733,
+          "events": 106,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 12745,
+            "input_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 111,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 12856
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 2,
+          "seconds": 1.764484905055724,
+          "events": 64,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 13966,
+            "input_tokens_details": {
+              "cached_tokens": 7680,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 67,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 14033
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 3,
+          "seconds": 5.402373263030313,
+          "events": 611,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 15410,
+            "input_tokens_details": {
+              "cached_tokens": 13824,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 606,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 16016
+          },
+          "completed": true
+        }
+      ]
+    },
+    {
+      "run": "direct-streamlit-03",
+      "receipts": [
+        {
+          "status": 200,
+          "call": 1,
+          "seconds": 6.238494100049138,
+          "events": 71,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 9883,
+            "input_tokens_details": {
+              "cached_tokens": 7680,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 123,
+            "output_tokens_details": {
+              "reasoning_tokens": 49
+            },
+            "total_tokens": 10006
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 2,
+          "seconds": 2.1245711389929056,
+          "events": 64,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 10949,
+            "input_tokens_details": {
+              "cached_tokens": 9728,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 67,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 11016
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 3,
+          "seconds": 2.2206558760954067,
+          "events": 68,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 11866,
+            "input_tokens_details": {
+              "cached_tokens": 10752,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 87,
+            "output_tokens_details": {
+              "reasoning_tokens": 16
+            },
+            "total_tokens": 11953
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 4,
+          "seconds": 3.2136554289609194,
+          "events": 332,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 12969,
+            "input_tokens_details": {
+              "cached_tokens": 11648,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 327,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 13296
+          },
+          "completed": true
+        }
+      ]
+    },
+    {
+      "run": "source-streamlit-03",
+      "receipts": [
+        {
+          "status": 200,
+          "call": 1,
+          "seconds": 3.4924753239611164,
+          "events": 320,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 12265,
+            "input_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 315,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 12580
+          },
+          "completed": true
+        }
+      ]
+    },
+    {
+      "run": "method-streamlit-03",
+      "receipts": [
+        {
+          "status": 200,
+          "call": 1,
+          "seconds": 3.9612257920671254,
+          "events": 338,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 12715,
+            "input_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 333,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 13048
+          },
+          "completed": true
+        }
+      ]
+    },
+    {
+      "run": "direct-tanstack-01",
+      "receipts": [
+        {
+          "status": 200,
+          "call": 1,
+          "seconds": 1.9605711849872023,
+          "events": 96,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 9874,
+            "input_tokens_details": {
+              "cached_tokens": 7680,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 101,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 9975
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 2,
+          "seconds": 1.5848255950259045,
+          "events": 58,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 11026,
+            "input_tokens_details": {
+              "cached_tokens": 9728,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 61,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 11087
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 3,
+          "seconds": 4.1147587690502405,
+          "events": 464,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 11843,
+            "input_tokens_details": {
+              "cached_tokens": 10880,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 459,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 12302
+          },
+          "completed": true
+        }
+      ]
+    },
+    {
+      "run": "source-tanstack-01",
+      "receipts": [
+        {
+          "status": 200,
+          "call": 1,
+          "seconds": 4.654058214044198,
+          "events": 406,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 12327,
+            "input_tokens_details": {
+              "cached_tokens": 7680,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 518,
+            "output_tokens_details": {
+              "reasoning_tokens": 117
+            },
+            "total_tokens": 12845
+          },
+          "completed": true
+        }
+      ]
+    },
+    {
+      "run": "method-tanstack-01",
+      "receipts": [
+        {
+          "status": 200,
+          "call": 2,
+          "seconds": 2.053813991951756,
+          "events": 30,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 13088,
+            "input_tokens_details": {
+              "cached_tokens": 7680,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 33,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 13121
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 2,
+          "seconds": 4.842190149007365,
+          "events": 311,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 13146,
+            "input_tokens_details": {
+              "cached_tokens": 12928,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 546,
+            "output_tokens_details": {
+              "reasoning_tokens": 240
+            },
+            "total_tokens": 13692
+          },
+          "completed": true
+        }
+      ]
+    },
+    {
+      "run": "direct-tanstack-02",
+      "receipts": [
+        {
+          "status": 200,
+          "call": 1,
+          "seconds": 1.8774740940425545,
+          "events": 103,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 9865,
+            "input_tokens_details": {
+              "cached_tokens": 7680,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 108,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 9973
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 2,
+          "seconds": 2.0957437040051445,
+          "events": 124,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 11013,
+            "input_tokens_details": {
+              "cached_tokens": 9728,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 127,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 11140
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 3,
+          "seconds": 4.188692186027765,
+          "events": 474,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 12358,
+            "input_tokens_details": {
+              "cached_tokens": 10880,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 469,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 12827
+          },
+          "completed": true
+        }
+      ]
+    },
+    {
+      "run": "source-tanstack-02",
+      "receipts": [
+        {
+          "status": 200,
+          "call": 1,
+          "seconds": 3.486012488952838,
+          "events": 399,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 12283,
+            "input_tokens_details": {
+              "cached_tokens": 7680,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 394,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 12677
+          },
+          "completed": true
+        }
+      ]
+    },
+    {
+      "run": "method-tanstack-02",
+      "receipts": [
+        {
+          "status": 200,
+          "call": 1,
+          "seconds": 4.624273705063388,
+          "events": 505,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 12812,
+            "input_tokens_details": {
+              "cached_tokens": 7680,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 502,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 13314
+          },
+          "completed": true
+        }
+      ]
+    },
+    {
+      "run": "direct-tanstack-03",
+      "receipts": [
+        {
+          "status": 200,
+          "call": 1,
+          "seconds": 1.9714549839263782,
+          "events": 92,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 9858,
+            "input_tokens_details": {
+              "cached_tokens": 7680,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 97,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 9955
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 2,
+          "seconds": 2.133721339982003,
+          "events": 86,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 11037,
+            "input_tokens_details": {
+              "cached_tokens": 9728,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 89,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 11126
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 3,
+          "seconds": 6.182448300998658,
+          "events": 108,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 12392,
+            "input_tokens_details": {
+              "cached_tokens": 10880,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 111,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 12503
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 4,
+          "seconds": 4.454502625972964,
+          "events": 504,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 13627,
+            "input_tokens_details": {
+              "cached_tokens": 12160,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 499,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 14126
+          },
+          "completed": true
+        }
+      ]
+    },
+    {
+      "run": "source-tanstack-03",
+      "receipts": [
+        {
+          "status": 200,
+          "call": 1,
+          "seconds": 4.40961557708215,
+          "events": 483,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 11953,
+            "input_tokens_details": {
+              "cached_tokens": 7680,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 480,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 12433
+          },
+          "completed": true
+        }
+      ]
+    },
+    {
+      "run": "method-tanstack-03",
+      "receipts": [
+        {
+          "status": 200,
+          "call": 1,
+          "seconds": 1.7642904999665916,
+          "events": 82,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 12712,
+            "input_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 87,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 12799
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 2,
+          "seconds": 4.636998105910607,
+          "events": 82,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 13803,
+            "input_tokens_details": {
+              "cached_tokens": 12544,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 85,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 13888
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 3,
+          "seconds": 4.754765404970385,
+          "events": 434,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 15115,
+            "input_tokens_details": {
+              "cached_tokens": 13568,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 429,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 15544
+          },
+          "completed": true
+        }
+      ]
+    },
+    {
+      "run": "direct-duckdb-01",
+      "receipts": [
+        {
+          "status": 200,
+          "call": 1,
+          "seconds": 1.7681102039059624,
+          "events": 98,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 9850,
+            "input_tokens_details": {
+              "cached_tokens": 7680,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 103,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 9953
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 2,
+          "seconds": 1.6088047840166837,
+          "events": 65,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 11070,
+            "input_tokens_details": {
+              "cached_tokens": 9728,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 68,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 11138
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 3,
+          "seconds": 1.8252002199878916,
+          "events": 87,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 12239,
+            "input_tokens_details": {
+              "cached_tokens": 10880,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 90,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 12329
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 4,
+          "seconds": 3.9937076449859887,
+          "events": 412,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 13892,
+            "input_tokens_details": {
+              "cached_tokens": 12032,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 407,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 14299
+          },
+          "completed": true
+        }
+      ]
+    },
+    {
+      "run": "source-duckdb-01",
+      "receipts": [
+        {
+          "status": 200,
+          "call": 1,
+          "seconds": 1.831163879018277,
+          "events": 93,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 11953,
+            "input_tokens_details": {
+              "cached_tokens": 7680,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 98,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 12051
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 2,
+          "seconds": 1.483105544000864,
+          "events": 57,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 13103,
+            "input_tokens_details": {
+              "cached_tokens": 11776,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 60,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 13163
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 3,
+          "seconds": 5.1727326300460845,
+          "events": 602,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 14675,
+            "input_tokens_details": {
+              "cached_tokens": 12928,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 597,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 15272
+          },
+          "completed": true
+        }
+      ]
+    },
+    {
+      "run": "method-duckdb-01",
+      "receipts": [
+        {
+          "status": 200,
+          "call": 1,
+          "seconds": 1.8617463019909337,
+          "events": 63,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 12647,
+            "input_tokens_details": {
+              "cached_tokens": 7680,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 66,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 12713
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 2,
+          "seconds": 2.162621560972184,
+          "events": 94,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 13830,
+            "input_tokens_details": {
+              "cached_tokens": 12416,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 97,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 13927
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 3,
+          "seconds": 6.828172882087529,
+          "events": 768,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 16159,
+            "input_tokens_details": {
+              "cached_tokens": 13696,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 763,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 16922
+          },
+          "completed": true
+        }
+      ]
+    },
+    {
+      "run": "direct-duckdb-02",
+      "receipts": [
+        {
+          "status": 200,
+          "call": 1,
+          "seconds": 2.098515496007167,
+          "events": 101,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 9860,
+            "input_tokens_details": {
+              "cached_tokens": 7680,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 106,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 9966
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 2,
+          "seconds": 2.259955064044334,
+          "events": 58,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 10971,
+            "input_tokens_details": {
+              "cached_tokens": 9728,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 61,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 11032
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 3,
+          "seconds": 3.9931849900167435,
+          "events": 358,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 12298,
+            "input_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 353,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 12651
+          },
+          "completed": true
+        }
+      ]
+    },
+    {
+      "run": "source-duckdb-02",
+      "receipts": [
+        {
+          "status": 200,
+          "call": 1,
+          "seconds": 2.845595152932219,
+          "events": 98,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 11888,
+            "input_tokens_details": {
+              "cached_tokens": 7680,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 103,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 11991
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 2,
+          "seconds": 1.950468659051694,
+          "events": 64,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 12999,
+            "input_tokens_details": {
+              "cached_tokens": 11648,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 67,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 13066
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 3,
+          "seconds": 3.9998823879286647,
+          "events": 416,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 14159,
+            "input_tokens_details": {
+              "cached_tokens": 12800,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 411,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 14570
+          },
+          "completed": true
+        }
+      ]
+    },
+    {
+      "run": "method-duckdb-02",
+      "receipts": [
+        {
+          "status": 200,
+          "call": 1,
+          "seconds": 2.0684620660031214,
+          "events": 89,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 12351,
+            "input_tokens_details": {
+              "cached_tokens": 7680,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 94,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 12445
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 2,
+          "seconds": 1.5889408870134503,
+          "events": 58,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 13524,
+            "input_tokens_details": {
+              "cached_tokens": 12160,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 61,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 13585
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 3,
+          "seconds": 5.493285492993891,
+          "events": 455,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 14627,
+            "input_tokens_details": {
+              "cached_tokens": 13312,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 450,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 15077
+          },
+          "completed": true
+        }
+      ]
+    },
+    {
+      "run": "direct-duckdb-03",
+      "receipts": [
+        {
+          "status": 200,
+          "call": 1,
+          "seconds": 2.3469276659889147,
+          "events": 91,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 9877,
+            "input_tokens_details": {
+              "cached_tokens": 7680,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 96,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 9973
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 2,
+          "seconds": 1.941850058035925,
+          "events": 59,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 11084,
+            "input_tokens_details": {
+              "cached_tokens": 9728,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 62,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 11146
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 3,
+          "seconds": 1.5966739559080452,
+          "events": 57,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 12066,
+            "input_tokens_details": {
+              "cached_tokens": 10880,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 60,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 12126
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 4,
+          "seconds": 7.633876219973899,
+          "events": 435,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 13463,
+            "input_tokens_details": {
+              "cached_tokens": 11904,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 430,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 13893
+          },
+          "completed": true
+        }
+      ]
+    },
+    {
+      "run": "source-duckdb-03",
+      "receipts": [
+        {
+          "status": 200,
+          "call": 1,
+          "seconds": 2.0066292718984187,
+          "events": 102,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 12143,
+            "input_tokens_details": {
+              "cached_tokens": 7680,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 107,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 12250
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 2,
+          "seconds": 1.7115802930202335,
+          "events": 65,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 12279,
+            "input_tokens_details": {
+              "cached_tokens": 11904,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 78,
+            "output_tokens_details": {
+              "reasoning_tokens": 10
+            },
+            "total_tokens": 12357
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 3,
+          "seconds": 1.3907900450285524,
+          "events": 57,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 13419,
+            "input_tokens_details": {
+              "cached_tokens": 12160,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 60,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 13479
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 4,
+          "seconds": 4.262668428011239,
+          "events": 499,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 14386,
+            "input_tokens_details": {
+              "cached_tokens": 13184,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 494,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 14880
+          },
+          "completed": true
+        }
+      ]
+    },
+    {
+      "run": "method-duckdb-03",
+      "receipts": [
+        {
+          "status": 200,
+          "call": 1,
+          "seconds": 3.1990547620225698,
+          "events": 104,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 12626,
+            "input_tokens_details": {
+              "cached_tokens": 7680,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 109,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 12735
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 2,
+          "seconds": 3.0562651430955157,
+          "events": 58,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 13847,
+            "input_tokens_details": {
+              "cached_tokens": 12416,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 61,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 13908
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 3,
+          "seconds": 2.1747214619535953,
+          "events": 58,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 14782,
+            "input_tokens_details": {
+              "cached_tokens": 13696,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 61,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 14843
+          },
+          "completed": true
+        },
+        {
+          "status": 200,
+          "call": 4,
+          "seconds": 4.382723630988039,
+          "events": 454,
+          "model": "gpt-6-luna",
+          "usage": {
+            "input_tokens": 15799,
+            "input_tokens_details": {
+              "cached_tokens": 14592,
+              "cache_write_tokens": 0
+            },
+            "output_tokens": 449,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 16248
+          },
+          "completed": true
+        }
+      ]
+    }
+  ]
+}

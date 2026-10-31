@@ -1,0 +1,1234 @@
+{
+  "schema": "openakashic-evidence-kpi-v1",
+  "created_at": "2026-10-31T15:28:25.100765+00:00",
+  "fixed_tasks": 9,
+  "fixed_runs": 27,
+  "model": "gpt-6-luna",
+  "grader": "gpt-6.1-sol",
+  "human_grader": false,
+  "actual_billed_cost": null,
+  "one_repeat": true,
+  "same_preexisting_source_pool": true,
+  "totals": {
+    "direct": {
+      "input_tokens": 354705,
+      "cached_input_tokens": 281472,
+      "uncached_input_tokens": 73233,
+      "output_tokens": 5973,
+      "total_tokens": 360678,
+      "model_calls": 31,
+      "retrieval_calls": 28,
+      "automatic_prefetches": 0,
+      "online_wall_seconds": 169.3003179448424,
+      "model_seconds": 92.16167190880515,
+      "decisions_correct": 27,
+      "recommendation": 15,
+      "uncertainty": 16,
+      "evidence_count": 28,
+      "exact_received_evidence_count": 25,
+      "tasks": 9,
+      "strict_json": 9,
+      "full_successes": 6,
+      "usage_complete": true,
+      "median_online_seconds": 18.208619287004694,
+      "mean_online_seconds": 18.81114643831582,
+      "total_retrieval_operations": 28,
+      "tokens_per_success": 60113.0,
+      "seconds_per_success": 28.216719657473732
+    },
+    "source": {
+      "input_tokens": 233021,
+      "cached_input_tokens": 173312,
+      "uncached_input_tokens": 59709,
+      "output_tokens": 4959,
+      "total_tokens": 237980,
+      "model_calls": 18,
+      "retrieval_calls": 9,
+      "automatic_prefetches": 9,
+      "online_wall_seconds": 127.04112918500323,
+      "model_seconds": 58.31181015097536,
+      "decisions_correct": 27,
+      "recommendation": 16,
+      "uncertainty": 15,
+      "evidence_count": 28,
+      "exact_received_evidence_count": 28,
+      "tasks": 9,
+      "strict_json": 9,
+      "full_successes": 7,
+      "usage_complete": true,
+      "median_online_seconds": 14.73044595005922,
+      "mean_online_seconds": 14.115681020555915,
+      "total_retrieval_operations": 18,
+      "tokens_per_success": 33997.142857142855,
+      "seconds_per_success": 18.148732740714745
+    },
+    "method": {
+      "input_tokens": 288722,
+      "cached_input_tokens": 198912,
+      "uncached_input_tokens": 89810,
+      "output_tokens": 5505,
+      "total_tokens": 294227,
+      "model_calls": 21,
+      "retrieval_calls": 13,
+      "automatic_prefetches": 9,
+      "online_wall_seconds": 146.48414017492905,
+      "model_seconds": 73.25923579209484,
+      "decisions_correct": 26,
+      "recommendation": 15,
+      "uncertainty": 15,
+      "evidence_count": 30,
+      "exact_received_evidence_count": 29,
+      "tasks": 9,
+      "strict_json": 9,
+      "full_successes": 6,
+      "usage_complete": true,
+      "median_online_seconds": 17.01476690801792,
+      "mean_online_seconds": 16.276015574992115,
+      "total_retrieval_operations": 22,
+      "tokens_per_success": 49037.833333333336,
+      "seconds_per_success": 24.414023362488177
+    }
+  },
+  "comparisons": {
+    "source_vs_direct": {
+      "total_token_reduction": 0.3401870920876793,
+      "total_online_time_reduction": 0.24961080565487836,
+      "tokens_per_success_reduction": 0.4344460789322966,
+      "seconds_per_success_reduction": 0.3568092619898957,
+      "quality_gate_passed": false,
+      "primary_token_gate_passed": false,
+      "time_gate_passed": false,
+      "paired_task_bootstrap_total_token_reduction_95pct": [
+        0.08440540317509093,
+        0.5889962176316554
+      ]
+    },
+    "method_vs_direct": {
+      "total_token_reduction": 0.18423912742113469,
+      "total_online_time_reduction": 0.1347674832917135,
+      "tokens_per_success_reduction": 0.18423912742113457,
+      "seconds_per_success_reduction": 0.1347674832917135,
+      "quality_gate_passed": false,
+      "primary_token_gate_passed": false,
+      "time_gate_passed": false,
+      "paired_task_bootstrap_total_token_reduction_95pct": [
+        -0.03137507527273242,
+        0.4226179584005678
+      ]
+    }
+  },
+  "runs": [
+    {
+      "id": "direct-streamlit-01",
+      "arm": "direct",
+      "task": "streamlit-01",
+      "strict_json": true,
+      "decisions_correct": 3,
+      "all_citations_exact_and_received": true,
+      "exact_received_coverage": [
+        "q1",
+        "q2",
+        "q3"
+      ],
+      "semantic_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "recommendation": 1,
+      "uncertainty": 2,
+      "material_unsupported_assertions": [],
+      "issues": [
+        "The proposed branching is actionable, but the recommendation omits moving required updates before the rerun call."
+      ],
+      "full_success": true,
+      "input_tokens": 33561,
+      "cached_input_tokens": 28288,
+      "uncached_input_tokens": 5273,
+      "output_tokens": 604,
+      "total_tokens": 34165,
+      "model_calls": 3,
+      "retrieval_calls": 2,
+      "online_wall_seconds": 15.552864068071358,
+      "model_seconds": 6.968066027970053,
+      "prefetch_tokens": null,
+      "prefetch_seconds": null,
+      "usage_complete": true,
+      "automatic_prefetches": 0,
+      "evidence_count": 3,
+      "exact_received_evidence_count": 3
+    },
+    {
+      "id": "source-streamlit-01",
+      "arm": "source",
+      "task": "streamlit-01",
+      "strict_json": true,
+      "decisions_correct": 3,
+      "all_citations_exact_and_received": true,
+      "exact_received_coverage": [
+        "q1",
+        "q2",
+        "q3"
+      ],
+      "semantic_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "recommendation": 2,
+      "uncertainty": 2,
+      "material_unsupported_assertions": [],
+      "issues": [],
+      "full_success": true,
+      "input_tokens": 12399,
+      "cached_input_tokens": 7680,
+      "uncached_input_tokens": 4719,
+      "output_tokens": 441,
+      "total_tokens": 12840,
+      "model_calls": 1,
+      "retrieval_calls": 0,
+      "online_wall_seconds": 14.73044595005922,
+      "model_seconds": 7.793060138006695,
+      "prefetch_tokens": 2524,
+      "prefetch_seconds": 0.33038084802683443,
+      "usage_complete": true,
+      "automatic_prefetches": 1,
+      "evidence_count": 3,
+      "exact_received_evidence_count": 3
+    },
+    {
+      "id": "method-streamlit-01",
+      "arm": "method",
+      "task": "streamlit-01",
+      "strict_json": true,
+      "decisions_correct": 3,
+      "all_citations_exact_and_received": true,
+      "exact_received_coverage": [
+        "q1",
+        "q2",
+        "q3"
+      ],
+      "semantic_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "recommendation": 2,
+      "uncertainty": 2,
+      "material_unsupported_assertions": [],
+      "issues": [],
+      "full_success": true,
+      "input_tokens": 13018,
+      "cached_input_tokens": 7680,
+      "uncached_input_tokens": 5338,
+      "output_tokens": 495,
+      "total_tokens": 13513,
+      "model_calls": 1,
+      "retrieval_calls": 0,
+      "online_wall_seconds": 11.959938447922468,
+      "model_seconds": 4.596373078995384,
+      "prefetch_tokens": 3143,
+      "prefetch_seconds": 0.013707616948522627,
+      "usage_complete": true,
+      "automatic_prefetches": 1,
+      "evidence_count": 3,
+      "exact_received_evidence_count": 3
+    },
+    {
+      "id": "direct-streamlit-02",
+      "arm": "direct",
+      "task": "streamlit-02",
+      "strict_json": true,
+      "decisions_correct": 3,
+      "all_citations_exact_and_received": true,
+      "exact_received_coverage": [
+        "q1",
+        "q2",
+        "q3"
+      ],
+      "semantic_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "recommendation": 2,
+      "uncertainty": 2,
+      "material_unsupported_assertions": [],
+      "issues": [
+        "Citation 3 is not q1 evidence; citation 0 independently supplies q1 support."
+      ],
+      "full_success": true,
+      "input_tokens": 35914,
+      "cached_input_tokens": 18432,
+      "uncached_input_tokens": 17482,
+      "output_tokens": 808,
+      "total_tokens": 36722,
+      "model_calls": 3,
+      "retrieval_calls": 4,
+      "online_wall_seconds": 18.407796899904497,
+      "model_seconds": 9.765230249846354,
+      "prefetch_tokens": null,
+      "prefetch_seconds": null,
+      "usage_complete": true,
+      "automatic_prefetches": 0,
+      "evidence_count": 4,
+      "exact_received_evidence_count": 4
+    },
+    {
+      "id": "source-streamlit-02",
+      "arm": "source",
+      "task": "streamlit-02",
+      "strict_json": true,
+      "decisions_correct": 3,
+      "all_citations_exact_and_received": true,
+      "exact_received_coverage": [
+        "q1",
+        "q2",
+        "q3"
+      ],
+      "semantic_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "recommendation": 2,
+      "uncertainty": 2,
+      "material_unsupported_assertions": [],
+      "issues": [
+        "Citations 3 and 4 are relevant to counter advice but are not q1 evidence; citation 0 independently covers q1."
+      ],
+      "full_success": true,
+      "input_tokens": 40790,
+      "cached_input_tokens": 33152,
+      "uncached_input_tokens": 7638,
+      "output_tokens": 736,
+      "total_tokens": 41526,
+      "model_calls": 3,
+      "retrieval_calls": 2,
+      "online_wall_seconds": 19.617936763097532,
+      "model_seconds": 7.821972117992118,
+      "prefetch_tokens": 2411,
+      "prefetch_seconds": 0.007819327060133219,
+      "usage_complete": true,
+      "automatic_prefetches": 1,
+      "evidence_count": 5,
+      "exact_received_evidence_count": 5
+    },
+    {
+      "id": "method-streamlit-02",
+      "arm": "method",
+      "task": "streamlit-02",
+      "strict_json": true,
+      "decisions_correct": 3,
+      "all_citations_exact_and_received": false,
+      "exact_received_coverage": [
+        "q1",
+        "q2",
+        "q3"
+      ],
+      "semantic_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "recommendation": 2,
+      "uncertainty": 2,
+      "material_unsupported_assertions": [],
+      "issues": [
+        "Citation 3 is relevant to the counter advice but does not support its assigned q1; citation 0 supplies q1 support."
+      ],
+      "full_success": false,
+      "input_tokens": 42121,
+      "cached_input_tokens": 21504,
+      "uncached_input_tokens": 20617,
+      "output_tokens": 784,
+      "total_tokens": 42905,
+      "model_calls": 3,
+      "retrieval_calls": 2,
+      "online_wall_seconds": 17.01476690801792,
+      "model_seconds": 9.20931087504141,
+      "prefetch_tokens": 2861,
+      "prefetch_seconds": 0.010046118986792862,
+      "usage_complete": true,
+      "automatic_prefetches": 1,
+      "evidence_count": 4,
+      "exact_received_evidence_count": 3
+    },
+    {
+      "id": "direct-streamlit-03",
+      "arm": "direct",
+      "task": "streamlit-03",
+      "strict_json": true,
+      "decisions_correct": 3,
+      "all_citations_exact_and_received": true,
+      "exact_received_coverage": [
+        "q1",
+        "q2"
+      ],
+      "semantic_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "recommendation": 2,
+      "uncertainty": 2,
+      "material_unsupported_assertions": [],
+      "issues": [
+        "q3 is supported by explicit scope-based abstention about absent 1.47.0 material."
+      ],
+      "full_success": true,
+      "input_tokens": 45667,
+      "cached_input_tokens": 39808,
+      "uncached_input_tokens": 5859,
+      "output_tokens": 604,
+      "total_tokens": 46271,
+      "model_calls": 4,
+      "retrieval_calls": 3,
+      "online_wall_seconds": 23.026719272020273,
+      "model_seconds": 13.79737654409837,
+      "prefetch_tokens": null,
+      "prefetch_seconds": null,
+      "usage_complete": true,
+      "automatic_prefetches": 0,
+      "evidence_count": 2,
+      "exact_received_evidence_count": 2
+    },
+    {
+      "id": "source-streamlit-03",
+      "arm": "source",
+      "task": "streamlit-03",
+      "strict_json": true,
+      "decisions_correct": 3,
+      "all_citations_exact_and_received": true,
+      "exact_received_coverage": [
+        "q1",
+        "q2"
+      ],
+      "semantic_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "recommendation": 1,
+      "uncertainty": 2,
+      "material_unsupported_assertions": [],
+      "issues": [
+        "The recommendation addresses version gating but omits the Session State design action.",
+        "q3 is supported by the explicit refusal to extrapolate 1.46.0 evidence to 1.47.0."
+      ],
+      "full_success": true,
+      "input_tokens": 12265,
+      "cached_input_tokens": 0,
+      "uncached_input_tokens": 12265,
+      "output_tokens": 315,
+      "total_tokens": 12580,
+      "model_calls": 1,
+      "retrieval_calls": 0,
+      "online_wall_seconds": 10.049311071983539,
+      "model_seconds": 3.4924753239611164,
+      "prefetch_tokens": 2361,
+      "prefetch_seconds": 0.007964974967762828,
+      "usage_complete": true,
+      "automatic_prefetches": 1,
+      "evidence_count": 2,
+      "exact_received_evidence_count": 2
+    },
+    {
+      "id": "method-streamlit-03",
+      "arm": "method",
+      "task": "streamlit-03",
+      "strict_json": true,
+      "decisions_correct": 3,
+      "all_citations_exact_and_received": true,
+      "exact_received_coverage": [
+        "q1",
+        "q2"
+      ],
+      "semantic_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "recommendation": 2,
+      "uncertainty": 2,
+      "material_unsupported_assertions": [],
+      "issues": [
+        "q3 is supported by explicit scope-based abstention: the supplied version is 1.46.0 and no 1.47.0 evidence is asserted."
+      ],
+      "full_success": true,
+      "input_tokens": 12715,
+      "cached_input_tokens": 0,
+      "uncached_input_tokens": 12715,
+      "output_tokens": 333,
+      "total_tokens": 13048,
+      "model_calls": 1,
+      "retrieval_calls": 0,
+      "online_wall_seconds": 12.004116584081203,
+      "model_seconds": 3.9612257920671254,
+      "prefetch_tokens": 2811,
+      "prefetch_seconds": 0.010284690069966018,
+      "usage_complete": true,
+      "automatic_prefetches": 1,
+      "evidence_count": 2,
+      "exact_received_evidence_count": 2
+    },
+    {
+      "id": "direct-tanstack-01",
+      "arm": "direct",
+      "task": "tanstack-01",
+      "strict_json": true,
+      "decisions_correct": 3,
+      "all_citations_exact_and_received": true,
+      "exact_received_coverage": [
+        "q1",
+        "q2",
+        "q3"
+      ],
+      "semantic_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "recommendation": 2,
+      "uncertainty": 2,
+      "material_unsupported_assertions": [],
+      "issues": [
+        "Citation 1 supports the spinner design but not its assigned current-status claim; citation 0 supports q1."
+      ],
+      "full_success": true,
+      "input_tokens": 32743,
+      "cached_input_tokens": 28288,
+      "uncached_input_tokens": 4455,
+      "output_tokens": 621,
+      "total_tokens": 33364,
+      "model_calls": 3,
+      "retrieval_calls": 2,
+      "online_wall_seconds": 15.405949263949879,
+      "model_seconds": 7.660155549063347,
+      "prefetch_tokens": null,
+      "prefetch_seconds": null,
+      "usage_complete": true,
+      "automatic_prefetches": 0,
+      "evidence_count": 3,
+      "exact_received_evidence_count": 3
+    },
+    {
+      "id": "source-tanstack-01",
+      "arm": "source",
+      "task": "tanstack-01",
+      "strict_json": true,
+      "decisions_correct": 3,
+      "all_citations_exact_and_received": true,
+      "exact_received_coverage": [
+        "q1",
+        "q2",
+        "q3"
+      ],
+      "semantic_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "recommendation": 2,
+      "uncertainty": 2,
+      "material_unsupported_assertions": [],
+      "issues": [
+        "A fetching-only spinner guard meets the initial no-spinner requirement; no exact API-name match to the rubric is imposed."
+      ],
+      "full_success": true,
+      "input_tokens": 12327,
+      "cached_input_tokens": 7680,
+      "uncached_input_tokens": 4647,
+      "output_tokens": 518,
+      "total_tokens": 12845,
+      "model_calls": 1,
+      "retrieval_calls": 0,
+      "online_wall_seconds": 11.45443989499472,
+      "model_seconds": 4.654058214044198,
+      "prefetch_tokens": 2432,
+      "prefetch_seconds": 0.008480831980705261,
+      "usage_complete": true,
+      "automatic_prefetches": 1,
+      "evidence_count": 3,
+      "exact_received_evidence_count": 3
+    },
+    {
+      "id": "method-tanstack-01",
+      "arm": "method",
+      "task": "tanstack-01",
+      "strict_json": true,
+      "decisions_correct": 3,
+      "all_citations_exact_and_received": true,
+      "exact_received_coverage": [
+        "q1",
+        "q2",
+        "q3"
+      ],
+      "semantic_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "recommendation": 2,
+      "uncertainty": 2,
+      "material_unsupported_assertions": [],
+      "issues": [
+        "The fetching-only spinner guard meets the initial no-spinner requirement; no exact API-name match to the rubric is imposed."
+      ],
+      "full_success": true,
+      "input_tokens": 26234,
+      "cached_input_tokens": 20608,
+      "uncached_input_tokens": 5626,
+      "output_tokens": 579,
+      "total_tokens": 26813,
+      "model_calls": 2,
+      "retrieval_calls": 0,
+      "online_wall_seconds": 15.317641356959939,
+      "model_seconds": 6.896004140959121,
+      "prefetch_tokens": 3193,
+      "prefetch_seconds": 0.01319481199607253,
+      "usage_complete": true,
+      "automatic_prefetches": 1,
+      "evidence_count": 2,
+      "exact_received_evidence_count": 2
+    },
+    {
+      "id": "direct-tanstack-02",
+      "arm": "direct",
+      "task": "tanstack-02",
+      "strict_json": true,
+      "decisions_correct": 3,
+      "all_citations_exact_and_received": true,
+      "exact_received_coverage": [
+        "q1",
+        "q2",
+        "q3"
+      ],
+      "semantic_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "recommendation": 1,
+      "uncertainty": 1,
+      "material_unsupported_assertions": [
+        {
+          "field": "recommendation",
+          "assertion": "The recommendation implies that the same pending query can retain completion after last-observer unmount while using the query AbortSignal to stop HTTP for a Cancel button. It does not supply an independent request-lifetime/controller design; the source ties consumed query signals to cancellation on last-observer removal."
+        }
+      ],
+      "issues": [
+        "The recommendation omits that wiring the query signal to fetch also changes last-observer-unmount behavior.",
+        "The uncertainty recognizes signal-dependent HTTP abort but omits cache reuse depending on garbage collection."
+      ],
+      "full_success": false,
+      "input_tokens": 33236,
+      "cached_input_tokens": 28288,
+      "uncached_input_tokens": 4948,
+      "output_tokens": 704,
+      "total_tokens": 33940,
+      "model_calls": 3,
+      "retrieval_calls": 3,
+      "online_wall_seconds": 16.503266186919063,
+      "model_seconds": 8.161909984075464,
+      "prefetch_tokens": null,
+      "prefetch_seconds": null,
+      "usage_complete": true,
+      "automatic_prefetches": 0,
+      "evidence_count": 3,
+      "exact_received_evidence_count": 3
+    },
+    {
+      "id": "source-tanstack-02",
+      "arm": "source",
+      "task": "tanstack-02",
+      "strict_json": true,
+      "decisions_correct": 3,
+      "all_citations_exact_and_received": true,
+      "exact_received_coverage": [
+        "q1",
+        "q2",
+        "q3"
+      ],
+      "semantic_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "recommendation": 1,
+      "uncertainty": 1,
+      "material_unsupported_assertions": [
+        {
+          "field": "recommendation",
+          "assertion": "The recommendation implies that the same pending query can retain completion after last-observer unmount while using the query AbortSignal to stop HTTP for a Cancel button. It does not supply an independent request-lifetime/controller design; the source ties consumed query signals to cancellation on last-observer removal."
+        }
+      ],
+      "issues": [
+        "The recommendation does not resolve how background completion and signal-connected Cancel coexist for the same pending request.",
+        "Uncertainty omits both the unmount tradeoff and garbage-collection limit."
+      ],
+      "full_success": false,
+      "input_tokens": 12283,
+      "cached_input_tokens": 7680,
+      "uncached_input_tokens": 4603,
+      "output_tokens": 394,
+      "total_tokens": 12677,
+      "model_calls": 1,
+      "retrieval_calls": 0,
+      "online_wall_seconds": 10.348393785883673,
+      "model_seconds": 3.486012488952838,
+      "prefetch_tokens": 2397,
+      "prefetch_seconds": 0.008106477907858789,
+      "usage_complete": true,
+      "automatic_prefetches": 1,
+      "evidence_count": 3,
+      "exact_received_evidence_count": 3
+    },
+    {
+      "id": "method-tanstack-02",
+      "arm": "method",
+      "task": "tanstack-02",
+      "strict_json": true,
+      "decisions_correct": 3,
+      "all_citations_exact_and_received": true,
+      "exact_received_coverage": [
+        "q1",
+        "q2",
+        "q3"
+      ],
+      "semantic_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "recommendation": 1,
+      "uncertainty": 1,
+      "material_unsupported_assertions": [
+        {
+          "field": "recommendation",
+          "assertion": "The recommendation implies that the same pending query can retain completion after last-observer unmount while using the query AbortSignal to stop HTTP for a Cancel button. It does not supply an independent request-lifetime/controller design; the source ties consumed query signals to cancellation on last-observer removal."
+        }
+      ],
+      "issues": [
+        "The plan omits the tradeoff that passing the query signal to fetch also changes unmount cancellation behavior.",
+        "Uncertainty omits the garbage-collection limit on cache reuse."
+      ],
+      "full_success": false,
+      "input_tokens": 12812,
+      "cached_input_tokens": 7680,
+      "uncached_input_tokens": 5132,
+      "output_tokens": 502,
+      "total_tokens": 13314,
+      "model_calls": 1,
+      "retrieval_calls": 0,
+      "online_wall_seconds": 11.3505173799349,
+      "model_seconds": 4.624273705063388,
+      "prefetch_tokens": 2926,
+      "prefetch_seconds": 0.010369434952735901,
+      "usage_complete": true,
+      "automatic_prefetches": 1,
+      "evidence_count": 3,
+      "exact_received_evidence_count": 3
+    },
+    {
+      "id": "direct-tanstack-03",
+      "arm": "direct",
+      "task": "tanstack-03",
+      "strict_json": true,
+      "decisions_correct": 3,
+      "all_citations_exact_and_received": false,
+      "exact_received_coverage": [
+        "q1",
+        "q2",
+        "q3"
+      ],
+      "semantic_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "recommendation": 2,
+      "uncertainty": 2,
+      "material_unsupported_assertions": [],
+      "issues": [
+        "The fetchQuery proposal is qualified by appropriate options and request-level verification; it is not scored as a guarantee that unchanged static options force a request."
+      ],
+      "full_success": false,
+      "input_tokens": 46914,
+      "cached_input_tokens": 40448,
+      "uncached_input_tokens": 6466,
+      "output_tokens": 796,
+      "total_tokens": 47710,
+      "model_calls": 4,
+      "retrieval_calls": 5,
+      "online_wall_seconds": 23.672356365947053,
+      "model_seconds": 14.742127250880003,
+      "prefetch_tokens": null,
+      "prefetch_seconds": null,
+      "usage_complete": true,
+      "automatic_prefetches": 0,
+      "evidence_count": 4,
+      "exact_received_evidence_count": 2
+    },
+    {
+      "id": "source-tanstack-03",
+      "arm": "source",
+      "task": "tanstack-03",
+      "strict_json": true,
+      "decisions_correct": 3,
+      "all_citations_exact_and_received": true,
+      "exact_received_coverage": [
+        "q1",
+        "q2",
+        "q3"
+      ],
+      "semantic_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "recommendation": 2,
+      "uncertainty": 2,
+      "material_unsupported_assertions": [],
+      "issues": [
+        "Citation 2 does not establish refetch exclusion; citation 0 supplies the necessary exclusion evidence."
+      ],
+      "full_success": true,
+      "input_tokens": 11953,
+      "cached_input_tokens": 7680,
+      "uncached_input_tokens": 4273,
+      "output_tokens": 480,
+      "total_tokens": 12433,
+      "model_calls": 1,
+      "retrieval_calls": 0,
+      "online_wall_seconds": 11.149847924010828,
+      "model_seconds": 4.40961557708215,
+      "prefetch_tokens": 2074,
+      "prefetch_seconds": 0.008385665016248822,
+      "usage_complete": true,
+      "automatic_prefetches": 1,
+      "evidence_count": 3,
+      "exact_received_evidence_count": 3
+    },
+    {
+      "id": "method-tanstack-03",
+      "arm": "method",
+      "task": "tanstack-03",
+      "strict_json": true,
+      "decisions_correct": 3,
+      "all_citations_exact_and_received": true,
+      "exact_received_coverage": [
+        "q1",
+        "q2",
+        "q3"
+      ],
+      "semantic_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "recommendation": 2,
+      "uncertainty": 2,
+      "material_unsupported_assertions": [],
+      "issues": [],
+      "full_success": true,
+      "input_tokens": 41630,
+      "cached_input_tokens": 26112,
+      "uncached_input_tokens": 15518,
+      "output_tokens": 601,
+      "total_tokens": 42231,
+      "model_calls": 3,
+      "retrieval_calls": 3,
+      "online_wall_seconds": 19.27208296000026,
+      "model_seconds": 11.156054010847583,
+      "prefetch_tokens": 2833,
+      "prefetch_seconds": 0.011739894049242139,
+      "usage_complete": true,
+      "automatic_prefetches": 1,
+      "evidence_count": 3,
+      "exact_received_evidence_count": 3
+    },
+    {
+      "id": "direct-duckdb-01",
+      "arm": "direct",
+      "task": "duckdb-01",
+      "strict_json": true,
+      "decisions_correct": 3,
+      "all_citations_exact_and_received": true,
+      "exact_received_coverage": [
+        "q1",
+        "q2",
+        "q3"
+      ],
+      "semantic_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "recommendation": 2,
+      "uncertainty": 1,
+      "material_unsupported_assertions": [],
+      "issues": [
+        "Uncertainty scopes the release and disclaims execution but does not identify that arbitrary VARCHAR date text may fail to parse."
+      ],
+      "full_success": true,
+      "input_tokens": 47051,
+      "cached_input_tokens": 40320,
+      "uncached_input_tokens": 6731,
+      "output_tokens": 668,
+      "total_tokens": 47719,
+      "model_calls": 4,
+      "retrieval_calls": 4,
+      "online_wall_seconds": 18.208619287004694,
+      "model_seconds": 9.195822852896526,
+      "prefetch_tokens": null,
+      "prefetch_seconds": null,
+      "usage_complete": true,
+      "automatic_prefetches": 0,
+      "evidence_count": 3,
+      "exact_received_evidence_count": 3
+    },
+    {
+      "id": "source-duckdb-01",
+      "arm": "source",
+      "task": "duckdb-01",
+      "strict_json": true,
+      "decisions_correct": 3,
+      "all_citations_exact_and_received": true,
+      "exact_received_coverage": [
+        "q1",
+        "q2"
+      ],
+      "semantic_support": {
+        "q1": true,
+        "q2": true,
+        "q3": false
+      },
+      "recommendation": 2,
+      "uncertainty": 1,
+      "material_unsupported_assertions": [],
+      "issues": [
+        "q3 has the correct decision but lacks semantically supporting cited evidence.",
+        "Uncertainty acknowledges the missing direct comparison evidence, but the quoted explicit-cast rule does not justify the q3 inference and the uncertainty does not identify the arbitrary-text parsing boundary."
+      ],
+      "full_success": false,
+      "input_tokens": 39731,
+      "cached_input_tokens": 32384,
+      "uncached_input_tokens": 7347,
+      "output_tokens": 755,
+      "total_tokens": 40486,
+      "model_calls": 3,
+      "retrieval_calls": 2,
+      "online_wall_seconds": 16.211927914991975,
+      "model_seconds": 8.487002053065225,
+      "prefetch_tokens": 2082,
+      "prefetch_seconds": 0.006951965973712504,
+      "usage_complete": true,
+      "automatic_prefetches": 1,
+      "evidence_count": 4,
+      "exact_received_evidence_count": 4
+    },
+    {
+      "id": "method-duckdb-01",
+      "arm": "method",
+      "task": "duckdb-01",
+      "strict_json": true,
+      "decisions_correct": 3,
+      "all_citations_exact_and_received": true,
+      "exact_received_coverage": [
+        "q1",
+        "q2",
+        "q3"
+      ],
+      "semantic_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "recommendation": 2,
+      "uncertainty": 2,
+      "material_unsupported_assertions": [],
+      "issues": [
+        "Several example-only citations lack outcomes, but citations 0, 3 and 4 provide complete semantic claim coverage."
+      ],
+      "full_success": true,
+      "input_tokens": 42636,
+      "cached_input_tokens": 33792,
+      "uncached_input_tokens": 8844,
+      "output_tokens": 926,
+      "total_tokens": 43562,
+      "model_calls": 3,
+      "retrieval_calls": 3,
+      "online_wall_seconds": 18.771689275978133,
+      "model_seconds": 10.852540745050646,
+      "prefetch_tokens": 2776,
+      "prefetch_seconds": 0.010886966018006206,
+      "usage_complete": true,
+      "automatic_prefetches": 1,
+      "evidence_count": 7,
+      "exact_received_evidence_count": 7
+    },
+    {
+      "id": "direct-duckdb-02",
+      "arm": "direct",
+      "task": "duckdb-02",
+      "strict_json": true,
+      "decisions_correct": 3,
+      "all_citations_exact_and_received": false,
+      "exact_received_coverage": [
+        "q1",
+        "q3"
+      ],
+      "semantic_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "recommendation": 2,
+      "uncertainty": 2,
+      "material_unsupported_assertions": [],
+      "issues": [
+        "The uncertainty leaves the pipeline and its NULL handling unprovided/unexecuted rather than treating NULL fallback as batch validation."
+      ],
+      "full_success": false,
+      "input_tokens": 33129,
+      "cached_input_tokens": 17408,
+      "uncached_input_tokens": 15721,
+      "output_tokens": 520,
+      "total_tokens": 33649,
+      "model_calls": 3,
+      "retrieval_calls": 2,
+      "online_wall_seconds": 17.205899977008812,
+      "model_seconds": 8.351655550068244,
+      "prefetch_tokens": null,
+      "prefetch_seconds": null,
+      "usage_complete": true,
+      "automatic_prefetches": 0,
+      "evidence_count": 3,
+      "exact_received_evidence_count": 2
+    },
+    {
+      "id": "source-duckdb-02",
+      "arm": "source",
+      "task": "duckdb-02",
+      "strict_json": true,
+      "decisions_correct": 3,
+      "all_citations_exact_and_received": true,
+      "exact_received_coverage": [
+        "q1",
+        "q2",
+        "q3"
+      ],
+      "semantic_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "recommendation": 2,
+      "uncertainty": 2,
+      "material_unsupported_assertions": [],
+      "issues": [
+        "Uncertainty leaves import-specific NULL handling unverified and disclaims execution; the recommendation separately requires handling/recording those NULLs."
+      ],
+      "full_success": true,
+      "input_tokens": 39046,
+      "cached_input_tokens": 32128,
+      "uncached_input_tokens": 6918,
+      "output_tokens": 581,
+      "total_tokens": 39627,
+      "model_calls": 3,
+      "retrieval_calls": 2,
+      "online_wall_seconds": 16.26295191491954,
+      "model_seconds": 8.795946199912578,
+      "prefetch_tokens": 2007,
+      "prefetch_seconds": 0.0077439299784600735,
+      "usage_complete": true,
+      "automatic_prefetches": 1,
+      "evidence_count": 2,
+      "exact_received_evidence_count": 2
+    },
+    {
+      "id": "method-duckdb-02",
+      "arm": "method",
+      "task": "duckdb-02",
+      "strict_json": true,
+      "decisions_correct": 2,
+      "all_citations_exact_and_received": true,
+      "exact_received_coverage": [
+        "q1",
+        "q2"
+      ],
+      "semantic_support": {
+        "q1": true,
+        "q2": true,
+        "q3": false
+      },
+      "recommendation": 1,
+      "uncertainty": 1,
+      "material_unsupported_assertions": [],
+      "issues": [
+        "q3=false is incorrect under the frozen source, which explicitly states that the number will be rounded.",
+        "The recommendation gives a useful NULL-fallback policy but omits the documented rounding policy.",
+        "The uncertainty refers to missing information in its supplied excerpt; received-excerpt scope is not adjudicated here. It does not address the NULL-fallback-versus-semantic-validity boundary."
+      ],
+      "full_success": false,
+      "input_tokens": 40502,
+      "cached_input_tokens": 33152,
+      "uncached_input_tokens": 7350,
+      "output_tokens": 605,
+      "total_tokens": 41107,
+      "model_calls": 3,
+      "retrieval_calls": 2,
+      "online_wall_seconds": 20.119789840071462,
+      "model_seconds": 9.150688446010463,
+      "prefetch_tokens": 2470,
+      "prefetch_seconds": 0.009389362996444106,
+      "usage_complete": true,
+      "automatic_prefetches": 1,
+      "evidence_count": 3,
+      "exact_received_evidence_count": 3
+    },
+    {
+      "id": "direct-duckdb-03",
+      "arm": "direct",
+      "task": "duckdb-03",
+      "strict_json": true,
+      "decisions_correct": 3,
+      "all_citations_exact_and_received": true,
+      "exact_received_coverage": [
+        "q1",
+        "q2",
+        "q3"
+      ],
+      "semantic_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "recommendation": 1,
+      "uncertainty": 2,
+      "material_unsupported_assertions": [],
+      "issues": [
+        "The plan keeps original files and calls broader compatibility unvalidated, but does not concretely require testing the actual rollback artifact."
+      ],
+      "full_success": true,
+      "input_tokens": 46490,
+      "cached_input_tokens": 40192,
+      "uncached_input_tokens": 6298,
+      "output_tokens": 648,
+      "total_tokens": 47138,
+      "model_calls": 4,
+      "retrieval_calls": 3,
+      "online_wall_seconds": 21.316846624016762,
+      "model_seconds": 13.519327899906784,
+      "prefetch_tokens": null,
+      "prefetch_seconds": null,
+      "usage_complete": true,
+      "automatic_prefetches": 0,
+      "evidence_count": 3,
+      "exact_received_evidence_count": 3
+    },
+    {
+      "id": "source-duckdb-03",
+      "arm": "source",
+      "task": "duckdb-03",
+      "strict_json": true,
+      "decisions_correct": 3,
+      "all_citations_exact_and_received": true,
+      "exact_received_coverage": [
+        "q1",
+        "q2",
+        "q3"
+      ],
+      "semantic_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "recommendation": 2,
+      "uncertainty": 1,
+      "material_unsupported_assertions": [],
+      "issues": [
+        "Uncertainty identifies best-effort forward compatibility and lack of execution, but does not explicitly distinguish the future backward-compatibility goal from validation of future versions."
+      ],
+      "full_success": true,
+      "input_tokens": 52227,
+      "cached_input_tokens": 44928,
+      "uncached_input_tokens": 7299,
+      "output_tokens": 739,
+      "total_tokens": 52966,
+      "model_calls": 4,
+      "retrieval_calls": 3,
+      "online_wall_seconds": 17.2158739650622,
+      "model_seconds": 9.371668037958443,
+      "prefetch_tokens": 2245,
+      "prefetch_seconds": 0.007498251041397452,
+      "usage_complete": true,
+      "automatic_prefetches": 1,
+      "evidence_count": 3,
+      "exact_received_evidence_count": 3
+    },
+    {
+      "id": "method-duckdb-03",
+      "arm": "method",
+      "task": "duckdb-03",
+      "strict_json": true,
+      "decisions_correct": 3,
+      "all_citations_exact_and_received": true,
+      "exact_received_coverage": [
+        "q1",
+        "q2",
+        "q3"
+      ],
+      "semantic_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "recommendation": 1,
+      "uncertainty": 1,
+      "material_unsupported_assertions": [],
+      "issues": [
+        "The recommendation preserves a readable copy but does not call for testing the actual rollback artifact.",
+        "Uncertainty states best-effort and file-specific limits, but omits the future-goal-versus-future-validation boundary."
+      ],
+      "full_success": true,
+      "input_tokens": 57054,
+      "cached_input_tokens": 48384,
+      "uncached_input_tokens": 8670,
+      "output_tokens": 680,
+      "total_tokens": 57734,
+      "model_calls": 4,
+      "retrieval_calls": 3,
+      "online_wall_seconds": 20.673597421962768,
+      "model_seconds": 12.81276499805972,
+      "prefetch_tokens": 2728,
+      "prefetch_seconds": 0.011158272041939199,
+      "usage_complete": true,
+      "automatic_prefetches": 1,
+      "evidence_count": 3,
+      "exact_received_evidence_count": 3
+    }
+  ],
+  "experiment_candidate_tokens": 892885,
+  "experiment_candidate_cached_input_tokens": 653696,
+  "preparation_model_tokens": null,
+  "grading_model_tokens": null,
+  "preparation": {
+    "schema": "method-evidence-index-v1",
+    "sources": 9,
+    "seconds": 0.06735972699243575
+  },
+  "freeze_sha256": "6c11636bbde67c7b21fb40593dc51e233b60ecf950e863009c2a036a136fbe72",
+  "frozen_files_unchanged": true,
+  "notes": [
+    "Strict citation match includes whitespace/inline markup normalization, not paraphrase or literal backslash-n expansion.",
+    "Primary gate also requires semantic support and no material unsupported recommendation; exact decisions alone are insufficient.",
+    "Source default is ordinary RAG prefetch inside OpenAkashic, NOT a graph-specific advantage.",
+    "Direct baseline is bounded to nine official sources, not full Internet search. Direct reads are live HTTP; prefetch uses cached pinned originals.",
+    "Both prefetch modes share 4096-token cap and same fallbacks; include automatic prefetch in total retrieval operation counts.",
+    "Source ingestion, licensing review, model grading and maintenance are separate from serving; unknown costs remain null.",
+    "Single repetition in three software libraries; no user, expert-panel, design/career/investment or business outcome proof.",
+    "Provider cache differs between runs. Cached tokens are included in input/total, not proof of cash savings."
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "fixed_denominator": 9,
+  "tasks": [
+    {
+      "id": "streamlit-01",
+      "product_version": "Streamlit 1.46.0",
+      "inputquery": "A Streamlit 1.46.0 operations panel has a fragment that may run during initial full-app execution or after its own widget changes. A proposed unconditional st.rerun(scope=\"fragment\") sits inside it. q1: Is that call valid during initial full-app execution (boolean)? q2: Does st.rerun() without a scope request the whole app (boolean)? q3: After st.rerun() is called, do following statements in that run execute (boolean)? Recommend how to structure the refresh path. Return JSON only: {\"decisions\":{\"q1\":value,\"q2\":value,\"q3\":value},\"recommendation\":\"action to take\",\"evidence\":[{\"url\":\"source URL\",\"quote\":\"verbatim continuous source words\",\"supports\":[\"q1\"]}],\"uncertainty\":\"limits or missing evidence\"}. Use source-grounded evidence; do not claim a proposed change has been executed."
+    },
+    {
+      "id": "streamlit-02",
+      "product_version": "Streamlit 1.46.0",
+      "inputquery": "In Streamlit 1.46.0, a live incident fragment writes text into a container created outside it, mutates a Session State counter, and needs a sidebar filter. The developer proposes putting the filter widget in that external container and calling st.sidebar directly inside the fragment. q1: Will external text accumulate until an app rerun (boolean)? q2: Can the fragment render widgets into that external container (boolean)? q3: Choose the documented sidebar approach: \"direct_sidebar_call\" or \"call_fragment_within_sidebar_context\". Recommend a safe layout and counter strategy. Return JSON only: {\"decisions\":{\"q1\":value,\"q2\":value,\"q3\":value},\"recommendation\":\"action to take\",\"evidence\":[{\"url\":\"source URL\",\"quote\":\"verbatim continuous source words\",\"supports\":[\"q1\"]}],\"uncertainty\":\"limits or missing evidence\"}. Use source-grounded evidence; do not claim a proposed change has been executed."
+    },
+    {
+      "id": "streamlit-03",
+      "product_version": "Streamlit 1.46.0",
+      "inputquery": "A Streamlit 1.46.0 monitoring app proposes @st.fragment(run_every=\"10s\") for a status card while its session is active. Another team asks whether the same behavior is guaranteed in Streamlit 1.47.0, but only the supplied version-pinned material may be used. q1: In 1.46.0, can the interval trigger reruns without user interaction (boolean)? q2: Where should a fragment store values needed by the wider app: \"session_state\" or \"return_only\"? q3: Is unchanged 1.47.0 behavior established here: \"established\" or \"unknown\"? Recommend a rollout decision. Return JSON only: {\"decisions\":{\"q1\":value,\"q2\":value,\"q3\":value},\"recommendation\":\"action to take\",\"evidence\":[{\"url\":\"source URL\",\"quote\":\"verbatim continuous source words\",\"supports\":[\"q1\"]}],\"uncertainty\":\"limits or missing evidence\"}. Use source-grounded evidence; do not claim a proposed change has been executed."
+    },
+    {
+      "id": "tanstack-01",
+      "product_version": "TanStack Query 5.90.5",
+      "inputquery": "A TanStack Query 5.90.5 search screen must wait for an Apply action, show no spinner before the first request, and retain a manual Retry button. It has no cached data and currently uses enabled:false with a real queryFn. A teammate proposes replacing queryFn with skipToken while still relying on refetch(). q1: Before requesting, choose fetchStatus: \"idle\" or \"fetching\". q2: Can refetch() manually fetch with the existing enabled:false setup (boolean)? q3: Will that manual refetch still work while queryFn is skipToken (boolean)? Recommend the loading and query configuration. Return JSON only: {\"decisions\":{\"q1\":value,\"q2\":value,\"q3\":value},\"recommendation\":\"action to take\",\"evidence\":[{\"url\":\"source URL\",\"quote\":\"verbatim continuous source words\",\"supports\":[\"q1\"]}],\"uncertainty\":\"limits or missing evidence\"}. Use source-grounded evidence; do not claim a proposed change has been executed."
+    },
+    {
+      "id": "tanstack-02",
+      "product_version": "TanStack Query 5.90.5",
+      "inputquery": "A TanStack Query 5.90.5 detail screen uses ordinary useQuery. Its fetch ignores the supplied signal, and the last observer unmounts while the request is pending. The product wants the eventual result cached, but also wants a separate Cancel button that stops the HTTP request. q1: Is the unfinished promise cancelled by default on unmount (boolean)? q2: Can its eventual data become available in cache (boolean)? q3: With the signal passed into fetch, does cancellation revert query state to its previous state (boolean)? Recommend how to reconcile the two user paths. Return JSON only: {\"decisions\":{\"q1\":value,\"q2\":value,\"q3\":value},\"recommendation\":\"action to take\",\"evidence\":[{\"url\":\"source URL\",\"quote\":\"verbatim continuous source words\",\"supports\":[\"q1\"]}],\"uncertainty\":\"limits or missing evidence\"}. Use source-grounded evidence; do not claim a proposed change has been executed."
+    },
+    {
+      "id": "tanstack-03",
+      "product_version": "TanStack Query 5.90.5",
+      "inputquery": "In TanStack Query 5.90.5, a dashboard has an observed query with enabled:false and another observed query with staleTime:\"static\". A refresh action calls queryClient.refetchQueries for both keys and the code awaits successful completion. A developer wants to use that completion as proof both endpoints were requested. q1: Does refetchQueries fetch the disabled query (boolean)? q2: Does it fetch the static query (boolean)? q3: Is the resolved refresh promise proof both network requests executed (boolean)? Recommend a refresh design and verification. Return JSON only: {\"decisions\":{\"q1\":value,\"q2\":value,\"q3\":value},\"recommendation\":\"action to take\",\"evidence\":[{\"url\":\"source URL\",\"quote\":\"verbatim continuous source words\",\"supports\":[\"q1\"]}],\"uncertainty\":\"limits or missing evidence\"}. Use source-grounded evidence; do not claim a proposed change has been executed."
+    },
+    {
+      "id": "duckdb-01",
+      "product_version": "DuckDB 0.10.0",
+      "inputquery": "A DuckDB 0.10.0 migration formats numeric IDs with substring(42,1,1), and compares a DATE column to a string literal. A proposed cleanup casts the literal to VARCHAR before comparing. q1: Does the uncast numeric substring call bind under the new default rules (boolean)? q2: Can a string literal be implicitly converted for a DATE comparison (boolean)? q3: Is a DATE comparison against an explicitly VARCHAR value accepted without another explicit cast (boolean)? Recommend the migration edits. Return JSON only: {\"decisions\":{\"q1\":value,\"q2\":value,\"q3\":value},\"recommendation\":\"action to take\",\"evidence\":[{\"url\":\"source URL\",\"quote\":\"verbatim continuous source words\",\"supports\":[\"q1\"]}],\"uncertainty\":\"limits or missing evidence\"}. Use source-grounded evidence; do not claim a proposed change has been executed."
+    },
+    {
+      "id": "duckdb-02",
+      "product_version": "DuckDB 0.10.0",
+      "inputquery": "A DuckDB 0.10.0 import narrows an INTEGER field to TINYINT. The batch contains 999 and must keep processing rather than fail on that row. Another numeric column contains 3.5 and will be explicitly cast to INTEGER. q1: Does support for a source/target cast guarantee success for every value (boolean)? q2: Choose the overflow-handling expression: \"CAST\" or \"TRY_CAST\". q3: Does the documented explicit fractional-to-integer conversion round rather than simply truncate (boolean)? Recommend an import policy. Return JSON only: {\"decisions\":{\"q1\":value,\"q2\":value,\"q3\":value},\"recommendation\":\"action to take\",\"evidence\":[{\"url\":\"source URL\",\"quote\":\"verbatim continuous source words\",\"supports\":[\"q1\"]}],\"uncertainty\":\"limits or missing evidence\"}. Use source-grounded evidence; do not claim a proposed change has been executed."
+    },
+    {
+      "id": "duckdb-03",
+      "product_version": "DuckDB 0.10.0",
+      "inputquery": "A team upgrading to DuckDB 0.10.0 wants to read existing 0.9 files and keep a 0.9 rollback reader for newly written files. Its new schema includes a view. The release also describes future storage compatibility goals. q1: Can 0.10 read files made by 0.9 (boolean)? q2: Is a newly written 0.10 file containing a view within the documented 0.9 forward-compatible subset (boolean)? q3: Should the future-version backward-compatibility goal be classified as \"goal\" or \"executed_validation_of_all_future_versions\"? Recommend a rollback plan. Return JSON only: {\"decisions\":{\"q1\":value,\"q2\":value,\"q3\":value},\"recommendation\":\"action to take\",\"evidence\":[{\"url\":\"source URL\",\"quote\":\"verbatim continuous source words\",\"supports\":[\"q1\"]}],\"uncertainty\":\"limits or missing evidence\"}. Use source-grounded evidence; do not claim a proposed change has been executed."
+    }
+  ]
+}

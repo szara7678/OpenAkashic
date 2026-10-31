@@ -1,0 +1,717 @@
+{
+  "grader": "gpt-6.1-sol",
+  "human_review": false,
+  "cases": [
+    {
+      "label": "case-044179e74733",
+      "recommendation": 2,
+      "uncertainty": 1,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1",
+            "q2",
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "The st.stop halt rule supports choosing stop and q2=false; the adjacent message recommendation directly establishes q3."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "The branch order is actionable. Uncertainty is generic and does not distinguish ending this run from submission success, validation completeness, or durable authorization."
+      ]
+    },
+    {
+      "label": "case-0522db1455cf",
+      "recommendation": 2,
+      "uncertainty": 1,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q3"
+          ],
+          "unsupported_qids": [
+            "q2"
+          ],
+          "note": "The accepted-type declaration establishes timedelta acceptance. Listing float alone does not establish that its unit is seconds."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "The float/integer interval unit is explicitly seconds."
+        },
+        {
+          "index": 2,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "None is explicitly user-triggered-only, so no automatic interval is configured."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "The initial and later schedules are supported. Uncertainty disclaims library execution but omits the autosave-latency/save-execution boundary."
+      ]
+    },
+    {
+      "label": "case-073193a6f16f",
+      "recommendation": 2,
+      "uncertainty": 1,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "The selection rule explicitly chooses the longest matching prefix."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "Temporary secrets are explicitly the default."
+        },
+        {
+          "index": 2,
+          "supported_qids": [
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "Persistent-secret storage is explicitly unencrypted binary."
+        },
+        {
+          "index": 3,
+          "supported_qids": [],
+          "unsupported_qids": [],
+          "note": "Different scoped credentials support the recommended setup, but this passage does not establish any of the three decision claims by itself."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "Uncertainty says the pipeline was not verified but does not specifically leave filesystem/secret-storage protections unverified. The recommendation correctly treats storage protection as a proposed action."
+      ]
+    },
+    {
+      "label": "case-07c767615c67",
+      "recommendation": 2,
+      "uncertainty": 1,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1",
+            "q2",
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "The complete write path passes prevData to the updater, returns before build on undefined, and writes defined data with manual:true."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "Together with the cited functionalUpdate(updater, prevData) call, the function-body quote confirms that an updater function receives that previous-data input."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "Uncertainty does not identify that this cache-write path establishes neither backend persistence nor a completed optimistic-edit rollback test."
+      ]
+    },
+    {
+      "label": "case-1fd261dae8de",
+      "recommendation": 1,
+      "uncertainty": 2,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "The manager may explicitly respond with a reduced allocation."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "The temporary-directory requirement is explicitly tied to offloading in the constrained-memory example."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "The staging experiment controls memory and temporary-directory configuration, but does not explicitly control thread count or assess available disk capacity as required by the full recommendation rubric.",
+        "q3 is supported by explicit workload-scope abstention: the unmeasured production job has no established runtime/completion guarantee."
+      ]
+    },
+    {
+      "label": "case-29824c2f93c3",
+      "recommendation": 2,
+      "uncertainty": 1,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "In the silent option context, the quote explicitly states suppression of CancelledError propagation to observers."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "In the revert option context, the quoted default is true."
+        },
+        {
+          "index": 2,
+          "supported_qids": [
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "The Suspense cancellation exclusion is explicit."
+        },
+        {
+          "index": 3,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "The documented ordinary cancelQueries call reverts previous state without an explicit revert option; this supports default reversion."
+        },
+        {
+          "index": 4,
+          "supported_qids": [],
+          "unsupported_qids": [
+            "q2"
+          ],
+          "note": "This describes what revert:true does, not whether true is the default. Citation 1 establishes the default."
+        },
+        {
+          "index": 5,
+          "supported_qids": [],
+          "unsupported_qids": [
+            "q1"
+          ],
+          "note": "The example shows how to pass silent:true, but the invocation alone does not establish suppression of CancelledError propagation. Citation 0 establishes that behavior."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "The hook/options recommendation is actionable. Uncertainty recognizes the Suspense and application-combination limits but omits that quiet observer behavior is not proof a transport or remote operation stopped."
+      ]
+    },
+    {
+      "label": "case-52c5bef9140f",
+      "recommendation": 2,
+      "uncertainty": 1,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "None explicitly restricts reruns to user-triggered events."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "Float interval values explicitly use seconds."
+        },
+        {
+          "index": 2,
+          "supported_qids": [
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "A timedelta object is explicitly accepted."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "The uncertainty is a generic no-execution caveat and does not distinguish the configured interval from measured autosave latency or a save actually occurring."
+      ]
+    },
+    {
+      "label": "case-592166d2f871",
+      "recommendation": 2,
+      "uncertainty": 1,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "The silent option explicitly suppresses CancelledError observer propagation."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "The true default is in the revert option source context."
+        },
+        {
+          "index": 2,
+          "supported_qids": [
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "The source explicitly excludes Suspense hooks from cancellation support."
+        },
+        {
+          "index": 3,
+          "supported_qids": [],
+          "unsupported_qids": [
+            "q2"
+          ],
+          "note": "Restoring data/status describes the effect of revert:true, not its default. Citation 1 independently covers the default."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "The uncertainty does not identify that suppressing an observer error proves neither HTTP abort nor a stopped remote operation."
+      ]
+    },
+    {
+      "label": "case-63ed5df8b5c6",
+      "recommendation": 1,
+      "uncertainty": 2,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "The reduced-allocation response is explicit."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "The constrained-memory example explicitly requires a temporary directory for disk offloading."
+        },
+        {
+          "index": 2,
+          "supported_qids": [
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "The example runtime is scoped to this query on a MacBook; together with the explicit uncertainty, it supports abstaining from a production-job guarantee."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "The proposed representative concurrent-join experiment measures runtime, memory, and offloading, but omits explicit control of thread count and available disk capacity from the full rubric."
+      ]
+    },
+    {
+      "label": "case-853f9418c7a1",
+      "recommendation": 2,
+      "uncertainty": 1,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1",
+            "q2",
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "The complete path shows previous-data input, the early undefined return, and manual:true on the defined write."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "The uncertainty only disclaims execution; it does not identify the backend-persistence or optimistic-rollback-validation boundary."
+      ]
+    },
+    {
+      "label": "case-bfd1db947245",
+      "recommendation": 2,
+      "uncertainty": 1,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1",
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "The missing-cache branch delegates to fetchQuery; the stale-cache branch starts an unawaited prefetch and then returns cachedData."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "The getQueryData comment explicitly says it is nonreactive and recommends a useQuery observer for updates."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "The recommendation separates cached loader readiness from background prefetch. The uncertainty does not explicitly state that the returned cached value proves neither completion nor success of revalidation."
+      ]
+    },
+    {
+      "label": "case-c2c552d92c68",
+      "recommendation": 2,
+      "uncertainty": 2,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "The longest matching prefix selection rule is explicit."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "Temporary default and instance-lifetime in-memory storage are explicit."
+        },
+        {
+          "index": 2,
+          "supported_qids": [
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "Persistent storage is explicitly unencrypted."
+        },
+        {
+          "index": 3,
+          "supported_qids": [],
+          "unsupported_qids": [
+            "q1"
+          ],
+          "note": "A path-prefix scope definition does not by itself establish the longest-match selection rule; citation 0 supplies that rule."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "The uncertainty specifically leaves actual secret definitions and filesystem protections unverified."
+      ]
+    },
+    {
+      "label": "case-c85be518db6f",
+      "recommendation": 2,
+      "uncertainty": 2,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "Every value of a fixed-length array must have the same element count."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "The fixed-array-to-same-element-type-list implicit conversion and exact INTEGER example are explicit."
+        },
+        {
+          "index": 2,
+          "supported_qids": [
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "Different field order is supported through name-based reshuffling."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "The recommendation uses variable-length lists and matching struct names; interface/importer compatibility remains explicitly unverified, without asserting that malformed rows were accepted."
+      ]
+    },
+    {
+      "label": "case-dcd5c1ae411f",
+      "recommendation": 1,
+      "uncertainty": 1,
+      "claim_support": {
+        "q1": false,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [
+            "q1"
+          ],
+          "note": "The absent-cache fetchQuery delegation is explicit. The quote shows unawaited stale prefetch but omits the return of cachedData, so it does not establish the complete assigned q1 claim."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "The comment explicitly identifies getQueryData as nonreactive and useQuery as the observer subscription path."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "q1 has the correct decision but incomplete cited semantic support: a background prefetch is shown without the cached-return statement.",
+        "The recommendation supplies the view subscription but omits separating loader/cache readiness from asynchronous revalidation.",
+        "The uncertainty is generic and does not distinguish cached return from successful/completed revalidation."
+      ]
+    },
+    {
+      "label": "case-e50efec0c14f",
+      "recommendation": 2,
+      "uncertainty": 2,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "Fixed-length arrays explicitly require the same element count in every value."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "The fixed-array-to-same-type-list conversion is explicitly stated; exact capitalization matching is left to the mechanical check."
+        },
+        {
+          "index": 2,
+          "supported_qids": [
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "Matching names and name-based reshuffling support order independence. The quote joins passages separated by a SQL example in the original source; continuous-span validity is left to the mechanical check."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "The proposed list/name-matching policy does not claim malformed-row acceptance or mismatch-name support, and actual importer/interface behavior remains unverified."
+      ]
+    },
+    {
+      "label": "case-ea2b30982fa3",
+      "recommendation": 2,
+      "uncertainty": 1,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1",
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "The source requires a recognized multipage target, excludes arbitrary scripts, and states that current-page execution stops."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "String paths are explicitly relative to the main script."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "The recommendation correctly moves the audit before navigation and uses the registered target. The uncertainty does not specifically distinguish a documented control-flow rule from persisted audit state or verified application target recognition."
+      ]
+    },
+    {
+      "label": "case-f026f81c9fea",
+      "recommendation": 2,
+      "uncertainty": 2,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "The recognized multipage-target requirement excludes arbitrary existing helper files."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q2"
+          ],
+          "unsupported_qids": [],
+          "note": "The main-script-relative path basis is explicit."
+        },
+        {
+          "index": 2,
+          "supported_qids": [
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "The current-page stop behavior is explicit."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "The uncertainty specifically leaves actual registration/path recognition and runtime behavior unverified and makes no audit-persistence claim."
+      ]
+    },
+    {
+      "label": "case-fe5c2fdb5558",
+      "recommendation": 2,
+      "uncertainty": 1,
+      "claim_support": {
+        "q1": true,
+        "q2": true,
+        "q3": true
+      },
+      "citations": [
+        {
+          "index": 0,
+          "supported_qids": [
+            "q1",
+            "q2",
+            "q3"
+          ],
+          "unsupported_qids": [],
+          "note": "The st.stop halt rule supports choosing stop and q2=false; the message recommendation directly establishes q3."
+        },
+        {
+          "index": 1,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "The stop docstring explicitly states immediate termination."
+        },
+        {
+          "index": 2,
+          "supported_qids": [
+            "q1"
+          ],
+          "unsupported_qids": [],
+          "note": "In the rerun source context, queueing another run rules out rerun for the stated no-new-run requirement, complementing the stop evidence."
+        }
+      ],
+      "material_unsupported_assertions": [],
+      "issues": [
+        "The branch order is actionable. The uncertainty omits the distinction between ending this run and submission success, validation completeness, or durable authorization."
+      ]
+    }
+  ]
+}

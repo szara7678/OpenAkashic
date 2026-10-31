@@ -432,7 +432,7 @@ def methods_design_example(
 
 
 @router.get("/{asset}", include_in_schema=False)
-def asset(asset: Literal["app.js", "style.css", "pilot.js", "memory.js", "memory.css", "time.js", "time.css", "methods.js", "methods.css", "methods-graph.js", "methods-kpi.html", "methods-kpi.js", "methods-explore.js", "methods-explore.css"]):
+def asset(asset: Literal["app.js", "style.css", "pilot.js", "memory.js", "memory.css", "time.js", "time.css", "methods.js", "methods.css", "methods-graph.js", "methods-kpi.html", "methods-kpi.js", "methods-explore.js", "methods-explore.css", "evidence-kpi-20261101.html"]):
     return FileResponse(WEB / asset)
 
 

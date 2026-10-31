@@ -1,0 +1,3830 @@
+{
+  "fixed_runs": 18,
+  "runs": [
+    {
+      "id": "direct-validation-streamlit-01",
+      "task": "validation-streamlit-01",
+      "arm": "direct",
+      "parse": {
+        "strict_json_parse": true,
+        "strict_object_parse": true,
+        "strict_error": null,
+        "first_object_parse": true,
+        "first_object_offset": 0,
+        "first_object_trailing_text": false,
+        "first_object_error": null
+      },
+      "strict_decisions": {
+        "q1": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": "main_script",
+          "actual": "main_script",
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "first_object_decisions": {
+        "q1": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": "main_script",
+          "actual": "main_script",
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "evidence_checks": [
+        {
+          "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py",
+          "quote": "The specified page must be recognized by Streamlit's multipage architecture (your main Python file or a Python file in a ``pages/`` folder). Arbitrary Python scripts cannot be passed to ``st.switch_page``.",
+          "supports": [
+            "q1"
+          ],
+          "known_url": true,
+          "exact_source_match": false,
+          "normalized_source_match": true,
+          "exact_exposure_match": false,
+          "normalized_exposure_match": true,
+          "semantic_support": "ungraded"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py",
+          "quote": "The file path (relative to the main script) or an st.Page indicating the page to switch to.",
+          "supports": [
+            "q2"
+          ],
+          "known_url": true,
+          "exact_source_match": false,
+          "normalized_source_match": true,
+          "exact_exposure_match": false,
+          "normalized_exposure_match": true,
+          "semantic_support": "ungraded"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py",
+          "quote": "When ``st.switch_page`` is called, the current page execution stops",
+          "supports": [
+            "q3"
+          ],
+          "known_url": true,
+          "exact_source_match": true,
+          "normalized_source_match": true,
+          "exact_exposure_match": true,
+          "normalized_exposure_match": true,
+          "semantic_support": "ungraded"
+        }
+      ],
+      "answer": {
+        "decisions": {
+          "q1": false,
+          "q2": "main_script",
+          "q3": false
+        },
+        "recommendation": "Choose the registered target `pages/review.py` (or its corresponding `st.Page`), since the source says the target must be recognized by Streamlit’s multipage architecture. Put the audit update before `st.switch_page`, so it runs before the current page stops. This placement and target choice are recommendations based on the source; the application was not executed.",
+        "evidence": [
+          {
+            "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py",
+            "quote": "The specified page must be recognized by Streamlit's multipage architecture (your main Python file or a Python file in a ``pages/`` folder). Arbitrary Python scripts cannot be passed to ``st.switch_page``.",
+            "supports": [
+              "q1"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py",
+            "quote": "The file path (relative to the main script) or an st.Page indicating the page to switch to.",
+            "supports": [
+              "q2"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py",
+            "quote": "When ``st.switch_page`` is called, the current page execution stops",
+            "supports": [
+              "q3"
+            ]
+          }
+        ],
+        "uncertainty": "Evidence is from the pinned Streamlit 1.46.0 source. No application files were supplied or executed, so the registration and exact path of `pages/review.py` in this app are assumed from the task description; runtime behavior was not independently verified."
+      },
+      "first_object_answer": {
+        "decisions": {
+          "q1": false,
+          "q2": "main_script",
+          "q3": false
+        },
+        "recommendation": "Choose the registered target `pages/review.py` (or its corresponding `st.Page`), since the source says the target must be recognized by Streamlit’s multipage architecture. Put the audit update before `st.switch_page`, so it runs before the current page stops. This placement and target choice are recommendations based on the source; the application was not executed.",
+        "evidence": [
+          {
+            "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py",
+            "quote": "The specified page must be recognized by Streamlit's multipage architecture (your main Python file or a Python file in a ``pages/`` folder). Arbitrary Python scripts cannot be passed to ``st.switch_page``.",
+            "supports": [
+              "q1"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py",
+            "quote": "The file path (relative to the main script) or an st.Page indicating the page to switch to.",
+            "supports": [
+              "q2"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py",
+            "quote": "When ``st.switch_page`` is called, the current page execution stops",
+            "supports": [
+              "q3"
+            ]
+          }
+        ],
+        "uncertainty": "Evidence is from the pinned Streamlit 1.46.0 source. No application files were supplied or executed, so the registration and exact path of `pages/review.py` in this app are assumed from the task description; runtime behavior was not independently verified."
+      },
+      "input_tokens": 46256,
+      "cached_input_tokens": 40192,
+      "uncached_input_tokens": 6064,
+      "output_tokens": 651,
+      "total_tokens": 46907,
+      "usage_complete": true,
+      "model_calls": 4,
+      "retrieval_calls": 3,
+      "retrieval_errors": 0,
+      "online_wall_seconds": 18.60938919801265,
+      "wall_seconds": 18.60938919801265,
+      "model_seconds": 9.798093887162395,
+      "prefetch_tokens": null,
+      "prefetch_seconds": null,
+      "call_count_scope": "logged broker receipts only; budget-rejected attempts may be unlogged",
+      "token_totals_are_lower_bound": false,
+      "raw_answer": "{\"decisions\":{\"q1\":false,\"q2\":\"main_script\",\"q3\":false},\"recommendation\":\"Choose the registered target `pages/review.py` (or its corresponding `st.Page`), since the source says the target must be recognized by Streamlit’s multipage architecture. Put the audit update before `st.switch_page`, so it runs before the current page stops. This placement and target choice are recommendations based on the source; the application was not executed.\",\"evidence\":[{\"url\":\"https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py\",\"quote\":\"The specified page must be recognized by Streamlit's multipage architecture (your main Python file or a Python file in a ``pages/`` folder). Arbitrary Python scripts cannot be passed to ``st.switch_page``.\",\"supports\":[\"q1\"]},{\"url\":\"https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py\",\"quote\":\"The file path (relative to the main script) or an st.Page indicating the page to switch to.\",\"supports\":[\"q2\"]},{\"url\":\"https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py\",\"quote\":\"When ``st.switch_page`` is called, the current page execution stops\",\"supports\":[\"q3\"]}],\"uncertainty\":\"Evidence is from the pinned Streamlit 1.46.0 source. No application files were supplied or executed, so the registration and exact path of `pages/review.py` in this app are assumed from the task description; runtime behavior was not independently verified.\"}",
+      "semantic_grade": {
+        "label": "case-f026f81c9fea",
+        "recommendation": 2,
+        "uncertainty": 2,
+        "claim_support": {
+          "q1": true,
+          "q2": true,
+          "q3": true
+        },
+        "citations": [
+          {
+            "index": 0,
+            "supported_qids": [
+              "q1"
+            ],
+            "unsupported_qids": [],
+            "note": "The recognized multipage-target requirement excludes arbitrary existing helper files."
+          },
+          {
+            "index": 1,
+            "supported_qids": [
+              "q2"
+            ],
+            "unsupported_qids": [],
+            "note": "The main-script-relative path basis is explicit."
+          },
+          {
+            "index": 2,
+            "supported_qids": [
+              "q3"
+            ],
+            "unsupported_qids": [],
+            "note": "The current-page stop behavior is explicit."
+          }
+        ],
+        "material_unsupported_assertions": [],
+        "issues": [
+          "The uncertainty specifically leaves actual registration/path recognition and runtime behavior unverified and makes no audit-persistence claim."
+        ]
+      }
+    },
+    {
+      "id": "source-validation-streamlit-01",
+      "task": "validation-streamlit-01",
+      "arm": "source",
+      "parse": {
+        "strict_json_parse": true,
+        "strict_object_parse": true,
+        "strict_error": null,
+        "first_object_parse": true,
+        "first_object_offset": 0,
+        "first_object_trailing_text": false,
+        "first_object_error": null
+      },
+      "strict_decisions": {
+        "q1": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": "main_script",
+          "actual": "main_script",
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "first_object_decisions": {
+        "q1": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": "main_script",
+          "actual": "main_script",
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "evidence_checks": [
+        {
+          "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py",
+          "quote": "When ``st.switch_page`` is called, the current page execution stops and the specified page runs as if the user clicked on it in the sidebar navigation. The specified page must be recognized by Streamlit's multipage architecture (your main Python file or a Python file in a ``pages/`` folder). Arbitrary Python scripts cannot be passed to ``st.switch_page``.",
+          "supports": [
+            "q1",
+            "q3"
+          ],
+          "known_url": true,
+          "exact_source_match": false,
+          "normalized_source_match": true,
+          "exact_exposure_match": false,
+          "normalized_exposure_match": true,
+          "semantic_support": "ungraded"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py",
+          "quote": "The file path (relative to the main script) or an st.Page indicating the page to switch to.",
+          "supports": [
+            "q2"
+          ],
+          "known_url": true,
+          "exact_source_match": false,
+          "normalized_source_match": true,
+          "exact_exposure_match": false,
+          "normalized_exposure_match": true,
+          "semantic_support": "ungraded"
+        }
+      ],
+      "answer": {
+        "decisions": {
+          "q1": false,
+          "q2": "main_script",
+          "q3": false
+        },
+        "recommendation": "Use the registered page path `pages/review.py` (relative to the main script) or its `st.Page` object as the switch target. Put the required audit update before `st.switch_page`, because a successful switch stops execution of the current page. These actions follow the documented behavior; execution was not tested.",
+        "evidence": [
+          {
+            "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py",
+            "quote": "When ``st.switch_page`` is called, the current page execution stops and the specified page runs as if the user clicked on it in the sidebar navigation. The specified page must be recognized by Streamlit's multipage architecture (your main Python file or a Python file in a ``pages/`` folder). Arbitrary Python scripts cannot be passed to ``st.switch_page``.",
+            "supports": [
+              "q1",
+              "q3"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py",
+            "quote": "The file path (relative to the main script) or an st.Page indicating the page to switch to.",
+            "supports": [
+              "q2"
+            ]
+          }
+        ],
+        "uncertainty": "Evidence is from the supplied Streamlit 1.46.0 pinned source excerpt. It establishes the documented target restriction, path basis, and execution behavior; no application execution was performed."
+      },
+      "first_object_answer": {
+        "decisions": {
+          "q1": false,
+          "q2": "main_script",
+          "q3": false
+        },
+        "recommendation": "Use the registered page path `pages/review.py` (relative to the main script) or its `st.Page` object as the switch target. Put the required audit update before `st.switch_page`, because a successful switch stops execution of the current page. These actions follow the documented behavior; execution was not tested.",
+        "evidence": [
+          {
+            "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py",
+            "quote": "When ``st.switch_page`` is called, the current page execution stops and the specified page runs as if the user clicked on it in the sidebar navigation. The specified page must be recognized by Streamlit's multipage architecture (your main Python file or a Python file in a ``pages/`` folder). Arbitrary Python scripts cannot be passed to ``st.switch_page``.",
+            "supports": [
+              "q1",
+              "q3"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py",
+            "quote": "The file path (relative to the main script) or an st.Page indicating the page to switch to.",
+            "supports": [
+              "q2"
+            ]
+          }
+        ],
+        "uncertainty": "Evidence is from the supplied Streamlit 1.46.0 pinned source excerpt. It establishes the documented target restriction, path basis, and execution behavior; no application execution was performed."
+      },
+      "input_tokens": 43027,
+      "cached_input_tokens": 35200,
+      "uncached_input_tokens": 7827,
+      "output_tokens": 510,
+      "total_tokens": 43537,
+      "usage_complete": true,
+      "model_calls": 3,
+      "retrieval_calls": 2,
+      "retrieval_errors": 0,
+      "online_wall_seconds": 16.80531336099375,
+      "wall_seconds": 16.454251062008552,
+      "model_seconds": 6.903906652820297,
+      "prefetch_tokens": 3415,
+      "prefetch_seconds": 0.35106229898519814,
+      "call_count_scope": "logged broker receipts only; budget-rejected attempts may be unlogged",
+      "token_totals_are_lower_bound": false,
+      "raw_answer": "{\"decisions\":{\"q1\":false,\"q2\":\"main_script\",\"q3\":false},\"recommendation\":\"Use the registered page path `pages/review.py` (relative to the main script) or its `st.Page` object as the switch target. Put the required audit update before `st.switch_page`, because a successful switch stops execution of the current page. These actions follow the documented behavior; execution was not tested.\",\"evidence\":[{\"url\":\"https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py\",\"quote\":\"When ``st.switch_page`` is called, the current page execution stops and the specified page runs as if the user clicked on it in the sidebar navigation. The specified page must be recognized by Streamlit's multipage architecture (your main Python file or a Python file in a ``pages/`` folder). Arbitrary Python scripts cannot be passed to ``st.switch_page``.\",\"supports\":[\"q1\",\"q3\"]},{\"url\":\"https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py\",\"quote\":\"The file path (relative to the main script) or an st.Page indicating the page to switch to.\",\"supports\":[\"q2\"]}],\"uncertainty\":\"Evidence is from the supplied Streamlit 1.46.0 pinned source excerpt. It establishes the documented target restriction, path basis, and execution behavior; no application execution was performed.\"}",
+      "semantic_grade": {
+        "label": "case-ea2b30982fa3",
+        "recommendation": 2,
+        "uncertainty": 1,
+        "claim_support": {
+          "q1": true,
+          "q2": true,
+          "q3": true
+        },
+        "citations": [
+          {
+            "index": 0,
+            "supported_qids": [
+              "q1",
+              "q3"
+            ],
+            "unsupported_qids": [],
+            "note": "The source requires a recognized multipage target, excludes arbitrary scripts, and states that current-page execution stops."
+          },
+          {
+            "index": 1,
+            "supported_qids": [
+              "q2"
+            ],
+            "unsupported_qids": [],
+            "note": "String paths are explicitly relative to the main script."
+          }
+        ],
+        "material_unsupported_assertions": [],
+        "issues": [
+          "The recommendation correctly moves the audit before navigation and uses the registered target. The uncertainty does not specifically distinguish a documented control-flow rule from persisted audit state or verified application target recognition."
+        ]
+      }
+    },
+    {
+      "id": "direct-validation-streamlit-02",
+      "task": "validation-streamlit-02",
+      "arm": "direct",
+      "parse": {
+        "strict_json_parse": true,
+        "strict_object_parse": true,
+        "strict_error": null,
+        "first_object_parse": true,
+        "first_object_offset": 0,
+        "first_object_trailing_text": false,
+        "first_object_error": null
+      },
+      "strict_decisions": {
+        "q1": {
+          "expected": "st.stop",
+          "actual": "st.stop",
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "first_object_decisions": {
+        "q1": {
+          "expected": "st.stop",
+          "actual": "st.stop",
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "evidence_checks": [
+        {
+          "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py",
+          "quote": "Streamlit will not run any statements after `st.stop()`. We recommend rendering a message to explain why the script has stopped.",
+          "supports": [
+            "q2",
+            "q3"
+          ],
+          "known_url": true,
+          "exact_source_match": false,
+          "normalized_source_match": true,
+          "exact_exposure_match": false,
+          "normalized_exposure_match": true,
+          "semantic_support": "ungraded"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py",
+          "quote": "Stops execution immediately.",
+          "supports": [
+            "q1"
+          ],
+          "known_url": true,
+          "exact_source_match": true,
+          "normalized_source_match": true,
+          "exact_exposure_match": true,
+          "normalized_exposure_match": true,
+          "semantic_support": "ungraded"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py",
+          "quote": "Streamlit immediately queues the script to rerun.",
+          "supports": [
+            "q1"
+          ],
+          "known_url": true,
+          "exact_source_match": false,
+          "normalized_source_match": true,
+          "exact_exposure_match": false,
+          "normalized_exposure_match": true,
+          "semantic_support": "ungraded"
+        }
+      ],
+      "answer": {
+        "decisions": {
+          "q1": "st.stop",
+          "q2": false,
+          "q3": true
+        },
+        "recommendation": "Proposal: render the explanation first, then call st.stop() in the empty-field branch. That prevents later statements, including the costly submission routine, from running in that script run. The proposed order with st.stop() before the explanation would skip the explanation.",
+        "evidence": [
+          {
+            "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py",
+            "quote": "Streamlit will not run any statements after `st.stop()`. We recommend rendering a message to explain why the script has stopped.",
+            "supports": [
+              "q2",
+              "q3"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py",
+            "quote": "Stops execution immediately.",
+            "supports": [
+              "q1"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py",
+            "quote": "Streamlit immediately queues the script to rerun.",
+            "supports": [
+              "q1"
+            ]
+          }
+        ],
+        "uncertainty": "Evidence is pinned to Streamlit 1.46.0. This is source-grounded advice; the upstream library was not executed. The branch ordering is a proposal based on the documented behavior."
+      },
+      "first_object_answer": {
+        "decisions": {
+          "q1": "st.stop",
+          "q2": false,
+          "q3": true
+        },
+        "recommendation": "Proposal: render the explanation first, then call st.stop() in the empty-field branch. That prevents later statements, including the costly submission routine, from running in that script run. The proposed order with st.stop() before the explanation would skip the explanation.",
+        "evidence": [
+          {
+            "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py",
+            "quote": "Streamlit will not run any statements after `st.stop()`. We recommend rendering a message to explain why the script has stopped.",
+            "supports": [
+              "q2",
+              "q3"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py",
+            "quote": "Stops execution immediately.",
+            "supports": [
+              "q1"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py",
+            "quote": "Streamlit immediately queues the script to rerun.",
+            "supports": [
+              "q1"
+            ]
+          }
+        ],
+        "uncertainty": "Evidence is pinned to Streamlit 1.46.0. This is source-grounded advice; the upstream library was not executed. The branch ordering is a proposal based on the documented behavior."
+      },
+      "input_tokens": 43683,
+      "cached_input_tokens": 38144,
+      "uncached_input_tokens": 5539,
+      "output_tokens": 537,
+      "total_tokens": 44220,
+      "usage_complete": true,
+      "model_calls": 4,
+      "retrieval_calls": 2,
+      "retrieval_errors": 0,
+      "online_wall_seconds": 25.576265165931545,
+      "wall_seconds": 25.576265165931545,
+      "model_seconds": 17.926106454920955,
+      "prefetch_tokens": null,
+      "prefetch_seconds": null,
+      "call_count_scope": "logged broker receipts only; budget-rejected attempts may be unlogged",
+      "token_totals_are_lower_bound": false,
+      "raw_answer": "{\"decisions\":{\"q1\":\"st.stop\",\"q2\":false,\"q3\":true},\"recommendation\":\"Proposal: render the explanation first, then call st.stop() in the empty-field branch. That prevents later statements, including the costly submission routine, from running in that script run. The proposed order with st.stop() before the explanation would skip the explanation.\",\"evidence\":[{\"url\":\"https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py\",\"quote\":\"Streamlit will not run any statements after `st.stop()`. We recommend rendering a message to explain why the script has stopped.\",\"supports\":[\"q2\",\"q3\"]},{\"url\":\"https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py\",\"quote\":\"Stops execution immediately.\",\"supports\":[\"q1\"]},{\"url\":\"https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py\",\"quote\":\"Streamlit immediately queues the script to rerun.\",\"supports\":[\"q1\"]}],\"uncertainty\":\"Evidence is pinned to Streamlit 1.46.0. This is source-grounded advice; the upstream library was not executed. The branch ordering is a proposal based on the documented behavior.\"}",
+      "semantic_grade": {
+        "label": "case-fe5c2fdb5558",
+        "recommendation": 2,
+        "uncertainty": 1,
+        "claim_support": {
+          "q1": true,
+          "q2": true,
+          "q3": true
+        },
+        "citations": [
+          {
+            "index": 0,
+            "supported_qids": [
+              "q1",
+              "q2",
+              "q3"
+            ],
+            "unsupported_qids": [],
+            "note": "The st.stop halt rule supports choosing stop and q2=false; the message recommendation directly establishes q3."
+          },
+          {
+            "index": 1,
+            "supported_qids": [
+              "q1"
+            ],
+            "unsupported_qids": [],
+            "note": "The stop docstring explicitly states immediate termination."
+          },
+          {
+            "index": 2,
+            "supported_qids": [
+              "q1"
+            ],
+            "unsupported_qids": [],
+            "note": "In the rerun source context, queueing another run rules out rerun for the stated no-new-run requirement, complementing the stop evidence."
+          }
+        ],
+        "material_unsupported_assertions": [],
+        "issues": [
+          "The branch order is actionable. The uncertainty omits the distinction between ending this run and submission success, validation completeness, or durable authorization."
+        ]
+      }
+    },
+    {
+      "id": "source-validation-streamlit-02",
+      "task": "validation-streamlit-02",
+      "arm": "source",
+      "parse": {
+        "strict_json_parse": true,
+        "strict_object_parse": true,
+        "strict_error": null,
+        "first_object_parse": true,
+        "first_object_offset": 0,
+        "first_object_trailing_text": false,
+        "first_object_error": null
+      },
+      "strict_decisions": {
+        "q1": {
+          "expected": "st.stop",
+          "actual": "st.stop",
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "first_object_decisions": {
+        "q1": {
+          "expected": "st.stop",
+          "actual": "st.stop",
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "evidence_checks": [
+        {
+          "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py",
+          "quote": "Streamlit will not run any statements after `st.stop()`. We recommend rendering a message to explain why the script has stopped.",
+          "supports": [
+            "q1",
+            "q2",
+            "q3"
+          ],
+          "known_url": true,
+          "exact_source_match": false,
+          "normalized_source_match": true,
+          "exact_exposure_match": false,
+          "normalized_exposure_match": true,
+          "semantic_support": "ungraded"
+        }
+      ],
+      "answer": {
+        "decisions": {
+          "q1": "st.stop",
+          "q2": false,
+          "q3": true
+        },
+        "recommendation": "In the empty-field branch, render the explanation before calling st.stop(), so the costly submission routine does not run. This order follows the documented recommendation; execution was not verified.",
+        "evidence": [
+          {
+            "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py",
+            "quote": "Streamlit will not run any statements after `st.stop()`. We recommend rendering a message to explain why the script has stopped.",
+            "supports": [
+              "q1",
+              "q2",
+              "q3"
+            ]
+          }
+        ],
+        "uncertainty": "Evidence is a partial excerpt for Streamlit 1.46.0. No library execution was performed."
+      },
+      "first_object_answer": {
+        "decisions": {
+          "q1": "st.stop",
+          "q2": false,
+          "q3": true
+        },
+        "recommendation": "In the empty-field branch, render the explanation before calling st.stop(), so the costly submission routine does not run. This order follows the documented recommendation; execution was not verified.",
+        "evidence": [
+          {
+            "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py",
+            "quote": "Streamlit will not run any statements after `st.stop()`. We recommend rendering a message to explain why the script has stopped.",
+            "supports": [
+              "q1",
+              "q2",
+              "q3"
+            ]
+          }
+        ],
+        "uncertainty": "Evidence is a partial excerpt for Streamlit 1.46.0. No library execution was performed."
+      },
+      "input_tokens": 13956,
+      "cached_input_tokens": 7680,
+      "uncached_input_tokens": 6276,
+      "output_tokens": 226,
+      "total_tokens": 14182,
+      "usage_complete": true,
+      "model_calls": 1,
+      "retrieval_calls": 0,
+      "retrieval_errors": 0,
+      "online_wall_seconds": 12.482695227023214,
+      "wall_seconds": 12.442976737977006,
+      "model_seconds": 2.811232744017616,
+      "prefetch_tokens": 4048,
+      "prefetch_seconds": 0.03971848904620856,
+      "call_count_scope": "logged broker receipts only; budget-rejected attempts may be unlogged",
+      "token_totals_are_lower_bound": false,
+      "raw_answer": "{\"decisions\":{\"q1\":\"st.stop\",\"q2\":false,\"q3\":true},\"recommendation\":\"In the empty-field branch, render the explanation before calling st.stop(), so the costly submission routine does not run. This order follows the documented recommendation; execution was not verified.\",\"evidence\":[{\"url\":\"https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py\",\"quote\":\"Streamlit will not run any statements after `st.stop()`. We recommend rendering a message to explain why the script has stopped.\",\"supports\":[\"q1\",\"q2\",\"q3\"]}],\"uncertainty\":\"Evidence is a partial excerpt for Streamlit 1.46.0. No library execution was performed.\"}",
+      "semantic_grade": {
+        "label": "case-044179e74733",
+        "recommendation": 2,
+        "uncertainty": 1,
+        "claim_support": {
+          "q1": true,
+          "q2": true,
+          "q3": true
+        },
+        "citations": [
+          {
+            "index": 0,
+            "supported_qids": [
+              "q1",
+              "q2",
+              "q3"
+            ],
+            "unsupported_qids": [],
+            "note": "The st.stop halt rule supports choosing stop and q2=false; the adjacent message recommendation directly establishes q3."
+          }
+        ],
+        "material_unsupported_assertions": [],
+        "issues": [
+          "The branch order is actionable. Uncertainty is generic and does not distinguish ending this run from submission success, validation completeness, or durable authorization."
+        ]
+      }
+    },
+    {
+      "id": "direct-validation-streamlit-03",
+      "task": "validation-streamlit-03",
+      "arm": "direct",
+      "parse": {
+        "strict_json_parse": true,
+        "strict_object_parse": true,
+        "strict_error": null,
+        "first_object_parse": true,
+        "first_object_offset": 0,
+        "first_object_trailing_text": false,
+        "first_object_error": null
+      },
+      "strict_decisions": {
+        "q1": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "first_object_decisions": {
+        "q1": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "evidence_checks": [
+        {
+          "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/runtime/fragment.py",
+          "quote": "If ``run_every`` is ``None``, the fragment will only rerun from user-triggered events.",
+          "supports": [
+            "q1"
+          ],
+          "known_url": true,
+          "exact_source_match": false,
+          "normalized_source_match": true,
+          "exact_exposure_match": false,
+          "normalized_exposure_match": true,
+          "semantic_support": "ungraded"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/runtime/fragment.py",
+          "quote": "An ``int`` or ``float`` specifying the interval in seconds.",
+          "supports": [
+            "q2"
+          ],
+          "known_url": true,
+          "exact_source_match": true,
+          "normalized_source_match": true,
+          "exact_exposure_match": true,
+          "normalized_exposure_match": true,
+          "semantic_support": "ungraded"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/runtime/fragment.py",
+          "quote": "A ``timedelta`` object from `Python's built-in datetime library",
+          "supports": [
+            "q3"
+          ],
+          "known_url": true,
+          "exact_source_match": true,
+          "normalized_source_match": true,
+          "exact_exposure_match": true,
+          "normalized_exposure_match": true,
+          "semantic_support": "ungraded"
+        }
+      ],
+      "answer": {
+        "decisions": {
+          "q1": false,
+          "q2": true,
+          "q3": true
+        },
+        "recommendation": "Set `run_every=None` for the initial schedule so the fragment reruns only on user-triggered events. To add a 2.5-second interval later, propose setting `run_every=2.5`; the source supports floats specifying seconds, but this recommendation has not been execution-tested.",
+        "evidence": [
+          {
+            "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/runtime/fragment.py",
+            "quote": "If ``run_every`` is ``None``, the fragment will only rerun from user-triggered events.",
+            "supports": [
+              "q1"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/runtime/fragment.py",
+            "quote": "An ``int`` or ``float`` specifying the interval in seconds.",
+            "supports": [
+              "q2"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/runtime/fragment.py",
+            "quote": "A ``timedelta`` object from `Python's built-in datetime library",
+            "supports": [
+              "q3"
+            ]
+          }
+        ],
+        "uncertainty": "Evidence is from the Streamlit 1.46.0 fragment source at the pinned URL. No upstream library execution was performed."
+      },
+      "first_object_answer": {
+        "decisions": {
+          "q1": false,
+          "q2": true,
+          "q3": true
+        },
+        "recommendation": "Set `run_every=None` for the initial schedule so the fragment reruns only on user-triggered events. To add a 2.5-second interval later, propose setting `run_every=2.5`; the source supports floats specifying seconds, but this recommendation has not been execution-tested.",
+        "evidence": [
+          {
+            "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/runtime/fragment.py",
+            "quote": "If ``run_every`` is ``None``, the fragment will only rerun from user-triggered events.",
+            "supports": [
+              "q1"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/runtime/fragment.py",
+            "quote": "An ``int`` or ``float`` specifying the interval in seconds.",
+            "supports": [
+              "q2"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/runtime/fragment.py",
+            "quote": "A ``timedelta`` object from `Python's built-in datetime library",
+            "supports": [
+              "q3"
+            ]
+          }
+        ],
+        "uncertainty": "Evidence is from the Streamlit 1.46.0 fragment source at the pinned URL. No upstream library execution was performed."
+      },
+      "input_tokens": 45592,
+      "cached_input_tokens": 39552,
+      "uncached_input_tokens": 6040,
+      "output_tokens": 552,
+      "total_tokens": 46144,
+      "usage_complete": true,
+      "model_calls": 4,
+      "retrieval_calls": 3,
+      "retrieval_errors": 0,
+      "online_wall_seconds": 17.858100738958456,
+      "wall_seconds": 17.858100738958456,
+      "model_seconds": 8.46260273293592,
+      "prefetch_tokens": null,
+      "prefetch_seconds": null,
+      "call_count_scope": "logged broker receipts only; budget-rejected attempts may be unlogged",
+      "token_totals_are_lower_bound": false,
+      "raw_answer": "{\"decisions\":{\"q1\":false,\"q2\":true,\"q3\":true},\"recommendation\":\"Set `run_every=None` for the initial schedule so the fragment reruns only on user-triggered events. To add a 2.5-second interval later, propose setting `run_every=2.5`; the source supports floats specifying seconds, but this recommendation has not been execution-tested.\",\"evidence\":[{\"url\":\"https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/runtime/fragment.py\",\"quote\":\"If ``run_every`` is ``None``, the fragment will only rerun from user-triggered events.\",\"supports\":[\"q1\"]},{\"url\":\"https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/runtime/fragment.py\",\"quote\":\"An ``int`` or ``float`` specifying the interval in seconds.\",\"supports\":[\"q2\"]},{\"url\":\"https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/runtime/fragment.py\",\"quote\":\"A ``timedelta`` object from `Python's built-in datetime library\",\"supports\":[\"q3\"]}],\"uncertainty\":\"Evidence is from the Streamlit 1.46.0 fragment source at the pinned URL. No upstream library execution was performed.\"}",
+      "semantic_grade": {
+        "label": "case-52c5bef9140f",
+        "recommendation": 2,
+        "uncertainty": 1,
+        "claim_support": {
+          "q1": true,
+          "q2": true,
+          "q3": true
+        },
+        "citations": [
+          {
+            "index": 0,
+            "supported_qids": [
+              "q1"
+            ],
+            "unsupported_qids": [],
+            "note": "None explicitly restricts reruns to user-triggered events."
+          },
+          {
+            "index": 1,
+            "supported_qids": [
+              "q2"
+            ],
+            "unsupported_qids": [],
+            "note": "Float interval values explicitly use seconds."
+          },
+          {
+            "index": 2,
+            "supported_qids": [
+              "q3"
+            ],
+            "unsupported_qids": [],
+            "note": "A timedelta object is explicitly accepted."
+          }
+        ],
+        "material_unsupported_assertions": [],
+        "issues": [
+          "The uncertainty is a generic no-execution caveat and does not distinguish the configured interval from measured autosave latency or a save actually occurring."
+        ]
+      }
+    },
+    {
+      "id": "source-validation-streamlit-03",
+      "task": "validation-streamlit-03",
+      "arm": "source",
+      "parse": {
+        "strict_json_parse": true,
+        "strict_object_parse": true,
+        "strict_error": null,
+        "first_object_parse": true,
+        "first_object_offset": 0,
+        "first_object_trailing_text": false,
+        "first_object_error": null
+      },
+      "strict_decisions": {
+        "q1": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "first_object_decisions": {
+        "q1": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "evidence_checks": [
+        {
+          "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/runtime/fragment.py",
+          "quote": "run_every: int, float, timedelta, str, or None",
+          "supports": [
+            "q2",
+            "q3"
+          ],
+          "known_url": true,
+          "exact_source_match": true,
+          "normalized_source_match": true,
+          "exact_exposure_match": true,
+          "normalized_exposure_match": true,
+          "semantic_support": "ungraded"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/runtime/fragment.py",
+          "quote": "An ``int`` or ``float`` specifying the interval in seconds.",
+          "supports": [
+            "q2"
+          ],
+          "known_url": true,
+          "exact_source_match": true,
+          "normalized_source_match": true,
+          "exact_exposure_match": true,
+          "normalized_exposure_match": true,
+          "semantic_support": "ungraded"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/runtime/fragment.py",
+          "quote": "If ``run_every`` is ``None``, the fragment will only rerun from\n        user-triggered events.",
+          "supports": [
+            "q1"
+          ],
+          "known_url": true,
+          "exact_source_match": true,
+          "normalized_source_match": true,
+          "exact_exposure_match": true,
+          "normalized_exposure_match": true,
+          "semantic_support": "ungraded"
+        }
+      ],
+      "answer": {
+        "decisions": {
+          "q1": false,
+          "q2": true,
+          "q3": true
+        },
+        "recommendation": "Proposal: start with `run_every=None` so the editor reruns only on user-triggered events. If the autosave indicator later needs periodic updates, use `run_every=2.5` to specify a 2.5-second interval. These recommendations follow the documented inputs; they were not verified by executing Streamlit.",
+        "evidence": [
+          {
+            "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/runtime/fragment.py",
+            "quote": "run_every: int, float, timedelta, str, or None",
+            "supports": [
+              "q2",
+              "q3"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/runtime/fragment.py",
+            "quote": "An ``int`` or ``float`` specifying the interval in seconds.",
+            "supports": [
+              "q2"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/runtime/fragment.py",
+            "quote": "If ``run_every`` is ``None``, the fragment will only rerun from\n        user-triggered events.",
+            "supports": [
+              "q1"
+            ]
+          }
+        ],
+        "uncertainty": "Evidence is a partial excerpt for Streamlit 1.46.0. The recommendation is based on documented behavior and accepted input types; no upstream library execution was performed."
+      },
+      "first_object_answer": {
+        "decisions": {
+          "q1": false,
+          "q2": true,
+          "q3": true
+        },
+        "recommendation": "Proposal: start with `run_every=None` so the editor reruns only on user-triggered events. If the autosave indicator later needs periodic updates, use `run_every=2.5` to specify a 2.5-second interval. These recommendations follow the documented inputs; they were not verified by executing Streamlit.",
+        "evidence": [
+          {
+            "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/runtime/fragment.py",
+            "quote": "run_every: int, float, timedelta, str, or None",
+            "supports": [
+              "q2",
+              "q3"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/runtime/fragment.py",
+            "quote": "An ``int`` or ``float`` specifying the interval in seconds.",
+            "supports": [
+              "q2"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/runtime/fragment.py",
+            "quote": "If ``run_every`` is ``None``, the fragment will only rerun from\n        user-triggered events.",
+            "supports": [
+              "q1"
+            ]
+          }
+        ],
+        "uncertainty": "Evidence is a partial excerpt for Streamlit 1.46.0. The recommendation is based on documented behavior and accepted input types; no upstream library execution was performed."
+      },
+      "input_tokens": 13916,
+      "cached_input_tokens": 7680,
+      "uncached_input_tokens": 6236,
+      "output_tokens": 384,
+      "total_tokens": 14300,
+      "usage_complete": true,
+      "model_calls": 1,
+      "retrieval_calls": 0,
+      "retrieval_errors": 0,
+      "online_wall_seconds": 10.284754717955366,
+      "wall_seconds": 10.239060914958827,
+      "model_seconds": 3.6636299130041152,
+      "prefetch_tokens": 4005,
+      "prefetch_seconds": 0.04569380299653858,
+      "call_count_scope": "logged broker receipts only; budget-rejected attempts may be unlogged",
+      "token_totals_are_lower_bound": false,
+      "raw_answer": "{\"decisions\":{\"q1\":false,\"q2\":true,\"q3\":true},\"recommendation\":\"Proposal: start with `run_every=None` so the editor reruns only on user-triggered events. If the autosave indicator later needs periodic updates, use `run_every=2.5` to specify a 2.5-second interval. These recommendations follow the documented inputs; they were not verified by executing Streamlit.\",\"evidence\":[{\"url\":\"https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/runtime/fragment.py\",\"quote\":\"run_every: int, float, timedelta, str, or None\",\"supports\":[\"q2\",\"q3\"]},{\"url\":\"https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/runtime/fragment.py\",\"quote\":\"An ``int`` or ``float`` specifying the interval in seconds.\",\"supports\":[\"q2\"]},{\"url\":\"https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/runtime/fragment.py\",\"quote\":\"If ``run_every`` is ``None``, the fragment will only rerun from\\n        user-triggered events.\",\"supports\":[\"q1\"]}],\"uncertainty\":\"Evidence is a partial excerpt for Streamlit 1.46.0. The recommendation is based on documented behavior and accepted input types; no upstream library execution was performed.\"}",
+      "semantic_grade": {
+        "label": "case-0522db1455cf",
+        "recommendation": 2,
+        "uncertainty": 1,
+        "claim_support": {
+          "q1": true,
+          "q2": true,
+          "q3": true
+        },
+        "citations": [
+          {
+            "index": 0,
+            "supported_qids": [
+              "q3"
+            ],
+            "unsupported_qids": [
+              "q2"
+            ],
+            "note": "The accepted-type declaration establishes timedelta acceptance. Listing float alone does not establish that its unit is seconds."
+          },
+          {
+            "index": 1,
+            "supported_qids": [
+              "q2"
+            ],
+            "unsupported_qids": [],
+            "note": "The float/integer interval unit is explicitly seconds."
+          },
+          {
+            "index": 2,
+            "supported_qids": [
+              "q1"
+            ],
+            "unsupported_qids": [],
+            "note": "None is explicitly user-triggered-only, so no automatic interval is configured."
+          }
+        ],
+        "material_unsupported_assertions": [],
+        "issues": [
+          "The initial and later schedules are supported. Uncertainty disclaims library execution but omits the autosave-latency/save-execution boundary."
+        ]
+      }
+    },
+    {
+      "id": "direct-validation-tanstack-01",
+      "task": "validation-tanstack-01",
+      "arm": "direct",
+      "parse": {
+        "strict_json_parse": true,
+        "strict_object_parse": true,
+        "strict_error": null,
+        "first_object_parse": true,
+        "first_object_offset": 0,
+        "first_object_trailing_text": false,
+        "first_object_error": null
+      },
+      "strict_decisions": {
+        "q1": {
+          "expected": "silent",
+          "actual": "silent",
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "first_object_decisions": {
+        "q1": {
+          "expected": "silent",
+          "actual": "silent",
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "evidence_checks": [
+        {
+          "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md",
+          "quote": "When set to `true`, suppresses propagation of `CancelledError` to observers (e.g., `onError` callbacks) and related notifications, and returns the retry promise instead of rejecting.",
+          "supports": [
+            "q1"
+          ],
+          "known_url": true,
+          "exact_source_match": true,
+          "normalized_source_match": true,
+          "exact_exposure_match": true,
+          "normalized_exposure_match": true,
+          "semantic_support": "ungraded"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md",
+          "quote": "Defaults to `true`",
+          "supports": [
+            "q2"
+          ],
+          "known_url": true,
+          "exact_source_match": true,
+          "normalized_source_match": true,
+          "exact_exposure_match": true,
+          "normalized_exposure_match": true,
+          "semantic_support": "ungraded"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md",
+          "quote": "Cancellation does not work when working with `Suspense` hooks: `useSuspenseQuery`, `useSuspenseQueries` and `useSuspenseInfiniteQuery`.",
+          "supports": [
+            "q3"
+          ],
+          "known_url": true,
+          "exact_source_match": true,
+          "normalized_source_match": true,
+          "exact_exposure_match": true,
+          "normalized_exposure_match": true,
+          "semantic_support": "ungraded"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md",
+          "quote": "restores the query’s state (data and status) from immediately before the in-flight fetch, sets `fetchStatus` back to `idle`",
+          "supports": [
+            "q2"
+          ],
+          "known_url": true,
+          "exact_source_match": true,
+          "normalized_source_match": true,
+          "exact_exposure_match": true,
+          "normalized_exposure_match": true,
+          "semantic_support": "ungraded"
+        }
+      ],
+      "answer": {
+        "decisions": {
+          "q1": "silent",
+          "q2": true,
+          "q3": false
+        },
+        "recommendation": "For this requirement, propose using `useQuery` rather than `useSuspenseQuery`, and call `queryClient.cancelQueries` with `{ silent: true, revert: true }`. The documented defaults already set `revert` to true; explicitly setting it makes the intended behavior clear. The documentation says cancellation does not work with Suspense hooks, so this recommendation does not combine cancellation with `useSuspenseQuery`.",
+        "evidence": [
+          {
+            "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md",
+            "quote": "When set to `true`, suppresses propagation of `CancelledError` to observers (e.g., `onError` callbacks) and related notifications, and returns the retry promise instead of rejecting.",
+            "supports": [
+              "q1"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md",
+            "quote": "Defaults to `true`",
+            "supports": [
+              "q2"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md",
+            "quote": "Cancellation does not work when working with `Suspense` hooks: `useSuspenseQuery`, `useSuspenseQueries` and `useSuspenseInfiniteQuery`.",
+            "supports": [
+              "q3"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md",
+            "quote": "restores the query’s state (data and status) from immediately before the in-flight fetch, sets `fetchStatus` back to `idle`",
+            "supports": [
+              "q2"
+            ]
+          }
+        ],
+        "uncertainty": "Evidence is from the pinned TanStack Query 5.90.5 cancellation documentation. This is source-grounded advice, not execution or verification of the team's application."
+      },
+      "first_object_answer": {
+        "decisions": {
+          "q1": "silent",
+          "q2": true,
+          "q3": false
+        },
+        "recommendation": "For this requirement, propose using `useQuery` rather than `useSuspenseQuery`, and call `queryClient.cancelQueries` with `{ silent: true, revert: true }`. The documented defaults already set `revert` to true; explicitly setting it makes the intended behavior clear. The documentation says cancellation does not work with Suspense hooks, so this recommendation does not combine cancellation with `useSuspenseQuery`.",
+        "evidence": [
+          {
+            "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md",
+            "quote": "When set to `true`, suppresses propagation of `CancelledError` to observers (e.g., `onError` callbacks) and related notifications, and returns the retry promise instead of rejecting.",
+            "supports": [
+              "q1"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md",
+            "quote": "Defaults to `true`",
+            "supports": [
+              "q2"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md",
+            "quote": "Cancellation does not work when working with `Suspense` hooks: `useSuspenseQuery`, `useSuspenseQueries` and `useSuspenseInfiniteQuery`.",
+            "supports": [
+              "q3"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md",
+            "quote": "restores the query’s state (data and status) from immediately before the in-flight fetch, sets `fetchStatus` back to `idle`",
+            "supports": [
+              "q2"
+            ]
+          }
+        ],
+        "uncertainty": "Evidence is from the pinned TanStack Query 5.90.5 cancellation documentation. This is source-grounded advice, not execution or verification of the team's application."
+      },
+      "input_tokens": 58019,
+      "cached_input_tokens": 52224,
+      "uncached_input_tokens": 5795,
+      "output_tokens": 761,
+      "total_tokens": 58780,
+      "usage_complete": true,
+      "model_calls": 5,
+      "retrieval_calls": 4,
+      "retrieval_errors": 0,
+      "online_wall_seconds": 22.313634314923547,
+      "wall_seconds": 22.313634314923547,
+      "model_seconds": 12.905165312928148,
+      "prefetch_tokens": null,
+      "prefetch_seconds": null,
+      "call_count_scope": "logged broker receipts only; budget-rejected attempts may be unlogged",
+      "token_totals_are_lower_bound": false,
+      "raw_answer": "{\"decisions\":{\"q1\":\"silent\",\"q2\":true,\"q3\":false},\"recommendation\":\"For this requirement, propose using `useQuery` rather than `useSuspenseQuery`, and call `queryClient.cancelQueries` with `{ silent: true, revert: true }`. The documented defaults already set `revert` to true; explicitly setting it makes the intended behavior clear. The documentation says cancellation does not work with Suspense hooks, so this recommendation does not combine cancellation with `useSuspenseQuery`.\",\"evidence\":[{\"url\":\"https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md\",\"quote\":\"When set to `true`, suppresses propagation of `CancelledError` to observers (e.g., `onError` callbacks) and related notifications, and returns the retry promise instead of rejecting.\",\"supports\":[\"q1\"]},{\"url\":\"https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md\",\"quote\":\"Defaults to `true`\",\"supports\":[\"q2\"]},{\"url\":\"https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md\",\"quote\":\"Cancellation does not work when working with `Suspense` hooks: `useSuspenseQuery`, `useSuspenseQueries` and `useSuspenseInfiniteQuery`.\",\"supports\":[\"q3\"]},{\"url\":\"https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md\",\"quote\":\"restores the query’s state (data and status) from immediately before the in-flight fetch, sets `fetchStatus` back to `idle`\",\"supports\":[\"q2\"]}],\"uncertainty\":\"Evidence is from the pinned TanStack Query 5.90.5 cancellation documentation. This is source-grounded advice, not execution or verification of the team's application.\"}",
+      "semantic_grade": {
+        "label": "case-592166d2f871",
+        "recommendation": 2,
+        "uncertainty": 1,
+        "claim_support": {
+          "q1": true,
+          "q2": true,
+          "q3": true
+        },
+        "citations": [
+          {
+            "index": 0,
+            "supported_qids": [
+              "q1"
+            ],
+            "unsupported_qids": [],
+            "note": "The silent option explicitly suppresses CancelledError observer propagation."
+          },
+          {
+            "index": 1,
+            "supported_qids": [
+              "q2"
+            ],
+            "unsupported_qids": [],
+            "note": "The true default is in the revert option source context."
+          },
+          {
+            "index": 2,
+            "supported_qids": [
+              "q3"
+            ],
+            "unsupported_qids": [],
+            "note": "The source explicitly excludes Suspense hooks from cancellation support."
+          },
+          {
+            "index": 3,
+            "supported_qids": [],
+            "unsupported_qids": [
+              "q2"
+            ],
+            "note": "Restoring data/status describes the effect of revert:true, not its default. Citation 1 independently covers the default."
+          }
+        ],
+        "material_unsupported_assertions": [],
+        "issues": [
+          "The uncertainty does not identify that suppressing an observer error proves neither HTTP abort nor a stopped remote operation."
+        ]
+      }
+    },
+    {
+      "id": "source-validation-tanstack-01",
+      "task": "validation-tanstack-01",
+      "arm": "source",
+      "parse": {
+        "strict_json_parse": true,
+        "strict_object_parse": true,
+        "strict_error": null,
+        "first_object_parse": true,
+        "first_object_offset": 0,
+        "first_object_trailing_text": false,
+        "first_object_error": null
+      },
+      "strict_decisions": {
+        "q1": {
+          "expected": "silent",
+          "actual": "silent",
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "first_object_decisions": {
+        "q1": {
+          "expected": "silent",
+          "actual": "silent",
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "evidence_checks": [
+        {
+          "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md",
+          "quote": "When set to `true`, suppresses propagation of `CancelledError` to observers (e.g., `onError` callbacks) and related notifications",
+          "supports": [
+            "q1"
+          ],
+          "known_url": true,
+          "exact_source_match": true,
+          "normalized_source_match": true,
+          "exact_exposure_match": true,
+          "normalized_exposure_match": true,
+          "semantic_support": "ungraded"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md",
+          "quote": "Defaults to `true`",
+          "supports": [
+            "q2"
+          ],
+          "known_url": true,
+          "exact_source_match": true,
+          "normalized_source_match": true,
+          "exact_exposure_match": true,
+          "normalized_exposure_match": true,
+          "semantic_support": "ungraded"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md",
+          "quote": "Cancellation does not work when working with `Suspense` hooks: `useSuspenseQuery`, `useSuspenseQueries` and `useSuspenseInfiniteQuery`.",
+          "supports": [
+            "q3"
+          ],
+          "known_url": true,
+          "exact_source_match": true,
+          "normalized_source_match": true,
+          "exact_exposure_match": true,
+          "normalized_exposure_match": true,
+          "semantic_support": "ungraded"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md",
+          "quote": "queryClient.cancelQueries({ queryKey })`, which will cancel the query and revert it back to its previous state.",
+          "supports": [
+            "q2"
+          ],
+          "known_url": true,
+          "exact_source_match": true,
+          "normalized_source_match": false,
+          "exact_exposure_match": true,
+          "normalized_exposure_match": false,
+          "semantic_support": "ungraded"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md",
+          "quote": "When set to `true`, restores the query’s state (data and status) from immediately before the in-flight fetch, sets `fetchStatus` back to `idle`, and only throws if there was no prior data.",
+          "supports": [
+            "q2"
+          ],
+          "known_url": true,
+          "exact_source_match": true,
+          "normalized_source_match": true,
+          "exact_exposure_match": true,
+          "normalized_exposure_match": true,
+          "semantic_support": "ungraded"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md",
+          "quote": "await queryClient.cancelQueries({ queryKey: ['posts'] }, { silent: true })",
+          "supports": [
+            "q1"
+          ],
+          "known_url": true,
+          "exact_source_match": true,
+          "normalized_source_match": true,
+          "exact_exposure_match": true,
+          "normalized_exposure_match": true,
+          "semantic_support": "ungraded"
+        }
+      ],
+      "answer": {
+        "decisions": {
+          "q1": "silent",
+          "q2": true,
+          "q3": false
+        },
+        "recommendation": "Use a non-Suspense hook such as useQuery for this screen. For quiet cancellation that restores the prior query state, call queryClient.cancelQueries with { silent: true, revert: true }. The source documents both options and their defaults, but does not verify that this exact combination meets every observer behavior the team expects; treat it as a proposal to verify in the application.",
+        "evidence": [
+          {
+            "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md",
+            "quote": "When set to `true`, suppresses propagation of `CancelledError` to observers (e.g., `onError` callbacks) and related notifications",
+            "supports": [
+              "q1"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md",
+            "quote": "Defaults to `true`",
+            "supports": [
+              "q2"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md",
+            "quote": "Cancellation does not work when working with `Suspense` hooks: `useSuspenseQuery`, `useSuspenseQueries` and `useSuspenseInfiniteQuery`.",
+            "supports": [
+              "q3"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md",
+            "quote": "queryClient.cancelQueries({ queryKey })`, which will cancel the query and revert it back to its previous state.",
+            "supports": [
+              "q2"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md",
+            "quote": "When set to `true`, restores the query’s state (data and status) from immediately before the in-flight fetch, sets `fetchStatus` back to `idle`, and only throws if there was no prior data.",
+            "supports": [
+              "q2"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md",
+            "quote": "await queryClient.cancelQueries({ queryKey: ['posts'] }, { silent: true })",
+            "supports": [
+              "q1"
+            ]
+          }
+        ],
+        "uncertainty": "Evidence is from the supplied excerpts of pinned TanStack Query 5.90.5 documentation. It establishes the documented option behavior and the Suspense limitation; no upstream library execution or application-specific verification was performed. The combined { silent: true, revert: true } recommendation is a proposal based on the documented behaviors, and their combined behavior for this screen remains unverified."
+      },
+      "first_object_answer": {
+        "decisions": {
+          "q1": "silent",
+          "q2": true,
+          "q3": false
+        },
+        "recommendation": "Use a non-Suspense hook such as useQuery for this screen. For quiet cancellation that restores the prior query state, call queryClient.cancelQueries with { silent: true, revert: true }. The source documents both options and their defaults, but does not verify that this exact combination meets every observer behavior the team expects; treat it as a proposal to verify in the application.",
+        "evidence": [
+          {
+            "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md",
+            "quote": "When set to `true`, suppresses propagation of `CancelledError` to observers (e.g., `onError` callbacks) and related notifications",
+            "supports": [
+              "q1"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md",
+            "quote": "Defaults to `true`",
+            "supports": [
+              "q2"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md",
+            "quote": "Cancellation does not work when working with `Suspense` hooks: `useSuspenseQuery`, `useSuspenseQueries` and `useSuspenseInfiniteQuery`.",
+            "supports": [
+              "q3"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md",
+            "quote": "queryClient.cancelQueries({ queryKey })`, which will cancel the query and revert it back to its previous state.",
+            "supports": [
+              "q2"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md",
+            "quote": "When set to `true`, restores the query’s state (data and status) from immediately before the in-flight fetch, sets `fetchStatus` back to `idle`, and only throws if there was no prior data.",
+            "supports": [
+              "q2"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md",
+            "quote": "await queryClient.cancelQueries({ queryKey: ['posts'] }, { silent: true })",
+            "supports": [
+              "q1"
+            ]
+          }
+        ],
+        "uncertainty": "Evidence is from the supplied excerpts of pinned TanStack Query 5.90.5 documentation. It establishes the documented option behavior and the Suspense limitation; no upstream library execution or application-specific verification was performed. The combined { silent: true, revert: true } recommendation is a proposal based on the documented behaviors, and their combined behavior for this screen remains unverified."
+      },
+      "input_tokens": 13959,
+      "cached_input_tokens": 7680,
+      "uncached_input_tokens": 6279,
+      "output_tokens": 660,
+      "total_tokens": 14619,
+      "usage_complete": true,
+      "model_calls": 1,
+      "retrieval_calls": 0,
+      "retrieval_errors": 0,
+      "online_wall_seconds": 12.895298416959122,
+      "wall_seconds": 12.844805445987731,
+      "model_seconds": 6.244668807950802,
+      "prefetch_tokens": 4059,
+      "prefetch_seconds": 0.050492970971390605,
+      "call_count_scope": "logged broker receipts only; budget-rejected attempts may be unlogged",
+      "token_totals_are_lower_bound": false,
+      "raw_answer": "{\"decisions\":{\"q1\":\"silent\",\"q2\":true,\"q3\":false},\"recommendation\":\"Use a non-Suspense hook such as useQuery for this screen. For quiet cancellation that restores the prior query state, call queryClient.cancelQueries with { silent: true, revert: true }. The source documents both options and their defaults, but does not verify that this exact combination meets every observer behavior the team expects; treat it as a proposal to verify in the application.\",\"evidence\":[{\"url\":\"https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md\",\"quote\":\"When set to `true`, suppresses propagation of `CancelledError` to observers (e.g., `onError` callbacks) and related notifications\",\"supports\":[\"q1\"]},{\"url\":\"https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md\",\"quote\":\"Defaults to `true`\",\"supports\":[\"q2\"]},{\"url\":\"https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md\",\"quote\":\"Cancellation does not work when working with `Suspense` hooks: `useSuspenseQuery`, `useSuspenseQueries` and `useSuspenseInfiniteQuery`.\",\"supports\":[\"q3\"]},{\"url\":\"https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md\",\"quote\":\"queryClient.cancelQueries({ queryKey })`, which will cancel the query and revert it back to its previous state.\",\"supports\":[\"q2\"]},{\"url\":\"https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md\",\"quote\":\"When set to `true`, restores the query’s state (data and status) from immediately before the in-flight fetch, sets `fetchStatus` back to `idle`, and only throws if there was no prior data.\",\"supports\":[\"q2\"]},{\"url\":\"https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md\",\"quote\":\"await queryClient.cancelQueries({ queryKey: ['posts'] }, { silent: true })\",\"supports\":[\"q1\"]}],\"uncertainty\":\"Evidence is from the supplied excerpts of pinned TanStack Query 5.90.5 documentation. It establishes the documented option behavior and the Suspense limitation; no upstream library execution or application-specific verification was performed. The combined { silent: true, revert: true } recommendation is a proposal based on the documented behaviors, and their combined behavior for this screen remains unverified.\"}",
+      "semantic_grade": {
+        "label": "case-29824c2f93c3",
+        "recommendation": 2,
+        "uncertainty": 1,
+        "claim_support": {
+          "q1": true,
+          "q2": true,
+          "q3": true
+        },
+        "citations": [
+          {
+            "index": 0,
+            "supported_qids": [
+              "q1"
+            ],
+            "unsupported_qids": [],
+            "note": "In the silent option context, the quote explicitly states suppression of CancelledError propagation to observers."
+          },
+          {
+            "index": 1,
+            "supported_qids": [
+              "q2"
+            ],
+            "unsupported_qids": [],
+            "note": "In the revert option context, the quoted default is true."
+          },
+          {
+            "index": 2,
+            "supported_qids": [
+              "q3"
+            ],
+            "unsupported_qids": [],
+            "note": "The Suspense cancellation exclusion is explicit."
+          },
+          {
+            "index": 3,
+            "supported_qids": [
+              "q2"
+            ],
+            "unsupported_qids": [],
+            "note": "The documented ordinary cancelQueries call reverts previous state without an explicit revert option; this supports default reversion."
+          },
+          {
+            "index": 4,
+            "supported_qids": [],
+            "unsupported_qids": [
+              "q2"
+            ],
+            "note": "This describes what revert:true does, not whether true is the default. Citation 1 establishes the default."
+          },
+          {
+            "index": 5,
+            "supported_qids": [],
+            "unsupported_qids": [
+              "q1"
+            ],
+            "note": "The example shows how to pass silent:true, but the invocation alone does not establish suppression of CancelledError propagation. Citation 0 establishes that behavior."
+          }
+        ],
+        "material_unsupported_assertions": [],
+        "issues": [
+          "The hook/options recommendation is actionable. Uncertainty recognizes the Suspense and application-combination limits but omits that quiet observer behavior is not proof a transport or remote operation stopped."
+        ]
+      }
+    },
+    {
+      "id": "direct-validation-tanstack-02",
+      "task": "validation-tanstack-02",
+      "arm": "direct",
+      "parse": {
+        "strict_json_parse": true,
+        "strict_object_parse": true,
+        "strict_error": null,
+        "first_object_parse": true,
+        "first_object_offset": 0,
+        "first_object_trailing_text": false,
+        "first_object_error": null
+      },
+      "strict_decisions": {
+        "q1": {
+          "expected": "cached",
+          "actual": "cached",
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "first_object_decisions": {
+        "q1": {
+          "expected": "cached",
+          "actual": "cached",
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "evidence_checks": [
+        {
+          "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/packages/query-core/src/queryClient.ts",
+          "quote": "if (cachedData === undefined) {\n      return this.fetchQuery(options)\n    }\n\n    if (\n      options.revalidateIfStale &&\n      query.isStaleByTime(resolveStaleTime(defaultedOptions.staleTime, query))\n    ) {\n      void this.prefetchQuery(defaultedOptions)\n    }\n\n    return Promise.resolve(cachedData)",
+          "supports": [
+            "q1",
+            "q2"
+          ],
+          "known_url": true,
+          "exact_source_match": true,
+          "normalized_source_match": true,
+          "exact_exposure_match": true,
+          "normalized_exposure_match": true,
+          "semantic_support": "ungraded"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/packages/query-core/src/queryClient.ts",
+          "quote": "Imperative (non-reactive) way to retrieve data for a QueryKey.\n    * Should only be used in callbacks or functions where reading the latest data is necessary, e.g. for optimistic updates.\n    *\n    * Hint: Do not use this function inside a component, because it won't receive updates.\n    * Use `useQuery` to create a `QueryObserver` that subscribes to changes.",
+          "supports": [
+            "q3"
+          ],
+          "known_url": true,
+          "exact_source_match": false,
+          "normalized_source_match": true,
+          "exact_exposure_match": false,
+          "normalized_exposure_match": true,
+          "semantic_support": "ungraded"
+        }
+      ],
+      "answer": {
+        "decisions": {
+          "q1": "cached",
+          "q2": true,
+          "q3": false
+        },
+        "recommendation": "Use useQuery for the view so it subscribes to query changes and rerenders when data updates. The route loader may continue using ensureQueryData with revalidateIfStale:true to return cached data while prefetching stale data. This recommendation is grounded in the source; it has not been verified by executing the library.",
+        "evidence": [
+          {
+            "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/packages/query-core/src/queryClient.ts",
+            "quote": "if (cachedData === undefined) {\n      return this.fetchQuery(options)\n    }\n\n    if (\n      options.revalidateIfStale &&\n      query.isStaleByTime(resolveStaleTime(defaultedOptions.staleTime, query))\n    ) {\n      void this.prefetchQuery(defaultedOptions)\n    }\n\n    return Promise.resolve(cachedData)",
+            "supports": [
+              "q1",
+              "q2"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/packages/query-core/src/queryClient.ts",
+            "quote": "Imperative (non-reactive) way to retrieve data for a QueryKey.\n    * Should only be used in callbacks or functions where reading the latest data is necessary, e.g. for optimistic updates.\n    *\n    * Hint: Do not use this function inside a component, because it won't receive updates.\n    * Use `useQuery` to create a `QueryObserver` that subscribes to changes.",
+            "supports": [
+              "q3"
+            ]
+          }
+        ],
+        "uncertainty": "Evidence is from the pinned query-core source identified as version 5.90.5. The source establishes the requested behavior and recommends useQuery for component subscriptions. No upstream library execution or app-specific compatibility verification was performed."
+      },
+      "first_object_answer": {
+        "decisions": {
+          "q1": "cached",
+          "q2": true,
+          "q3": false
+        },
+        "recommendation": "Use useQuery for the view so it subscribes to query changes and rerenders when data updates. The route loader may continue using ensureQueryData with revalidateIfStale:true to return cached data while prefetching stale data. This recommendation is grounded in the source; it has not been verified by executing the library.",
+        "evidence": [
+          {
+            "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/packages/query-core/src/queryClient.ts",
+            "quote": "if (cachedData === undefined) {\n      return this.fetchQuery(options)\n    }\n\n    if (\n      options.revalidateIfStale &&\n      query.isStaleByTime(resolveStaleTime(defaultedOptions.staleTime, query))\n    ) {\n      void this.prefetchQuery(defaultedOptions)\n    }\n\n    return Promise.resolve(cachedData)",
+            "supports": [
+              "q1",
+              "q2"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/packages/query-core/src/queryClient.ts",
+            "quote": "Imperative (non-reactive) way to retrieve data for a QueryKey.\n    * Should only be used in callbacks or functions where reading the latest data is necessary, e.g. for optimistic updates.\n    *\n    * Hint: Do not use this function inside a component, because it won't receive updates.\n    * Use `useQuery` to create a `QueryObserver` that subscribes to changes.",
+            "supports": [
+              "q3"
+            ]
+          }
+        ],
+        "uncertainty": "Evidence is from the pinned query-core source identified as version 5.90.5. The source establishes the requested behavior and recommends useQuery for component subscriptions. No upstream library execution or app-specific compatibility verification was performed."
+      },
+      "input_tokens": 33338,
+      "cached_input_tokens": 28288,
+      "uncached_input_tokens": 5050,
+      "output_tokens": 594,
+      "total_tokens": 33932,
+      "usage_complete": true,
+      "model_calls": 3,
+      "retrieval_calls": 2,
+      "retrieval_errors": 0,
+      "online_wall_seconds": 18.655136142042466,
+      "wall_seconds": 18.655136142042466,
+      "model_seconds": 10.8998014369281,
+      "prefetch_tokens": null,
+      "prefetch_seconds": null,
+      "call_count_scope": "logged broker receipts only; budget-rejected attempts may be unlogged",
+      "token_totals_are_lower_bound": false,
+      "raw_answer": "{\"decisions\":{\"q1\":\"cached\",\"q2\":true,\"q3\":false},\"recommendation\":\"Use useQuery for the view so it subscribes to query changes and rerenders when data updates. The route loader may continue using ensureQueryData with revalidateIfStale:true to return cached data while prefetching stale data. This recommendation is grounded in the source; it has not been verified by executing the library.\",\"evidence\":[{\"url\":\"https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/packages/query-core/src/queryClient.ts\",\"quote\":\"if (cachedData === undefined) {\\n      return this.fetchQuery(options)\\n    }\\n\\n    if (\\n      options.revalidateIfStale &&\\n      query.isStaleByTime(resolveStaleTime(defaultedOptions.staleTime, query))\\n    ) {\\n      void this.prefetchQuery(defaultedOptions)\\n    }\\n\\n    return Promise.resolve(cachedData)\",\"supports\":[\"q1\",\"q2\"]},{\"url\":\"https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/packages/query-core/src/queryClient.ts\",\"quote\":\"Imperative (non-reactive) way to retrieve data for a QueryKey.\\n    * Should only be used in callbacks or functions where reading the latest data is necessary, e.g. for optimistic updates.\\n    *\\n    * Hint: Do not use this function inside a component, because it won't receive updates.\\n    * Use `useQuery` to create a `QueryObserver` that subscribes to changes.\",\"supports\":[\"q3\"]}],\"uncertainty\":\"Evidence is from the pinned query-core source identified as version 5.90.5. The source establishes the requested behavior and recommends useQuery for component subscriptions. No upstream library execution or app-specific compatibility verification was performed.\"}",
+      "semantic_grade": {
+        "label": "case-bfd1db947245",
+        "recommendation": 2,
+        "uncertainty": 1,
+        "claim_support": {
+          "q1": true,
+          "q2": true,
+          "q3": true
+        },
+        "citations": [
+          {
+            "index": 0,
+            "supported_qids": [
+              "q1",
+              "q2"
+            ],
+            "unsupported_qids": [],
+            "note": "The missing-cache branch delegates to fetchQuery; the stale-cache branch starts an unawaited prefetch and then returns cachedData."
+          },
+          {
+            "index": 1,
+            "supported_qids": [
+              "q3"
+            ],
+            "unsupported_qids": [],
+            "note": "The getQueryData comment explicitly says it is nonreactive and recommends a useQuery observer for updates."
+          }
+        ],
+        "material_unsupported_assertions": [],
+        "issues": [
+          "The recommendation separates cached loader readiness from background prefetch. The uncertainty does not explicitly state that the returned cached value proves neither completion nor success of revalidation."
+        ]
+      }
+    },
+    {
+      "id": "source-validation-tanstack-02",
+      "task": "validation-tanstack-02",
+      "arm": "source",
+      "parse": {
+        "strict_json_parse": true,
+        "strict_object_parse": true,
+        "strict_error": null,
+        "first_object_parse": true,
+        "first_object_offset": 0,
+        "first_object_trailing_text": false,
+        "first_object_error": null
+      },
+      "strict_decisions": {
+        "q1": {
+          "expected": "cached",
+          "actual": "cached",
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "first_object_decisions": {
+        "q1": {
+          "expected": "cached",
+          "actual": "cached",
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "evidence_checks": [
+        {
+          "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/packages/query-core/src/queryClient.ts",
+          "quote": "if (cachedData === undefined) {\n      return this.fetchQuery(options)\n    }\n\n    if (\n      options.revalidateIfStale &&\n      query.isStaleByTime(resolveStaleTime(defaultedOptions.staleTime, query))\n    ) {\n      void this.prefetchQuery(defaultedOptions)",
+          "supports": [
+            "q1",
+            "q2"
+          ],
+          "known_url": true,
+          "exact_source_match": true,
+          "normalized_source_match": true,
+          "exact_exposure_match": true,
+          "normalized_exposure_match": true,
+          "semantic_support": "ungraded"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/packages/query-core/src/queryClient.ts",
+          "quote": "Imperative (non-reactive) way to retrieve data for a QueryKey.\n   * Should only be used in callbacks or functions where reading the latest data is necessary, e.g. for optimistic updates.\n   *\n   * Hint: Do not use this function inside a component, because it won't receive updates.\n   * Use `useQuery` to create a `QueryObserver` that subscribes to changes.",
+          "supports": [
+            "q3"
+          ],
+          "known_url": true,
+          "exact_source_match": true,
+          "normalized_source_match": true,
+          "exact_exposure_match": true,
+          "normalized_exposure_match": true,
+          "semantic_support": "ungraded"
+        }
+      ],
+      "answer": {
+        "decisions": {
+          "q1": "cached",
+          "q2": true,
+          "q3": false
+        },
+        "recommendation": "Use `useQuery` in the view to subscribe to query changes. This is supported by the source guidance; it is a recommendation, not an execution result.",
+        "evidence": [
+          {
+            "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/packages/query-core/src/queryClient.ts",
+            "quote": "if (cachedData === undefined) {\n      return this.fetchQuery(options)\n    }\n\n    if (\n      options.revalidateIfStale &&\n      query.isStaleByTime(resolveStaleTime(defaultedOptions.staleTime, query))\n    ) {\n      void this.prefetchQuery(defaultedOptions)",
+            "supports": [
+              "q1",
+              "q2"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/packages/query-core/src/queryClient.ts",
+            "quote": "Imperative (non-reactive) way to retrieve data for a QueryKey.\n   * Should only be used in callbacks or functions where reading the latest data is necessary, e.g. for optimistic updates.\n   *\n   * Hint: Do not use this function inside a component, because it won't receive updates.\n   * Use `useQuery` to create a `QueryObserver` that subscribes to changes.",
+            "supports": [
+              "q3"
+            ]
+          }
+        ],
+        "uncertainty": "Evidence is a partial excerpt of the pinned TanStack Query 5.90.5 source. No upstream library execution was performed; the recommendation to use useQuery follows the quoted source guidance."
+      },
+      "first_object_answer": {
+        "decisions": {
+          "q1": "cached",
+          "q2": true,
+          "q3": false
+        },
+        "recommendation": "Use `useQuery` in the view to subscribe to query changes. This is supported by the source guidance; it is a recommendation, not an execution result.",
+        "evidence": [
+          {
+            "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/packages/query-core/src/queryClient.ts",
+            "quote": "if (cachedData === undefined) {\n      return this.fetchQuery(options)\n    }\n\n    if (\n      options.revalidateIfStale &&\n      query.isStaleByTime(resolveStaleTime(defaultedOptions.staleTime, query))\n    ) {\n      void this.prefetchQuery(defaultedOptions)",
+            "supports": [
+              "q1",
+              "q2"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/packages/query-core/src/queryClient.ts",
+            "quote": "Imperative (non-reactive) way to retrieve data for a QueryKey.\n   * Should only be used in callbacks or functions where reading the latest data is necessary, e.g. for optimistic updates.\n   *\n   * Hint: Do not use this function inside a component, because it won't receive updates.\n   * Use `useQuery` to create a `QueryObserver` that subscribes to changes.",
+            "supports": [
+              "q3"
+            ]
+          }
+        ],
+        "uncertainty": "Evidence is a partial excerpt of the pinned TanStack Query 5.90.5 source. No upstream library execution was performed; the recommendation to use useQuery follows the quoted source guidance."
+      },
+      "input_tokens": 13995,
+      "cached_input_tokens": 0,
+      "uncached_input_tokens": 13995,
+      "output_tokens": 368,
+      "total_tokens": 14363,
+      "usage_complete": true,
+      "model_calls": 1,
+      "retrieval_calls": 0,
+      "retrieval_errors": 0,
+      "online_wall_seconds": 13.995071890065446,
+      "wall_seconds": 13.94492145406548,
+      "model_seconds": 7.402437049080618,
+      "prefetch_tokens": 4081,
+      "prefetch_seconds": 0.05015043599996716,
+      "call_count_scope": "logged broker receipts only; budget-rejected attempts may be unlogged",
+      "token_totals_are_lower_bound": false,
+      "raw_answer": "{\"decisions\":{\"q1\":\"cached\",\"q2\":true,\"q3\":false},\"recommendation\":\"Use `useQuery` in the view to subscribe to query changes. This is supported by the source guidance; it is a recommendation, not an execution result.\",\"evidence\":[{\"url\":\"https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/packages/query-core/src/queryClient.ts\",\"quote\":\"if (cachedData === undefined) {\\n      return this.fetchQuery(options)\\n    }\\n\\n    if (\\n      options.revalidateIfStale &&\\n      query.isStaleByTime(resolveStaleTime(defaultedOptions.staleTime, query))\\n    ) {\\n      void this.prefetchQuery(defaultedOptions)\",\"supports\":[\"q1\",\"q2\"]},{\"url\":\"https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/packages/query-core/src/queryClient.ts\",\"quote\":\"Imperative (non-reactive) way to retrieve data for a QueryKey.\\n   * Should only be used in callbacks or functions where reading the latest data is necessary, e.g. for optimistic updates.\\n   *\\n   * Hint: Do not use this function inside a component, because it won't receive updates.\\n   * Use `useQuery` to create a `QueryObserver` that subscribes to changes.\",\"supports\":[\"q3\"]}],\"uncertainty\":\"Evidence is a partial excerpt of the pinned TanStack Query 5.90.5 source. No upstream library execution was performed; the recommendation to use useQuery follows the quoted source guidance.\"}",
+      "semantic_grade": {
+        "label": "case-dcd5c1ae411f",
+        "recommendation": 1,
+        "uncertainty": 1,
+        "claim_support": {
+          "q1": false,
+          "q2": true,
+          "q3": true
+        },
+        "citations": [
+          {
+            "index": 0,
+            "supported_qids": [
+              "q2"
+            ],
+            "unsupported_qids": [
+              "q1"
+            ],
+            "note": "The absent-cache fetchQuery delegation is explicit. The quote shows unawaited stale prefetch but omits the return of cachedData, so it does not establish the complete assigned q1 claim."
+          },
+          {
+            "index": 1,
+            "supported_qids": [
+              "q3"
+            ],
+            "unsupported_qids": [],
+            "note": "The comment explicitly identifies getQueryData as nonreactive and useQuery as the observer subscription path."
+          }
+        ],
+        "material_unsupported_assertions": [],
+        "issues": [
+          "q1 has the correct decision but incomplete cited semantic support: a background prefetch is shown without the cached-return statement.",
+          "The recommendation supplies the view subscription but omits separating loader/cache readiness from asynchronous revalidation.",
+          "The uncertainty is generic and does not distinguish cached return from successful/completed revalidation."
+        ]
+      }
+    },
+    {
+      "id": "direct-validation-tanstack-03",
+      "task": "validation-tanstack-03",
+      "arm": "direct",
+      "parse": {
+        "strict_json_parse": true,
+        "strict_object_parse": true,
+        "strict_error": null,
+        "first_object_parse": true,
+        "first_object_offset": 0,
+        "first_object_trailing_text": false,
+        "first_object_error": null
+      },
+      "strict_decisions": {
+        "q1": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": "previous_data",
+          "actual": "previous_data",
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "first_object_decisions": {
+        "q1": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": "previous_data",
+          "actual": "previous_data",
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "evidence_checks": [
+        {
+          "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/packages/query-core/src/queryClient.ts",
+          "quote": "const prevData = query?.state.data\n    const data = functionalUpdate(updater, prevData)\n\n    if (data === undefined) {\n      return undefined\n    }\n\n    return this.#queryCache\n      .build(this, defaultedOptions)\n      .setData(data, { ...options, manual: true })",
+          "supports": [
+            "q1",
+            "q2",
+            "q3"
+          ],
+          "known_url": true,
+          "exact_source_match": true,
+          "normalized_source_match": true,
+          "exact_exposure_match": true,
+          "normalized_exposure_match": true,
+          "semantic_support": "ungraded"
+        }
+      ],
+      "answer": {
+        "decisions": {
+          "q1": false,
+          "q2": "previous_data",
+          "q3": true
+        },
+        "recommendation": "Return undefined from the updater when old data is undefined; this preserves the missing-entry policy because setQueryData returns before calling cache.build or setData. For loaded records, return the updated data. This recommendation follows the documented implementation path; it is not a runtime execution claim.",
+        "evidence": [
+          {
+            "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/packages/query-core/src/queryClient.ts",
+            "quote": "const prevData = query?.state.data\n    const data = functionalUpdate(updater, prevData)\n\n    if (data === undefined) {\n      return undefined\n    }\n\n    return this.#queryCache\n      .build(this, defaultedOptions)\n      .setData(data, { ...options, manual: true })",
+            "supports": [
+              "q1",
+              "q2",
+              "q3"
+            ]
+          }
+        ],
+        "uncertainty": "The cited source is the pinned query-core 5.90.5 implementation at commit ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba. No upstream library execution was performed."
+      },
+      "first_object_answer": {
+        "decisions": {
+          "q1": false,
+          "q2": "previous_data",
+          "q3": true
+        },
+        "recommendation": "Return undefined from the updater when old data is undefined; this preserves the missing-entry policy because setQueryData returns before calling cache.build or setData. For loaded records, return the updated data. This recommendation follows the documented implementation path; it is not a runtime execution claim.",
+        "evidence": [
+          {
+            "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/packages/query-core/src/queryClient.ts",
+            "quote": "const prevData = query?.state.data\n    const data = functionalUpdate(updater, prevData)\n\n    if (data === undefined) {\n      return undefined\n    }\n\n    return this.#queryCache\n      .build(this, defaultedOptions)\n      .setData(data, { ...options, manual: true })",
+            "supports": [
+              "q1",
+              "q2",
+              "q3"
+            ]
+          }
+        ],
+        "uncertainty": "The cited source is the pinned query-core 5.90.5 implementation at commit ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba. No upstream library execution was performed."
+      },
+      "input_tokens": 32809,
+      "cached_input_tokens": 20608,
+      "uncached_input_tokens": 12201,
+      "output_tokens": 434,
+      "total_tokens": 33243,
+      "usage_complete": true,
+      "model_calls": 3,
+      "retrieval_calls": 2,
+      "retrieval_errors": 0,
+      "online_wall_seconds": 15.550132845994085,
+      "wall_seconds": 15.550132845994085,
+      "model_seconds": 8.31736608594656,
+      "prefetch_tokens": null,
+      "prefetch_seconds": null,
+      "call_count_scope": "logged broker receipts only; budget-rejected attempts may be unlogged",
+      "token_totals_are_lower_bound": false,
+      "raw_answer": "{\"decisions\":{\"q1\":false,\"q2\":\"previous_data\",\"q3\":true},\"recommendation\":\"Return undefined from the updater when old data is undefined; this preserves the missing-entry policy because setQueryData returns before calling cache.build or setData. For loaded records, return the updated data. This recommendation follows the documented implementation path; it is not a runtime execution claim.\",\"evidence\":[{\"url\":\"https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/packages/query-core/src/queryClient.ts\",\"quote\":\"const prevData = query?.state.data\\n    const data = functionalUpdate(updater, prevData)\\n\\n    if (data === undefined) {\\n      return undefined\\n    }\\n\\n    return this.#queryCache\\n      .build(this, defaultedOptions)\\n      .setData(data, { ...options, manual: true })\",\"supports\":[\"q1\",\"q2\",\"q3\"]}],\"uncertainty\":\"The cited source is the pinned query-core 5.90.5 implementation at commit ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba. No upstream library execution was performed.\"}",
+      "semantic_grade": {
+        "label": "case-853f9418c7a1",
+        "recommendation": 2,
+        "uncertainty": 1,
+        "claim_support": {
+          "q1": true,
+          "q2": true,
+          "q3": true
+        },
+        "citations": [
+          {
+            "index": 0,
+            "supported_qids": [
+              "q1",
+              "q2",
+              "q3"
+            ],
+            "unsupported_qids": [],
+            "note": "The complete path shows previous-data input, the early undefined return, and manual:true on the defined write."
+          }
+        ],
+        "material_unsupported_assertions": [],
+        "issues": [
+          "The uncertainty only disclaims execution; it does not identify the backend-persistence or optimistic-rollback-validation boundary."
+        ]
+      }
+    },
+    {
+      "id": "source-validation-tanstack-03",
+      "task": "validation-tanstack-03",
+      "arm": "source",
+      "parse": {
+        "strict_json_parse": true,
+        "strict_object_parse": true,
+        "strict_error": null,
+        "first_object_parse": true,
+        "first_object_offset": 0,
+        "first_object_trailing_text": false,
+        "first_object_error": null
+      },
+      "strict_decisions": {
+        "q1": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": "previous_data",
+          "actual": "previous_data",
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "first_object_decisions": {
+        "q1": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": "previous_data",
+          "actual": "previous_data",
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "evidence_checks": [
+        {
+          "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/packages/query-core/src/queryClient.ts",
+          "quote": "const prevData = query?.state.data\n    const data = functionalUpdate(updater, prevData)\n\n    if (data === undefined) {\n      return undefined\n    }\n\n    return this.#queryCache\n      .build(this, defaultedOptions)\n      .setData(data, { ...options, manual: true })",
+          "supports": [
+            "q1",
+            "q2",
+            "q3"
+          ],
+          "known_url": true,
+          "exact_source_match": true,
+          "normalized_source_match": true,
+          "exact_exposure_match": true,
+          "normalized_exposure_match": true,
+          "semantic_support": "ungraded"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/packages/query-core/src/utils.ts",
+          "quote": "return typeof updater === 'function'\n    ? (updater as (_: TInput) => TOutput)(input)\n    : updater",
+          "supports": [
+            "q2"
+          ],
+          "known_url": true,
+          "exact_source_match": true,
+          "normalized_source_match": true,
+          "exact_exposure_match": true,
+          "normalized_exposure_match": true,
+          "semantic_support": "ungraded"
+        }
+      ],
+      "answer": {
+        "decisions": {
+          "q1": false,
+          "q2": "previous_data",
+          "q3": true
+        },
+        "recommendation": "Proposal: use the setQueryData updater to return undefined when old data is undefined, and return the updated record otherwise. The cited implementation returns early on undefined before cache.build; for defined data it calls setData with manual: true.",
+        "evidence": [
+          {
+            "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/packages/query-core/src/queryClient.ts",
+            "quote": "const prevData = query?.state.data\n    const data = functionalUpdate(updater, prevData)\n\n    if (data === undefined) {\n      return undefined\n    }\n\n    return this.#queryCache\n      .build(this, defaultedOptions)\n      .setData(data, { ...options, manual: true })",
+            "supports": [
+              "q1",
+              "q2",
+              "q3"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/packages/query-core/src/utils.ts",
+            "quote": "return typeof updater === 'function'\n    ? (updater as (_: TInput) => TOutput)(input)\n    : updater",
+            "supports": [
+              "q2"
+            ]
+          }
+        ],
+        "uncertainty": "Evidence is a partial source excerpt for @tanstack/query-core 5.90.5. No upstream library execution was performed; the recommendation is a source-based proposal."
+      },
+      "first_object_answer": {
+        "decisions": {
+          "q1": false,
+          "q2": "previous_data",
+          "q3": true
+        },
+        "recommendation": "Proposal: use the setQueryData updater to return undefined when old data is undefined, and return the updated record otherwise. The cited implementation returns early on undefined before cache.build; for defined data it calls setData with manual: true.",
+        "evidence": [
+          {
+            "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/packages/query-core/src/queryClient.ts",
+            "quote": "const prevData = query?.state.data\n    const data = functionalUpdate(updater, prevData)\n\n    if (data === undefined) {\n      return undefined\n    }\n\n    return this.#queryCache\n      .build(this, defaultedOptions)\n      .setData(data, { ...options, manual: true })",
+            "supports": [
+              "q1",
+              "q2",
+              "q3"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/packages/query-core/src/utils.ts",
+            "quote": "return typeof updater === 'function'\n    ? (updater as (_: TInput) => TOutput)(input)\n    : updater",
+            "supports": [
+              "q2"
+            ]
+          }
+        ],
+        "uncertainty": "Evidence is a partial source excerpt for @tanstack/query-core 5.90.5. No upstream library execution was performed; the recommendation is a source-based proposal."
+      },
+      "input_tokens": 13849,
+      "cached_input_tokens": 7680,
+      "uncached_input_tokens": 6169,
+      "output_tokens": 325,
+      "total_tokens": 14174,
+      "usage_complete": true,
+      "model_calls": 1,
+      "retrieval_calls": 0,
+      "retrieval_errors": 0,
+      "online_wall_seconds": 10.729711339110509,
+      "wall_seconds": 10.6879357250873,
+      "model_seconds": 4.223043474019505,
+      "prefetch_tokens": 3943,
+      "prefetch_seconds": 0.04177561402320862,
+      "call_count_scope": "logged broker receipts only; budget-rejected attempts may be unlogged",
+      "token_totals_are_lower_bound": false,
+      "raw_answer": "{\"decisions\":{\"q1\":false,\"q2\":\"previous_data\",\"q3\":true},\"recommendation\":\"Proposal: use the setQueryData updater to return undefined when old data is undefined, and return the updated record otherwise. The cited implementation returns early on undefined before cache.build; for defined data it calls setData with manual: true.\",\"evidence\":[{\"url\":\"https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/packages/query-core/src/queryClient.ts\",\"quote\":\"const prevData = query?.state.data\\n    const data = functionalUpdate(updater, prevData)\\n\\n    if (data === undefined) {\\n      return undefined\\n    }\\n\\n    return this.#queryCache\\n      .build(this, defaultedOptions)\\n      .setData(data, { ...options, manual: true })\",\"supports\":[\"q1\",\"q2\",\"q3\"]},{\"url\":\"https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/packages/query-core/src/utils.ts\",\"quote\":\"return typeof updater === 'function'\\n    ? (updater as (_: TInput) => TOutput)(input)\\n    : updater\",\"supports\":[\"q2\"]}],\"uncertainty\":\"Evidence is a partial source excerpt for @tanstack/query-core 5.90.5. No upstream library execution was performed; the recommendation is a source-based proposal.\"}",
+      "semantic_grade": {
+        "label": "case-07c767615c67",
+        "recommendation": 2,
+        "uncertainty": 1,
+        "claim_support": {
+          "q1": true,
+          "q2": true,
+          "q3": true
+        },
+        "citations": [
+          {
+            "index": 0,
+            "supported_qids": [
+              "q1",
+              "q2",
+              "q3"
+            ],
+            "unsupported_qids": [],
+            "note": "The complete write path passes prevData to the updater, returns before build on undefined, and writes defined data with manual:true."
+          },
+          {
+            "index": 1,
+            "supported_qids": [
+              "q2"
+            ],
+            "unsupported_qids": [],
+            "note": "Together with the cited functionalUpdate(updater, prevData) call, the function-body quote confirms that an updater function receives that previous-data input."
+          }
+        ],
+        "material_unsupported_assertions": [],
+        "issues": [
+          "Uncertainty does not identify that this cache-write path establishes neither backend persistence nor a completed optimistic-edit rollback test."
+        ]
+      }
+    },
+    {
+      "id": "direct-validation-duckdb-01",
+      "task": "validation-duckdb-01",
+      "arm": "direct",
+      "parse": {
+        "strict_json_parse": true,
+        "strict_object_parse": true,
+        "strict_error": null,
+        "first_object_parse": true,
+        "first_object_offset": 0,
+        "first_object_trailing_text": false,
+        "first_object_error": null
+      },
+      "strict_decisions": {
+        "q1": {
+          "expected": "longest_prefix",
+          "actual": "longest_prefix",
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "first_object_decisions": {
+        "q1": {
+          "expected": "longest_prefix",
+          "actual": "longest_prefix",
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "evidence_checks": [
+        {
+          "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+          "quote": "In the case of multiple matching secrets, the longest prefix is chosen.",
+          "supports": [
+            "q1"
+          ],
+          "known_url": true,
+          "exact_source_match": true,
+          "normalized_source_match": true,
+          "exact_exposure_match": true,
+          "normalized_exposure_match": true,
+          "semantic_support": "ungraded"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+          "quote": "Temporary secrets are used by default",
+          "supports": [
+            "q2"
+          ],
+          "known_url": true,
+          "exact_source_match": true,
+          "normalized_source_match": true,
+          "exact_exposure_match": true,
+          "normalized_exposure_match": true,
+          "semantic_support": "ungraded"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+          "quote": "Persistent secrets are stored in unencrypted binary format in the `~/.duckdb/stored_secrets` directory.",
+          "supports": [
+            "q3"
+          ],
+          "known_url": true,
+          "exact_source_match": true,
+          "normalized_source_match": true,
+          "exact_exposure_match": true,
+          "normalized_exposure_match": true,
+          "semantic_support": "ungraded"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+          "quote": "Secrets can be scoped, so different storage prefixes can have different secrets",
+          "supports": [],
+          "known_url": true,
+          "exact_source_match": true,
+          "normalized_source_match": true,
+          "exact_exposure_match": true,
+          "normalized_exposure_match": true,
+          "semantic_support": "ungraded"
+        }
+      ],
+      "answer": {
+        "decisions": {
+          "q1": "longest_prefix",
+          "q2": true,
+          "q3": false
+        },
+        "recommendation": "Create separate S3 secrets scoped to the bucket and the nested reports prefix; the longer reports prefix will be selected when both scopes match. Keep secrets temporary if avoiding plaintext persistence is the priority. If credentials must survive restart, use persistent secrets only with storage protections appropriate for unencrypted credentials. This is advice based on the documentation, not verified pipeline execution.",
+        "evidence": [
+          {
+            "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+            "quote": "In the case of multiple matching secrets, the longest prefix is chosen.",
+            "supports": [
+              "q1"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+            "quote": "Temporary secrets are used by default",
+            "supports": [
+              "q2"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+            "quote": "Persistent secrets are stored in unencrypted binary format in the `~/.duckdb/stored_secrets` directory.",
+            "supports": [
+              "q3"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+            "quote": "Secrets can be scoped, so different storage prefixes can have different secrets",
+            "supports": []
+          }
+        ],
+        "uncertainty": "Evidence is from the official DuckDB 0.10.0 release announcement. The actual pipeline configuration and runtime behavior were not executed or verified."
+      },
+      "first_object_answer": {
+        "decisions": {
+          "q1": "longest_prefix",
+          "q2": true,
+          "q3": false
+        },
+        "recommendation": "Create separate S3 secrets scoped to the bucket and the nested reports prefix; the longer reports prefix will be selected when both scopes match. Keep secrets temporary if avoiding plaintext persistence is the priority. If credentials must survive restart, use persistent secrets only with storage protections appropriate for unencrypted credentials. This is advice based on the documentation, not verified pipeline execution.",
+        "evidence": [
+          {
+            "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+            "quote": "In the case of multiple matching secrets, the longest prefix is chosen.",
+            "supports": [
+              "q1"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+            "quote": "Temporary secrets are used by default",
+            "supports": [
+              "q2"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+            "quote": "Persistent secrets are stored in unencrypted binary format in the `~/.duckdb/stored_secrets` directory.",
+            "supports": [
+              "q3"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+            "quote": "Secrets can be scoped, so different storage prefixes can have different secrets",
+            "supports": []
+          }
+        ],
+        "uncertainty": "Evidence is from the official DuckDB 0.10.0 release announcement. The actual pipeline configuration and runtime behavior were not executed or verified."
+      },
+      "input_tokens": 33981,
+      "cached_input_tokens": 26240,
+      "uncached_input_tokens": 7741,
+      "output_tokens": 614,
+      "total_tokens": 34595,
+      "usage_complete": true,
+      "model_calls": 3,
+      "retrieval_calls": 2,
+      "retrieval_errors": 0,
+      "online_wall_seconds": 16.351954639074393,
+      "wall_seconds": 16.351954639074393,
+      "model_seconds": 8.23952767578885,
+      "prefetch_tokens": null,
+      "prefetch_seconds": null,
+      "call_count_scope": "logged broker receipts only; budget-rejected attempts may be unlogged",
+      "token_totals_are_lower_bound": false,
+      "raw_answer": "{\"decisions\":{\"q1\":\"longest_prefix\",\"q2\":true,\"q3\":false},\"recommendation\":\"Create separate S3 secrets scoped to the bucket and the nested reports prefix; the longer reports prefix will be selected when both scopes match. Keep secrets temporary if avoiding plaintext persistence is the priority. If credentials must survive restart, use persistent secrets only with storage protections appropriate for unencrypted credentials. This is advice based on the documentation, not verified pipeline execution.\",\"evidence\":[{\"url\":\"https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md\",\"quote\":\"In the case of multiple matching secrets, the longest prefix is chosen.\",\"supports\":[\"q1\"]},{\"url\":\"https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md\",\"quote\":\"Temporary secrets are used by default\",\"supports\":[\"q2\"]},{\"url\":\"https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md\",\"quote\":\"Persistent secrets are stored in unencrypted binary format in the `~/.duckdb/stored_secrets` directory.\",\"supports\":[\"q3\"]},{\"url\":\"https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md\",\"quote\":\"Secrets can be scoped, so different storage prefixes can have different secrets\",\"supports\":[]}],\"uncertainty\":\"Evidence is from the official DuckDB 0.10.0 release announcement. The actual pipeline configuration and runtime behavior were not executed or verified.\"}",
+      "semantic_grade": {
+        "label": "case-073193a6f16f",
+        "recommendation": 2,
+        "uncertainty": 1,
+        "claim_support": {
+          "q1": true,
+          "q2": true,
+          "q3": true
+        },
+        "citations": [
+          {
+            "index": 0,
+            "supported_qids": [
+              "q1"
+            ],
+            "unsupported_qids": [],
+            "note": "The selection rule explicitly chooses the longest matching prefix."
+          },
+          {
+            "index": 1,
+            "supported_qids": [
+              "q2"
+            ],
+            "unsupported_qids": [],
+            "note": "Temporary secrets are explicitly the default."
+          },
+          {
+            "index": 2,
+            "supported_qids": [
+              "q3"
+            ],
+            "unsupported_qids": [],
+            "note": "Persistent-secret storage is explicitly unencrypted binary."
+          },
+          {
+            "index": 3,
+            "supported_qids": [],
+            "unsupported_qids": [],
+            "note": "Different scoped credentials support the recommended setup, but this passage does not establish any of the three decision claims by itself."
+          }
+        ],
+        "material_unsupported_assertions": [],
+        "issues": [
+          "Uncertainty says the pipeline was not verified but does not specifically leave filesystem/secret-storage protections unverified. The recommendation correctly treats storage protection as a proposed action."
+        ]
+      }
+    },
+    {
+      "id": "source-validation-duckdb-01",
+      "task": "validation-duckdb-01",
+      "arm": "source",
+      "parse": {
+        "strict_json_parse": true,
+        "strict_object_parse": true,
+        "strict_error": null,
+        "first_object_parse": true,
+        "first_object_offset": 0,
+        "first_object_trailing_text": false,
+        "first_object_error": null
+      },
+      "strict_decisions": {
+        "q1": {
+          "expected": "longest_prefix",
+          "actual": "longest_prefix",
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "first_object_decisions": {
+        "q1": {
+          "expected": "longest_prefix",
+          "actual": "longest_prefix",
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "evidence_checks": [
+        {
+          "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+          "quote": "In the case of multiple matching secrets, the longest prefix is chosen.",
+          "supports": [
+            "q1"
+          ],
+          "known_url": true,
+          "exact_source_match": true,
+          "normalized_source_match": true,
+          "exact_exposure_match": true,
+          "normalized_exposure_match": true,
+          "semantic_support": "ungraded"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+          "quote": "Temporary secrets are used by default – and are stored in-memory for the life span of the DuckDB instance",
+          "supports": [
+            "q2"
+          ],
+          "known_url": true,
+          "exact_source_match": true,
+          "normalized_source_match": true,
+          "exact_exposure_match": true,
+          "normalized_exposure_match": true,
+          "semantic_support": "ungraded"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+          "quote": "Persistent secrets are stored in unencrypted binary format in the `~/.duckdb/stored_secrets` directory.",
+          "supports": [
+            "q3"
+          ],
+          "known_url": true,
+          "exact_source_match": true,
+          "normalized_source_match": true,
+          "exact_exposure_match": true,
+          "normalized_exposure_match": true,
+          "semantic_support": "ungraded"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+          "quote": "Secrets can also have an optional scope, which is a file path prefix that the secret applies to.",
+          "supports": [
+            "q1"
+          ],
+          "known_url": true,
+          "exact_source_match": true,
+          "normalized_source_match": true,
+          "exact_exposure_match": true,
+          "normalized_exposure_match": true,
+          "semantic_support": "ungraded"
+        }
+      ],
+      "answer": {
+        "decisions": {
+          "q1": "longest_prefix",
+          "q2": true,
+          "q3": false
+        },
+        "recommendation": "Create separate secrets scoped to each S3 prefix; when both scopes match, the longer prefix is selected. Temporary secrets are the default and last only for the DuckDB instance. If credentials must survive restarts, use a persistent secret, but do not assume its stored file is encrypted: this release stores it in unencrypted binary format. Protect that file accordingly. This is advice based on the release documentation; no pipeline execution was verified.",
+        "evidence": [
+          {
+            "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+            "quote": "In the case of multiple matching secrets, the longest prefix is chosen.",
+            "supports": [
+              "q1"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+            "quote": "Temporary secrets are used by default – and are stored in-memory for the life span of the DuckDB instance",
+            "supports": [
+              "q2"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+            "quote": "Persistent secrets are stored in unencrypted binary format in the `~/.duckdb/stored_secrets` directory.",
+            "supports": [
+              "q3"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+            "quote": "Secrets can also have an optional scope, which is a file path prefix that the secret applies to.",
+            "supports": [
+              "q1"
+            ]
+          }
+        ],
+        "uncertainty": "Evidence is scoped to DuckDB 0.10.0 release documentation. It does not verify the deployed pipeline, actual secret definitions or filesystem protections. No upstream library execution was performed."
+      },
+      "first_object_answer": {
+        "decisions": {
+          "q1": "longest_prefix",
+          "q2": true,
+          "q3": false
+        },
+        "recommendation": "Create separate secrets scoped to each S3 prefix; when both scopes match, the longer prefix is selected. Temporary secrets are the default and last only for the DuckDB instance. If credentials must survive restarts, use a persistent secret, but do not assume its stored file is encrypted: this release stores it in unencrypted binary format. Protect that file accordingly. This is advice based on the release documentation; no pipeline execution was verified.",
+        "evidence": [
+          {
+            "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+            "quote": "In the case of multiple matching secrets, the longest prefix is chosen.",
+            "supports": [
+              "q1"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+            "quote": "Temporary secrets are used by default – and are stored in-memory for the life span of the DuckDB instance",
+            "supports": [
+              "q2"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+            "quote": "Persistent secrets are stored in unencrypted binary format in the `~/.duckdb/stored_secrets` directory.",
+            "supports": [
+              "q3"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+            "quote": "Secrets can also have an optional scope, which is a file path prefix that the secret applies to.",
+            "supports": [
+              "q1"
+            ]
+          }
+        ],
+        "uncertainty": "Evidence is scoped to DuckDB 0.10.0 release documentation. It does not verify the deployed pipeline, actual secret definitions or filesystem protections. No upstream library execution was performed."
+      },
+      "input_tokens": 28385,
+      "cached_input_tokens": 21120,
+      "uncached_input_tokens": 7265,
+      "output_tokens": 595,
+      "total_tokens": 28980,
+      "usage_complete": true,
+      "model_calls": 2,
+      "retrieval_calls": 1,
+      "retrieval_errors": 0,
+      "online_wall_seconds": 13.436107163899578,
+      "wall_seconds": 13.396802770905197,
+      "model_seconds": 6.276468995027244,
+      "prefetch_tokens": 3689,
+      "prefetch_seconds": 0.03930439299438149,
+      "call_count_scope": "logged broker receipts only; budget-rejected attempts may be unlogged",
+      "token_totals_are_lower_bound": false,
+      "raw_answer": "{\"decisions\":{\"q1\":\"longest_prefix\",\"q2\":true,\"q3\":false},\"recommendation\":\"Create separate secrets scoped to each S3 prefix; when both scopes match, the longer prefix is selected. Temporary secrets are the default and last only for the DuckDB instance. If credentials must survive restarts, use a persistent secret, but do not assume its stored file is encrypted: this release stores it in unencrypted binary format. Protect that file accordingly. This is advice based on the release documentation; no pipeline execution was verified.\",\"evidence\":[{\"url\":\"https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md\",\"quote\":\"In the case of multiple matching secrets, the longest prefix is chosen.\",\"supports\":[\"q1\"]},{\"url\":\"https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md\",\"quote\":\"Temporary secrets are used by default – and are stored in-memory for the life span of the DuckDB instance\",\"supports\":[\"q2\"]},{\"url\":\"https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md\",\"quote\":\"Persistent secrets are stored in unencrypted binary format in the `~/.duckdb/stored_secrets` directory.\",\"supports\":[\"q3\"]},{\"url\":\"https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md\",\"quote\":\"Secrets can also have an optional scope, which is a file path prefix that the secret applies to.\",\"supports\":[\"q1\"]}],\"uncertainty\":\"Evidence is scoped to DuckDB 0.10.0 release documentation. It does not verify the deployed pipeline, actual secret definitions or filesystem protections. No upstream library execution was performed.\"}",
+      "semantic_grade": {
+        "label": "case-c2c552d92c68",
+        "recommendation": 2,
+        "uncertainty": 2,
+        "claim_support": {
+          "q1": true,
+          "q2": true,
+          "q3": true
+        },
+        "citations": [
+          {
+            "index": 0,
+            "supported_qids": [
+              "q1"
+            ],
+            "unsupported_qids": [],
+            "note": "The longest matching prefix selection rule is explicit."
+          },
+          {
+            "index": 1,
+            "supported_qids": [
+              "q2"
+            ],
+            "unsupported_qids": [],
+            "note": "Temporary default and instance-lifetime in-memory storage are explicit."
+          },
+          {
+            "index": 2,
+            "supported_qids": [
+              "q3"
+            ],
+            "unsupported_qids": [],
+            "note": "Persistent storage is explicitly unencrypted."
+          },
+          {
+            "index": 3,
+            "supported_qids": [],
+            "unsupported_qids": [
+              "q1"
+            ],
+            "note": "A path-prefix scope definition does not by itself establish the longest-match selection rule; citation 0 supplies that rule."
+          }
+        ],
+        "material_unsupported_assertions": [],
+        "issues": [
+          "The uncertainty specifically leaves actual secret definitions and filesystem protections unverified."
+        ]
+      }
+    },
+    {
+      "id": "direct-validation-duckdb-02",
+      "task": "validation-duckdb-02",
+      "arm": "direct",
+      "parse": {
+        "strict_json_parse": true,
+        "strict_object_parse": true,
+        "strict_error": null,
+        "first_object_parse": true,
+        "first_object_offset": 0,
+        "first_object_trailing_text": false,
+        "first_object_error": null
+      },
+      "strict_decisions": {
+        "q1": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": "unknown",
+          "actual": "unknown",
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "first_object_decisions": {
+        "q1": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": "unknown",
+          "actual": "unknown",
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "evidence_checks": [
+        {
+          "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+          "quote": "The manager can approve this or respond with a reduced allocation.",
+          "supports": [
+            "q1"
+          ],
+          "known_url": true,
+          "exact_source_match": true,
+          "normalized_source_match": true,
+          "exact_exposure_match": true,
+          "normalized_exposure_match": true,
+          "semantic_support": "ungraded"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+          "quote": "Note that a temporary directory has to be set here, because the operators actually need to offload data to disk to complete this query given this memory limit.",
+          "supports": [
+            "q2"
+          ],
+          "known_url": true,
+          "exact_source_match": true,
+          "normalized_source_match": true,
+          "exact_exposure_match": true,
+          "normalized_exposure_match": true,
+          "semantic_support": "ungraded"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+          "quote": "With the new version 0.10.0, this query completes in ca. 5 s on a MacBook",
+          "supports": [
+            "q3"
+          ],
+          "known_url": true,
+          "exact_source_match": true,
+          "normalized_source_match": true,
+          "exact_exposure_match": true,
+          "normalized_exposure_match": true,
+          "semantic_support": "ungraded"
+        }
+      ],
+      "answer": {
+        "decisions": {
+          "q1": true,
+          "q2": true,
+          "q3": "unknown"
+        },
+        "recommendation": "Proposal: run a production-like deployment experiment under the fixed memory limit, with the temporary directory configured and representative concurrent joins and data. Measure completion time, memory use, and whether data is offloaded; use repeated runs to assess runtime variability before setting an expectation.",
+        "evidence": [
+          {
+            "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+            "quote": "The manager can approve this or respond with a reduced allocation.",
+            "supports": [
+              "q1"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+            "quote": "Note that a temporary directory has to be set here, because the operators actually need to offload data to disk to complete this query given this memory limit.",
+            "supports": [
+              "q2"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+            "quote": "With the new version 0.10.0, this query completes in ca. 5 s on a MacBook",
+            "supports": [
+              "q3"
+            ]
+          }
+        ],
+        "uncertainty": "The source establishes the approximate runtime only for its documented query on a MacBook. It does not establish a five-second runtime for this unmeasured production job, whose workload and environment may differ. The proposed experiment has not been executed; the cited example requires disk offloading and a configured temporary directory."
+      },
+      "first_object_answer": {
+        "decisions": {
+          "q1": true,
+          "q2": true,
+          "q3": "unknown"
+        },
+        "recommendation": "Proposal: run a production-like deployment experiment under the fixed memory limit, with the temporary directory configured and representative concurrent joins and data. Measure completion time, memory use, and whether data is offloaded; use repeated runs to assess runtime variability before setting an expectation.",
+        "evidence": [
+          {
+            "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+            "quote": "The manager can approve this or respond with a reduced allocation.",
+            "supports": [
+              "q1"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+            "quote": "Note that a temporary directory has to be set here, because the operators actually need to offload data to disk to complete this query given this memory limit.",
+            "supports": [
+              "q2"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+            "quote": "With the new version 0.10.0, this query completes in ca. 5 s on a MacBook",
+            "supports": [
+              "q3"
+            ]
+          }
+        ],
+        "uncertainty": "The source establishes the approximate runtime only for its documented query on a MacBook. It does not establish a five-second runtime for this unmeasured production job, whose workload and environment may differ. The proposed experiment has not been executed; the cited example requires disk offloading and a configured temporary directory."
+      },
+      "input_tokens": 33912,
+      "cached_input_tokens": 17408,
+      "uncached_input_tokens": 16504,
+      "output_tokens": 581,
+      "total_tokens": 34493,
+      "usage_complete": true,
+      "model_calls": 3,
+      "retrieval_calls": 2,
+      "retrieval_errors": 0,
+      "online_wall_seconds": 18.160298240021802,
+      "wall_seconds": 18.160298240021802,
+      "model_seconds": 10.818729220889509,
+      "prefetch_tokens": null,
+      "prefetch_seconds": null,
+      "call_count_scope": "logged broker receipts only; budget-rejected attempts may be unlogged",
+      "token_totals_are_lower_bound": false,
+      "raw_answer": "{\"decisions\":{\"q1\":true,\"q2\":true,\"q3\":\"unknown\"},\"recommendation\":\"Proposal: run a production-like deployment experiment under the fixed memory limit, with the temporary directory configured and representative concurrent joins and data. Measure completion time, memory use, and whether data is offloaded; use repeated runs to assess runtime variability before setting an expectation.\",\"evidence\":[{\"url\":\"https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md\",\"quote\":\"The manager can approve this or respond with a reduced allocation.\",\"supports\":[\"q1\"]},{\"url\":\"https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md\",\"quote\":\"Note that a temporary directory has to be set here, because the operators actually need to offload data to disk to complete this query given this memory limit.\",\"supports\":[\"q2\"]},{\"url\":\"https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md\",\"quote\":\"With the new version 0.10.0, this query completes in ca. 5 s on a MacBook\",\"supports\":[\"q3\"]}],\"uncertainty\":\"The source establishes the approximate runtime only for its documented query on a MacBook. It does not establish a five-second runtime for this unmeasured production job, whose workload and environment may differ. The proposed experiment has not been executed; the cited example requires disk offloading and a configured temporary directory.\"}",
+      "semantic_grade": {
+        "label": "case-63ed5df8b5c6",
+        "recommendation": 1,
+        "uncertainty": 2,
+        "claim_support": {
+          "q1": true,
+          "q2": true,
+          "q3": true
+        },
+        "citations": [
+          {
+            "index": 0,
+            "supported_qids": [
+              "q1"
+            ],
+            "unsupported_qids": [],
+            "note": "The reduced-allocation response is explicit."
+          },
+          {
+            "index": 1,
+            "supported_qids": [
+              "q2"
+            ],
+            "unsupported_qids": [],
+            "note": "The constrained-memory example explicitly requires a temporary directory for disk offloading."
+          },
+          {
+            "index": 2,
+            "supported_qids": [
+              "q3"
+            ],
+            "unsupported_qids": [],
+            "note": "The example runtime is scoped to this query on a MacBook; together with the explicit uncertainty, it supports abstaining from a production-job guarantee."
+          }
+        ],
+        "material_unsupported_assertions": [],
+        "issues": [
+          "The proposed representative concurrent-join experiment measures runtime, memory, and offloading, but omits explicit control of thread count and available disk capacity from the full rubric."
+        ]
+      }
+    },
+    {
+      "id": "source-validation-duckdb-02",
+      "task": "validation-duckdb-02",
+      "arm": "source",
+      "parse": {
+        "strict_json_parse": true,
+        "strict_object_parse": true,
+        "strict_error": null,
+        "first_object_parse": true,
+        "first_object_offset": 0,
+        "first_object_trailing_text": false,
+        "first_object_error": null
+      },
+      "strict_decisions": {
+        "q1": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": "unknown",
+          "actual": "unknown",
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "first_object_decisions": {
+        "q1": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": "unknown",
+          "actual": "unknown",
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "evidence_checks": [
+        {
+          "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+          "quote": "The manager can approve this or respond with a reduced allocation.",
+          "supports": [
+            "q1"
+          ],
+          "known_url": true,
+          "exact_source_match": true,
+          "normalized_source_match": true,
+          "exact_exposure_match": true,
+          "normalized_exposure_match": true,
+          "semantic_support": "ungraded"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+          "quote": "Note that a temporary directory has to be set here, because the operators actually need to offload data to disk to complete this query given this memory limit.",
+          "supports": [
+            "q2"
+          ],
+          "known_url": true,
+          "exact_source_match": true,
+          "normalized_source_match": true,
+          "exact_exposure_match": true,
+          "normalized_exposure_match": true,
+          "semantic_support": "ungraded"
+        }
+      ],
+      "answer": {
+        "decisions": {
+          "q1": true,
+          "q2": true,
+          "q3": "unknown"
+        },
+        "recommendation": "Proposal: run a representative staging workload with the same memory limit and temporary-directory configuration, measure its runtime across repeated runs, and confirm successful completion before setting a production runtime expectation.",
+        "evidence": [
+          {
+            "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+            "quote": "The manager can approve this or respond with a reduced allocation.",
+            "supports": [
+              "q1"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+            "quote": "Note that a temporary directory has to be set here, because the operators actually need to offload data to disk to complete this query given this memory limit.",
+            "supports": [
+              "q2"
+            ]
+          }
+        ],
+        "uncertainty": "The supplied DuckDB 0.10.0 release excerpts describe reduced allocations and a temporary directory for the constrained-memory example, but provide no five-second runtime guarantee. The proposed staging experiment has not been executed; the excerpts do not establish that this specific production job will complete or meet any runtime target."
+      },
+      "first_object_answer": {
+        "decisions": {
+          "q1": true,
+          "q2": true,
+          "q3": "unknown"
+        },
+        "recommendation": "Proposal: run a representative staging workload with the same memory limit and temporary-directory configuration, measure its runtime across repeated runs, and confirm successful completion before setting a production runtime expectation.",
+        "evidence": [
+          {
+            "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+            "quote": "The manager can approve this or respond with a reduced allocation.",
+            "supports": [
+              "q1"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+            "quote": "Note that a temporary directory has to be set here, because the operators actually need to offload data to disk to complete this query given this memory limit.",
+            "supports": [
+              "q2"
+            ]
+          }
+        ],
+        "uncertainty": "The supplied DuckDB 0.10.0 release excerpts describe reduced allocations and a temporary directory for the constrained-memory example, but provide no five-second runtime guarantee. The proposed staging experiment has not been executed; the excerpts do not establish that this specific production job will complete or meet any runtime target."
+      },
+      "input_tokens": 14008,
+      "cached_input_tokens": 7680,
+      "uncached_input_tokens": 6328,
+      "output_tokens": 301,
+      "total_tokens": 14309,
+      "usage_complete": true,
+      "model_calls": 1,
+      "retrieval_calls": 0,
+      "retrieval_errors": 0,
+      "online_wall_seconds": 9.96280326298438,
+      "wall_seconds": 9.888103769975714,
+      "model_seconds": 3.3438927159877494,
+      "prefetch_tokens": 4094,
+      "prefetch_seconds": 0.07469949300866574,
+      "call_count_scope": "logged broker receipts only; budget-rejected attempts may be unlogged",
+      "token_totals_are_lower_bound": false,
+      "raw_answer": "{\"decisions\":{\"q1\":true,\"q2\":true,\"q3\":\"unknown\"},\"recommendation\":\"Proposal: run a representative staging workload with the same memory limit and temporary-directory configuration, measure its runtime across repeated runs, and confirm successful completion before setting a production runtime expectation.\",\"evidence\":[{\"url\":\"https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md\",\"quote\":\"The manager can approve this or respond with a reduced allocation.\",\"supports\":[\"q1\"]},{\"url\":\"https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md\",\"quote\":\"Note that a temporary directory has to be set here, because the operators actually need to offload data to disk to complete this query given this memory limit.\",\"supports\":[\"q2\"]}],\"uncertainty\":\"The supplied DuckDB 0.10.0 release excerpts describe reduced allocations and a temporary directory for the constrained-memory example, but provide no five-second runtime guarantee. The proposed staging experiment has not been executed; the excerpts do not establish that this specific production job will complete or meet any runtime target.\"}",
+      "semantic_grade": {
+        "label": "case-1fd261dae8de",
+        "recommendation": 1,
+        "uncertainty": 2,
+        "claim_support": {
+          "q1": true,
+          "q2": true,
+          "q3": true
+        },
+        "citations": [
+          {
+            "index": 0,
+            "supported_qids": [
+              "q1"
+            ],
+            "unsupported_qids": [],
+            "note": "The manager may explicitly respond with a reduced allocation."
+          },
+          {
+            "index": 1,
+            "supported_qids": [
+              "q2"
+            ],
+            "unsupported_qids": [],
+            "note": "The temporary-directory requirement is explicitly tied to offloading in the constrained-memory example."
+          }
+        ],
+        "material_unsupported_assertions": [],
+        "issues": [
+          "The staging experiment controls memory and temporary-directory configuration, but does not explicitly control thread count or assess available disk capacity as required by the full recommendation rubric.",
+          "q3 is supported by explicit workload-scope abstention: the unmeasured production job has no established runtime/completion guarantee."
+        ]
+      }
+    },
+    {
+      "id": "direct-validation-duckdb-03",
+      "task": "validation-duckdb-03",
+      "arm": "direct",
+      "parse": {
+        "strict_json_parse": true,
+        "strict_object_parse": true,
+        "strict_error": null,
+        "first_object_parse": true,
+        "first_object_offset": 0,
+        "first_object_trailing_text": false,
+        "first_object_error": null
+      },
+      "strict_decisions": {
+        "q1": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "first_object_decisions": {
+        "q1": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "evidence_checks": [
+        {
+          "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+          "quote": "every value must have the same fixed number of elements in them",
+          "supports": [
+            "q1"
+          ],
+          "known_url": true,
+          "exact_source_match": true,
+          "normalized_source_match": true,
+          "exact_exposure_match": true,
+          "normalized_exposure_match": true,
+          "semantic_support": "ungraded"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/docs/0.10/sql/data_types/typecasting.md",
+          "quote": "arrays can be implicitly cast to lists of the same type. For example, an `INTEGER[3]` array can be implicitly cast to an `INTEGER[]` list.",
+          "supports": [
+            "q2"
+          ],
+          "known_url": true,
+          "exact_source_match": true,
+          "normalized_source_match": true,
+          "exact_exposure_match": true,
+          "normalized_exposure_match": true,
+          "semantic_support": "ungraded"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/docs/0.10/sql/data_types/typecasting.md",
+          "quote": "The names of the struct can also be in a different order. The fields of the struct will be reshuffled based on the names of the structs.",
+          "supports": [
+            "q3"
+          ],
+          "known_url": true,
+          "exact_source_match": true,
+          "normalized_source_match": true,
+          "exact_exposure_match": true,
+          "normalized_exposure_match": true,
+          "semantic_support": "ungraded"
+        }
+      ],
+      "answer": {
+        "decisions": {
+          "q1": false,
+          "q2": true,
+          "q3": false
+        },
+        "recommendation": "Use a variable-length DOUBLE[] list representation for vectors that may contain three or four coordinates, and cast fixed arrays to same-element-type lists at the list-oriented interface. Cast structs by matching field names; DuckDB reshuffles fields when their order differs. These are recommendations based on the documented DuckDB 0.10 rules, not verified execution against the importer.",
+        "evidence": [
+          {
+            "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+            "quote": "every value must have the same fixed number of elements in them",
+            "supports": [
+              "q1"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/docs/0.10/sql/data_types/typecasting.md",
+            "quote": "arrays can be implicitly cast to lists of the same type. For example, an `INTEGER[3]` array can be implicitly cast to an `INTEGER[]` list.",
+            "supports": [
+              "q2"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/docs/0.10/sql/data_types/typecasting.md",
+            "quote": "The names of the struct can also be in a different order. The fields of the struct will be reshuffled based on the names of the structs.",
+            "supports": [
+              "q3"
+            ]
+          }
+        ],
+        "uncertainty": "Evidence is from the pinned DuckDB 0.10 documentation and release announcement. The importer and its list-oriented interface were not inspected or executed, so compatibility of the proposed representation and casts with that specific interface remains unverified."
+      },
+      "first_object_answer": {
+        "decisions": {
+          "q1": false,
+          "q2": true,
+          "q3": false
+        },
+        "recommendation": "Use a variable-length DOUBLE[] list representation for vectors that may contain three or four coordinates, and cast fixed arrays to same-element-type lists at the list-oriented interface. Cast structs by matching field names; DuckDB reshuffles fields when their order differs. These are recommendations based on the documented DuckDB 0.10 rules, not verified execution against the importer.",
+        "evidence": [
+          {
+            "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+            "quote": "every value must have the same fixed number of elements in them",
+            "supports": [
+              "q1"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/docs/0.10/sql/data_types/typecasting.md",
+            "quote": "arrays can be implicitly cast to lists of the same type. For example, an `INTEGER[3]` array can be implicitly cast to an `INTEGER[]` list.",
+            "supports": [
+              "q2"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/docs/0.10/sql/data_types/typecasting.md",
+            "quote": "The names of the struct can also be in a different order. The fields of the struct will be reshuffled based on the names of the structs.",
+            "supports": [
+              "q3"
+            ]
+          }
+        ],
+        "uncertainty": "Evidence is from the pinned DuckDB 0.10 documentation and release announcement. The importer and its list-oriented interface were not inspected or executed, so compatibility of the proposed representation and casts with that specific interface remains unverified."
+      },
+      "input_tokens": 33286,
+      "cached_input_tokens": 18560,
+      "uncached_input_tokens": 14726,
+      "output_tokens": 627,
+      "total_tokens": 33913,
+      "usage_complete": true,
+      "model_calls": 3,
+      "retrieval_calls": 3,
+      "retrieval_errors": 0,
+      "online_wall_seconds": 18.761001585051417,
+      "wall_seconds": 18.761001585051417,
+      "model_seconds": 10.328896255115978,
+      "prefetch_tokens": null,
+      "prefetch_seconds": null,
+      "call_count_scope": "logged broker receipts only; budget-rejected attempts may be unlogged",
+      "token_totals_are_lower_bound": false,
+      "raw_answer": "{\"decisions\":{\"q1\":false,\"q2\":true,\"q3\":false},\"recommendation\":\"Use a variable-length DOUBLE[] list representation for vectors that may contain three or four coordinates, and cast fixed arrays to same-element-type lists at the list-oriented interface. Cast structs by matching field names; DuckDB reshuffles fields when their order differs. These are recommendations based on the documented DuckDB 0.10 rules, not verified execution against the importer.\",\"evidence\":[{\"url\":\"https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md\",\"quote\":\"every value must have the same fixed number of elements in them\",\"supports\":[\"q1\"]},{\"url\":\"https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/docs/0.10/sql/data_types/typecasting.md\",\"quote\":\"arrays can be implicitly cast to lists of the same type. For example, an `INTEGER[3]` array can be implicitly cast to an `INTEGER[]` list.\",\"supports\":[\"q2\"]},{\"url\":\"https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/docs/0.10/sql/data_types/typecasting.md\",\"quote\":\"The names of the struct can also be in a different order. The fields of the struct will be reshuffled based on the names of the structs.\",\"supports\":[\"q3\"]}],\"uncertainty\":\"Evidence is from the pinned DuckDB 0.10 documentation and release announcement. The importer and its list-oriented interface were not inspected or executed, so compatibility of the proposed representation and casts with that specific interface remains unverified.\"}",
+      "semantic_grade": {
+        "label": "case-c85be518db6f",
+        "recommendation": 2,
+        "uncertainty": 2,
+        "claim_support": {
+          "q1": true,
+          "q2": true,
+          "q3": true
+        },
+        "citations": [
+          {
+            "index": 0,
+            "supported_qids": [
+              "q1"
+            ],
+            "unsupported_qids": [],
+            "note": "Every value of a fixed-length array must have the same element count."
+          },
+          {
+            "index": 1,
+            "supported_qids": [
+              "q2"
+            ],
+            "unsupported_qids": [],
+            "note": "The fixed-array-to-same-element-type-list implicit conversion and exact INTEGER example are explicit."
+          },
+          {
+            "index": 2,
+            "supported_qids": [
+              "q3"
+            ],
+            "unsupported_qids": [],
+            "note": "Different field order is supported through name-based reshuffling."
+          }
+        ],
+        "material_unsupported_assertions": [],
+        "issues": [
+          "The recommendation uses variable-length lists and matching struct names; interface/importer compatibility remains explicitly unverified, without asserting that malformed rows were accepted."
+        ]
+      }
+    },
+    {
+      "id": "source-validation-duckdb-03",
+      "task": "validation-duckdb-03",
+      "arm": "source",
+      "parse": {
+        "strict_json_parse": true,
+        "strict_object_parse": true,
+        "strict_error": null,
+        "first_object_parse": true,
+        "first_object_offset": 0,
+        "first_object_trailing_text": false,
+        "first_object_error": null
+      },
+      "strict_decisions": {
+        "q1": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "first_object_decisions": {
+        "q1": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q2": {
+          "expected": true,
+          "actual": true,
+          "present": true,
+          "exact_type_and_value": true
+        },
+        "q3": {
+          "expected": false,
+          "actual": false,
+          "present": true,
+          "exact_type_and_value": true
+        }
+      },
+      "evidence_checks": [
+        {
+          "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+          "quote": "Fixed-length arrays are similar to lists, however, every value must have the same fixed number of elements in them.",
+          "supports": [
+            "q1"
+          ],
+          "known_url": true,
+          "exact_source_match": true,
+          "normalized_source_match": true,
+          "exact_exposure_match": true,
+          "normalized_exposure_match": true,
+          "semantic_support": "ungraded"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/docs/0.10/sql/data_types/typecasting.md",
+          "quote": "Arrays can be implicitly cast to lists of the same type. For example, an `INTEGER[3]` array can be implicitly cast to an `INTEGER[]` list.",
+          "supports": [
+            "q2"
+          ],
+          "known_url": true,
+          "exact_source_match": false,
+          "normalized_source_match": false,
+          "exact_exposure_match": false,
+          "normalized_exposure_match": false,
+          "semantic_support": "ungraded"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/docs/0.10/sql/data_types/typecasting.md",
+          "quote": "Structs can be cast to other structs as long as the names of the child elements match. The names of the struct can also be in a different order. The fields of the struct will be reshuffled based on the names of the structs.",
+          "supports": [
+            "q3"
+          ],
+          "known_url": true,
+          "exact_source_match": false,
+          "normalized_source_match": false,
+          "exact_exposure_match": false,
+          "normalized_exposure_match": false,
+          "semantic_support": "ungraded"
+        }
+      ],
+      "answer": {
+        "decisions": {
+          "q1": false,
+          "q2": true,
+          "q3": false
+        },
+        "recommendation": "Proposal: use a variable-length list representation for vectors that can have three or four coordinates, since a fixed-length array requires every value to have the same number of elements and DuckDB 0.10 docs say arrays can be implicitly cast to same-type lists. For structs, cast by matching field names; the documented behavior reshuffles fields when their order differs. These are source-grounded recommendations, not verified execution of an importer.",
+        "evidence": [
+          {
+            "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+            "quote": "Fixed-length arrays are similar to lists, however, every value must have the same fixed number of elements in them.",
+            "supports": [
+              "q1"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/docs/0.10/sql/data_types/typecasting.md",
+            "quote": "Arrays can be implicitly cast to lists of the same type. For example, an `INTEGER[3]` array can be implicitly cast to an `INTEGER[]` list.",
+            "supports": [
+              "q2"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/docs/0.10/sql/data_types/typecasting.md",
+            "quote": "Structs can be cast to other structs as long as the names of the child elements match. The names of the struct can also be in a different order. The fields of the struct will be reshuffled based on the names of the structs.",
+            "supports": [
+              "q3"
+            ]
+          }
+        ],
+        "uncertainty": "Evidence is limited to supplied DuckDB 0.10 documentation excerpts. No importer or upstream library was executed; broader compatibility with the proposed interface and importer behavior is unverified."
+      },
+      "first_object_answer": {
+        "decisions": {
+          "q1": false,
+          "q2": true,
+          "q3": false
+        },
+        "recommendation": "Proposal: use a variable-length list representation for vectors that can have three or four coordinates, since a fixed-length array requires every value to have the same number of elements and DuckDB 0.10 docs say arrays can be implicitly cast to same-type lists. For structs, cast by matching field names; the documented behavior reshuffles fields when their order differs. These are source-grounded recommendations, not verified execution of an importer.",
+        "evidence": [
+          {
+            "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+            "quote": "Fixed-length arrays are similar to lists, however, every value must have the same fixed number of elements in them.",
+            "supports": [
+              "q1"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/docs/0.10/sql/data_types/typecasting.md",
+            "quote": "Arrays can be implicitly cast to lists of the same type. For example, an `INTEGER[3]` array can be implicitly cast to an `INTEGER[]` list.",
+            "supports": [
+              "q2"
+            ]
+          },
+          {
+            "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/docs/0.10/sql/data_types/typecasting.md",
+            "quote": "Structs can be cast to other structs as long as the names of the child elements match. The names of the struct can also be in a different order. The fields of the struct will be reshuffled based on the names of the structs.",
+            "supports": [
+              "q3"
+            ]
+          }
+        ],
+        "uncertainty": "Evidence is limited to supplied DuckDB 0.10 documentation excerpts. No importer or upstream library was executed; broader compatibility with the proposed interface and importer behavior is unverified."
+      },
+      "input_tokens": 12592,
+      "cached_input_tokens": 7680,
+      "uncached_input_tokens": 4912,
+      "output_tokens": 439,
+      "total_tokens": 13031,
+      "usage_complete": true,
+      "model_calls": 1,
+      "retrieval_calls": 0,
+      "retrieval_errors": 0,
+      "online_wall_seconds": 10.773881960078143,
+      "wall_seconds": 10.738515180069953,
+      "model_seconds": 4.209589449921623,
+      "prefetch_tokens": 2684,
+      "prefetch_seconds": 0.03536678000818938,
+      "call_count_scope": "logged broker receipts only; budget-rejected attempts may be unlogged",
+      "token_totals_are_lower_bound": false,
+      "raw_answer": "{\"decisions\":{\"q1\":false,\"q2\":true,\"q3\":false},\"recommendation\":\"Proposal: use a variable-length list representation for vectors that can have three or four coordinates, since a fixed-length array requires every value to have the same number of elements and DuckDB 0.10 docs say arrays can be implicitly cast to same-type lists. For structs, cast by matching field names; the documented behavior reshuffles fields when their order differs. These are source-grounded recommendations, not verified execution of an importer.\",\"evidence\":[{\"url\":\"https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md\",\"quote\":\"Fixed-length arrays are similar to lists, however, every value must have the same fixed number of elements in them.\",\"supports\":[\"q1\"]},{\"url\":\"https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/docs/0.10/sql/data_types/typecasting.md\",\"quote\":\"Arrays can be implicitly cast to lists of the same type. For example, an `INTEGER[3]` array can be implicitly cast to an `INTEGER[]` list.\",\"supports\":[\"q2\"]},{\"url\":\"https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/docs/0.10/sql/data_types/typecasting.md\",\"quote\":\"Structs can be cast to other structs as long as the names of the child elements match. The names of the struct can also be in a different order. The fields of the struct will be reshuffled based on the names of the structs.\",\"supports\":[\"q3\"]}],\"uncertainty\":\"Evidence is limited to supplied DuckDB 0.10 documentation excerpts. No importer or upstream library was executed; broader compatibility with the proposed interface and importer behavior is unverified.\"}",
+      "semantic_grade": {
+        "label": "case-e50efec0c14f",
+        "recommendation": 2,
+        "uncertainty": 2,
+        "claim_support": {
+          "q1": true,
+          "q2": true,
+          "q3": true
+        },
+        "citations": [
+          {
+            "index": 0,
+            "supported_qids": [
+              "q1"
+            ],
+            "unsupported_qids": [],
+            "note": "Fixed-length arrays explicitly require the same element count in every value."
+          },
+          {
+            "index": 1,
+            "supported_qids": [
+              "q2"
+            ],
+            "unsupported_qids": [],
+            "note": "The fixed-array-to-same-type-list conversion is explicitly stated; exact capitalization matching is left to the mechanical check."
+          },
+          {
+            "index": 2,
+            "supported_qids": [
+              "q3"
+            ],
+            "unsupported_qids": [],
+            "note": "Matching names and name-based reshuffling support order independence. The quote joins passages separated by a SQL example in the original source; continuous-span validity is left to the mechanical check."
+          }
+        ],
+        "material_unsupported_assertions": [],
+        "issues": [
+          "The proposed list/name-matching policy does not claim malformed-row acceptance or mismatch-name support, and actual importer/interface behavior remains unverified."
+        ]
+      }
+    }
+  ]
+}

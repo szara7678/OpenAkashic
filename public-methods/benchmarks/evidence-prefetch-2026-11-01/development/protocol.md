@@ -1,0 +1,9 @@
+# Frozen independent source-grounded evaluation
+
+Authored on 2026-11-01 before candidate outputs. Only the nine original source text files and their manifest were consulted. No implementation, previous runs, measurements, models, or candidate answers were inspected.
+
+Nine new English scenarios: three each for Streamlit 1.46.0, TanStack Query 5.90.5, and DuckDB 0.10.0. Each inputquery is the entire prompt, includes three typed decisions and a recommendation, evidence, and uncertainty response contract, and is under 1200 characters. Tasks contain no target quotes, oracle evidence IDs, or local paths. Streamlit-03 deliberately asks about unavailable 1.47.0 behavior; unknown is an assessable decision.
+
+Keep all nine cases in every denominator, including crashes, malformed JSON, missing evidence, and retrieval failures. Decisions: exact typed match, one point each (27 total). Recommendation and uncertainty: separate 0-2 rubrics per case (18 each). Do not silently merge these metrics. Report per-case outcomes. Evidence requires a real pinned URL and a continuous verbatim span supporting the assigned claim; whitespace and inline Markdown/backtick removal are allowed but paraphrase and stitched spans are not. Gold minimum_evidence gives example acceptable spans, not mandatory exact strings or a minimum count of sources. Semantically equivalent supporting spans are acceptable. Unknown-version abstention is justified by source scope, not fabricated evidence. Gold claim anchors guide support adjudication.
+
+Proposed configuration, awaited completion, release goals, and actual verified execution must remain distinct. No post-output edits to these files are permitted; corrections require a new named protocol version and retained original. SHA256SUMS freezes tasks.json, gold.json, and this README.md.

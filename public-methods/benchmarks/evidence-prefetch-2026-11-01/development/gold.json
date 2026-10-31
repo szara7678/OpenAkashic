@@ -1,0 +1,405 @@
+{
+  "schema_version": 1,
+  "fixed_denominator": 9,
+  "tasks": [
+    {
+      "id": "streamlit-01",
+      "decisions": {
+        "q1": false,
+        "q2": true,
+        "q3": false
+      },
+      "claim_semantic_anchors": {
+        "q1": "Fragment scope requires an actual fragment rerun, not merely a decorated function.",
+        "q2": "Default scope is app.",
+        "q3": "Rerun halts the current run."
+      },
+      "minimum_evidence": [
+        {
+          "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py",
+          "quote": "Setting scope=\"fragment\" is only valid inside a fragment during a fragment rerun.",
+          "supports": [
+            "q1"
+          ]
+        },
+        {
+          "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py",
+          "quote": "(default), the full app reruns.",
+          "supports": [
+            "q2"
+          ]
+        },
+        {
+          "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py",
+          "quote": "executes no further statements.",
+          "supports": [
+            "q3"
+          ]
+        }
+      ],
+      "evidence_policy": "All three claims need supporting coverage. Equivalent continuous spans from these URLs are allowed; the unavailable-version claim instead needs explicit scope-based abstention. No fixed source-count requirement.",
+      "recommendation_rubric": {
+        "0": "Missing, incorrect, or contradicts the decisions.",
+        "1": "Directionally correct but incomplete or not actionable.",
+        "2": "Guard or restructure fragment-scoped refresh so it only occurs during fragment reruns; use app rerun when whole-app refresh is needed and do required updates before rerun."
+      },
+      "uncertainty_rubric": {
+        "0": "Unsupported certainty, wrong scope, or claims execution.",
+        "1": "Generic limitation without the relevant boundary.",
+        "2": "Limit to 1.46.0 and distinguish a proposed control-flow fix from a verified run."
+      }
+    },
+    {
+      "id": "streamlit-02",
+      "decisions": {
+        "q1": true,
+        "q2": false,
+        "q3": "call_fragment_within_sidebar_context"
+      },
+      "claim_semantic_anchors": {
+        "q1": "External elements accumulate until app rerun.",
+        "q2": "Widgets only in fragment main body.",
+        "q3": "Invoke fragment under with st.sidebar."
+      },
+      "minimum_evidence": [
+        {
+          "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/runtime/fragment.py",
+          "quote": "Instead, elements will accumulate in those containers with each fragment rerun, until the next app rerun.",
+          "supports": [
+            "q1"
+          ]
+        },
+        {
+          "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/runtime/fragment.py",
+          "quote": "Fragments can't render widgets to externally created containers.",
+          "supports": [
+            "q2"
+          ]
+        },
+        {
+          "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/runtime/fragment.py",
+          "quote": "To write elements to the sidebar with a fragment, call your fragment function inside a with st.sidebar context manager.",
+          "supports": [
+            "q3"
+          ]
+        }
+      ],
+      "evidence_policy": "All three claims need supporting coverage. Equivalent continuous spans from these URLs are allowed; the unavailable-version claim instead needs explicit scope-based abstention. No fixed source-count requirement.",
+      "recommendation_rubric": {
+        "0": "Missing, incorrect, or contradicts the decisions.",
+        "1": "Directionally correct but incomplete or not actionable.",
+        "2": "Keep widgets in the fragment body, invoke a sidebar fragment within with st.sidebar, and explicitly manage cumulative counter/output side effects."
+      },
+      "uncertainty_rubric": {
+        "0": "Unsupported certainty, wrong scope, or claims execution.",
+        "1": "Generic limitation without the relevant boundary.",
+        "2": "Explain additive side effects; do not claim layout or counter behavior has been tested."
+      }
+    },
+    {
+      "id": "streamlit-03",
+      "decisions": {
+        "q1": true,
+        "q2": "session_state",
+        "q3": "unknown"
+      },
+      "claim_semantic_anchors": {
+        "q1": "Interval while session active, no interaction needed.",
+        "q2": "Session State for wider-app values.",
+        "q3": "No 1.47.0 source; abstain from extrapolation."
+      },
+      "minimum_evidence": [
+        {
+          "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/runtime/fragment.py",
+          "quote": "specified interval while the session is active, even if the user is not interacting with your app.",
+          "supports": [
+            "q1"
+          ]
+        },
+        {
+          "url": "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/runtime/fragment.py",
+          "quote": "Any values from the fragment that need to be accessed from the wider app should generally be stored in Session State.",
+          "supports": [
+            "q2"
+          ]
+        }
+      ],
+      "evidence_policy": "All three claims need supporting coverage. Equivalent continuous spans from these URLs are allowed; the unavailable-version claim instead needs explicit scope-based abstention. No fixed source-count requirement.",
+      "recommendation_rubric": {
+        "0": "Missing, incorrect, or contradicts the decisions.",
+        "1": "Directionally correct but incomplete or not actionable.",
+        "2": "Implement the 1.46.0 design using run_every and Session State; obtain 1.47.0 documentation or verify that version before promising equivalence."
+      },
+      "uncertainty_rubric": {
+        "0": "Unsupported certainty, wrong scope, or claims execution.",
+        "1": "Generic limitation without the relevant boundary.",
+        "2": "Explicitly state that 1.47.0 behavior is unavailable from these sources; do not infer a regression or equivalence."
+      }
+    },
+    {
+      "id": "tanstack-01",
+      "decisions": {
+        "q1": "idle",
+        "q2": true,
+        "q3": false
+      },
+      "claim_semantic_anchors": {
+        "q1": "No cached data disabled query is pending/idle.",
+        "q2": "Hook refetch works with enabled false.",
+        "q3": "skipToken prevents manual refetch."
+      },
+      "minimum_evidence": [
+        {
+          "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/disabling-queries.md",
+          "quote": "If the query does not have cached data, then the query will start in the status === 'pending' and fetchStatus === 'idle' state.",
+          "supports": [
+            "q1"
+          ]
+        },
+        {
+          "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/disabling-queries.md",
+          "quote": "refetch returned from useQuery can be used to manually trigger the query to fetch. However, it will not work with skipToken.",
+          "supports": [
+            "q2",
+            "q3"
+          ]
+        }
+      ],
+      "evidence_policy": "All three claims need supporting coverage. Equivalent continuous spans from these URLs are allowed; the unavailable-version claim instead needs explicit scope-based abstention. No fixed source-count requirement.",
+      "recommendation_rubric": {
+        "0": "Missing, incorrect, or contradicts the decisions.",
+        "1": "Directionally correct but incomplete or not actionable.",
+        "2": "Keep a real queryFn for manual Retry, use enabled driven by applied filters if appropriate, and use isLoading rather than pending alone for the initial spinner."
+      },
+      "uncertainty_rubric": {
+        "0": "Unsupported certainty, wrong scope, or claims execution.",
+        "1": "Generic limitation without the relevant boundary.",
+        "2": "Describe configured behavior, not a network request already observed; keep claim scoped to 5.90.5."
+      }
+    },
+    {
+      "id": "tanstack-02",
+      "decisions": {
+        "q1": false,
+        "q2": true,
+        "q3": true
+      },
+      "claim_semantic_anchors": {
+        "q1": "Unused unconsumed promise continues by default.",
+        "q2": "Resolved result is cached, subject to GC.",
+        "q3": "Signal consumption enables cancellation and state reversion."
+      },
+      "minimum_evidence": [
+        {
+          "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md",
+          "quote": "By default, queries that unmount or become unused before their promises are resolved are not cancelled.",
+          "supports": [
+            "q1"
+          ]
+        },
+        {
+          "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md",
+          "quote": "This means that after the promise has resolved, the resulting data will be available in the cache.",
+          "supports": [
+            "q2"
+          ]
+        },
+        {
+          "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md",
+          "quote": "Cancelling the query will result in its state being reverted to its previous state.",
+          "supports": [
+            "q3"
+          ]
+        }
+      ],
+      "evidence_policy": "All three claims need supporting coverage. Equivalent continuous spans from these URLs are allowed; the unavailable-version claim instead needs explicit scope-based abstention. No fixed source-count requirement.",
+      "recommendation_rubric": {
+        "0": "Missing, incorrect, or contradicts the decisions.",
+        "1": "Directionally correct but incomplete or not actionable.",
+        "2": "Choose the lifetime policy explicitly: ignoring signal preserves background completion; passing it to fetch plus cancelQueries enables transport abort but also changes last-observer-unmount cancellation behavior."
+      },
+      "uncertainty_rubric": {
+        "0": "Unsupported certainty, wrong scope, or claims execution.",
+        "1": "Generic limitation without the relevant boundary.",
+        "2": "Cache reuse depends on not being garbage collected; do not claim cancelQueries alone aborts an unconnected HTTP transport."
+      }
+    },
+    {
+      "id": "tanstack-03",
+      "decisions": {
+        "q1": false,
+        "q2": false,
+        "q3": false
+      },
+      "claim_semantic_anchors": {
+        "q1": "Disabled queries filtered.",
+        "q2": "Static queries filtered.",
+        "q3": "Promise completion can cover zero eligible queries."
+      },
+      "minimum_evidence": [
+        {
+          "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/packages/query-core/src/queryClient.ts",
+          "quote": ".filter((query) => !query.isDisabled() && !query.isStatic())",
+          "supports": [
+            "q1",
+            "q2",
+            "q3"
+          ]
+        },
+        {
+          "url": "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/packages/query-core/src/queryClient.ts",
+          "quote": "return Promise.all(promises).then(noop)",
+          "supports": [
+            "q3"
+          ]
+        }
+      ],
+      "evidence_policy": "All three claims need supporting coverage. Equivalent continuous spans from these URLs are allowed; the unavailable-version claim instead needs explicit scope-based abstention. No fixed source-count requirement.",
+      "recommendation_rubric": {
+        "0": "Missing, incorrect, or contradicts the decisions.",
+        "1": "Directionally correct but incomplete or not actionable.",
+        "2": "Reconsider disabled/static settings for queries that must participate in client refresh, or use an appropriate explicit fetch path; verify actual request execution rather than treating await completion as evidence."
+      },
+      "uncertainty_rubric": {
+        "0": "Unsupported certainty, wrong scope, or claims execution.",
+        "1": "Generic limitation without the relevant boundary.",
+        "2": "A plan and a resolved aggregate promise do not establish transport execution or server success."
+      }
+    },
+    {
+      "id": "duckdb-01",
+      "decisions": {
+        "q1": false,
+        "q2": true,
+        "q3": false
+      },
+      "claim_semantic_anchors": {
+        "q1": "No general implicit VARCHAR cast at binding.",
+        "q2": "STRING_LITERAL distinct and implicitly convertible.",
+        "q3": "DATE versus VARCHAR binder error."
+      },
+      "minimum_evidence": [
+        {
+          "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+          "quote": "Starting with this release, you will need to use an explicit cast here instead.",
+          "supports": [
+            "q1"
+          ]
+        },
+        {
+          "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+          "quote": "we can compare string literals with dates – but we cannot compare VARCHAR values with dates.",
+          "supports": [
+            "q2",
+            "q3"
+          ]
+        }
+      ],
+      "evidence_policy": "All three claims need supporting coverage. Equivalent continuous spans from these URLs are allowed; the unavailable-version claim instead needs explicit scope-based abstention. No fixed source-count requirement.",
+      "recommendation_rubric": {
+        "0": "Missing, incorrect, or contradicts the decisions.",
+        "1": "Directionally correct but incomplete or not actionable.",
+        "2": "Explicitly cast numeric IDs to VARCHAR before substring; preserve the date literal or explicitly cast text to DATE rather than treating VARCHAR as a literal."
+      },
+      "uncertainty_rubric": {
+        "0": "Unsupported certainty, wrong scope, or claims execution.",
+        "1": "Generic limitation without the relevant boundary.",
+        "2": "Scope to 0.10.0; these binding rules do not prove arbitrary input text parses successfully."
+      }
+    },
+    {
+      "id": "duckdb-02",
+      "decisions": {
+        "q1": false,
+        "q2": "TRY_CAST",
+        "q3": true
+      },
+      "claim_semantic_anchors": {
+        "q1": "Supported conversion may fail at runtime.",
+        "q2": "TRY_CAST gives NULL on overflow.",
+        "q3": "Fractional explicit casts round."
+      },
+      "minimum_evidence": [
+        {
+          "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/docs/0.10/sql/data_types/typecasting.md",
+          "quote": "Even though a casting operation is supported based on the source and target data type, it does not necessarily mean the cast operation will succeed at runtime.",
+          "supports": [
+            "q1"
+          ]
+        },
+        {
+          "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/docs/0.10/sql/data_types/typecasting.md",
+          "quote": "can be used to convert the value into NULL instead of throwing an error.",
+          "supports": [
+            "q2"
+          ]
+        },
+        {
+          "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/docs/0.10/sql/data_types/typecasting.md",
+          "quote": "The number will be rounded.",
+          "supports": [
+            "q3"
+          ]
+        }
+      ],
+      "evidence_policy": "All three claims need supporting coverage. Equivalent continuous spans from these URLs are allowed; the unavailable-version claim instead needs explicit scope-based abstention. No fixed source-count requirement.",
+      "recommendation_rubric": {
+        "0": "Missing, incorrect, or contradicts the decisions.",
+        "1": "Directionally correct but incomplete or not actionable.",
+        "2": "Use TRY_CAST for the narrowing import and track resulting NULL/rejected values; document rounding when converting fractional numbers to INTEGER."
+      },
+      "uncertainty_rubric": {
+        "0": "Unsupported certainty, wrong scope, or claims execution.",
+        "1": "Generic limitation without the relevant boundary.",
+        "2": "NULL fallback is not proof the batch is semantically valid; do not claim an import was executed."
+      }
+    },
+    {
+      "id": "duckdb-03",
+      "decisions": {
+        "q1": true,
+        "q2": false,
+        "q3": "goal"
+      },
+      "claim_semantic_anchors": {
+        "q1": "0.10 backward compatibility with 0.9.",
+        "q2": "Forward subset excludes views.",
+        "q3": "Future compatibility is a goal, not tested future execution."
+      },
+      "minimum_evidence": [
+        {
+          "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+          "quote": "DuckDB v0.10 can read and operate on files created by the previous DuckDB version – DuckDB v0.9.",
+          "supports": [
+            "q1"
+          ]
+        },
+        {
+          "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+          "quote": "The database file does not contain views",
+          "supports": [
+            "q2"
+          ]
+        },
+        {
+          "url": "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md",
+          "quote": "For future DuckDB versions, our goal is to ensure that any DuckDB version released after can read files created by previous versions, starting from this release.",
+          "supports": [
+            "q3"
+          ]
+        }
+      ],
+      "evidence_policy": "All three claims need supporting coverage. Equivalent continuous spans from these URLs are allowed; the unavailable-version claim instead needs explicit scope-based abstention. No fixed source-count requirement.",
+      "recommendation_rubric": {
+        "0": "Missing, incorrect, or contradicts the decisions.",
+        "1": "Directionally correct but incomplete or not actionable.",
+        "2": "Preserve an original 0.9-readable backup or export and test the actual rollback artifact; do not assume a 0.10 file with a view can be opened by 0.9."
+      },
+      "uncertainty_rubric": {
+        "0": "Unsupported certainty, wrong scope, or claims execution.",
+        "1": "Generic limitation without the relevant boundary.",
+        "2": "Forward compatibility is partial/best effort and future guarantees here are stated goals rather than validation of unexamined versions."
+      }
+    }
+  ]
+}
