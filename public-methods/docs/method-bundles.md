@@ -15,8 +15,8 @@ This is deterministic packing after one retrieval: no additional model call.
 Candidates fit atomically. If a whole method exceeds remaining budget it becomes
 `complete: false, needs_fetch: true`, with exact identity and fetch link; if even
 that reference cannot fit, `omitted_candidates` increases. Fetch consumers must
-verify id, version and digest because the fetch route addresses an ID, not an
-immutable version URL. No steps are returned with partially removed warnings.
+verify id, version and digest. The ordinary fetch route addresses the current
+record; use `/{method_id}/versions/{version}` for the immutable snapshot. No steps are returned with partially removed warnings.
 
 The budget counts compact UTF-8 JSON using o200k_base, including the fixed-point
 `tokens` counter. Search feedback excerpts and their IDs/truncation flags are

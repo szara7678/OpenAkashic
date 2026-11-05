@@ -1,54 +1,11 @@
-# OpenAkashic Core Server
+# Historical Core API
 
-OpenAkashic v1 core is a FastAPI + Postgres service for storing and retrieving claims, evidences, mentions, optional entities, claim links, and precomputed capsules.
+This directory preserves the earlier claims/capsules PostgreSQL API. It is not
+the current public service or recommended self-host entrypoint. Do not deploy
+its old contribution/publication routes for the know-how product. Closed private
+memory remains separate.
 
-## Running
-
-```bash
-cd /home/ec2-user/Akashic/OpenAkashic/server
-docker compose up -d --build
-```
-
-## Public URLs
-
-```text
-https://openakashic.com
-https://api.openakashic.com
-```
-
-Smoke test:
-
-```bash
-cd /home/ec2-user/Akashic/OpenAkashic/server
-BASE_URL=https://api.openakashic.com ./scripts/smoke_test.sh
-```
-
-Closed Akashic is a separate service under:
-
-```text
-/home/ec2-user/Akashic/ClosedAkashic/server
-```
-
-## Main API
-
-```text
-GET  /health
-POST /query
-POST /claims
-GET  /claims/{id}
-PATCH /claims/{id}/status
-POST /evidences
-GET  /evidences/{id}
-POST /capsules
-GET  /capsules/{id}
-GET  /mentions/search?q=
-POST /entities
-GET  /entities/search?q=
-POST /mcp
-```
-
-Mutation endpoints require:
-
-```text
-X-OpenAkashic-Key: value from /home/ec2-user/Akashic/OpenAkashic/server/.env
-```
+Use [the current module](../public-methods/README.md), its
+[API contract](../public-methods/docs/public-methods.md) and
+[self-host/backup guide](../public-methods/docs/knowhow-operations.md).
+The original README is archived in [docs/legacy/](../docs/legacy/README.md).

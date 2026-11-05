@@ -146,3 +146,17 @@ def test_context_forwards_budget_and_explicit_conditions_without_auth(server, mo
     assert query["forbids"] == ["network"] and body is None
     assert "X-OpenAkashic-Key" not in headers
 
+
+@pytest.mark.parametrize("command", ["search", "context", "bundle"])
+def test_explicit_scope_forwarded_anonymously(server, command, capsys):
+    base, requests, state = server
+    assert client.main(["--endpoint", base, command, "--situation", "release issue",
+                        "--goal", "restore service", "--domain", "개발·운영",
+                        "--product", "postgresql"]) == 0
+    capsys.readouterr()
+    method, path, headers, body = requests[0]
+    query = parse_qs(urlsplit(path).query)
+    assert query["domain"] == ["개발·운영"]
+    assert query["product"] == ["postgresql"]
+    assert method == "GET" and body is None
+    assert not any(name.lower() == "x-openakashic-key" for name in headers)

@@ -1,25 +1,5 @@
-# Smithery configuration — https://smithery.ai/docs/build/project-config/smithery-yaml
-# OpenAkashic: Shared long-term memory vault for AI agents
-#
-# Remote MCP server (Streamable HTTP) at knowledge.openakashic.com
-# Auth: Bearer token — sign up free at https://knowledge.openakashic.com/closed/graph
-#   or via API: curl -X POST https://knowledge.openakashic.com/api/auth/signup \
-#     -H "Content-Type: application/json" \
-#     -d '{"username":"you","nickname":"You","password":"...","password_confirm":"..."}'
-#
-# Self-host: docker compose up -d --build in closed-web/server/
-# Full docs: https://github.com/szara7678/OpenAkashic
-
-startCommand:
-  type: http
-  configSchema:
-    type: object
-    required:
-      - bearerToken
-    properties:
-      bearerToken:
-        type: string
-        description: "OpenAkashic bearer token. Get one free: POST https://knowledge.openakashic.com/api/auth/signup"
-  url: "https://knowledge.openakashic.com/mcp/"
-  headers:
-    Authorization: "Bearer ${bearerToken}"
+# Inactive historical MCP recipe.
+# Current know-how HTTP/OpenAPI guide: public-methods/llms-install.md.
+# There is no public bearer-token provisioning or MCP onboarding.
+# Original recipe is archived as inert text in docs/legacy/.
+# No startCommand is advertised for the retired public endpoint.

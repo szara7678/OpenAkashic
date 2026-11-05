@@ -1,7 +1,14 @@
-# Public methods: situation, goal, and reported experience
+# Know-how methods: situation, goal, and reported experience
 
-The public reading page is `/research/methods/`. A link such as
-`/research/methods/?method=method_EXAMPLE` opens one method directly. The browser
+The public service is know-how-only. `/` and `/graph` open the record atlas;
+`/research/methods/library/` opens situation/goal search.
+Public access is anonymous read/search only. Only the owner writes through a
+separate authenticated loopback/private writer. There is no public signup,
+submission, review or claim-approval workflow. General encyclopedia/news/time
+retrieval and Closed private raw memory are outside this application.
+
+The compatibility reading page is `/research/methods/`. A link such as
+`/research/methods/library/?method=method_EXAMPLE` opens one method directly. The browser
 only performs anonymous GET requests; it never asks for a key or stores one.
 The API prefix is `/research/api/methods`.
 
@@ -61,7 +68,8 @@ bounded to exact-version contributor excerpts with explicit truncation flags.
 A method includes `id,version,title,situation,goal,constraints,steps,
 success_criteria,limitations,tags,agent_name,public_source_only,created_at`.
 Constraints, steps, success criteria, limitations and tags are arrays of strings.
-New methods start at version 1. There is no edit/version-update endpoint in this MVP.
+New methods start at version 1. Owner revisions append an immutable version;
+see [versions and corrections](#versions-and-corrections).
 Feedback must reference the exact existing `method_version`.
 
 New optional creation fields are `evidence_kind`
@@ -118,6 +126,30 @@ onboarding. The CLI `api/scripts/method_agent.py` supports anonymous public
 search/fetch and authorized submissions to the configured writer. It reads
 credentials from an external file/environment and uses an explicit
 `OpenAkashic-Method-Agent/0.1` User-Agent.
+
+## Versions and corrections
+
+Owner-only `POST /{method_id}/revisions` accepts `expected_version`, `method`
+(the complete MethodRequest, including `public_source_only:true`), and a public
+`reason`. Optional `correction:{outcome_id,method_version,reason}` links an
+existing outcome under this same method and its exact version. A correction is
+not inferred from an opinion or suggestion.
+
+Authentication and idempotency match other owner writes. Stale expected version
+or conflicting key reuse returns 409; invalid/private content or incorrect
+outcome/version linkage returns 422. There is no partial PUT contract.
+
+`GET /{method_id}/versions/{version}` returns an immutable snapshot.
+`GET /{method_id}/revisions?limit=20&offset=0` returns `method-revisions-v1`
+with `items,total,limit,offset,has_more`; maximum limit is 100. The ordinary
+method read gives the current version. Existing reports and opinions remain
+linked to their recorded versions; a new report references the current exact
+version. Preserved old feedback is not evidence for a later version.
+
+A correction records a procedure change following an outcome. It does **not**
+verify that the revised method ran, resolved the issue or improved results.
+That requires a separate exact-version execution report and evidence. Graphs
+must preserve this distinction.
 
 ## Public-only fixture walkthrough
 
@@ -260,7 +292,14 @@ exact IDs/versions/fingerprints and fetch routes; omitted details are marked.
 Method fetch, actual execution, outcome submission, and opinion submission
 remain separate steps. No generative-model call is required for retrieval.
 
-## Retrieval evaluation, 2026-10-27 KST
+## Historical evaluation records
+
+Dated sections below preserve original experiments and implementation state.
+Corpus counts and then-unimplemented features are historical snapshots, not live
+totals or the current route contract. Legacy general-graph results do not
+establish current know-how effectiveness.
+
+### Retrieval evaluation, 2026-10-27 KST
 
 The first curated corpus adds 30 documented methods across data investigation,
 document collaboration and service operations. They are original editorial
@@ -310,7 +349,7 @@ as linked exact-version excerpts, not a separately embedded feedback corpus.
 New-method indexing uses the explicit incremental CLI; automatic source intake
 or scheduled re-embedding is not enabled by this feature.
 
-## Live MVP exercise, 2026-10-25 KST
+### Live MVP exercise, 2026-10-25 KST
 
 The deliberately public example
 `method_d6bab8275ed741ae959436712962e7ce` demonstrates the full flow.
@@ -335,7 +374,7 @@ records. A method edit/version advancement flow, votes, forks, and verified
 contributor identities remain unimplemented. Situation/goal embeddings were
 added after this initial MVP exercise, as described above.
 
-## Open-ended design exercise, 2026-10-27 KST
+### Open-ended design exercise, 2026-10-27 KST
 
 Six additional public design methods and two applied synthetic cases extend the
 same exact-version outcome/opinion contract to work without a single aesthetic
@@ -346,7 +385,7 @@ All three conditions passed the same functional checks; superiority, actual
 audience preference and cost savings have not been established.
 
 
-## Atlas explorer and measured limits (2026-10-28)
+### Atlas explorer and measured limits (2026-10-28)
 
 The home page is the public record atlas; the situation/goal search remains at `/research/methods/library/`. The atlas takes inspiration from Obsidian's global/local graph, Kumu focus, and Graph Commons node inspector. No source code, styles or third-party assets were copied.
 
@@ -361,7 +400,7 @@ The existing synthetic design comparison also remains visible: all three conditi
 Public HTTP clients should send an honest nonempty application User-Agent. During deployment verification, the edge rejected Python urllib's default identifier with Cloudflare 1010; the explicit `OpenAkashic-Verification/0.3 (+https://github.com/szara7678/OpenAkashic)` identifier succeeded without changing any edge security settings. The navigation benchmark sets this header. Public browser and application-client verification are separate.
 
 
-## Atlas interaction and application evidence (2026-10-28)
+### Atlas interaction and application evidence (2026-10-28)
 
 The atlas now supports cursor-anchored wheel zoom (35–600%), background panning,
 node repositioning, double-click one-hop focus, Home to fit, Escape to return,
@@ -392,7 +431,7 @@ The protocol, raw outputs, original grades, ambiguity audit, hashes, and verifie
 are published in `public-methods/benchmarks/application-2026-10-28/`.
 
 
-## Prior-risk implementation pilot (2026-10-28)
+### Prior-risk implementation pilot (2026-10-28)
 
 A separately frozen executable pilot compared full methods alone, methods plus
 stored reports/opinions, and the exact same reports grouped by outcome ID. Three
@@ -426,4 +465,42 @@ because more records or graph links were supplied.
 
 ## Complete method bundles
 
-`GET /research/api/methods/bundle` returns whole stored methods within256?4096 tokens, including steps, conditions, limitations and sources. Existing `/context` is unchanged. Oversized candidates are explicitly fetch-required; method completeness does not imply original-source evidence completeness. See [bundle contract](method-bundles.md) and the [bounded source-retrieval pilot](../benchmarks/retrieval-cost-2026-10-29/README.md).
+`GET /research/api/methods/bundle` returns whole stored methods within 256–4096 tokens, including steps, conditions, limitations and sources. Existing `/context` is unchanged. Oversized candidates are explicitly fetch-required; method completeness does not imply original-source evidence completeness. See [bundle contract](method-bundles.md) and the [bounded source-retrieval pilot](../benchmarks/retrieval-cost-2026-10-29/README.md).
+
+
+## Explicit retrieval scope
+
+Search, context and bundle accept optional `domain` and `product` (each at most
+100 characters). `domain` exactly matches the editorial category returned by
+`/catalog`; `product` exactly matches a declared tag, including case. Both must
+match when supplied. Filtering precedes ranking and limits in every search mode.
+Omitting both preserves existing retrieval. Unknown names return no candidates.
+Records without the requested label are outside the selected search scope; this
+is not proof that their procedures are incompatible. Editorial tags are not a
+verified applicability ontology. Structured condition conflicts and undeclared
+condition status retain their separate semantics. No platform/domain is inferred
+from the question, and no relevance floor or model has changed.
+
+The response `scope` describes this policy, and bounded context/bundle packs retain
+it (oversized labels may be explicitly omitted with a scope hash to retain the
+requested token bound). Agents can use `method_agent.py search --situation ... --goal ...
+--domain '개발·운영' --product postgresql`, likewise for context/bundle. Consult
+catalog groups and fetched method tags before choosing a scope; an overly narrow
+or incorrect label can hide useful methods. The web reader exposes both fields.
+This addresses explicit scope leakage only, not unscoped semantic false positives
+or general retrieval accuracy. No source-reference contract is changed.
+
+
+## Same-data synthetic experience comparison
+
+A separate know-how retrieval prototype used 32 synthetic records and ten tasks
+from the same data in one unblinded comparison. The full condition rose from
+5/10 to 9/10, while total model tokens increased from 8,287 to 10,997 (+32.7%).
+This does not validate the currently deployed graph or real-work utility. This
+bounded synthetic observation is not independent validation, effectiveness or
+cost-efficiency evidence. Do not pool it with the separate real-source-prefetch
+evaluation, which supplies different evidence under its own protocol. Preserve
+failures, original outputs and experiment-specific baselines.
+
+For installation, public/owner separation and backup/recovery, see
+[the operations guide](knowhow-operations.md).

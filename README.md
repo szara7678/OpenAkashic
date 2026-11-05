@@ -1,25 +1,13 @@
 # OpenAkashic
 
-**A public library of methods and reported experience for people and agents.**
+상황과 목적에 맞는 방법, 적용 조건, 실제 적용 보고와 정정을 연결하는 **공개 노하우 아카이브**입니다. 공개 문서는 방법을 뒷받침하는 근거로 사용합니다.
 
-Given a situation and goal, discover a method, inspect its conditions and sources, then attach what happened and discuss alternatives. The current direction is contextual know-how reuse, including open-ended work such as design, product experiments and career exploration.
+- [현재 서비스와 설치 안내](public-methods/README.md)
+- [에이전트 HTTP API 사용법](public-methods/llms-install.md)
+- [API 계약과 평가 한계](public-methods/docs/public-methods.md)
+- [소유자 운영·백업·복구](public-methods/docs/knowhow-operations.md)
+- [공개 아틀라스](https://knowledge.openakashic.com/)
 
-- [Try the public method library](https://knowledge.openakashic.com/research/)
-- [See measured results and known failures](https://knowledge.openakashic.com/research/methods-kpi.html)
-- [Run, test and contribute to the current module](public-methods/README.md)
-- [Dated reproducible evidence](public-methods/benchmarks/2026-10-28.json)
+공개 서비스는 익명 읽기·검색 전용이며 가입·공개 투고·리뷰·claim 승인 절차를 제공하지 않습니다. 소유자만 별도 비공개 API writer에 인증해 기록합니다. Closed Akashic의 개인 원문·기억은 별도 시스템입니다.
 
-The current portable implementation lives in **`public-methods/`**. It includes source-linked methods, public browsing, a clickable record graph, exact-version application reports, and an agent client. No API key is needed for public reads or local lexical browsing. Public demo writes remain disabled; self-hosted writes use a private operator credential.
-
-**Experimental:** retrieval is candidate discovery, not expert endorsement or proof that the method solves the task. On 16 cross-domain development queries, hybrid retrieval found the intended first method 16/16, while on an earlier out-of-scope technical set it failed to abstain in 4/4 cases. Actual answer-quality improvement, human preference and same-quality billed-token savings are not established. Read the full results, not only a positive headline.
-
-Closed Akashic personal memory and Open Time Machine are separate services. Private vaults, retired Samsung news data, credentials and operational databases are not part of this module. Older directories, installers, MCP claims and historical benchmarks elsewhere in this repository remain legacy material; they are not evidence of the current service's capabilities. Use the current module's instructions rather than old automatic installers.
-
-Code license: Apache-2.0. Linked third-party originals retain their own rights; [attribution and fixture scope](public-methods/NOTICE.md).
-
-
-### Relationship atlas update
-
-The public home page now offers global/local record navigation inspired by Graph Commons, Kumu and Obsidian. Follow method → exact source → another method, with separate application reports and opinions. See [the atlas](https://knowledge.openakashic.com/research/) and [the evidence report](https://knowledge.openakashic.com/research/methods-kpi.html).
-
-The new deterministic navigation workload passed 12/12 shared-source and 9/9 feedback lookups. A reusable flat URL index was smaller than the graph responses; general graph token savings are **not demonstrated**. The existing two-task design comparison observed no functional advantage. Record lookup success is not proof of better outputs. Reproduce the workload and inspect the preserved unfavorable results in `public-methods/benchmarks/`.
+이 저장소의 현재 실행 가능한 노하우 서비스는 public-methods/에 있습니다. 이전 capsule/MCP, 일반 지식 그래프·뉴스·시간 관련 자료는 역사적 코드·평가 기록이며 현재 설치나 입력 경로가 아닙니다. 과거 결과를 현재 서비스의 정확도·비용 절감 증거로 해석하지 않습니다.

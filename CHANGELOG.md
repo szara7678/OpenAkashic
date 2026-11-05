@@ -1,5 +1,7 @@
 # Changelog
 
+> Historical release log: entries below preserve earlier capsule/memory and review-system changes. They are not current public know-how installation or onboarding instructions. Follow [the current module](public-methods/README.md). Original dated evidence is preserved.
+
 All notable changes to OpenAkashic are documented here.
 
 ---

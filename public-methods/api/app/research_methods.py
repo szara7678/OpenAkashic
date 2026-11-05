@@ -172,10 +172,14 @@ def search_methods(
     mode: Literal["lexical", "semantic", "hybrid"] = "lexical",
     requires: Annotated[str, Query(max_length=500)] = "",
     forbids: Annotated[str, Query(max_length=500)] = "",
+    domain: Annotated[str, Query(max_length=100)] = "",
+    product: Annotated[str, Query(max_length=100)] = "",
 ):
     try:
         situation, goal = validate_public_text(situation), validate_public_text(goal)
         constraints = validate_public_text(constraints) if constraints else ""
+        domain = validate_public_text(domain).strip() if domain else ""
+        product = validate_public_text(product).strip() if product else ""
     except ValueError as exc:
         raise HTTPException(422, str(exc)) from exc
     labels = []
@@ -187,11 +191,11 @@ def search_methods(
     if set(labels[0]) & set(labels[1]):
         raise HTTPException(422, "a query cannot require and forbid the same condition")
     store = method_store()
-    if mode == "lexical" and not any(labels):
+    if mode == "lexical" and not any(labels) and not domain and not product:
         return store.search(situation, goal, constraints, limit)
     from app.research_method_search import search_methods as ranked_search
     return ranked_search(store, situation, goal, constraints, limit,
-                         mode=mode, requires=labels[0], forbids=labels[1])
+                         mode=mode, requires=labels[0], forbids=labels[1], domain=domain, product=product)
 
 
 @router.get("/context")
@@ -203,10 +207,12 @@ def method_context(
     mode: Literal["lexical", "semantic", "hybrid"] = "hybrid",
     requires: Annotated[str, Query(max_length=500)] = "",
     forbids: Annotated[str, Query(max_length=500)] = "",
+    domain: Annotated[str, Query(max_length=100)] = "",
+    product: Annotated[str, Query(max_length=100)] = "",
     max_tokens: Annotated[int, Query(ge=256, le=2048)] = 1024,
 ):
     from app.research_method_context import pack_context
-    result = search_methods(situation, goal, constraints, limit, mode, requires, forbids)
+    result = search_methods(situation, goal, constraints, limit, mode, requires, forbids, domain, product)
     return pack_context(result, max_tokens)
 
 
@@ -219,10 +225,12 @@ def method_bundle(
     mode: Literal["lexical", "semantic", "hybrid"] = "hybrid",
     requires: Annotated[str, Query(max_length=500)] = "",
     forbids: Annotated[str, Query(max_length=500)] = "",
+    domain: Annotated[str, Query(max_length=100)] = "",
+    product: Annotated[str, Query(max_length=100)] = "",
     max_tokens: Annotated[int, Query(ge=256, le=4096)] = 1024,
 ):
     from app.research_method_context import pack_bundle
-    result = search_methods(situation, goal, constraints, limit, mode, requires, forbids)
+    result = search_methods(situation, goal, constraints, limit, mode, requires, forbids, domain, product)
     return pack_bundle(result, max_tokens)
 
 
@@ -259,7 +267,8 @@ def method_catalog(
 def get_method_graph(method_id: Annotated[str, Field(min_length=1, max_length=100)]):
     from app.research_method_graph import method_graph
     try:
-        return method_graph(method_store().get(method_id))
+        store = method_store()
+        return method_graph(store.get(method_id), store=store)
     except MethodNotFound as exc:
         raise HTTPException(404, str(exc)) from exc
 

@@ -1,0 +1,7 @@
+-r requirements-public.txt
+# Core imports used by the required compatibility contract tests.
+psycopg[binary,pool]==3.2.3
+pydantic-settings==2.7.1
+pytest>=8,<10
+httpx>=0.28,<1
+python-dotenv>=1,<2

@@ -1,6 +1,14 @@
 "use strict";
 (() => {
   const base = "/research/api/methods";
+  function setTheme(value) {
+    document.documentElement.dataset.theme=value;
+    const b=document.getElementById("methods-theme");
+    if(b){b.textContent=value==="light"?"☾ 어둡게":"☼ 밝게";b.setAttribute("aria-label",value==="light"?"어두운 테마로 전환":"밝은 테마로 전환");}
+    try{localStorage.setItem("openakashic-graph-theme",value);}catch(_){}
+  }
+  try{setTheme(localStorage.getItem("openakashic-graph-theme")==="light"?"light":"dark");}catch(_){setTheme("dark");}
+  document.getElementById("methods-theme")?.addEventListener("click",()=>setTheme(document.documentElement.dataset.theme==="light"?"dark":"light"));
   const el = (id) => document.getElementById(id);
   const form = el("methods-search");
   const list = el("methods-list");
@@ -35,6 +43,11 @@
     }
     target.replaceChildren(box);
   }
+  function scopeDomains(data) {
+    el("methods-search-domains").replaceChildren(...values(data.domains).map((domain) => {
+      const option = node("option"); option.value = domain.name; return option;
+    }));
+  }
   async function get(path) {
     const response = await fetch(path, { headers: { Accept: "application/json" }, credentials: "omit" });
     if (!response.ok) {
@@ -46,7 +59,7 @@
   }
   function urlState(method) {
     const url = new URL(window.location.href);
-    for (const [name, value] of [["situation", el("methods-situation").value.trim()], ["goal", el("methods-purpose").value.trim()], ["constraints", el("methods-condition").value.trim()], ["mode", el("methods-mode").value], ["forbids", exclusions()], ["method", method]]) {
+    for (const [name, value] of [["situation", el("methods-situation").value.trim()], ["goal", el("methods-purpose").value.trim()], ["constraints", el("methods-condition").value.trim()], ["mode", el("methods-mode").value], ["forbids", exclusions()], ["domain", el("methods-search-domain").value.trim()], ["product", el("methods-product").value.trim()], ["method", method]]) {
       if (value) url.searchParams.set(name, value);
       else url.searchParams.delete(name);
     }
@@ -152,6 +165,14 @@
       discussion.append(article);
     });
     content.append(discussion);
+    if(method.revision){
+      const revision=block("반영된 버전 변경",[method.revision.reason]);
+      revision.append(node("p",`v${method.revision.previous_version} → v${method.version}`,"methods-meta"));
+      if(method.revision.correction) revision.append(node("p",method.revision.correction.reason),node("p","연결된 적용 보고를 참고해 반영한 변경입니다. 개선 효과는 별도의 적용 보고로 확인해야 합니다.","methods-muted"));
+      content.append(revision);
+    }
+    const openGraph=node("a","이 방법의 상황 · 결과 · 수정 연결 살펴보기 ↗");
+    openGraph.href="/?method="+encodeURIComponent(method.id);content.append(openGraph);
   }
   async function select(id, focus = false) {
     const request = ++detailRequest;
@@ -192,7 +213,7 @@
     list.setAttribute("aria-busy", "true");
     status.textContent = "상황과 목적에 맞는 방법을 찾고 있습니다.";
     message(list, "관련된 공개 방법을 찾는 중입니다.");
-    const params = new URLSearchParams({ situation, goal, constraints: el("methods-condition").value.trim(), mode: el("methods-mode").value, forbids: exclusions(), limit: "20" });
+    const params = new URLSearchParams({ situation, goal, constraints: el("methods-condition").value.trim(), mode: el("methods-mode").value, forbids: exclusions(), domain: el("methods-search-domain").value.trim(), product: el("methods-product").value.trim(), limit: "20" });
     try {
       const data = await get(base + "/search?" + params);
       if (request !== searchRequest) return;
@@ -246,6 +267,7 @@
       const data = await get(base + "/catalog?" + params);
       if (request !== searchRequest) return;
       const counts = data.counts;
+      scopeDomains(data);
       if (!new URLSearchParams(location.search).has("mode") && !data.search_capabilities?.semantic_configured) el("methods-mode").value = "lexical";
       el("methods-library-stats").replaceChildren(...[["방법", counts.methods], ["적용 보고", counts.outcomes], ["의견", counts.opinions]].map(([label, count]) => {
         const span = node("span"); span.append(node("strong", count), document.createTextNode(" " + label)); return span;
@@ -300,6 +322,8 @@
   el("methods-purpose").value = (params.get("goal") || "").slice(0, 500);
   el("methods-condition").value = (params.get("constraints") || "").slice(0, 500);
   el("methods-mode").value = ["lexical", "semantic", "hybrid"].includes(params.get("mode")) ? params.get("mode") : "hybrid";
+  el("methods-search-domain").value = params.get("domain") || "";
+  el("methods-product").value = params.get("product") || "";
   const forbidden = (params.get("forbids") || "").split(",");
   for (const [tag, id] of [["network", "methods-offline"], ["paid_service", "methods-no-paid"], ["filesystem_write", "methods-no-write"]]) el(id).checked = forbidden.includes(tag);
   list.setAttribute("aria-busy", "false");
@@ -308,6 +332,6 @@
   if (params.get("method")) select(params.get("method"));
   if (el("methods-situation").value.trim().length >= 2 && el("methods-purpose").value.trim().length >= 2) {
     search();
-    get(base + "/catalog?limit=1").then((data) => { el("methods-library-stats").textContent = `${data.counts.methods}개 방법 · ${data.counts.outcomes}개 적용 보고 · ${data.counts.opinions}개 의견 · 기록 수이며 효과 지표는 아닙니다.`; }).catch(() => {});
+    get(base + "/catalog?limit=1").then((data) => { scopeDomains(data); el("methods-library-stats").textContent = `${data.counts.methods}개 방법 · ${data.counts.outcomes}개 적용 보고 · ${data.counts.opinions}개 의견 · 기록 수이며 효과 지표는 아닙니다.`; }).catch(() => {});
   } else browse(false);
 })();

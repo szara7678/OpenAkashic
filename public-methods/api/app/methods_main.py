@@ -2,12 +2,14 @@
 from pathlib import Path
 from typing import Literal
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.responses import FileResponse
 from app.research import WEB
 from app.research_methods import router, method_store
+from app.research_method_revisions import router as revision_router
 
 app = FastAPI(title="OpenAkashic Methods", version="0.2.0", docs_url="/research/docs", openapi_url="/research/openapi.json")
 app.include_router(router)
+app.include_router(revision_router)
 
 
 @app.middleware("http")
@@ -25,7 +27,7 @@ async def headers(request, call_next):
 
 @app.get("/", include_in_schema=False)
 def root():
-    return RedirectResponse("/research/")
+    return FileResponse(WEB / "methods-explore.html")
 
 
 @app.get("/research/health")
@@ -34,6 +36,8 @@ def health():
     return {"status": "ok", "service": "openakashic-methods", "scope": "public_methods_only"}
 
 
+@app.get("/graph", include_in_schema=False)
+@app.get("/graph/", include_in_schema=False)
 @app.get("/research/", include_in_schema=False)
 @app.get("/research/methods/", include_in_schema=False)
 def home():

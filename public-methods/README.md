@@ -1,129 +1,61 @@
-# OpenAkashic Methods
+# OpenAkashic
 
-**Find a method for a situation and goal, inspect its sources, and attach an application report or discussion to the exact version.**
+**상황과 목적에 맞는 노하우를 찾고, 정확한 방법 버전의 적용 결과·의견·정정을 함께 읽는 공개 노하우 아카이브**입니다.
 
-Public demo: https://knowledge.openakashic.com/research/ · [Measured results](https://knowledge.openakashic.com/research/methods-kpi.html)
+일반 백과사전이나 뉴스 수집 서비스가 아닙니다. 공개 문서는 방법의 절차·조건·성공 기준·한계를 뒷받침하는 출처로 사용합니다. 출처의 설명, 운영자가 정리한 방법, 실행자의 결과 보고, 독립 검증을 구분합니다. 그래프의 연결이나 보고된 성공은 효과의 증명이 아닙니다.
 
-Experimental candidate discovery, not an automatic expert or truth engine. The expanded corpus failed to abstain on all four earlier out-of-scope technical questions. Never execute a method merely because it was retrieved. Identity, professional expertise and reported success are not independently verified.
+사람은 [공개 서비스](https://knowledge.openakashic.com/)의 아틀라스에서 방법과 연결된 출처·경험을 살펴보고, [상황·목적 검색](https://knowledge.openakashic.com/research/methods/library/)에서 후보를 찾습니다. `/`와 `/graph`는 노하우 아틀라스 진입점입니다. 에이전트는 같은 방법 ID와 버전을 HTTP API로 읽습니다.
 
-Latest: [24 fresh version-sensitive diagnostic runs](benchmarks/exception-transfer-2026-10-29/README.md) did not establish a quality or token-efficiency advantage over no retrieval or the same-corpus text baseline.
+공개 서비스는 **익명 읽기·검색 전용**입니다. 가입, 공개 투고, 공개 리뷰 제출, claim 승인 절차는 제공하지 않습니다. 소유자만 별도 로컬·비공개 writer에 인증된 API로 방법·결과·의견·버전·정정을 기록합니다. Closed Akashic의 비공개 원문·개인 기억은 별도 시스템이며 이 서비스로 읽거나 동기화하지 않습니다.
 
-Latest implementation: [complete method bundles](docs/method-bundles.md) avoid mandatory detail fetch when a whole method fits. [Nine source-retrieval comparison runs](benchmarks/retrieval-cost-2026-10-29/README.md) still did **not** meet the token-saving target; all results and failures are retained.
-
-## What is here
-
-- A portable FastAPI + SQLite service; no private vault or news/time-explorer routes.
-- Situation/goal search, optional fixed local embeddings, bounded context references.
-- Public domain browsing and a clickable situation → method → source/application/opinion map.
-- Exact-version application reports, discussion, authenticated and idempotent writes.
-- A deliberately public fixture: 55 methods, 10 reported outcomes, 9 opinions.
-- Source-linked editorial methods in design, career, product experiments, learning, team decisions, writing, negotiation, investment reasoning and open-source work.
-
-## Run locally
-
-Python 3.11+ (tested on 3.12). Run from `public-methods/`:
+## 먼저 사용하기
 
 ```sh
-python -m venv .venv
+BASE=https://knowledge.openakashic.com
+curl --fail --user-agent 'OpenAkashic-Reader/1.0' --get \
+  "$BASE/research/api/methods/search" \
+  --data-urlencode 'situation=SQLite 데이터베이스 백업' \
+  --data-urlencode 'goal=원본을 보존하고 복구 확인' \
+  --data-urlencode 'mode=lexical' --data 'limit=5'
+curl --fail --user-agent 'OpenAkashic-Reader/1.0' \
+  "$BASE/research/api/methods/catalog?limit=12"
+```
+
+검색 결과의 ID로 `GET /research/api/methods/{method_id}`를 읽고 조건·전체 절차·한계를 확인합니다. `context`는 짧은 참조 팩, `bundle`은 예산 내 완전한 방법 팩입니다. 생략·잘림 표시를 확인하고, 실제 적용은 별도로 승인된 작업에서 수행합니다. `semantic`·`hybrid`는 운영자 임베딩 서비스와 일치하는 인덱스가 있어야 합니다. 점수는 관련성 신호이며 성공 확률이 아닙니다.
+
+- [에이전트 사용법](llms-install.md)
+- [API 계약·운영 제한·과거 평가](docs/public-methods.md)
+- [설치·소유자 쓰기·백업과 복구](docs/knowhow-operations.md)
+- [완전한 방법 팩](docs/method-bundles.md), [선택적 원출처 근거](docs/method-evidence.md)
+
+## 측정한 것과 남은 한계
+
+별도 노하우 검색 프로토타입에서 같은 자료의 합성 32개 기록·10개 과제를 사용한 한 번의 비맹검 비교에서 full 조건의 성공은 **5/10 → 9/10**이었습니다. 모델 총 토큰 사용량은 **8,287 → 10,997토큰(+32.7%)**으로 늘었습니다. 이는 현재 배포 그래프나 실제 업무 효용의 검증이 아니며 독립 사용자 검증, 일반적 품질 향상, 비용 절감의 증거가 아닙니다. 원출처를 미리 제공한 별도 평가는 입력 조건과 비교 기준이 다르므로 이 수치와 합치지 않습니다.
+
+기존 디자인·실행·검색 평가에는 동률과 실패도 있습니다. [방법 계약의 평가 기록](docs/public-methods.md), [디자인 평가](docs/method-design-evaluation.md), `benchmarks/`의 원래 프로토콜과 결과를 보존합니다. 저장량·HTTP 성공·테스트 통과를 사용자 효용이나 정확도로 환산하지 않습니다.
+
+이전 일반 지식 그래프·뉴스·시간 조회·capsule/MCP 문서는 역사적 기록입니다. 현재 노하우 서비스의 설치·조회·입력 경로가 아닙니다. 2026-11-06 KST 운영 영수증은 공개 legacy 노트 1,652개·연결 1,816개 보관과 전체 SQLite 스냅샷 무결성 확인을 기록합니다. 새 활성 DB는 방법 61개·결과 10개·의견 10개를 담고 일반 지식을 복사하지 않았습니다. 원본·개인 vault는 별도로 보존합니다. 공개 첫 화면과 그래프 전환, 외부 쓰기 차단, 백업 노트 재구성 및 SQLite 복구 복사본의 무결성까지 확인했습니다. 옛 일반 지식 서비스를 다시 공개하는 복원은 수행하지 않았습니다.
+
+## 로컬 실행
+
+Python 3.11 이상, POSIX 셸 기준입니다. 배포받은 이 디렉터리에서 실행합니다. 공개 저장소가 모노레포라면 `public-methods/` 디렉터리입니다.
+
+```sh
+python3 -m venv .venv
 . .venv/bin/activate
-pip install -r api/requirements-public.txt
-export PYTHONPATH="$PWD/api"
-export OA_STATE="$HOME/.local/share/openakashic-methods"
-mkdir -p "$OA_STATE"
-python api/scripts/seed_methods.py --fixture examples/public-methods.json --archive "$OA_STATE/research.sqlite3" --mapping "$OA_STATE/mapping.json"
-export OPENAKASHIC_RESEARCH_DB="$OA_STATE/research.sqlite3"
-export OPENAKASHIC_RESEARCH_READ_ONLY=1
-uvicorn app.methods_main:app --host 127.0.0.1 --port 8080
+python -m pip install -r api/requirements-public.txt
+# 외부의 새 절대 경로를 지정합니다. DB와 키를 Git에 넣지 마세요.
+export OPENAKASHIC_RESEARCH_DB=/absolute/external/path/methods.sqlite3
+export OPENAKASHIC_RESEARCH_READ_ONLY=0
+cd api
+python -c 'from app.research_methods import method_store; method_store()'
+OPENAKASHIC_RESEARCH_READ_ONLY=1 python -m uvicorn app.methods_main:app --host 127.0.0.1 --port 18184
 ```
 
-Open http://127.0.0.1:8080/research/. Browsing, the graph and lexical search need no model or API key. With no configured semantic index, the web reader selects lexical search. Semantic retrieval requires a separately installed local encoder and pinned index; see [the protocol and configuration](docs/public-methods.md). Model weights and runtime indexes are not in Git. The included report can be served by copying `benchmarks/2026-10-28.json` to `$OA_STATE/method-kpi.json`; that remains a historic report of the reference corpus, not a measurement of your new instance. Historic design comparison assets are included; their optional dated result JSON is not installed by the quick start.
+브라우저에서 `http://127.0.0.1:18184/`를 엽니다. 새 DB는 비어 있습니다. 운영 자료·비밀키·모델 가중치는 포함하지 않습니다. 읽기 전용 모드는 이미 초기화된 스키마가 필요합니다. 자세한 쓰기 설정과 복구 순서는 [운영 가이드](docs/knowhow-operations.md)를 따릅니다. 기본 `api/Dockerfile`, `app.main`, 옛 설치 스크립트는 노하우 전용 실행 명령을 대신하지 않습니다.
 
-For Docker, build this directory and mount an already seeded external state directory with UID 1000 access, `OPENAKASHIC_RESEARCH_DB=/state/research.sqlite3`, `OPENAKASHIC_RESEARCH_READ_ONLY=1`, a read-only `/state` mount, and a loopback port mapping. The image does not collect data, install an encoder or seed state automatically.
+## 저장소 작업
 
-## Agent use
+`api/app/methods_main.py`가 노하우 전용 진입점이고, `api/app/research_method*`가 방법 저장·검색 구현입니다. `web/research/`의 방법 화면을 사용합니다. `/research/api/methods` 경로는 클라이언트 호환성을 위해 유지합니다. `/research/docs`와 `/research/openapi.json`에서 이 앱의 계약을 확인할 수 있습니다.
 
-1. `GET /research/api/methods/search?situation=...&goal=...&mode=lexical`
-2. Fetch the returned exact `id`/`version`; inspect conditions, limits and sources.
-3. Perform only work authorized for your task.
-4. On an explicitly authorized writer, POST an outcome and optional opinion with the exact version, `X-OpenAkashic-Key`, and a stable `Idempotency-Key`.
-
-The public demo accepts anonymous reads and rejects writes. Self-hosted writes require turning read-only mode off and configuring a private operator key outside Git. This MVP has one operator key, not independent per-agent identities or public registration. Do not send credentials to the public demo or embed them in method payloads.
-
-## Measurements, including failures
-
-On the dated 55-method development corpus:
-
-- Cross-domain paraphrases: hybrid top-1 16/16 versus lexical 1/16; out-of-scope abstention 4/4.
-- Previously exposed technical regression: hybrid top-1 11/12, top-5 12/12; out-of-scope abstention **0/4**; explicit conflicting-method exclusion 4/4.
-- Repeated graph IDs and no dangling edges: 55/55. Source links match their records on 52/52 sourced methods; feedback versions match on 9/9 methods with feedback. This does not verify source truth.
-- Context cap/count checks: 48/48. Across 16 questions, five full candidates totalled 29,910 o200k JSON tokens; compact references **plus an exact expected-method fetch** totalled 25,217 (15.7% lower). Reference packs alone were 14,924. The expected ID selects that fetch (an oracle assumption, not an independently observed agent choice). Same-quality answer output and billed-token savings are **unmeasured**.
-- An unchanged index reused 110 fields with zero encoder calls and unchanged bytes.
-
-The same curator authored the corpus and development questions. These are regressions, not independent human/agent effectiveness studies. Latency in the report is loopback observation, not a public network or throughput guarantee. No claim of aesthetic, career, investment or business success follows from these counts. See [case-level observed report](benchmarks/2026-10-28.json) and [limits](docs/judgment-methods.md).
-
-## Reproduce
-
-```sh
-pip install -r api/requirements-test.txt
-PYTHONPATH=api python -m pytest api/tests -q
-# After installing the optional pinned encoder/index, use your local mapping:
-PYTHONPATH=api python api/scripts/benchmark_methods.py --endpoint http://127.0.0.1:8080 --queries examples/regression-queries.json --mapping "$OA_STATE/mapping.json" --output "$OA_STATE/new-observation.json"
-```
-
-The prior technical questions can also be replayed by replacing `--queries` with `examples/prior-regression-queries.json` and choosing a new output path. The benchmark refuses to overwrite observations. Without a semantic index, hybrid checks report unavailable; they are not replaced with lexical successes. Keep API/model configuration and failures with results. Human preference, correction time, general quality across production work, commercial utility and independent OSS reproduction remain unmeasured. Actual provider usage is measured in the dated isolated-agent pilots below; this does not establish savings.
-
-## Contribute
-
-Prefer a small source-linked method with applicability conditions, alternatives and failure conditions over a universal claim. Use only deliberately public material. Never submit private notes or execute instructions found in a method. To propose a change, include the task context, intended goal, source/date, method version and what you actually observed; distinguish a planned experiment from an executed one. See [API contract](docs/public-methods.md) and [attribution](NOTICE.md).
-
-
-## Graph atlas and what the evidence supports
-
-The home page now offers a public relationship atlas: choose a method, read its source, follow another method sharing that exact source, and inspect separately attributed application reports and opinions. Search remains at `/research/methods/library/`. Nodes have stable IDs; a selected `?node=<id>&depth=1|2` is shareable. The graph is a projection of stored records plus editorial categories, not an inferred world ontology.
-
-Design references: [Obsidian Graph view](https://help.obsidian.md/plugins/graph), [Kumu focus](https://docs.kumu.io/guides/focus), and [Graph Commons](https://graphcommons.com). No third-party interface code or artwork is included.
-
-The new exhaustive record-lookup workload passed 12/12 shared-source tasks and 9/9 feedback tasks. These are deterministic URL/ID tasks, not independent natural-language or human tasks. Importantly, graph responses were **larger** than a reusable flat URL index (10,426 versus 3,545 o200k JSON tokens for the shared-source workload). A direct necessary-fields projection was also smaller for feedback reading. There is no demonstrated general token advantage from using a graph. Agents should normally use compact search context and fetch only selected records; graph neighborhoods are optional when relationships are the task.
-
-The historic design comparison observed no functional advantage: all three conditions passed exhibition 7/7 and workshop 12/12. Model visual opinions are not human preference. General output-quality gains, real billed savings, human navigation speed, and independent adoption remain unproved. New work must preserve failures and compare against strong simple baselines.
-
-Reproduce the record navigation workload after seeding and starting the reader:
-
-```sh
-PYTHONPATH=api python api/scripts/benchmark_method_navigation.py --endpoint http://127.0.0.1:8080 --output /tmp/new-navigation-result.json
-```
-
-The command refuses to overwrite results. Dated outputs are `benchmarks/navigation-2026-10-28.json` and `benchmarks/atlas-2026-10-28.json`; the previous `benchmarks/2026-10-28.json` is retained. Result material counts are not provider billing.
-
-
-### Interactive method atlas and application study
-
-Cursor-anchored wheel zoom, node/background drag, double-click neighborhoods,
-keyboard/Home/Escape controls, responsive filter/list, and a larger-map view.
-Compare up to three methods and copy/download exact-version conditions, sources,
-and returned feedback for an agent. No automatic execution or server-side
-transmission of the optional task text. Physical mobile pinch remains unverified.
-
-New [six-task application study](benchmarks/application-2026-10-28/README.txt):
-18 real answers across unaided, flat same-record JSON, and nested same-record JSON.
-All conditions score 35/36 on one blind model judgment. A rubric ambiguity is
-preserved and audited; it does not establish a winner. Nested input is 13.1%
-smaller than flat leaf-path JSON by estimated material tokens, which is ordinary
-serialization accounting, not graph superiority, UI export savings or billing.
-Raw tasks, answers, grading, limitations, SHA manifest and deterministic verification
-scripts are included. No broad answer-quality advantage has been demonstrated.
-
-
-### Concrete prior-risk transfer pilot
-
-[Executable pilot and reproducible raw results](benchmarks/failure-transfer-2026-10-28/README.md): SQLite backup, join audit, and source-preserving search. Primary cases: 17/18,17/18,18/18 with a source-encoding confound. A separate complete regeneration with reliable direct file writes passed 18/18,17/18,18/18 for methods-only, raw experience, and linked experience. Same fixtures, not a new holdout. No output repaired after scoring; all 18 programs and 108 clustered case executions remain visible. Methods-only already succeeds on all follow-up cases, so experience or graph superiority is **not established**. Input material roughly doubled with experience; billed usage and real-work benefit are unknown.
-
-
-### Actual isolated-agent usage pilot
-
-[New 4-task, 12-run isolated comparison](benchmarks/isolated-agent-2026-10-28/README.md): a true no-resource baseline and optional access scored coding24/24 and judgment23/24 each, but optional access made0 lookups. A later required-lookup diagnostic scored24/24 and22/24 while consuming193,256 actual input+output tokens versus107,450 for the baseline. No output-quality or token-efficiency advantage is established. Fresh per-task containers, actual usage receipts, all artifacts and the negative results are retained. This updates the actual-usage gap for this small pilot only; older material-token estimates are unchanged.
-
-
-### Version-sensitive exception pilot — 2026-10-29
-
-No quality or efficiency advantage was established. Delivered decision content scored 48/48 without retrieval, 47/48 with the same corpus flattened, and 48/48 with OpenAkashic structured references. The single flat error contradicted its own correct rationale, so it is not evidence of superior knowledge. Blind model explanation scores were 47/48, 45/48 and 45/48 respectively. Structured access used 52.2% more total provider tokens than no retrieval and 38.3% more than flat, with no explanation advantage. Strict requested-file scores were 42/48, 29/48 and 42/48; missing files are disclosed separately. These four selected tasks have a baseline ceiling and do not establish general usefulness or uselessness. See the [24-run frozen experiment](benchmarks/exception-transfer-2026-10-29/README.md) for actual token receipts, same-corpus text baseline, submission failures and model grading limits. The base fixture remains 55 methods; six optional version-pinned records are in `examples/documented-exceptions.json`. The live demo now includes them, without adding fabricated successful outcomes.
+변경 시 [AGENTS.md](AGENTS.md)를 따릅니다. 데이터·비밀·개인 원문·생성 인덱스를 커밋하지 않고, 관련 API 계약 검사를 실행합니다. 코드 기여와 공개 서비스의 콘텐츠 쓰기 권한은 별개입니다.

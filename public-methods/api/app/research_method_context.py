@@ -28,6 +28,11 @@ def pack_context(result, max_tokens=1024):
         "omitted_candidates": len(result.get("results", [])),
         "max_tokens": max_tokens, "tokens": 0,
     }
+    if "scope" in result:
+        pack["scope"] = result["scope"]
+        if counted(pack) > max_tokens - 8:
+            pack["scope"] = {"policy": "explicit_editorial_scope", "labels_omitted": True,
+                             "scope_hash": digest(result["scope"])}
     for row in rows:
         method = row["method"]
         reference = {
@@ -95,6 +100,11 @@ def pack_bundle(result, max_tokens=1024):
         "items": [], "omitted_candidates": len(rows),
         "max_tokens": max_tokens, "tokens": 0,
     }
+    if "scope" in result:
+        pack["scope"] = result["scope"]
+        if counted(pack) > max_tokens - 8:
+            pack["scope"] = {"policy": "explicit_editorial_scope", "labels_omitted": True,
+                             "scope_hash": digest(result["scope"])}
     for row in rows[:5]:
         method, match = row["method"], row.get("match", {})
         reference = {

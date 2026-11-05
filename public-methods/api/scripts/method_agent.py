@@ -87,7 +87,7 @@ def run(args):
         query = {"situation": args.situation, "goal": args.goal, "limit": args.limit}
         if args.constraints:
             query["constraints"] = args.constraints
-        for name in ("mode", "requires", "forbids"):
+        for name in ("mode", "requires", "forbids", "domain", "product"):
             value = getattr(args, name, None)
             if value and not (name == "mode" and value == "lexical"):
                 query[name] = value
@@ -135,6 +135,8 @@ def main(argv=None):
     search.add_argument("--situation", required=True)
     search.add_argument("--goal", required=True)
     search.add_argument("--constraints", default="")
+    search.add_argument("--domain", default="", help="Exact editorial domain from /catalog")
+    search.add_argument("--product", default="", help="Exact declared product/platform tag; unlabeled records excluded")
     search.add_argument("--mode", choices=("lexical", "semantic", "hybrid"), default="lexical")
     search.add_argument("--requires", default="", help="Comma-separated explicitly required condition labels")
     search.add_argument("--forbids", default="", help="Comma-separated unavailable/forbidden condition labels")
@@ -143,6 +145,8 @@ def main(argv=None):
     context.add_argument("--situation", required=True)
     context.add_argument("--goal", required=True)
     context.add_argument("--constraints", default="")
+    context.add_argument("--domain", default="", help="Exact editorial domain from /catalog")
+    context.add_argument("--product", default="", help="Exact declared product/platform tag; unlabeled records excluded")
     context.add_argument("--mode", choices=("lexical", "semantic", "hybrid"), default="hybrid")
     context.add_argument("--requires", default="")
     context.add_argument("--forbids", default="")
@@ -152,6 +156,8 @@ def main(argv=None):
     bundle.add_argument("--situation", required=True)
     bundle.add_argument("--goal", required=True)
     bundle.add_argument("--constraints", default="")
+    bundle.add_argument("--domain", default="", help="Exact editorial domain from /catalog")
+    bundle.add_argument("--product", default="", help="Exact declared product/platform tag; unlabeled records excluded")
     bundle.add_argument("--mode", choices=("lexical", "semantic", "hybrid"), default="hybrid")
     bundle.add_argument("--requires", default="")
     bundle.add_argument("--forbids", default="")

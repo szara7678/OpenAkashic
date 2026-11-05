@@ -226,8 +226,20 @@ def _empty(situation, goal, constraints, mode, requires, forbids):
                 "Free-text constraints require review; only explicit structured conflicts exclude candidates."]}
 
 
+def scope_info(domain, product):
+    return {"domain": domain, "product": product, "policy": "explicit_editorial_scope",
+            "unknown_policy": "outside_selected_scope_or_undeclared_excluded_not_proven_incompatible"}
+
+
+def scope_match(method, domain="", product=""):
+    """Explicit editorial scope only; missing labels do not prove incompatibility."""
+    from app.research_method_graph import domain_for
+    tags = method.get("tags", [])
+    return (not domain or domain_for(method) == domain) and (not product or product in tags)
+
+
 def search_methods(store, situation, goal, constraints="", limit=5, *, mode="hybrid", requires=(),
-                   forbids=(), index_path=None, embedder=None, config=None):
+                   forbids=(), domain="", product="", index_path=None, embedder=None, config=None):
     """Retrieve methods; hybrid uses independent lexical/vector ranks, no lexical gate.
 
     Both semantic axes must pass frozen floors. Missing/stale/mismatched vectors
@@ -240,18 +252,23 @@ def search_methods(store, situation, goal, constraints="", limit=5, *, mode="hyb
     if len(requires) > 20 or len(forbids) > 20:
         raise ValueError("too many structured constraint tags")
     constraint_match({}, requires, forbids)
-    if mode == "lexical" and not requires and not forbids:
+    if mode == "lexical" and not requires and not forbids and not domain and not product:
         return store.search(situation, goal, constraints, limit)
     if mode == "lexical":
         result = store.search(situation, goal, constraints, MAX_METHODS)
         result["results"] = [row for row in result["results"]
-                             if constraint_match(row["method"], requires, forbids)["status"] != "conflict"]
+                             if scope_match(row["method"], domain, product)
+                             and constraint_match(row["method"], requires, forbids)["status"] != "conflict"]
+        if domain or product:
+            result["scope"] = scope_info(domain, product)
         result["total"] = len(result["results"])
         result["results"] = result["results"][:limit]
         for row in result["results"]:
             row["match"]["constraint_rules"] = constraint_match(row["method"], requires, forbids)
         return result
     result = _empty(situation, goal, constraints, mode, requires, forbids)
+    if domain or product:
+        result["scope"] = scope_info(domain, product)
     config = config or SearchConfig.from_env()
     metadata = {"available": False, "status": "unavailable", "eligible_methods": 0,
                 "stale_or_missing_methods": 0, "weak_axis_methods": 0, "constraint_conflicts": 0, "relevance_status": "unknown", "floors": {"situation": config.situation_floor, "goal": config.goal_floor},
@@ -272,6 +289,8 @@ def search_methods(store, situation, goal, constraints="", limit=5, *, mode="hyb
         eligible = []
         lexical_rank = []
         for method in methods:
+            if not scope_match(method, domain, product):
+                continue
             axes = {}
             stale = False
             for field, qvector in zip(FIELDS, query):

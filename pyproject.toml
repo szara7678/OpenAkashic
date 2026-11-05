@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "openakashic-mcp"
 version = "1.0.0"
-description = "Visibility-aware knowledge vault for AI agents — private/public markdown notes, ~20 MCP tools, semantic search, and a built-in publication workflow. Self-hostable."
+description = "Historical MCP package; current OpenAkashic is a know-how-only public HTTP archive in public-methods/."
 readme = "README.md"
 license = {text = "Apache-2.0"}
 authors = [{name = "szara7678", email = "gci.insu@gmail.com"}]

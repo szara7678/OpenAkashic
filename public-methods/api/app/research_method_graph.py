@@ -50,7 +50,7 @@ def catalog(store, domain="", limit=12, offset=0):
             "verification": "contributor_reports_not_independent_success"}
 
 
-def method_graph(method):
+def method_graph(method, store=None):
     nodes, edges = {}, {}
     center = method["id"] + ":v" + str(method["version"])
 
@@ -62,34 +62,85 @@ def method_graph(method):
         key = "edge_" + digest([source, relation, target])[:24]
         edges[key] = {"id": key, "source": source, "relation": relation, "target": target}
 
-    node(center, "method", method["title"], method_id=method["id"], version=method["version"],
-         verification=method.get("verification", "not_independently_verified"))
-    for field, relation in (("situation", "applies_in"), ("goal", "pursues")):
-        key = node(field + "_" + digest(method[field])[:24], field, method[field])
-        edge(center, relation, key)
-    for source in method.get("sources", [])[:8]:
-        key = node("source_" + digest(source["url"])[:24], "source", source["title"],
-                   url=source["url"], accessed_at=source.get("accessed_at"))
-        edge(center, "documented_by", key)
+    history = {"items": [method], "has_more": False}
+    if store is not None:
+        from app.research_method_revisions import revisions
+        history = revisions(store, method["id"], limit=12)
+    versions = {item["version"]: item for item in history["items"]}
+    versions[method["version"]] = method
+
+    def anchor(version):
+        key = method["id"] + ":v" + str(version)
+        if key not in nodes:
+            snapshot = versions.get(version)
+            node(key, "method", snapshot["title"] if snapshot else method["id"] + " v" + str(version),
+                 method_id=method["id"], version=version, current_version=method["version"],
+                 historical=version != method["version"], snapshot_available=snapshot is not None,
+                 verification=method.get("verification", "not_independently_verified"))
+        return key
+
+    # Version snapshots describe recorded revisions, never inferred corrections.
+    for version, snapshot in versions.items():
+        method_node = anchor(version)
+        for field, relation in (("situation", "applies_in"), ("goal", "pursues")):
+            key = node(field + "_" + digest(snapshot[field])[:24], field, snapshot[field])
+            edge(method_node, relation, key)
+        for source in snapshot.get("sources", [])[:8]:
+            key = node("source_" + digest(source["url"])[:24], "source", source["title"],
+                       url=source["url"], accessed_at=source.get("accessed_at"))
+            edge(method_node, "documented_by", key)
+        previous = snapshot.get("revision", {}).get("previous_version")
+        if previous:
+            edge(method_node, "revises", anchor(previous))
+
     outcomes = method.get("outcomes", [])[:12]
     opinions = method.get("opinions", [])[:12]
+    # Include correction targets only when their actual recorded outcome is loaded.
+    correction_outcomes = {item["revision"]["correction"]["outcome_id"]
+        for item in versions.values() if item.get("revision", {}).get("correction")}
+    outcomes += [item for item in method.get("outcomes", [])[12:]
+                 if item["id"] in correction_outcomes]
+    # An explicitly linked outcome may fall beyond the default feedback page.
+    # Fetch only those bounded recorded IDs; do not synthesize a target record.
+    missing = correction_outcomes - {item["id"] for item in outcomes}
+    if store is not None and missing:
+        with store.archive._connect() as db:
+            marks = ",".join("?" for _ in missing)
+            rows = db.execute("SELECT body FROM method_outcomes WHERE method_id=? AND id IN (" + marks + ")",
+                              (method["id"], *sorted(missing))).fetchall()
+        outcomes += [json.loads(row["body"]) for row in rows]
     for outcome in outcomes:
         key = node(outcome["id"], "outcome", outcome["observed_result"],
-                   status=outcome["status"], method_version=outcome["method_version"],
+                   knowhow_role="failure" if outcome["status"] == "failure" else "result",
+                   status=outcome["status"], method_id=method["id"], method_version=outcome["method_version"],
                    reported_by=outcome["agent_name"], verification="contributor_reported")
-        edge(center, "reported_application", key)
+        edge(anchor(outcome["method_version"]), "reported_application", key)
     for opinion in opinions:
         key = node(opinion["id"], "opinion", opinion["body"], opinion_kind=opinion["kind"],
-                   method_version=opinion["method_version"], verification="contributor_reported")
-        edge(center, "has_opinion", key)
+                   method_id=method["id"], method_version=opinion["method_version"], verification="contributor_reported")
+        edge(anchor(opinion["method_version"]), "has_opinion", key)
         if opinion.get("outcome_id") in nodes:
             edge(key, "comments_on", opinion["outcome_id"])
+    for version, snapshot in versions.items():
+        correction = snapshot.get("revision", {}).get("correction")
+        if not correction:
+            continue
+        key = node("correction_" + digest([method["id"], version, correction])[:24],
+                   "correction", correction["reason"], method_id=method["id"],
+                   method_version=version, outcome_id=correction["outcome_id"],
+                   corrected_method_version=correction["method_version"],
+                   verification="owner_reported_change_not_verified_improvement")
+        edge(key, "implemented_by", anchor(version))
+        if correction["outcome_id"] in nodes:
+            edge(key, "addresses", correction["outcome_id"])
     counts = method.get("feedback_counts", {})
     return {"schema": "method-evidence-graph-v1", "graph_kind": "record_relationships",
             "focus": center, "method_id": method["id"], "version": method["version"],
             "nodes": list(nodes.values()), "edges": list(edges.values()),
-            "truncated": {kind: counts.get(kind, {}).get("total", len(method.get(kind, []))) > len(selected)
+            "truncated": {**{kind: counts.get(kind, {}).get("total", len(method.get(kind, []))) > len(selected)
                           for kind, selected in (("outcomes", outcomes), ("opinions", opinions))},
+                          "revisions": history["has_more"]},
+            "knowhow_roles": ["situation", "goal", "method", "result", "failure", "correction"],
             "cautions": ["기록 사이의 연결이며 사실·전문가 신원·효과를 검증한 그래프가 아닙니다.",
                          "상황·목적은 텍스트 식별자입니다. 의미가 같다는 이유로 병합하지 않습니다.",
                          "적용 결과와 의견은 작성자의 보고입니다. 절차를 자동 실행하지 마세요."]}
@@ -107,14 +158,15 @@ def network_graph(store, domain="", limit=80, focus="", depth=1):
     nodes, edges, partial_feedback = {}, {}, []
     for item in selected[:limit]:
         detail = store.get(item["id"])
-        graph = method_graph(detail)
+        graph = method_graph(detail, store=store)
         group = domain_for(detail)
         category = "category_" + digest(group)[:24]
         nodes[category] = {"id": category, "kind": "category", "label": group,
                            "basis": "editorial_tag_group_not_semantic_equivalence"}
         for n in graph["nodes"]:
-            if n["kind"] not in ("situation", "goal"):
-                nodes[n["id"]] = dict(n, **({"domain": group, "situation": detail["situation"], "goal": detail["goal"]} if n["kind"] == "method" else {}))
+            nodes[n["id"]] = dict(n, **({"domain": group} if n["kind"] == "method" else {}))
+            if n["id"] == graph["focus"]:
+                nodes[n["id"]].update(situation=detail["situation"], goal=detail["goal"])
         for e in graph["edges"]:
             if e["source"] in nodes and e["target"] in nodes:
                 edges[e["id"]] = e
@@ -133,9 +185,9 @@ def network_graph(store, domain="", limit=80, focus="", depth=1):
             "nodes": sorted(nodes.values(), key=lambda n: n["id"]),
             "edges": sorted(edges.values(), key=lambda e: e["id"]),
             "domains": [{"name": k, "count": v} for k, v in sorted(domains.items())],
-            "scope": {"focus": focus or None, "depth": depth if focus else None, "focus_missing": focus_missing, "domain": domain, "method_limit": limit, "methods_loaded": min(len(selected), limit), "methods_shown": sum(n["kind"] == "method" for n in nodes.values()),
+            "scope": {"focus": focus or None, "depth": depth if focus else None, "focus_missing": focus_missing, "domain": domain, "method_limit": limit, "methods_loaded": min(len(selected), limit), "methods_shown": len({n["method_id"] for n in nodes.values() if n["kind"] == "method"}),
                       "matching_methods": len(selected), "total_methods": len(methods),
                       "truncated": len(selected) > limit, "partial_feedback_methods": partial_feedback,
-                      "omitted_node_kinds": ["situation", "goal"]},
+                      "omitted_node_kinds": []},
             "cautions": ["선은 등록된 출처·보고와 편집상 분야를 연결하며, 효과를 증명하지 않습니다.",
                          "공유 URL은 같은 출처를 참조한다는 뜻이며 독립 검증이나 방법의 동등성을 뜻하지 않습니다."]}
