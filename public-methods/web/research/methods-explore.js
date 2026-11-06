@@ -1,83 +1,443 @@
 "use strict";
 (() => {
- const $=id=>document.getElementById(id), NS="http://www.w3.org/2000/svg", base="/research/api/methods";
- const kinds={category:"분야",situation:"상황",goal:"목적",method:"방법",outcome:"적용 결과",failure:"실패 보고",correction:"반영된 수정",source:"출처",opinion:"의견"};
- const relations={categorized_as:"분야 분류",applies_in:"이 상황에 적용",pursues:"이 목적을 추구",documented_by:"정리할 때 참고한 출처",reported_application:"이 버전의 적용 보고",has_opinion:"이 버전에 남긴 의견",comments_on:"이 결과에 대한 의견",revises:"이전 버전에서 변경",implemented_by:"수정을 반영한 버전",addresses:"이 보고를 계기로 수정"};
- const statusNames={success:"성공 보고",partial:"부분 성공 보고",failure:"실패 보고",unknown:"판단 미정"};
- let graph,selected=null,visible=[],points=new Map(),zoom=1,shift={x:0,y:0},drag=null,suppressClick=false,detailRequest=0,clickTimer;
- const index=new Map(),adj=new Map(),cache=new Map(),pointers=new Map(),palette=Array.from({length:10},(_,i)=>`var(--cluster-${i})`);
- const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!=null)n.textContent=text;if(cls)n.className=cls;return n;};
- const svg=(tag,attrs={})=>{const n=document.createElementNS(NS,tag);for(const[k,v]of Object.entries(attrs))n.setAttribute(k,v);return n;};
- const role=n=>n?.knowhow_role==="failure"?"failure":n?.kind;
- const label=n=>kinds[role(n)]||"기록";
- const neighbors=id=>adj.get(id)||[];
- const current=n=>n.kind==="method"&&!n.historical;
- const unique=items=>[...new Map(items.map(n=>[n.id,n])).values()];
- const get=async path=>{const r=await fetch(base+path,{credentials:"omit",headers:{Accept:"application/json"}});if(!r.ok)throw Error("unavailable");return r.json();};
- function section(title,body,ordered=false){const s=el("section",null,"record-section");s.append(el("h3",title));if(Array.isArray(body)){const l=el(ordered?"ol":"ul");body.forEach(x=>l.append(el("li",x)));s.append(l);}else s.append(el("p",body||"등록된 내용이 없습니다."));return s;}
- function safeLink(title,url){try{const u=new URL(url);if(!["https:","http:"].includes(u.protocol))return null;const a=el("a",title,"record-source");a.href=u.href;a.target="_blank";a.rel="noopener noreferrer";return a;}catch{return null;}}
- function methodFamily(n){if(n.method_id)return n.method_id;return neighbors(n.id).map(x=>index.get(x.id)).find(x=>x?.method_id)?.method_id;}
- function matchingMethods(){const q=$("atlas-filter").value.trim().toLocaleLowerCase(),domain=$("atlas-domain").value,f=$("atlas-record-filter").value;return graph.nodes.filter(n=>current(n)&&(!domain||n.domain===domain)&&(!q||[n.label,n.situation,n.goal].some(x=>x?.toLocaleLowerCase().includes(q)))&&(!f||graph.nodes.some(x=>x.method_id===n.method_id&&(f==="reports"?x.kind==="outcome":f==="failure"?role(x)==="failure":x.kind==="correction"))));}
- function view(fit=false){if(!graph)return;const methods=matchingMethods(),families=new Set(methods.map(n=>n.method_id)),ids=new Set(methods.map(n=>n.id));const depth=Number($("atlas-depth").value);
-  if(depth&&selected){let front=[selected.id];ids.clear();ids.add(selected.id);for(let step=0;step<depth;step++){const next=[];for(const id of front)for(const a of neighbors(id))if(!ids.has(a.id)){ids.add(a.id);next.push(a.id);}front=next;}
-   // Keep the chosen method's recorded path separate from other methods sharing a category or URL.
-   if(selected.kind==="method"){ids.clear();ids.add(selected.id);for(const n of graph.nodes)if(n.method_id===selected.method_id){ids.add(n.id);if(n.kind==="method")for(const a of neighbors(n.id))if(index.get(a.id)?.kind!=="category")ids.add(a.id);} }
-  }else{for(const e of graph.edges)if(ids.has(e.source)&&index.get(e.target)?.kind==="category")ids.add(e.target);for(const n of graph.nodes)if(families.has(n.method_id)&&["outcome","correction"].includes(n.kind)){ids.add(n.id);for(const a of neighbors(n.id))if(index.get(a.id)?.kind==="method")ids.add(a.id);}if($("atlas-evidence").checked)for(const e of graph.edges)if(ids.has(e.source)&&["source","opinion"].includes(index.get(e.target)?.kind))ids.add(e.target);}
-  visible=graph.nodes.filter(n=>ids.has(n.id)&&(n.kind!=="source"&&n.kind!=="opinion"||$("atlas-evidence").checked||n.id===selected?.id||depth>0));layout();draw();if(fit)fitVisible();
-  const list=$("atlas-list");list.replaceChildren();for(const n of methods){const b=el("button",n.label);b.type="button";b.setAttribute("aria-pressed",String(n.id===selected?.id));b.onclick=()=>choose(n.id);list.append(b);}if(!methods.length)list.append(el("p","이 조건의 방법이 없습니다.","quiet"));$("atlas-list-count").textContent=methods.length;$("atlas-empty").hidden=visible.length>0;
-  const shown=new Set(visible.map(n=>n.id)),links=graph.edges.filter(e=>shown.has(e.source)&&shown.has(e.target));$("atlas-visible").textContent=`${visible.length}개 기록 · ${links.length}개 연결`;$("atlas-status").textContent=depth&&selected?`${label(selected)}에서 이어지는 연결`:`방법 ${methods.length}개 · 분야별 보기${graph.scope.truncated?" · 일부 범위":""}`;$("atlas-focus").disabled=!selected;$("atlas-back").disabled=!(history.state?.atlasStep);
- }
- function layout(){points=new Map();const focused=Number($("atlas-depth").value)>0&&selected;if(focused&&selected.kind!=="category"){
-  points.set(selected.id,{x:550,y:365});const groups=new Map();for(const n of visible)if(n.id!==selected.id){const key=role(n);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(n);}
-  const slots={situation:[220,220],goal:[220,485],method:[550,610],outcome:[850,220],failure:[850,390],correction:[835,565],source:[365,650],opinion:[1000,540],category:[550,105]};
-  for(const [kind,ns]of groups){const [x,y]=slots[kind]||[850,365];ns.forEach((n,i)=>{const angle=i*2.39996,r=ns.length===1?0:Math.min(125,35*Math.sqrt(i+1));points.set(n.id,{x:x+Math.cos(angle)*r,y:y+Math.sin(angle)*r});});}return;
- }
- const cats=visible.filter(n=>n.kind==="category");cats.forEach((n,i)=>{const a=i/Math.max(1,cats.length)*Math.PI*2-Math.PI/2;const p=cats.length===1?{x:550,y:365}:{x:550+Math.cos(a)*355,y:365+Math.sin(a)*235};points.set(n.id,p);n.color=palette[i%palette.length];const ms=visible.filter(m=>current(m)&&neighbors(m.id).some(a=>a.id===n.id));ms.forEach((m,j)=>{const angle=j/Math.max(1,ms.length)*Math.PI*2+.4,r=ms.length===1?65:55+Math.sqrt(ms.length)*9;m.color=n.color;points.set(m.id,{x:p.x+Math.cos(angle)*r,y:p.y+Math.sin(angle)*r});});});
- for(const n of visible)if(!points.has(n.id)){const a=neighbors(n.id).map(x=>points.get(x.id)).filter(Boolean);const i=visible.indexOf(n),angle=i*2.39996;const p=a[0]||{x:550,y:365};points.set(n.id,{x:p.x+Math.cos(angle)*45,y:p.y+Math.sin(angle)*45});}
- // Separate close points without animating the whole graph.
- for(let k=0;k<65;k++)for(let i=0;i<visible.length;i++)for(let j=i+1;j<visible.length;j++){const a=points.get(visible[i].id),b=points.get(visible[j].id),dx=a.x-b.x||.1,dy=a.y-b.y||.1,d=Math.hypot(dx,dy),r=visible[i].kind==="category"||visible[j].kind==="category"?42:20;if(d<r){const f=(r-d)*.15;a.x+=dx/d*f;a.y+=dy/d*f;b.x-=dx/d*f;b.y-=dy/d*f;}}
- }
- function draw(){const ids=new Set(visible.map(n=>n.id)),edges=$("atlas-edges"),nodes=$("atlas-nodes");edges.replaceChildren();nodes.replaceChildren();for(const e of graph.edges){if(!ids.has(e.source)||!ids.has(e.target))continue;const a=points.get(e.source),b=points.get(e.target),l=svg("line",{x1:a.x,y1:a.y,x2:b.x,y2:b.y,class:"network-edge"+(["categorized_as"].includes(e.relation)?" category":["documented_by","has_opinion"].includes(e.relation)?" evidence":""),"data-source":e.source,"data-target":e.target});const t=svg("title");t.textContent=relations[e.relation]||"기록 연결";l.append(t);edges.append(l);}
- for(const n of visible){const p=points.get(n.id),r=n.kind==="category"?12:n.kind==="method"?7:6,g=svg("g",{class:"network-node "+role(n),transform:`translate(${p.x} ${p.y})`,tabindex:"0",role:"button","data-node-id":n.id,"aria-label":`${label(n)}: ${n.label.slice(0,150)}`,"aria-pressed":String(selected?.id===n.id)});g.style.setProperty("--node-color",n.kind==="category"||n.kind==="method"?n.color||"var(--method)":`var(--${role(n)})`);g.append(svg("circle",{r:n.kind==="category"?48:23,class:"node-halo"}),svg("circle",{r:21,class:"network-hit"}),svg("circle",{r,class:"node-core"}));const title=svg("title");title.textContent=`${label(n)} · ${n.label}`;g.append(title);const t=svg("text",{x:0,y:n.kind==="category"?-25:23,"text-anchor":"middle"});t.textContent=n.label.length>17?n.label.slice(0,17)+"…":n.label;g.append(t);g.onclick=e=>{if(suppressClick)return;clearTimeout(clickTimer);if(e.detail===0)choose(n.id);else if(e.detail===1)clickTimer=setTimeout(()=>choose(n.id),240);};g.ondblclick=e=>{e.preventDefault();clearTimeout(clickTimer);choose(n.id);};g.onkeydown=e=>{if(["Enter"," "].includes(e.key)){e.preventDefault();choose(n.id,true,true);}};g.onmouseenter=e=>{highlight(n.id);tooltip(n,e);};g.onmousemove=e=>tooltip(n,e);g.onmouseleave=()=>{highlight(selected?.id);$("atlas-tooltip").hidden=true;};nodes.append(g);}highlight(selected?.id);transform();}
- function highlight(id){const around=new Set(id?[id,...neighbors(id).map(n=>n.id)]:[]);for(const n of $("atlas-nodes").children){n.classList.toggle("dim",Boolean(id)&&!around.has(n.dataset.nodeId));n.classList.toggle("selected",n.dataset.nodeId===selected?.id);n.classList.toggle("neighbor",Boolean(id)&&around.has(n.dataset.nodeId));}for(const e of $("atlas-edges").children){const active=e.dataset.source===id||e.dataset.target===id;e.classList.toggle("dim",Boolean(id)&&!active);e.classList.toggle("highlight",active);}}
- function linkedCard(n,relation){const c=el("div",null,"path-card");c.style.setProperty("--node-color",`var(--${role(n)})`);c.append(el("span",n.kind==="outcome"?statusNames[n.status]||"적용 보고":label(n),"path-role"));const b=el("button",n.label);b.type="button";b.onclick=()=>choose(n.id);c.append(b);if(n.method_version)c.append(el("small",`방법 v${n.method_version} · ${n.kind==="correction"?"변경 기록, 개선 효과 미검증":"작성자 보고"}`));if(n.historical)c.append(el("small",`이전 버전 v${n.version}`));if(relation)c.title=relations[relation]||"연결된 기록";return c;}
- async function choose(id,push=true,keyboard=false){const n=index.get(id);if(!n)return;selected=n;$("atlas-tooltip").hidden=true;const token=++detailRequest;$("atlas-depth").value=n.kind==="method"?"2":"1";$("atlas-record-kicker").textContent=label(n).toLocaleUpperCase();$("atlas-record-title").textContent=n.kind==="outcome"?statusNames[n.status]||"적용 결과":n.kind==="correction"?"경험을 반영한 수정":n.label;const panel=$("atlas-record");panel.replaceChildren(el("span",label(n)+(n.kind==="method"?` · v${n.version}`:""),"record-kind"),el("code",n.id,"record-id"));
- const u=new URL(location.href),previous=u.searchParams.get("node");u.searchParams.set("node",id);u.searchParams.delete("method");u.searchParams.set("depth",$("atlas-depth").value);const step=history.state?.atlasStep||0;if(push&&previous!==id)history.pushState({atlasStep:step+1},"",u);else history.replaceState({atlasStep:step},"",u);view(true);
- if(n.kind==="method"){
-  const loading=el("p","상황과 실행 기록을 불러오는 중…","quiet");panel.append(loading);
-  try{const key=n.method_id+":v"+n.version,d=cache.get(key)||await get("/"+encodeURIComponent(n.method_id)+(n.historical?"/versions/"+n.version:""));cache.set(key,d);if(token!==detailRequest)return;loading.remove();panel.append(el("p",d.evidence_kind==="documented_method"?"문서에서 정리한 방법 · 실행 성공과 구분":"공개된 방법 기록 · 효과 별도 확인","record-warning"));panel.append(section("어떤 상황에서",d.situation),section("이루려는 목적",d.goal),section("실행 순서",d.steps||[],true),section("적용 조건",d.constraints||[]),section("성공을 판단할 기준",d.success_criteria||[]),section("한계와 주의점",d.limitations||[]));
-   if(d.revision){panel.append(section(`v${d.revision.previous_version}에서 달라진 점`,d.revision.reason));if(d.revision.correction)panel.append(section("반영한 수정",d.revision.correction.reason));}
-   if(d.sources?.length){const s=el("section",null,"record-section");s.append(el("h3","원래 출처에서 확인하기"));for(const source of d.sources){const a=safeLink(source.title||source.url,source.url);if(a)s.append(a,el("br"));}panel.append(s);}
-   const a=el("a","방법 원문과 적용 보고 자세히 읽기 ↗","record-source");a.href="/research/methods/library/?method="+encodeURIComponent(n.method_id);panel.append(a);
-  }catch{if(token===detailRequest){loading.textContent="이 버전의 본문을 불러오지 못했습니다. 연결된 기록이나 목록에서 확인해 주세요.";}}
- }else if(n.kind==="source"){const a=safeLink("원래 출처 열기 ↗",n.url);if(a)panel.append(a);panel.append(section("출처의 의미","연결된 방법이 이 출처를 참고했습니다. 같은 URL은 독립적인 검증 기록이 아닙니다."));}
- else if(n.kind==="category")panel.append(section("이 분야의 방법들","등록된 태그로 묶은 탐색용 분류입니다. 같은 분야의 방법도 적용 조건과 목적은 다를 수 있습니다."));
- else if(n.kind==="correction")panel.append(section("실제로 반영한 변경",n.label),section("버전 연결",`v${n.corrected_method_version}의 보고를 참고해 v${n.method_version}에 반영했습니다. 변경 이후의 효과는 별도의 적용 보고로 확인해야 합니다.`));
- else if(n.kind==="outcome"){panel.append(section("실행자가 관찰한 결과",n.label),section("보고된 버전과 작성자",`방법 v${n.method_version} · ${n.reported_by||"작성자 미표시"} (자기 표시)`));try{const d=await get("/"+encodeURIComponent(n.method_id));if(token!==detailRequest)return;const report=d.outcomes?.find(x=>x.id===n.id);if(report){if(report.situation)panel.append(section("실제로 적용한 상황",report.situation));if(report.goal)panel.append(section("당시 목적",report.goal));if(report.actions?.length)panel.append(section("실제로 한 일",report.actions,true));if(report.evidence?.length)panel.append(section("작성자가 남긴 근거 설명",report.evidence.map(x=>x.description)));}}catch{}}
- else panel.append(section(n.kind==="opinion"?"작성자가 남긴 의견":"이 기록의 내용",n.label));
- if(token!==detailRequest)return;
- const related=el("section",null,"record-section record-neighbors");related.append(el("h3","연결을 따라 다음 기록으로"));const ranked={situation:0,goal:1,method:2,outcome:3,correction:4,source:5,opinion:6,category:7};unique(neighbors(id)).sort((a,b)=>(ranked[index.get(a.id)?.kind]??9)-(ranked[index.get(b.id)?.kind]??9)).forEach(a=>{const target=index.get(a.id);if(target)related.append(linkedCard(target,a.relation));});panel.append(related,el("p","문서 기반 방법은 실행 성공을 뜻하지 않습니다. 적용 결과는 작성자 보고이며, 수정 기록은 개선 효과의 증명이 아닙니다.","record-warning"));if(keyboard)[...$("atlas-nodes").children].find(x=>x.dataset.nodeId===id)?.focus({preventScroll:true});
- }
- function transform(){$("atlas-viewport").setAttribute("transform",`translate(${550+shift.x} ${380+shift.y}) scale(${zoom}) translate(-550 -380)`);$("atlas-zoom-label").textContent=Math.round(zoom*100)+"%";$("atlas-map").classList.toggle("show-labels",zoom>=1.5||Number($("atlas-depth").value)>0);}
- function fitVisible(){if(!visible.length)return;const ps=visible.map(n=>points.get(n.id)),xs=ps.map(p=>p.x),ys=ps.map(p=>p.y),minX=Math.min(...xs)-115,maxX=Math.max(...xs)+115,minY=Math.min(...ys)-65,maxY=Math.max(...ys)+65;zoom=Math.min(2.5,1100/(maxX-minX),760/(maxY-minY))*.88;shift={x:(550-(minX+maxX)/2)*zoom,y:(380-(minY+maxY)/2)*zoom};transform();}
- function scale(f,anchor={x:550,y:380}){const next=Math.max(.3,Math.min(6,zoom*f)),ratio=next/zoom;shift={x:anchor.x-550-(anchor.x-550-shift.x)*ratio,y:anchor.y-380-(anchor.y-380-shift.y)*ratio};zoom=next;transform();}
- const map=$("atlas-map");function coords(x,y){return new DOMPoint(x,y).matrixTransform(map.getScreenCTM().inverse());}
- function tooltip(n,e){const t=$("atlas-tooltip"),r=map.getBoundingClientRect();t.textContent=`${label(n)} · ${n.label.slice(0,110)}`;t.hidden=false;t.style.left=Math.max(8,Math.min(r.width-275,e.clientX-r.left+15))+"px";t.style.top=Math.max(8,Math.min(r.height-85,e.clientY-r.top+14))+"px";}
- function controls(open){$("atlas-controls").hidden=!open;$("atlas-controls-toggle").setAttribute("aria-expanded",String(open));if(open)$("atlas-filter").focus();}
- function resetMap(){$("atlas-tooltip").hidden=true;selected=null;++detailRequest;$("atlas-depth").value="0";$("atlas-domain").value="";$("atlas-filter").value="";$("atlas-record-filter").value="";const u=new URL(location.href);u.searchParams.delete("node");u.searchParams.delete("depth");history.replaceState(history.state,"",u);$("atlas-record-kicker").textContent="FOLLOW A THREAD";$("atlas-record-title").textContent="어디서 시작해 볼까요?";$("atlas-record").replaceChildren(el("p","분야나 방법을 골라 상황에서 실행, 결과에서 다음 시도로 이어지는 연결을 따라가세요.","quiet"));view(true);}
- function filtersChanged(){selected=null;++detailRequest;$("atlas-depth").value="0";$("atlas-record-title").textContent="현재 조건의 방법을 골라보세요.";$("atlas-record").replaceChildren(el("p","목록과 지도에 같은 조건의 방법이 표시됩니다.","quiet"));const u=new URL(location.href);u.searchParams.delete("node");u.searchParams.delete("depth");history.replaceState(history.state,"",u);view(true);}
- ["atlas-domain","atlas-record-filter"].forEach(id=>$(id).onchange=filtersChanged);$("atlas-filter").oninput=filtersChanged;$("atlas-evidence").onchange=()=>view(true);$("atlas-depth").onchange=()=>{if(!selected)$("atlas-depth").value="0";view(true);};$("atlas-reset").onclick=resetMap;$("atlas-fit").onclick=fitVisible;$("atlas-zoom-in").onclick=()=>scale(1.25);$("atlas-zoom-out").onclick=()=>scale(.8);$("atlas-focus").onclick=()=>{if(selected){$("atlas-depth").value="1";view(true);}};$("atlas-back").onclick=()=>history.back();$("atlas-controls-toggle").onclick=()=>controls($("atlas-controls").hidden);$("atlas-controls-close").onclick=()=>{controls(false);$("atlas-controls-toggle").focus();};$("atlas-expand").onclick=()=>{const expanded=$("atlas-shell").classList.toggle("is-expanded");$("atlas-expand").setAttribute("aria-pressed",String(expanded));$("atlas-expand").textContent=expanded?"↙ 원래 크기":"⛶ 크게 보기";};
- document.querySelectorAll("[data-domain]").forEach(b=>b.onclick=()=>{if(!graph)return;resetMap();$("atlas-domain").value=b.dataset.domain;view(true);});
- function reportFilter(value){if(!graph)return;resetMap();$("atlas-record-filter").value=value;view(true);$("atlas-record-title").textContent=value==="failure"?"실패 뒤에 남은 것은?":"실행 뒤, 무엇이 달랐을까요?";$("atlas-record").replaceChildren(el("p",value==="failure"?"실패 보고가 남은 방법입니다. 실제 조건과 관찰을 읽고, 반영된 수정이 있는지 연결을 따라가세요.":"적용 보고가 남은 방법입니다. 보고된 상태와 실제로 한 일을 함께 읽어보세요.","quiet"));}
- $("atlas-reports-start").onclick=()=>reportFilter("reports");$("atlas-failures-start").onclick=()=>reportFilter("failure");$("atlas-start").onclick=()=>{if(!graph)return;const report=graph.nodes.find(n=>n.kind==="outcome"),edge=report&&neighbors(report.id).find(x=>index.get(x.id)?.kind==="method");const n=edge?index.get(edge.id):graph.nodes.find(current);if(n)choose(n.id);};
- function theme(value){$("atlas-tooltip").hidden=true;document.documentElement.dataset.theme=value;const light=value==="light";$("atlas-theme").setAttribute("aria-label",light?"어두운 테마로 전환":"밝은 테마로 전환");$("atlas-theme").replaceChildren(document.createTextNode(light?"☾ ":"☼ "),el("span",light?"어둡게":"밝게"));try{localStorage.setItem("openakashic-graph-theme",value);}catch{}}
- try{theme(localStorage.getItem("openakashic-graph-theme")==="light"?"light":"dark");}catch{theme("dark");}$("atlas-theme").onclick=()=>theme(document.documentElement.dataset.theme==="light"?"dark":"light");
- map.addEventListener("wheel",e=>{if(!graph||!e.deltaY)return;e.preventDefault();const unit=e.deltaMode===1?16:e.deltaMode===2?map.clientHeight:1;scale(Math.exp(-Math.max(-200,Math.min(200,e.deltaY*unit))*.0025),coords(e.clientX,e.clientY));$("atlas-tooltip").hidden=true;},{passive:false});
- map.addEventListener("pointerdown",e=>{if(e.button!==0)return;const p=coords(e.clientX,e.clientY);pointers.set(e.pointerId,p);suppressClick=false;drag={pointer:e.pointerId,last:p,client:{x:e.clientX,y:e.clientY},moved:false};if(!e.target.closest(".network-node"))map.setPointerCapture(e.pointerId);});
- map.addEventListener("pointermove",e=>{if(!pointers.has(e.pointerId))return;const before=[...pointers.values()],p=coords(e.clientX,e.clientY);pointers.set(e.pointerId,p);if(pointers.size===2){const after=[...pointers.values()],oldDist=Math.hypot(before[0].x-before[1].x,before[0].y-before[1].y),newDist=Math.hypot(after[0].x-after[1].x,after[0].y-after[1].y),mid={x:(before[0].x+before[1].x)/2,y:(before[0].y+before[1].y)/2};if(oldDist>2)scale(newDist/oldDist,mid);shift.x+=(after[0].x+after[1].x)/2-mid.x;shift.y+=(after[0].y+after[1].y)/2-mid.y;transform();suppressClick=true;return;}if(!drag||drag.pointer!==e.pointerId)return;if(!drag.moved&&Math.hypot(e.clientX-drag.client.x,e.clientY-drag.client.y)<5)return;drag.moved=true;suppressClick=true;if(!map.hasPointerCapture(e.pointerId))map.setPointerCapture(e.pointerId);shift.x+=p.x-drag.last.x;shift.y+=p.y-drag.last.y;drag.last=p;transform();$("atlas-tooltip").hidden=true;});
- function endPointer(e){pointers.delete(e.pointerId);if(map.hasPointerCapture(e.pointerId))map.releasePointerCapture(e.pointerId);drag=null;}map.addEventListener("pointerup",endPointer);map.addEventListener("pointercancel",endPointer);map.addEventListener("lostpointercapture",e=>{pointers.delete(e.pointerId);drag=null;});map.addEventListener("dblclick",e=>{if(!e.target.closest(".network-node"))scale(1.6,coords(e.clientX,e.clientY));});
- map.addEventListener("keydown",e=>{const shifts={ArrowLeft:[35,0],ArrowRight:[-35,0],ArrowUp:[0,35],ArrowDown:[0,-35]};if(["+","=","-","Home","Escape",...Object.keys(shifts)].includes(e.key)){e.preventDefault();if(e.key==="Escape")resetMap();else if(e.key==="Home")fitVisible();else if(shifts[e.key]){shift.x+=shifts[e.key][0];shift.y+=shifts[e.key][1];transform();}else scale(e.key==="-"?.8:1.25);}});
- document.addEventListener("keydown",e=>{if(e.key==="Escape"){controls(false);$("atlas-shell").classList.remove("is-expanded");$("atlas-expand").setAttribute("aria-pressed","false");$("atlas-expand").textContent="⛶ 크게 보기";}if(e.key==="/"&&!["INPUT","SELECT"].includes(document.activeElement.tagName)){e.preventDefault();controls(true);}});
- window.addEventListener("popstate",()=>{if(!graph)return;const id=new URLSearchParams(location.search).get("node");if(index.has(id))choose(id,false);else resetMap();});
- (async()=>{try{graph=await get("/network?limit=80");for(const n of graph.nodes){index.set(n.id,n);adj.set(n.id,[]);}for(const e of graph.edges){if(!index.has(e.source)||!index.has(e.target))continue;adj.get(e.source).push({id:e.target,relation:e.relation});adj.get(e.target).push({id:e.source,relation:e.relation});}$("atlas-total").textContent=graph.scope.total_methods;$("atlas-feedback-count").textContent=graph.nodes.filter(n=>n.kind==="outcome").length;for(const d of graph.domains){const o=el("option",`${d.name} · ${d.count}`);o.value=d.name;$("atlas-domain").append(o);}view(true);const q=new URLSearchParams(location.search),id=q.get("node"),m=q.get("method");if(index.has(id))choose(id,false);else if(m){const n=graph.nodes.find(n=>current(n)&&n.method_id===m);if(n)choose(n.id,false);}}catch{$("atlas-status").textContent="지도를 불러오지 못했습니다. 잠시 후 새로고침해 주세요.";$("atlas-empty").hidden=false;$("atlas-empty").replaceChildren(el("strong","지도를 불러오지 못했습니다."),el("p","새로고침하거나 상황으로 찾기를 이용해 주세요."));$("atlas-start").disabled=true;}})();
+  const $ = id => document.getElementById(id);
+  const NS = "http://www.w3.org/2000/svg", base = "/research/api/methods";
+  const kinds = { category: "주제", situation: "상황", goal: "목적", method: "방법", outcome: "적용 결과", failure: "실패 보고", correction: "반영된 수정", source: "출처", opinion: "의견" };
+  const relations = { categorized_as: "같은 주제로 분류", applies_in: "이 상황에 적용", pursues: "이 목적을 추구", documented_by: "참고한 출처", reported_application: "이 버전의 적용 보고", has_opinion: "이 버전에 남긴 의견", comments_on: "이 결과에 대한 의견", revises: "이전 버전에서 변경", implemented_by: "수정을 반영한 버전", addresses: "이 보고를 계기로 수정" };
+  const statuses = { success: "성공 보고", partial: "부분 성공 보고", failure: "실패 보고", unknown: "판단 미정" };
+  const index = new Map(), adj = new Map(), points = new Map(), cache = new Map(), pointers = new Map(), visited = new Set();
+  const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)");
+  let graph, selected = null, visible = [], edges = [], nodeElements = new Map(), edgeElements = [];
+  let width = 1100, height = 760, zoom = 1, shift = { x: 0, y: 0 }, drag = null, suppressClick = false;
+  let detailRequest = 0, animation = 0, ticks = 0, trail = [], filterTimer, cameraFrame = 0;
+  let motion = !reduceMotion.matches, showAllLabels = false, lastFocusedNode = null;
+  const map = $("atlas-map"), inspector = $("atlas-inspector");
+  const role = n => n?.knowhow_role === "failure" ? "failure" : n?.kind;
+  const label = n => kinds[role(n)] || "기록";
+  const current = n => n.kind === "method" && !n.historical;
+  const neighbors = id => adj.get(id) || [];
+  const unique = list => [...new Map(list.map(x => [x.id, x])).values()];
+  const el = (tag, text, cls) => { const n = document.createElement(tag); if (text != null) n.textContent = text; if (cls) n.className = cls; return n; };
+  const svg = (tag, attrs = {}) => { const n = document.createElementNS(NS, tag); for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v); return n; };
+  const get = async path => { const r = await fetch(base + path, { credentials: "omit", headers: { Accept: "application/json" } }); if (!r.ok) throw Error("unavailable"); return r.json(); };
+  const color = n => ["method", "category"].includes(n.kind) ? n.color || "var(--method)" : `var(--${role(n)})`;
+  const short = (s, max = 22) => s.length > max ? s.slice(0, max) + "…" : s;
+
+  function section(title, body, ordered = false) {
+    const s = el("section", null, "record-section"); s.append(el("h3", title));
+    if (Array.isArray(body)) { const list = el(ordered ? "ol" : "ul"); for (const x of body) list.append(el("li", x)); if (body.length) s.append(list); else s.append(el("p", "등록된 내용이 없습니다.", "quiet")); }
+    else s.append(el("p", body || "등록된 내용이 없습니다."));
+    return s;
+  }
+  function safeLink(title, url) {
+    try { const u = new URL(url); if (!["https:", "http:"].includes(u.protocol)) return null; const a = el("a", title, "record-source"); a.href = u.href; a.target = "_blank"; a.rel = "noopener noreferrer"; return a; } catch { return null; }
+  }
+  function matchingMethods() {
+    const q = $("atlas-filter").value.trim().toLocaleLowerCase(), domain = $("atlas-domain").value, filter = $("atlas-record-filter").value;
+    return graph.nodes.filter(n => current(n) && (!domain || n.domain === domain) && (!q || [n.label, n.situation, n.goal, n.domain].some(x => x?.toLocaleLowerCase().includes(q))) && (!filter || graph.nodes.some(x => x.method_id === n.method_id && (filter === "reports" ? x.kind === "outcome" : filter === "failure" ? role(x) === "failure" : x.kind === "correction"))));
+  }
+
+  // Map coordinates survive selections. A detail click adds its recorded path;
+  // switching to a local graph is an explicit, separate action.
+  function view(fit = false) {
+    if (!graph) return;
+    const methods = matchingMethods(), families = new Set(methods.map(n => n.method_id)), ids = new Set(methods.map(n => n.id));
+    const depth = Number($("atlas-depth").value);
+    if (depth && selected) {
+      ids.clear(); ids.add(selected.id); let frontier = [selected.id];
+      for (let step = 0; step < depth; step++) { const next = []; for (const id of frontier) for (const n of neighbors(id)) if (!ids.has(n.id)) { ids.add(n.id); next.push(n.id); } frontier = next; }
+      if (selected.kind === "method") for (const n of graph.nodes) if (n.method_id === selected.method_id) { ids.add(n.id); if (n.kind === "method") for (const a of neighbors(n.id)) if (index.get(a.id)?.kind !== "category") ids.add(a.id); }
+    } else {
+      for (const e of graph.edges) if (ids.has(e.source) && index.get(e.target)?.kind === "category") ids.add(e.target);
+      for (const n of graph.nodes) if (families.has(n.method_id) && ["outcome", "correction"].includes(n.kind)) { ids.add(n.id); for (const a of neighbors(n.id)) if (index.get(a.id)?.kind === "method") ids.add(a.id); }
+      if (selected) {
+        ids.add(selected.id);
+        for (const a of neighbors(selected.id)) ids.add(a.id);
+        if (selected.method_id) for (const n of graph.nodes) if (n.method_id === selected.method_id) ids.add(n.id);
+      }
+      if ($("atlas-evidence").checked) for (const e of graph.edges) if (ids.has(e.source) && ["source", "opinion"].includes(index.get(e.target)?.kind)) ids.add(e.target);
+    }
+    visible = graph.nodes.filter(n => ids.has(n.id) && (!["source", "opinion"].includes(n.kind) || $("atlas-evidence").checked || selected?.id === n.id || depth > 0 || neighbors(selected?.id).some(x => x.id === n.id)));
+    const shown = new Set(visible.map(n => n.id)); edges = graph.edges.filter(e => shown.has(e.source) && shown.has(e.target));
+    const isInitial = points.size === 0;
+    seedPoints(); draw();
+    if (isInitial) { for (let i = 0; i < 150; i++) physics(); normalizeMobile(); positionElements(); }
+    if (fit) fitVisible();
+    if (isInitial && width > 720) startMotion(45);
+    renderMethodList(methods);
+    $("atlas-empty").hidden = visible.length > 0;
+    $("atlas-visible").textContent = `${visible.length}개 기록 · ${edges.length}개 연결`;
+    $("atlas-status").textContent = depth && selected ? `${label(selected)}의 주변 지도` : `${methods.length}개 방법을 탐험하세요${graph.scope.truncated ? " · 일부 범위" : ""}`;
+    $("atlas-focus").disabled = !selected;
+    $("atlas-focus").textContent = depth ? "전체 연결로 돌아가기" : "이 주변만 보기";
+    $("atlas-focus").setAttribute("aria-pressed", String(Boolean(depth)));
+    $("atlas-back").disabled = !(history.state?.atlasStep);
+    document.querySelectorAll("[data-domain]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.domain === $("atlas-domain").value)));
+    $("atlas-reports-start").setAttribute("aria-pressed", String($("atlas-record-filter").value === "reports"));
+    $("atlas-failures-start").setAttribute("aria-pressed", String($("atlas-record-filter").value === "failure"));
+    $("atlas-surprise").disabled = methods.length === 0;
+  }
+  function renderMethodList(methods) {
+    const list = $("atlas-list"); list.replaceChildren();
+    for (const n of methods) { const b = el("button", null); b.type = "button"; b.append(el("span", n.label), el("small", n.domain || "방법")); b.setAttribute("aria-pressed", String(n.id === selected?.id)); b.onclick = () => choose(n.id); list.append(b); }
+    if (!methods.length) list.append(el("p", "검색어나 주제를 바꾸어 보세요.", "quiet"));
+    $("atlas-list-count").textContent = methods.length;
+  }
+  function seedPoints() {
+    const cats = graph.nodes.filter(n => n.kind === "category");
+    cats.forEach((n, i) => {
+      n.color = `var(--cluster-${i % 10})`;
+      if (points.has(n.id)) return;
+      const angle = i / cats.length * Math.PI * 2 - Math.PI / 2;
+      const radius = i % 2 ? 1 : .72;
+      const x = width / 2 + Math.cos(angle) * Math.max(140, width * .32) * radius;
+      const y = height * .44 + Math.sin(angle) * Math.max(145, height * .29) * radius;
+      points.set(n.id, { x, y, ax: x, ay: y, vx: 0, vy: 0 });
+    });
+    for (const n of graph.nodes.filter(current)) {
+      const cat = neighbors(n.id).map(a => index.get(a.id)).find(x => x?.kind === "category"); n.color = cat?.color;
+      if (points.has(n.id)) continue;
+      const siblings = graph.nodes.filter(m => current(m) && m.domain === n.domain), j = siblings.indexOf(n);
+      const a = j * 2.399963, radius = 50 + 24 * Math.sqrt(j + 1), center = points.get(cat?.id) || { x: width / 2, y: height / 2 };
+      const x = center.x + Math.cos(a) * radius, y = center.y + Math.sin(a) * radius;
+      points.set(n.id, { x, y, ax: x, ay: y, vx: 0, vy: 0 });
+    }
+    visible.forEach((n, i) => {
+      if (points.has(n.id)) return;
+      const parent = neighbors(n.id).map(a => points.get(a.id)).find(Boolean) || { x: width / 2, y: height / 2 };
+      const a = i * 2.399963, x = parent.x + Math.cos(a) * 85, y = parent.y + Math.sin(a) * 85;
+      points.set(n.id, { x, y, ax: x, ay: y, vx: 0, vy: 0 });
+    });
+  }
+  function physics() {
+    const ps = visible.map(n => points.get(n.id));
+    for (let i = 0; i < ps.length; i++) for (let j = i + 1; j < ps.length; j++) {
+      const a = ps[i], b = ps[j], dx = a.x - b.x || .2, dy = a.y - b.y || .1, d2 = Math.max(25, dx * dx + dy * dy), d = Math.sqrt(d2);
+      const f = Math.min(3, 250 / d2) + (d < 32 ? (32 - d) * .035 : 0);
+      a.vx += dx / d * f; a.vy += dy / d * f; b.vx -= dx / d * f; b.vy -= dy / d * f;
+    }
+    for (const e of edges) {
+      const a = points.get(e.source), b = points.get(e.target), dx = b.x - a.x, dy = b.y - a.y, d = Math.max(1, Math.hypot(dx, dy));
+      const ideal = e.relation === "categorized_as" ? 95 : 78, f = (d - ideal) * .006;
+      a.vx += dx / d * f; a.vy += dy / d * f; b.vx -= dx / d * f; b.vy -= dy / d * f;
+    }
+    visible.forEach((n, i) => { const p = ps[i]; if (p.pinned || drag?.node === n.id) { p.vx = p.vy = 0; return; } const force = n.kind === "category" ? .035 : .009; p.vx = (p.vx + (p.ax - p.x) * force) * .7; p.vy = (p.vy + (p.ay - p.y) * force) * .7; p.x += Math.max(-6, Math.min(6, p.vx)); p.y += Math.max(-6, Math.min(6, p.vy)); });
+  }
+  function startMotion(frames = 75) {
+    if (!motion || reduceMotion.matches || document.hidden) return;
+    ticks = Math.max(ticks, frames); if (animation) return;
+    const tick = () => { physics(); positionElements(); if (--ticks > 0 && motion && !document.hidden) animation = requestAnimationFrame(tick); else { animation = 0; updateLabels(); } };
+    animation = requestAnimationFrame(tick);
+  }
+  function stopMotion() { cancelAnimationFrame(animation); animation = 0; ticks = 0; }
+  function draw() {
+    $("atlas-edges").replaceChildren(); $("atlas-nodes").replaceChildren(); nodeElements = new Map(); edgeElements = [];
+    for (const e of edges) {
+      const line = svg("line", { class: "network-edge" + (e.relation === "categorized_as" ? " category" : ["documented_by", "has_opinion"].includes(e.relation) ? " evidence" : ""), "data-source": e.source, "data-target": e.target });
+      const title = svg("title"); title.textContent = relations[e.relation] || "기록 연결"; line.append(title); $("atlas-edges").append(line); edgeElements.push([line, e]);
+    }
+    for (const n of visible) {
+      const r = n.kind === "category" ? 8 + Math.min(4, neighbors(n.id).length / 4) : n.kind === "method" ? 5.5 + Math.min(3, neighbors(n.id).length * .25) : 5;
+      const g = svg("g", { class: "network-node " + role(n), tabindex: "0", role: "button", "data-node-id": n.id, "aria-label": `${label(n)}: ${n.label.slice(0, 150)}`, "aria-pressed": String(selected?.id === n.id) });
+      g.style.setProperty("--node-color", color(n)); g.append(svg("circle", { r: r + 13, class: "node-halo" }), svg("circle", { r: 20, class: "network-hit" }), svg("circle", { r, class: "node-core" }));
+      const title = svg("title"); title.textContent = `${label(n)} · ${n.label}`; g.append(title);
+      const text = svg("text", { x: 0, y: n.kind === "category" ? -21 : 23, "text-anchor": "middle" }); text.textContent = short(n.label, n.kind === "category" ? 20 : 18); g.append(text);
+      g.onclick = e => { if (suppressClick || e.detail > 1) return; choose(n.id, true, e.detail === 0); };
+      g.ondblclick = e => { e.preventDefault(); if (!suppressClick) { if (selected?.id !== n.id) choose(n.id); setLocal(2); } };
+      g.onkeydown = e => { if (["Enter", " "].includes(e.key)) { e.preventDefault(); e.stopPropagation(); choose(n.id, true, true); } };
+      g.onmouseenter = e => { if (drag) return; highlight(n.id); tooltip(n, e); };
+      g.onmousemove = e => { if (!drag) tooltip(n, e); };
+      g.onmouseleave = () => { highlight(selected?.id); $("atlas-tooltip").hidden = true; };
+      $("atlas-nodes").append(g); nodeElements.set(n.id, g);
+    }
+    positionElements(); highlight(selected?.id); transform();
+  }
+  function positionElements() {
+    for (const [id, node] of nodeElements) { const p = points.get(id); node.setAttribute("transform", `translate(${p.x.toFixed(2)} ${p.y.toFixed(2)})`); }
+    for (const [line, e] of edgeElements) { const a = points.get(e.source), b = points.get(e.target); line.setAttribute("x1", a.x); line.setAttribute("y1", a.y); line.setAttribute("x2", b.x); line.setAttribute("y2", b.y); }
+  }
+  function highlight(id) {
+    const near = new Set(id ? [id, ...neighbors(id).map(n => n.id)] : []);
+    for (const [key, g] of nodeElements) { g.classList.toggle("dim", Boolean(id) && !near.has(key)); g.classList.toggle("selected", key === selected?.id); g.classList.toggle("neighbor", Boolean(id) && near.has(key)); g.classList.toggle("visited", visited.has(key)); g.setAttribute("aria-pressed", String(key === selected?.id)); }
+    for (const [g, e] of edgeElements) { const active = e.source === id || e.target === id; g.classList.toggle("dim", Boolean(id) && !active); g.classList.toggle("highlight", active); }
+    updateLabels(id);
+  }
+  function screenPoint(p) { return { x: width / 2 + shift.x + (p.x - width / 2) * zoom, y: height / 2 + shift.y + (p.y - height / 2) * zoom }; }
+  function worldPoint(p) { return { x: (p.x - width / 2 - shift.x) / zoom + width / 2, y: (p.y - height / 2 - shift.y) / zoom + height / 2 }; }
+  function updateLabels(hover) {
+    const occupied = [], ordered = [...visible].sort((a, b) => {
+      const score = n => n.id === (hover || selected?.id) ? 1000 : n.kind === "category" ? 900 : neighbors(selected?.id).some(x => x.id === n.id) ? 800 : visited.has(n.id) ? 500 : neighbors(n.id).length;
+      return score(b) - score(a);
+    });
+    for (const n of ordered) {
+      const node = nodeElements.get(n.id), p = screenPoint(points.get(n.id));
+      const text = node.querySelector("text"), labelScale = 1;
+      text.style.fontSize = ((n.kind === "category" ? 12 : 11) * labelScale / zoom) + "px";
+      text.setAttribute("y", (n.kind === "category" ? -21 : 23) / zoom);
+      const w = Math.min(170, [...text.textContent].reduce((s, c) => s + (c.charCodeAt(0) > 255 ? 10 : 5.7), 0)) * labelScale;
+      const y = p.y + (n.kind === "category" ? -30 : 14), box = { x: p.x - w / 2 - 5, y, w: w + 10, h: 18 };
+      const within = p.x > -50 && p.x < width + 50 && p.y > -25 && p.y < height + 25;
+      const overlaps = occupied.some(b => box.x < b.x + b.w && box.x + box.w > b.x && box.y < b.y + b.h && box.y + box.h > b.y);
+      const important = n.id === selected?.id || n.id === hover;
+      const show = within && (showAllLabels || important || !overlaps);
+      node.classList.toggle("hint-label", show);
+      if (show) occupied.push(box);
+      node.querySelector(".network-hit").setAttribute("r", Math.max(17, 13 / zoom));
+      const baseRadius = n.kind === "category" ? 8 + Math.min(4, neighbors(n.id).length / 4) : n.kind === "method" ? 5.5 + Math.min(3, neighbors(n.id).length * .25) : 5;
+      node.querySelector(".node-core").setAttribute("r", Math.max(baseRadius, (n.kind === "category" ? 7 : 4) / zoom));
+    }
+  }
+
+  function linkedCard(n, relation) {
+    const card = el("div", null, "path-card"); card.style.setProperty("--node-color", color(n));
+    card.append(el("span", n.kind === "outcome" ? statuses[n.status] || "적용 보고" : label(n), "path-role"));
+    const b = el("button", n.label); b.type = "button"; b.onclick = () => choose(n.id); card.append(b);
+    if (n.method_version) card.append(el("small", `방법 v${n.method_version}${n.kind === "correction" ? " · 반영된 변경" : " · 작성자 보고"}`));
+    if (n.historical) card.append(el("small", `이전 버전 v${n.version}`));
+    if (relation) card.title = relations[relation] || "연결된 기록";
+    return card;
+  }
+  function openInspector() { inspector.hidden = false; document.body.classList.add("inspector-open"); controls(false); $("atlas-help-panel").hidden = true; $("atlas-help").setAttribute("aria-expanded", "false"); setDiscovery(false); }
+  function closeInspector(focus = false) {
+    inspector.hidden = true; inspector.classList.remove("is-tall"); document.body.classList.remove("inspector-open");
+    $("atlas-inspector-expand").setAttribute("aria-expanded", "false"); $("atlas-inspector-expand").textContent = "크게 읽기";
+    if (focus) (nodeElements.get(lastFocusedNode) || map).focus({ preventScroll: true });
+  }
+  async function choose(id, push = true, keyboard = false, restore = false) {
+    const n = index.get(id); if (!n) return;
+    selected = n; visited.add(id); lastFocusedNode = id; stopMotion(); $("atlas-tooltip").hidden = true;
+    if (!restore) { trail = trail.at(-1) === id ? trail : [...trail, id].slice(-16); }
+    const token = ++detailRequest;
+    $("atlas-record-kicker").textContent = label(n) + (n.kind === "method" ? ` / v${n.version}` : "");
+    $("atlas-record-title").textContent = n.kind === "outcome" ? statuses[n.status] || "적용 결과" : n.kind === "correction" ? "경험을 반영한 수정" : n.label;
+    const panel = $("atlas-record"); panel.replaceChildren();
+    const meta = el("details", null, "record-meta"); meta.append(el("summary", "기록 정보"), el("code", n.id, "record-id")); panel.append(meta);
+    openInspector(); inspector.scrollTop = 0; view(false); renderTrail();
+    if (push) writeHistory(true);
+    if (!restore) requestAnimationFrame(() => keepSelectedInView());
+    const related = el("section", null, "record-section record-neighbors"); related.append(el("h3", "이어서 탐험하기"));
+    const rank = { method: 0, outcome: 1, correction: 2, situation: 3, goal: 4, category: 5, source: 6, opinion: 7 };
+    const links = unique(neighbors(id)).sort((a, b) => (rank[index.get(a.id)?.kind] ?? 9) - (rank[index.get(b.id)?.kind] ?? 9));
+    links.forEach(a => { const target = index.get(a.id); if (target) related.append(linkedCard(target, a.relation)); });
+    const content = el("div", null, "record-content"); panel.append(content, related);
+    if (n.kind === "method") {
+      const loading = el("p", "상황과 실행 기록을 불러오는 중…", "quiet"); content.append(loading);
+      try {
+        const key = n.method_id + ":v" + n.version, d = cache.get(key) || await get("/" + encodeURIComponent(n.method_id) + (n.historical ? "/versions/" + n.version : ""));
+        cache.set(key, d); if (token !== detailRequest) return; loading.remove();
+        content.append(section("이런 상황에서", d.situation), section("이루려는 목적", d.goal));
+        const pathLinks = links.map(a => index.get(a.id)).filter(x => ["outcome", "correction"].includes(x?.kind));
+        if (pathLinks.length) { const s = el("section", null, "record-section"); s.append(el("h3", "적용 후 남은 기록")); pathLinks.forEach(x => s.append(linkedCard(x))); content.append(s); }
+        content.append(section("따라 해 볼 순서", d.steps || [], true));
+        const more = el("details", null, "record-more"); more.append(el("summary", "적용 조건 · 성공 기준 · 한계"), section("적용 조건", d.constraints || []), section("성공을 판단할 기준", d.success_criteria || []), section("한계와 주의점", d.limitations || [])); content.append(more);
+        if (d.revision) { content.append(section(`v${d.revision.previous_version}에서 달라진 점`, d.revision.reason)); if (d.revision.correction) content.append(section("반영한 수정", d.revision.correction.reason)); }
+        if (d.sources?.length) { const sources = el("section", null, "record-section"); sources.append(el("h3", "원래 출처")); for (const source of d.sources) { const a = safeLink(source.title || source.url, source.url); if (a) sources.append(a, el("br")); } content.append(sources); }
+        content.append(el("p", d.evidence_kind === "documented_method" ? "문서에서 정리한 방법입니다. 적용 결과는 실행자의 보고이며, 효과의 독립 검증과 구분합니다." : "기록된 방법과 적용 보고를 함께 읽고, 자신의 상황에 맞는지 확인하세요.", "record-warning"));
+        const a = el("a", "방법과 적용 보고 전체 읽기 ↗", "record-source"); a.href = "/research/methods/library/?method=" + encodeURIComponent(n.method_id); content.append(a);
+      } catch { if (token === detailRequest) loading.textContent = "본문을 불러오지 못했습니다. 연결된 기록을 살펴보거나 다시 선택해 주세요."; }
+    } else if (n.kind === "source") {
+      const a = safeLink("원래 출처 열기 ↗", n.url); if (a) content.append(a);
+      content.append(section("이 출처와 연결된 방법", "아래 방법을 정리할 때 참고한 출처입니다. 같은 출처를 사용했다는 것이 독립적인 검증을 뜻하지는 않습니다."));
+    } else if (n.kind === "category") content.append(el("p", `‘${n.label}’에 연결된 방법 ${links.filter(a => index.get(a.id)?.kind === "method").length}개. 관심 있는 방법으로 이어가 보세요.`, "quiet"));
+    else if (n.kind === "correction") content.append(section("실제로 반영한 변경", n.label), section("이어지는 버전", `v${n.corrected_method_version}의 보고를 참고해 v${n.method_version}에 반영했습니다. 변경 이후의 효과는 별도 적용 보고로 확인합니다.`));
+    else if (n.kind === "outcome") {
+      content.append(section("실행자가 관찰한 결과", n.label), section("보고된 버전과 작성자", `방법 v${n.method_version} · ${n.reported_by || "작성자 미표시"} (자기 표시)`));
+      try { const d = await get("/" + encodeURIComponent(n.method_id)); if (token !== detailRequest) return; const report = d.outcomes?.find(x => x.id === n.id); if (report) { if (report.situation) content.append(section("실제로 적용한 상황", report.situation)); if (report.goal) content.append(section("당시 목적", report.goal)); if (report.actions?.length) content.append(section("실제로 한 일", report.actions, true)); if (report.evidence?.length) content.append(section("작성자가 남긴 근거 설명", report.evidence.map(x => x.description))); } } catch { content.append(el("p", "추가 본문을 불러오지 못했습니다.", "quiet")); }
+    } else content.append(section(n.kind === "opinion" ? "작성자가 남긴 의견" : label(n), n.label));
+    if (token !== detailRequest) return;
+    if (keyboard) $("atlas-inspector-close").focus({ preventScroll: true });
+  }
+
+  function availableRect() {
+    const mobile = width <= 720, discovery = $("atlas-discovery"), graphRect = map.getBoundingClientRect();
+    const bottom = !inspector.hidden && mobile ? Math.max(140, inspector.getBoundingClientRect().top - graphRect.top - 20) : height - 110;
+    const top = mobile ? !inspector.hidden ? 115 : discovery.getBoundingClientRect().bottom - graphRect.top + 22 : 65;
+    return { left: mobile ? 22 : 35, top, right: !inspector.hidden && !mobile ? Math.max(220, inspector.getBoundingClientRect().left - graphRect.left - 35) : width - (mobile ? 22 : 35), bottom: Math.max(top + 100, bottom) };
+  }
+  function normalizeMobile() {
+    if (width > 720 || !visible.length || selected) return;
+    const ps = visible.map(n => points.get(n.id)), box = availableRect();
+    const minX = Math.min(...ps.map(p => p.x)), maxX = Math.max(...ps.map(p => p.x)), minY = Math.min(...ps.map(p => p.y)), maxY = Math.max(...ps.map(p => p.y));
+    const sx = Math.min(1, (box.right - box.left - 42) / Math.max(1, maxX - minX)), sy = Math.min(1.5, (box.bottom - box.top - 50) / Math.max(1, maxY - minY));
+    for (const p of points.values()) { p.x = (box.left + box.right) / 2 + (p.x - (minX + maxX) / 2) * sx; p.y = (box.top + box.bottom) / 2 + (p.y - (minY + maxY) / 2) * sy; p.ax = p.x; p.ay = p.y; p.vx = p.vy = 0; }
+  }
+  function setDiscovery(open) {
+    $("atlas-discovery-content").hidden = !open; $("atlas-discovery-toggle").setAttribute("aria-expanded", String(open)); $("atlas-discovery-toggle").setAttribute("aria-label", open ? "탐험 시작점 접기" : "탐험 시작점 펼치기"); $("atlas-discovery-toggle").textContent = open ? "⌃" : "⌄";
+    requestAnimationFrame(() => { const r = $("atlas-discovery").getBoundingClientRect(), m = map.getBoundingClientRect(); document.documentElement.style.setProperty("--trail-top", (r.bottom - m.top + 12) + "px"); });
+  }
+  function keepSelectedInView() {
+    if (!selected || !points.has(selected.id)) return;
+    const p = screenPoint(points.get(selected.id)), box = availableRect();
+    const pad = 35, target = { x: shift.x, y: shift.y };
+    if (p.x < box.left + pad || p.x > box.right - pad) target.x += (box.left + box.right) / 2 - p.x;
+    if (p.y < box.top + pad || p.y > box.bottom - pad) target.y += (box.top + box.bottom) / 2 - p.y;
+    moveCamera(target);
+  }
+  function moveCamera(target) {
+    cancelAnimationFrame(cameraFrame);
+    if (reduceMotion.matches) { shift = target; transform(); return; }
+    const start = { ...shift }, time = performance.now();
+    const frame = now => { const p = Math.min(1, (now - time) / 220), ease = 1 - Math.pow(1 - p, 3); shift = { x: start.x + (target.x - start.x) * ease, y: start.y + (target.y - start.y) * ease }; transform(); if (p < 1) cameraFrame = requestAnimationFrame(frame); };
+    cameraFrame = requestAnimationFrame(frame);
+  }
+  function transform() {
+    $("atlas-viewport").setAttribute("transform", `translate(${width / 2 + shift.x} ${height / 2 + shift.y}) scale(${zoom}) translate(${-width / 2} ${-height / 2})`);
+    $("atlas-zoom-label").textContent = Math.round(zoom * 100) + "%"; updateLabels();
+  }
+  function fitVisible() {
+    cancelAnimationFrame(cameraFrame); if (!visible.length) return;
+    const ps = visible.map(n => points.get(n.id)), xs = ps.map(p => p.x), ys = ps.map(p => p.y);
+    const pad = width <= 720 ? 22 : 65, minX = Math.min(...xs) - pad, maxX = Math.max(...xs) + pad, minY = Math.min(...ys) - 30, maxY = Math.max(...ys) + 30, box = availableRect();
+    zoom = Math.max(.16, Math.min(1.7, (box.right - box.left) / (maxX - minX), (box.bottom - box.top) / (maxY - minY)));
+    shift = { x: (box.left + box.right) / 2 - width / 2 - ((minX + maxX) / 2 - width / 2) * zoom, y: (box.top + box.bottom) / 2 - height / 2 - ((minY + maxY) / 2 - height / 2) * zoom }; transform();
+  }
+  function scale(factor, anchor = { x: width / 2, y: height / 2 }) {
+    cancelAnimationFrame(cameraFrame); const next = Math.max(.16, Math.min(7, zoom * factor)), ratio = next / zoom;
+    shift = { x: anchor.x - width / 2 - (anchor.x - width / 2 - shift.x) * ratio, y: anchor.y - height / 2 - (anchor.y - height / 2 - shift.y) * ratio }; zoom = next; transform();
+  }
+  function coords(x, y) { return new DOMPoint(x, y).matrixTransform(map.getScreenCTM().inverse()); }
+  function tooltip(n, e) {
+    const t = $("atlas-tooltip"), r = map.getBoundingClientRect(); t.replaceChildren(el("small", label(n)), el("strong", short(n.label, 85)));
+    if (n.goal) t.append(el("span", short(n.goal, 100)));
+    t.hidden = false; t.style.left = Math.max(8, Math.min(r.width - 280, e.clientX - r.left + 16)) + "px"; t.style.top = Math.max(8, Math.min(r.height - 120, e.clientY - r.top + 18)) + "px";
+  }
+  function controls(open, focus = true) { $("atlas-controls").hidden = !open; document.body.classList.toggle("controls-open", open); $("atlas-controls-toggle").setAttribute("aria-expanded", String(open)); if (open) { if (width <= 720) closeInspector(); if (focus) $("atlas-filter").focus(); } }
+  function renderTrail() {
+    const nav = $("atlas-trail"); nav.replaceChildren(); nav.hidden = trail.length === 0;
+    if (!trail.length) return;
+    nav.append(el("span", "지나온 연결", "trail-label"));
+    for (const id of trail.slice(-5)) { const n = index.get(id); if (!n) continue; const b = el("button", short(n.label, 16)); b.type = "button"; b.title = n.label; if (id === selected?.id) b.setAttribute("aria-current", "step"); b.onclick = () => choose(id); nav.append(b); }
+    requestAnimationFrame(() => { nav.scrollLeft = nav.scrollWidth; });
+  }
+  function writeHistory(push) {
+    const url = new URL(location.href); for (const key of ["node", "method", "depth", "domain", "q", "records"]) url.searchParams.delete(key);
+    if (selected) url.searchParams.set("node", selected.id);
+    if (Number($("atlas-depth").value)) url.searchParams.set("depth", $("atlas-depth").value);
+    if ($("atlas-domain").value) url.searchParams.set("domain", $("atlas-domain").value);
+    if ($("atlas-filter").value) url.searchParams.set("q", $("atlas-filter").value);
+    if ($("atlas-record-filter").value) url.searchParams.set("records", $("atlas-record-filter").value);
+    const previous = history.state?.atlasStep || 0, state = { atlasStep: push ? previous + 1 : previous, trail: [...trail] };
+    if (push && url.href !== location.href) history.pushState(state, "", url); else history.replaceState({ ...state, atlasStep: previous }, "", url);
+    $("atlas-back").disabled = !(history.state?.atlasStep);
+  }
+  function resetMap(updateHistory = true) {
+    selected = null; ++detailRequest; trail = []; $("atlas-tooltip").hidden = true;
+    for (const id of ["atlas-domain", "atlas-filter", "atlas-quick-search", "atlas-record-filter"]) $(id).value = "";
+    $("atlas-depth").value = "0"; closeInspector(); controls(false); setDiscovery(true); renderTrail(); view(true); if (updateHistory) writeHistory(false);
+  }
+  function filtersChanged() {
+    selected = null; ++detailRequest; $("atlas-depth").value = "0"; closeInspector(); view(true); writeHistory(false);
+  }
+  function setLocal(depth) { if (!selected) return; $("atlas-depth").value = String(depth); view(true); writeHistory(false); }
+  function selectDomain(value) { if (!graph) return; selected = null; ++detailRequest; $("atlas-domain").value = value; $("atlas-filter").value = $("atlas-quick-search").value = ""; $("atlas-record-filter").value = ""; $("atlas-depth").value = "0"; closeInspector(); controls(false); view(true); writeHistory(false); }
+  function reportFilter(value) { if (!graph) return; selected = null; ++detailRequest; $("atlas-record-filter").value = $("atlas-record-filter").value === value ? "" : value; $("atlas-depth").value = "0"; closeInspector(); view(true); writeHistory(false); }
+  function surprise() {
+    if (!graph) return;
+    let pool = matchingMethods().filter(n => !visited.has(n.id)); if (!pool.length) pool = matchingMethods().filter(n => n.id !== selected?.id);
+    if (pool.length) choose(pool[Math.floor(Math.random() * pool.length)].id);
+  }
+  function theme(value) { document.documentElement.dataset.theme = value; const light = value === "light"; $("atlas-theme").setAttribute("aria-label", light ? "어두운 테마로 전환" : "밝은 테마로 전환"); $("atlas-theme").replaceChildren(document.createTextNode(light ? "☾" : "☼")); try { localStorage.setItem("openakashic-graph-theme", value); } catch {} }
+  try { theme(localStorage.getItem("openakashic-graph-theme") === "light" ? "light" : "dark"); } catch { theme("dark"); }
+  $("atlas-theme").onclick = () => theme(document.documentElement.dataset.theme === "light" ? "dark" : "light");
+  $("atlas-controls-toggle").onclick = () => controls($("atlas-controls").hidden);
+  $("atlas-controls-close").onclick = () => { controls(false); $("atlas-controls-toggle").focus(); };
+  $("atlas-inspector-close").onclick = () => closeInspector(true);
+  $("atlas-inspector-expand").onclick = () => { const tall = inspector.classList.toggle("is-tall"); $("atlas-inspector-expand").setAttribute("aria-expanded", String(tall)); $("atlas-inspector-expand").textContent = tall ? "지도와 함께" : "크게 읽기"; };
+  $("atlas-surprise").onclick = surprise; $("atlas-start").onclick = surprise;
+  $("atlas-discovery-toggle").onclick = () => setDiscovery($("atlas-discovery-content").hidden);
+  $("atlas-help").onclick = () => { const open = $("atlas-help-panel").hidden; $("atlas-help-panel").hidden = !open; $("atlas-help").setAttribute("aria-expanded", String(open)); };
+  $("atlas-labels").onclick = () => { showAllLabels = !showAllLabels; $("atlas-labels").setAttribute("aria-pressed", String(showAllLabels)); updateLabels(); };
+  $("atlas-motion").setAttribute("aria-pressed", String(motion));
+  $("atlas-motion").onclick = () => { motion = !motion; $("atlas-motion").setAttribute("aria-pressed", String(motion)); if (motion) startMotion(); else stopMotion(); };
+  reduceMotion.addEventListener("change", () => { if (reduceMotion.matches) { motion = false; stopMotion(); $("atlas-motion").setAttribute("aria-pressed", "false"); } });
+  $("atlas-reset").onclick = () => resetMap(); $("atlas-fit").onclick = fitVisible;
+  $("atlas-zoom-in").onclick = () => scale(1.25); $("atlas-zoom-out").onclick = () => scale(.8);
+  $("atlas-focus").onclick = () => setLocal(Number($("atlas-depth").value) ? 0 : 2);
+  $("atlas-back").onclick = () => history.back();
+  $("atlas-expand").onclick = async () => { try { if (document.fullscreenElement) await document.exitFullscreen(); else if (document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen(); } catch { $("atlas-status").textContent = "브라우저 전체 화면은 지원되지 않습니다. 현재 지도는 창 크기에 맞춰져 있습니다."; } };
+  document.addEventListener("fullscreenchange", () => $("atlas-expand").setAttribute("aria-pressed", String(Boolean(document.fullscreenElement))));
+  ["atlas-domain", "atlas-record-filter"].forEach(id => $(id).onchange = filtersChanged);
+  for (const id of ["atlas-filter", "atlas-quick-search"]) $(id).oninput = () => { $(id === "atlas-filter" ? "atlas-quick-search" : "atlas-filter").value = $(id).value; clearTimeout(filterTimer); filterTimer = setTimeout(filtersChanged, 120); if (id === "atlas-quick-search") controls(true, false); };
+  $("atlas-quick-search").onfocus = () => controls(true, false);
+  $("atlas-evidence").onchange = () => view(false);
+  $("atlas-depth").onchange = () => { if (!selected) $("atlas-depth").value = "0"; view(true); writeHistory(false); };
+  $("atlas-reports-start").onclick = () => reportFilter("reports"); $("atlas-failures-start").onclick = () => reportFilter("failure");
+
+  map.addEventListener("wheel", e => { if (!graph || !e.deltaY) return; e.preventDefault(); const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? height : 1; scale(Math.exp(-Math.max(-200, Math.min(200, e.deltaY * unit)) * .0025), coords(e.clientX, e.clientY)); $("atlas-tooltip").hidden = true; }, { passive: false });
+  map.addEventListener("pointerdown", e => {
+    if (e.button !== 0 || !graph) return; cancelAnimationFrame(cameraFrame); stopMotion(); const p = coords(e.clientX, e.clientY);
+    pointers.set(e.pointerId, p); suppressClick = false; const node = e.target.closest(".network-node")?.dataset.nodeId;
+    drag = { pointer: e.pointerId, last: p, client: { x: e.clientX, y: e.clientY }, moved: false, node };
+    if (!node) map.setPointerCapture(e.pointerId);
+  });
+  map.addEventListener("pointermove", e => {
+    if (!pointers.has(e.pointerId)) return;
+    const before = [...pointers.values()], p = coords(e.clientX, e.clientY); pointers.set(e.pointerId, p);
+    if (pointers.size === 2) {
+      const after = [...pointers.values()], oldDist = Math.hypot(before[0].x - before[1].x, before[0].y - before[1].y), newDist = Math.hypot(after[0].x - after[1].x, after[0].y - after[1].y), mid = { x: (before[0].x + before[1].x) / 2, y: (before[0].y + before[1].y) / 2 };
+      if (oldDist > 2) scale(newDist / oldDist, mid); shift.x += (after[0].x + after[1].x) / 2 - mid.x; shift.y += (after[0].y + after[1].y) / 2 - mid.y; transform(); suppressClick = true; drag = null; return;
+    }
+    if (!drag || drag.pointer !== e.pointerId) return;
+    if (!drag.moved && Math.hypot(e.clientX - drag.client.x, e.clientY - drag.client.y) < 5) return;
+    drag.moved = true; suppressClick = true;
+    if (!map.hasPointerCapture(e.pointerId)) map.setPointerCapture(e.pointerId);
+    if (drag.node) {
+      const point = points.get(drag.node), world = worldPoint(p); point.x = world.x; point.y = world.y; point.ax = world.x; point.ay = world.y; point.pinned = true; point.vx = point.vy = 0;
+      positionElements(); updateLabels(); startMotion(35);
+    } else { shift.x += p.x - drag.last.x; shift.y += p.y - drag.last.y; transform(); }
+    drag.last = p; $("atlas-tooltip").hidden = true;
+  });
+  function endPointer(e) {
+    const moved = drag?.moved, node = drag?.node; pointers.delete(e.pointerId); drag = null;
+    if (map.hasPointerCapture(e.pointerId)) map.releasePointerCapture(e.pointerId);
+    if (moved && node) startMotion(45);
+    setTimeout(() => { suppressClick = false; }, 0);
+  }
+  map.addEventListener("pointerup", endPointer); map.addEventListener("pointercancel", endPointer);
+  map.addEventListener("lostpointercapture", e => { pointers.delete(e.pointerId); if (drag?.pointer === e.pointerId) drag = null; });
+  map.addEventListener("dblclick", e => { if (!e.target.closest(".network-node")) scale(1.4, coords(e.clientX, e.clientY)); });
+  map.addEventListener("keydown", e => {
+    const move = e.shiftKey ? 100 : 40, shifts = { ArrowLeft: [move, 0], ArrowRight: [-move, 0], ArrowUp: [0, move], ArrowDown: [0, -move] };
+    if (["+", "=", "-", "Home", ...Object.keys(shifts)].includes(e.key)) { e.preventDefault(); if (e.key === "Home") fitVisible(); else if (shifts[e.key]) { shift.x += shifts[e.key][0]; shift.y += shifts[e.key][1]; transform(); } else scale(e.key === "-" ? .8 : 1.25); }
+  });
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape") { if (!$("atlas-help-panel").hidden) { $("atlas-help-panel").hidden = true; $("atlas-help").setAttribute("aria-expanded", "false"); } else if (!$("atlas-controls").hidden) { controls(false); $("atlas-controls-toggle").focus(); } else if (!inspector.hidden) closeInspector(true); }
+    if (e.key === "/" && !["INPUT", "SELECT", "TEXTAREA"].includes(document.activeElement.tagName)) { e.preventDefault(); $("atlas-quick-search").focus(); }
+  });
+  function restoreLocation() {
+    if (!graph) return; const q = new URLSearchParams(location.search);
+    $("atlas-domain").value = q.get("domain") || ""; $("atlas-filter").value = $("atlas-quick-search").value = q.get("q") || "";
+    $("atlas-record-filter").value = ["reports", "failure", "correction"].includes(q.get("records")) ? q.get("records") : "";
+    $("atlas-depth").value = ["1", "2"].includes(q.get("depth")) ? q.get("depth") : "0";
+    trail = (history.state?.trail || []).filter(id => index.has(id));
+    const id = q.get("node"), method = q.get("method"), node = index.get(id) || graph.nodes.find(n => current(n) && n.method_id === method);
+    if (node) { if (!trail.length) trail = [node.id]; choose(node.id, false, false, true); requestAnimationFrame(() => { fitVisible(); keepSelectedInView(); }); }
+    else { selected = null; ++detailRequest; closeInspector(); renderTrail(); view(true); }
+  }
+  window.addEventListener("popstate", restoreLocation);
+  document.addEventListener("visibilitychange", () => { if (document.hidden) stopMotion(); });
+  const observer = new ResizeObserver(() => {
+    const r = map.getBoundingClientRect(); if (!r.width || !r.height) return;
+    const previousWidth = width, dx = r.width - width, dy = r.height - height; width = r.width; height = r.height; map.setAttribute("viewBox", `0 0 ${width} ${height}`);
+    for (const p of points.values()) { p.x += dx / 2; p.ax += dx / 2; p.y += dy / 2; p.ay += dy / 2; }
+    if (graph && width <= 720 && previousWidth > 720) normalizeMobile(); positionElements(); if (graph) { if (selected) { transform(); requestAnimationFrame(keepSelectedInView); } else fitVisible(); }
+  }); observer.observe(map);
+  (async () => {
+    try {
+      graph = await get("/network?limit=80"); for (const n of graph.nodes) { index.set(n.id, n); adj.set(n.id, []); }
+      for (const e of graph.edges) { if (!index.has(e.source) || !index.has(e.target)) continue; adj.get(e.source).push({ id: e.target, relation: e.relation }); adj.get(e.target).push({ id: e.source, relation: e.relation }); }
+      $("atlas-total").textContent = graph.scope.total_methods; $("atlas-feedback-count").textContent = graph.nodes.filter(n => n.kind === "outcome").length;
+      const chips = $("atlas-domain-chips"); chips.replaceChildren();
+      const all = el("button", "모든 주제"); all.type = "button"; all.dataset.domain = ""; all.onclick = () => selectDomain(""); chips.append(all);
+      for (const d of graph.domains) {
+        const option = el("option", `${d.name} · ${d.count}`); option.value = d.name; $("atlas-domain").append(option);
+        const b = el("button", d.name); b.type = "button"; b.dataset.domain = d.name; const catIndex = graph.nodes.filter(n => n.kind === "category").findIndex(n => n.label === d.name); b.style.setProperty("--chip-color", `var(--cluster-${Math.max(0, catIndex) % 10})`); b.append(el("small", d.count)); b.onclick = () => selectDomain(d.name); chips.append(b);
+      }
+      restoreLocation();
+    } catch {
+      $("atlas-status").textContent = "지도를 불러오지 못했습니다."; $("atlas-empty").hidden = false;
+      $("atlas-empty").replaceChildren(el("strong", "잠시 연결이 끊겼습니다."), el("p", "새로고침하거나 목록에서 방법을 찾아보세요."));
+      $("atlas-start").disabled = $("atlas-surprise").disabled = true;
+    }
+  })();
 })();

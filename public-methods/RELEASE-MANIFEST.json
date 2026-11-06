@@ -1,8 +1,8 @@
 {
   "schema": "public-methods-release-manifest-v3",
-  "previous_public_commit": "0dc9b4557db0a9d8ed94f008e79e890a03786c49",
-  "scope": "Knowhow-only graph, owner-private API mutations, immutable revisions; historical evaluations preserved",
-  "created_at": "2026-11-05T18:39:01.661398+00:00",
+  "previous_public_commit": "4883420c8b2f22fa7c56da5731989352fc4dcf81",
+  "scope": "Full-viewport knowhow atlas; stable click-through map, floating detail, responsive exploration; read APIs and data unchanged",
+  "created_at": "2026-11-06T12:02:35.560896+00:00",
   "files": [
     {
       "path": "public-methods/.gitignore",
@@ -26,7 +26,7 @@
     },
     {
       "path": "public-methods/README.md",
-      "sha256": "1a6f796f315b861ec60dd830d5c6fed7b162041f6af107bed5a0890268e63df2"
+      "sha256": "d90b0f6772047e9df0d9a9114793a7cc8a299a20eb31bc9a1e9b7e7921c0f5f8"
     },
     {
       "path": "public-methods/api/app/__init__.py",
@@ -2714,15 +2714,15 @@
     },
     {
       "path": "public-methods/web/research/methods-explore.css",
-      "sha256": "a22757e2749e5f95a70144419669adb8a457403ac0f789bfbcba12c513403eda"
+      "sha256": "bc05c487cdb261007c6e029f58bc6c338185fc99e4a6c2179d265d4464f9044a"
     },
     {
       "path": "public-methods/web/research/methods-explore.html",
-      "sha256": "9060f975e8410d1bf6ec057d9d53154a1ecf15cdc709977dfca2f9294d4ddd4e"
+      "sha256": "e110b275542cffa6bd3f89de28e47294b101719499689e680b24cfff0c1e841e"
     },
     {
       "path": "public-methods/web/research/methods-explore.js",
-      "sha256": "1674e5f6cb176c2cc62b542e0c716b08af90f0069c5a609691f7127772d99b77"
+      "sha256": "d3a2c09f344db91f31d634df88b8bccf619bc85645ddb8de4320325c785a5921"
     },
     {
       "path": "public-methods/web/research/methods-graph.js",
