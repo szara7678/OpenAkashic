@@ -11,6 +11,7 @@
   let width = 1100, height = 760, zoom = 1, shift = { x: 0, y: 0 }, drag = null, suppressClick = false;
   let detailRequest = 0, animation = 0, ticks = 0, trail = [], filterTimer, cameraFrame = 0;
   let motion = !reduceMotion.matches, showAllLabels = false, lastFocusedNode = null;
+  let recordTab = "overview", searchIndex = -1, searchItems = [], shareTimer;
   const map = $("atlas-map"), inspector = $("atlas-inspector");
   const role = n => n?.knowhow_role === "failure" ? "failure" : n?.kind;
   const label = n => kinds[role(n)] || "기록";
@@ -148,6 +149,8 @@
       g.onmouseenter = e => { if (drag) return; highlight(n.id); tooltip(n, e); };
       g.onmousemove = e => { if (!drag) tooltip(n, e); };
       g.onmouseleave = () => { highlight(selected?.id); $("atlas-tooltip").hidden = true; };
+      g.onfocus = () => { stopMotion(); highlight(n.id); const b = g.getBoundingClientRect(); tooltip(n, { clientX: b.x + b.width / 2, clientY: b.y + b.height / 2 }); };
+      g.onblur = () => { highlight(selected?.id); $("atlas-tooltip").hidden = true; };
       $("atlas-nodes").append(g); nodeElements.set(n.id, g);
     }
     positionElements(); highlight(selected?.id); transform();
@@ -165,24 +168,32 @@
   function screenPoint(p) { return { x: width / 2 + shift.x + (p.x - width / 2) * zoom, y: height / 2 + shift.y + (p.y - height / 2) * zoom }; }
   function worldPoint(p) { return { x: (p.x - width / 2 - shift.x) / zoom + width / 2, y: (p.y - height / 2 - shift.y) / zoom + height / 2 }; }
   function updateLabels(hover) {
+    const mapBounds = map.getBoundingClientRect();
+    const obstacles = ["atlas-discovery", "atlas-controls", "atlas-inspector", "atlas-trail", "atlas-help-panel"].map($).filter(n => n && !n.hidden).map(n => {
+      const b = n.getBoundingClientRect(); return { x: b.left - mapBounds.left - 8, y: b.top - mapBounds.top - 8, w: b.width + 16, h: b.height + 16 };
+    });
     const occupied = [], ordered = [...visible].sort((a, b) => {
       const score = n => n.id === (hover || selected?.id) ? 1000 : n.kind === "category" ? 900 : neighbors(selected?.id).some(x => x.id === n.id) ? 800 : visited.has(n.id) ? 500 : neighbors(n.id).length;
       return score(b) - score(a);
     });
     for (const n of ordered) {
-      const node = nodeElements.get(n.id), p = screenPoint(points.get(n.id));
+      const node = nodeElements.get(n.id), point = points.get(n.id);
+      if (!node || !point) continue;
+      const p = screenPoint(point);
       const text = node.querySelector("text"), labelScale = 1;
-      text.style.fontSize = ((n.kind === "category" ? 12 : 11) * labelScale / zoom) + "px";
+      text.style.fontSize = ((n.kind === "category" ? 13 : 12) * labelScale / zoom) + "px";
       text.setAttribute("y", (n.kind === "category" ? -21 : 23) / zoom);
-      const w = Math.min(170, [...text.textContent].reduce((s, c) => s + (c.charCodeAt(0) > 255 ? 10 : 5.7), 0)) * labelScale;
+      const w = text.getComputedTextLength() * zoom;
       const y = p.y + (n.kind === "category" ? -30 : 14), box = { x: p.x - w / 2 - 5, y, w: w + 10, h: 18 };
-      const within = p.x > -50 && p.x < width + 50 && p.y > -25 && p.y < height + 25;
+      const within = box.x > 8 && box.x + box.w < width - 8 && box.y > 8 && box.y + box.h < height - 8;
       const overlaps = occupied.some(b => box.x < b.x + b.w && box.x + box.w > b.x && box.y < b.y + b.h && box.y + box.h > b.y);
       const important = n.id === selected?.id || n.id === hover;
-      const show = within && (showAllLabels || important || !overlaps);
+      const covered = obstacles.some(b => box.x < b.x + b.w && box.x + box.w > b.x && box.y < b.y + b.h && box.y + box.h > b.y);
+      const detailed = width > 720 || zoom > 1.15 || n.kind === "category" || Boolean(selected) || $("atlas-domain").value || $("atlas-filter").value;
+      const show = within && !covered && (important || ((detailed || showAllLabels) && !overlaps));
       node.classList.toggle("hint-label", show);
       if (show) occupied.push(box);
-      node.querySelector(".network-hit").setAttribute("r", Math.max(17, 13 / zoom));
+      node.querySelector(".network-hit").setAttribute("r", Math.max(17, 18 / zoom));
       const baseRadius = n.kind === "category" ? 8 + Math.min(4, neighbors(n.id).length / 4) : n.kind === "method" ? 5.5 + Math.min(3, neighbors(n.id).length * .25) : 5;
       node.querySelector(".node-core").setAttribute("r", Math.max(baseRadius, (n.kind === "category" ? 7 : 4) / zoom));
     }
@@ -197,7 +208,7 @@
     if (relation) card.title = relations[relation] || "연결된 기록";
     return card;
   }
-  function openInspector() { inspector.hidden = false; document.body.classList.add("inspector-open"); controls(false); $("atlas-help-panel").hidden = true; $("atlas-help").setAttribute("aria-expanded", "false"); setDiscovery(false); }
+  function openInspector() { closeSearch(); inspector.hidden = false; document.body.classList.add("inspector-open"); controls(false); $("atlas-help-panel").hidden = true; $("atlas-help").setAttribute("aria-expanded", "false"); setDiscovery(false); }
   function closeInspector(focus = false) {
     inspector.hidden = true; inspector.classList.remove("is-tall"); document.body.classList.remove("inspector-open");
     $("atlas-inspector-expand").setAttribute("aria-expanded", "false"); $("atlas-inspector-expand").textContent = "크게 읽기";
@@ -205,13 +216,16 @@
   }
   async function choose(id, push = true, keyboard = false, restore = false) {
     const n = index.get(id); if (!n) return;
+    clearTimeout(filterTimer);
     selected = n; visited.add(id); lastFocusedNode = id; stopMotion(); $("atlas-tooltip").hidden = true;
     if (!restore) { trail = trail.at(-1) === id ? trail : [...trail, id].slice(-16); }
     const token = ++detailRequest;
     $("atlas-record-kicker").textContent = label(n) + (n.kind === "method" ? ` / v${n.version}` : "");
     $("atlas-record-title").textContent = n.kind === "outcome" ? statuses[n.status] || "적용 결과" : n.kind === "correction" ? "경험을 반영한 수정" : n.label;
-    const panel = $("atlas-record"); panel.replaceChildren();
-    const meta = el("details", null, "record-meta"); meta.append(el("summary", "기록 정보"), el("code", n.id, "record-id")); panel.append(meta);
+    const panel = $("atlas-record"); panel.replaceChildren(); recordTab = "overview";
+    $("atlas-share").textContent = "링크 복사";
+    $("atlas-record-tabs").querySelector('[data-record-tab="steps"]').hidden = n.kind !== "method";
+    const meta = el("details", null, "record-meta"); meta.append(el("summary", "기록 정보"), el("code", n.id, "record-id"));
     openInspector(); inspector.scrollTop = 0; view(false); renderTrail();
     if (push) writeHistory(true);
     if (!restore) requestAnimationFrame(() => keepSelectedInView());
@@ -219,22 +233,27 @@
     const rank = { method: 0, outcome: 1, correction: 2, situation: 3, goal: 4, category: 5, source: 6, opinion: 7 };
     const links = unique(neighbors(id)).sort((a, b) => (rank[index.get(a.id)?.kind] ?? 9) - (rank[index.get(b.id)?.kind] ?? 9));
     links.forEach(a => { const target = index.get(a.id); if (target) related.append(linkedCard(target, a.relation)); });
-    const content = el("div", null, "record-content"); panel.append(content, related);
+    const content = el("div", null, "record-content"), steps = el("div", null, "record-steps");
+    content.dataset.recordPane = "overview"; steps.dataset.recordPane = "steps"; related.dataset.recordPane = "connections";
+    if (!links.length) related.append(el("p", "아직 연결된 기록이 없습니다.", "quiet"));
+    const jump = el("button", `연결된 기록 ${links.length}개 살펴보기 →`, "connection-jump"); jump.type = "button"; jump.onclick = () => setRecordTab("connections");
+    panel.append(content, steps, related, meta); setRecordTab("overview");
     if (n.kind === "method") {
-      const loading = el("p", "상황과 실행 기록을 불러오는 중…", "quiet"); content.append(loading);
+      const loading = el("p", "상황과 실행 기록을 불러오는 중…", "quiet"); content.append(loading); steps.append(el("p", "실행 순서를 불러오는 중…", "quiet"));
       try {
         const key = n.method_id + ":v" + n.version, d = cache.get(key) || await get("/" + encodeURIComponent(n.method_id) + (n.historical ? "/versions/" + n.version : ""));
         cache.set(key, d); if (token !== detailRequest) return; loading.remove();
         content.append(section("이런 상황에서", d.situation), section("이루려는 목적", d.goal));
         const pathLinks = links.map(a => index.get(a.id)).filter(x => ["outcome", "correction"].includes(x?.kind));
         if (pathLinks.length) { const s = el("section", null, "record-section"); s.append(el("h3", "적용 후 남은 기록")); pathLinks.forEach(x => s.append(linkedCard(x))); content.append(s); }
-        content.append(section("따라 해 볼 순서", d.steps || [], true));
-        const more = el("details", null, "record-more"); more.append(el("summary", "적용 조건 · 성공 기준 · 한계"), section("적용 조건", d.constraints || []), section("성공을 판단할 기준", d.success_criteria || []), section("한계와 주의점", d.limitations || [])); content.append(more);
+        steps.replaceChildren(section("따라 해 볼 순서", d.steps || [], true));
+        const more = el("details", null, "record-more"); more.append(el("summary", "적용 조건 · 성공 기준 · 한계"), section("적용 조건", d.constraints || []), section("성공을 판단할 기준", d.success_criteria || []), section("한계와 주의점", d.limitations || [])); steps.append(more); more.open = true;
         if (d.revision) { content.append(section(`v${d.revision.previous_version}에서 달라진 점`, d.revision.reason)); if (d.revision.correction) content.append(section("반영한 수정", d.revision.correction.reason)); }
         if (d.sources?.length) { const sources = el("section", null, "record-section"); sources.append(el("h3", "원래 출처")); for (const source of d.sources) { const a = safeLink(source.title || source.url, source.url); if (a) sources.append(a, el("br")); } content.append(sources); }
         content.append(el("p", d.evidence_kind === "documented_method" ? "문서에서 정리한 방법입니다. 적용 결과는 실행자의 보고이며, 효과의 독립 검증과 구분합니다." : "기록된 방법과 적용 보고를 함께 읽고, 자신의 상황에 맞는지 확인하세요.", "record-warning"));
         const a = el("a", "방법과 적용 보고 전체 읽기 ↗", "record-source"); a.href = "/research/methods/library/?method=" + encodeURIComponent(n.method_id); content.append(a);
-      } catch { if (token === detailRequest) loading.textContent = "본문을 불러오지 못했습니다. 연결된 기록을 살펴보거나 다시 선택해 주세요."; }
+        const go = el("button", "실행 순서 살펴보기 →", "primary"); go.type = "button"; go.onclick = () => setRecordTab("steps"); content.append(go);
+      } catch { if (token === detailRequest) { loading.textContent = "본문을 불러오지 못했습니다. 연결된 기록을 살펴보거나 다시 선택해 주세요."; steps.replaceChildren(el("p", "실행 순서를 불러오지 못했습니다. 방법을 다시 선택해 주세요.", "quiet")); } }
     } else if (n.kind === "source") {
       const a = safeLink("원래 출처 열기 ↗", n.url); if (a) content.append(a);
       content.append(section("이 출처와 연결된 방법", "아래 방법을 정리할 때 참고한 출처입니다. 같은 출처를 사용했다는 것이 독립적인 검증을 뜻하지는 않습니다."));
@@ -248,11 +267,24 @@
     if (keyboard) $("atlas-inspector-close").focus({ preventScroll: true });
   }
 
+  function setRecordTab(value) {
+    recordTab = value;
+    $("atlas-record-tabs").querySelectorAll("[data-record-tab]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.recordTab === value)));
+    $("atlas-record").querySelectorAll("[data-record-pane]").forEach(n => { n.hidden = n.dataset.recordPane !== value; });
+  }
+  $("atlas-record-tabs").addEventListener("click", e => { const b = e.target.closest("[data-record-tab]"); if (b) { setRecordTab(b.dataset.recordTab); inspector.scrollTop = 0; } });
+  $("atlas-share").onclick = async () => {
+    const b = $("atlas-share"); clearTimeout(shareTimer);
+    try { await navigator.clipboard.writeText(location.href); b.textContent = "복사했어요"; }
+    catch { b.textContent = "주소창의 링크를 복사하세요"; }
+    shareTimer = setTimeout(() => { b.textContent = "링크 복사"; }, 3000);
+  };
+
   function availableRect() {
     const mobile = width <= 720, discovery = $("atlas-discovery"), graphRect = map.getBoundingClientRect();
     const bottom = !inspector.hidden && mobile ? Math.max(140, inspector.getBoundingClientRect().top - graphRect.top - 20) : height - 110;
     const top = mobile ? !inspector.hidden ? 115 : discovery.getBoundingClientRect().bottom - graphRect.top + 22 : 65;
-    return { left: mobile ? 22 : 35, top, right: !inspector.hidden && !mobile ? Math.max(220, inspector.getBoundingClientRect().left - graphRect.left - 35) : width - (mobile ? 22 : 35), bottom: Math.max(top + 100, bottom) };
+    return { left: mobile ? 22 : !$("atlas-discovery-content").hidden ? discovery.getBoundingClientRect().right - graphRect.left + 30 : 45, top, right: !inspector.hidden && !mobile ? Math.max(220, inspector.getBoundingClientRect().left - graphRect.left - 35) : width - (mobile ? 22 : 35), bottom: Math.max(top + 100, bottom) };
   }
   function normalizeMobile() {
     if (width > 720 || !visible.length || selected) return;
@@ -262,8 +294,8 @@
     for (const p of points.values()) { p.x = (box.left + box.right) / 2 + (p.x - (minX + maxX) / 2) * sx; p.y = (box.top + box.bottom) / 2 + (p.y - (minY + maxY) / 2) * sy; p.ax = p.x; p.ay = p.y; p.vx = p.vy = 0; }
   }
   function setDiscovery(open) {
-    $("atlas-discovery-content").hidden = !open; $("atlas-discovery-toggle").setAttribute("aria-expanded", String(open)); $("atlas-discovery-toggle").setAttribute("aria-label", open ? "탐험 시작점 접기" : "탐험 시작점 펼치기"); $("atlas-discovery-toggle").textContent = open ? "⌃" : "⌄";
-    requestAnimationFrame(() => { const r = $("atlas-discovery").getBoundingClientRect(), m = map.getBoundingClientRect(); document.documentElement.style.setProperty("--trail-top", (r.bottom - m.top + 12) + "px"); });
+    $("atlas-discovery-content").hidden = !open; $("atlas-discovery-toggle").setAttribute("aria-expanded", String(open)); $("atlas-discovery-toggle").setAttribute("aria-label", open ? "탐험 시작점 접기" : "탐험 시작점 펼치기"); $("atlas-discovery").classList.toggle("is-collapsed", !open);
+    requestAnimationFrame(() => { const r = $("atlas-discovery").getBoundingClientRect(), m = map.getBoundingClientRect(); document.documentElement.style.setProperty("--trail-top", (r.bottom - m.top + 12) + "px"); updateLabels(); });
   }
   function keepSelectedInView() {
     if (!selected || !points.has(selected.id)) return;
@@ -301,7 +333,7 @@
     if (n.goal) t.append(el("span", short(n.goal, 100)));
     t.hidden = false; t.style.left = Math.max(8, Math.min(r.width - 280, e.clientX - r.left + 16)) + "px"; t.style.top = Math.max(8, Math.min(r.height - 120, e.clientY - r.top + 18)) + "px";
   }
-  function controls(open, focus = true) { $("atlas-controls").hidden = !open; document.body.classList.toggle("controls-open", open); $("atlas-controls-toggle").setAttribute("aria-expanded", String(open)); if (open) { if (width <= 720) closeInspector(); if (focus) $("atlas-filter").focus(); } }
+  function controls(open, focus = true) { if (open) closeSearch(); $("atlas-controls").hidden = !open; document.body.classList.toggle("controls-open", open); $("atlas-controls-toggle").setAttribute("aria-expanded", String(open)); if (open) { if (width <= 720) closeInspector(); if (focus) $("atlas-filter").focus(); } }
   function renderTrail() {
     const nav = $("atlas-trail"); nav.replaceChildren(); nav.hidden = trail.length === 0;
     if (!trail.length) return;
@@ -321,7 +353,7 @@
     $("atlas-back").disabled = !(history.state?.atlasStep);
   }
   function resetMap(updateHistory = true) {
-    selected = null; ++detailRequest; trail = []; $("atlas-tooltip").hidden = true;
+    clearTimeout(filterTimer); closeSearch(); selected = null; ++detailRequest; trail = []; $("atlas-tooltip").hidden = true;
     for (const id of ["atlas-domain", "atlas-filter", "atlas-quick-search", "atlas-record-filter"]) $(id).value = "";
     $("atlas-depth").value = "0"; closeInspector(); controls(false); setDiscovery(true); renderTrail(); view(true); if (updateHistory) writeHistory(false);
   }
@@ -329,14 +361,15 @@
     selected = null; ++detailRequest; $("atlas-depth").value = "0"; closeInspector(); view(true); writeHistory(false);
   }
   function setLocal(depth) { if (!selected) return; $("atlas-depth").value = String(depth); view(true); writeHistory(false); }
-  function selectDomain(value) { if (!graph) return; selected = null; ++detailRequest; $("atlas-domain").value = value; $("atlas-filter").value = $("atlas-quick-search").value = ""; $("atlas-record-filter").value = ""; $("atlas-depth").value = "0"; closeInspector(); controls(false); view(true); writeHistory(false); }
+  function selectDomain(value) { if (!graph) return; clearTimeout(filterTimer); closeSearch(); if (value) setDiscovery(false); selected = null; ++detailRequest; $("atlas-domain").value = value; $("atlas-filter").value = $("atlas-quick-search").value = ""; $("atlas-record-filter").value = ""; $("atlas-depth").value = "0"; closeInspector(); controls(false); view(true); writeHistory(false); }
   function reportFilter(value) { if (!graph) return; selected = null; ++detailRequest; $("atlas-record-filter").value = $("atlas-record-filter").value === value ? "" : value; $("atlas-depth").value = "0"; closeInspector(); view(true); writeHistory(false); }
   function surprise() {
     if (!graph) return;
     let pool = matchingMethods().filter(n => !visited.has(n.id)); if (!pool.length) pool = matchingMethods().filter(n => n.id !== selected?.id);
     if (pool.length) choose(pool[Math.floor(Math.random() * pool.length)].id);
   }
-  function theme(value) { document.documentElement.dataset.theme = value; const light = value === "light"; $("atlas-theme").setAttribute("aria-label", light ? "어두운 테마로 전환" : "밝은 테마로 전환"); $("atlas-theme").replaceChildren(document.createTextNode(light ? "☾" : "☼")); try { localStorage.setItem("openakashic-graph-theme", value); } catch {} }
+  function theme(value) { document.documentElement.dataset.theme = value; const light = value === "light"; $("atlas-theme").setAttribute("aria-label", light ? "어두운 테마로 전환" : "밝은 테마로 전환"); const icon = svg("svg", { viewBox: "0 0 24 24", width: 18, height: 18, fill: "none", stroke: "currentColor", "stroke-width": 1.7, "aria-hidden": "true" });
+    icon.append(svg("path", { d: light ? "M20 15.5A8.5 8.5 0 0 1 8.5 4 8.5 8.5 0 1 0 20 15.5Z" : "M12 3v2m0 14v2M3 12h2m14 0h2M5.6 5.6 7 7m10 10 1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4" })); if (!light) icon.append(svg("circle", { cx: 12, cy: 12, r: 4 })); $("atlas-theme").replaceChildren(icon); try { localStorage.setItem("openakashic-graph-theme", value); } catch {} }
   try { theme(localStorage.getItem("openakashic-graph-theme") === "light" ? "light" : "dark"); } catch { theme("dark"); }
   $("atlas-theme").onclick = () => theme(document.documentElement.dataset.theme === "light" ? "dark" : "light");
   $("atlas-controls-toggle").onclick = () => controls($("atlas-controls").hidden);
@@ -357,8 +390,39 @@
   $("atlas-expand").onclick = async () => { try { if (document.fullscreenElement) await document.exitFullscreen(); else if (document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen(); } catch { $("atlas-status").textContent = "브라우저 전체 화면은 지원되지 않습니다. 현재 지도는 창 크기에 맞춰져 있습니다."; } };
   document.addEventListener("fullscreenchange", () => $("atlas-expand").setAttribute("aria-pressed", String(Boolean(document.fullscreenElement))));
   ["atlas-domain", "atlas-record-filter"].forEach(id => $(id).onchange = filtersChanged);
-  for (const id of ["atlas-filter", "atlas-quick-search"]) $(id).oninput = () => { $(id === "atlas-filter" ? "atlas-quick-search" : "atlas-filter").value = $(id).value; clearTimeout(filterTimer); filterTimer = setTimeout(filtersChanged, 120); if (id === "atlas-quick-search") controls(true, false); };
-  $("atlas-quick-search").onfocus = () => controls(true, false);
+  function closeSearch() { $("atlas-search-results").hidden = true; searchIndex = -1; $("atlas-quick-search").setAttribute("aria-expanded", "false"); }
+  function showSearch() {
+    if (!graph) return;
+    const results = $("atlas-search-results"), methods = matchingMethods(); results.replaceChildren(); searchItems = methods.slice(0, 8); searchIndex = -1;
+    const summary = el("p", methods.length ? `${methods.length}개 방법 · 상황과 목적을 살펴보세요` : "일치하는 방법이 없습니다", "search-summary"); results.append(summary);
+    for (const n of searchItems) {
+      const b = el("button", null, "search-result"); b.type = "button"; b.append(el("small", n.domain || "방법"), el("strong", n.label), el("span", short(n.situation || n.goal || "", 90)));
+      b.onclick = () => choose(n.id, true, true); results.append(b);
+    }
+    if (!methods.length) results.append(el("p", "짧은 단어로 검색하거나 필터에서 분야를 바꿔 보세요.", "search-empty"));
+    if (methods.length > 8) { const more = el("button", `전체 ${methods.length}개를 목록에서 보기`, "search-more"); more.type = "button"; more.onclick = () => controls(true); results.append(more); }
+    results.hidden = false; $("atlas-quick-search").setAttribute("aria-expanded", "true");
+  }
+  for (const id of ["atlas-filter", "atlas-quick-search"]) $(id).oninput = () => {
+    $(id === "atlas-filter" ? "atlas-quick-search" : "atlas-filter").value = $(id).value; clearTimeout(filterTimer);
+    filterTimer = setTimeout(() => { filtersChanged(); if (id === "atlas-quick-search" && document.activeElement === $(id)) showSearch(); }, 120);
+  };
+  $("atlas-quick-search").onfocus = () => { controls(false); showSearch(); };
+  $("atlas-quick-search").setAttribute("aria-controls", "atlas-search-results");
+  $("atlas-quick-search").setAttribute("aria-expanded", "false");
+  $("atlas-quick-search").onkeydown = e => {
+    if (e.key === "ArrowDown" || e.key === "Enter") {
+      e.preventDefault(); clearTimeout(filterTimer); filtersChanged(); showSearch();
+      const first = $("atlas-search-results").querySelector(".search-result"); if (first) { if (e.key === "Enter") first.click(); else first.focus(); }
+    }
+  };
+  $("atlas-search-results").onkeydown = e => {
+    if (!["ArrowDown", "ArrowUp"].includes(e.key)) return;
+    e.preventDefault(); const buttons = [...$("atlas-search-results").querySelectorAll("button")], currentIndex = buttons.indexOf(document.activeElement), next = currentIndex + (e.key === "ArrowDown" ? 1 : -1);
+    if (next < 0) $("atlas-quick-search").focus(); else buttons[Math.min(buttons.length - 1, next)]?.focus();
+  };
+  document.addEventListener("pointerdown", e => { if (!$("atlas-search-results").contains(e.target) && !e.target.closest(".quick-search")) closeSearch(); });
+  document.addEventListener("focusin", e => { if (!$("atlas-search-results").contains(e.target) && e.target !== $("atlas-quick-search")) closeSearch(); });
   $("atlas-evidence").onchange = () => view(false);
   $("atlas-depth").onchange = () => { if (!selected) $("atlas-depth").value = "0"; view(true); writeHistory(false); };
   $("atlas-reports-start").onclick = () => reportFilter("reports"); $("atlas-failures-start").onclick = () => reportFilter("failure");
@@ -401,7 +465,7 @@
     if (["+", "=", "-", "Home", ...Object.keys(shifts)].includes(e.key)) { e.preventDefault(); if (e.key === "Home") fitVisible(); else if (shifts[e.key]) { shift.x += shifts[e.key][0]; shift.y += shifts[e.key][1]; transform(); } else scale(e.key === "-" ? .8 : 1.25); }
   });
   document.addEventListener("keydown", e => {
-    if (e.key === "Escape") { if (!$("atlas-help-panel").hidden) { $("atlas-help-panel").hidden = true; $("atlas-help").setAttribute("aria-expanded", "false"); } else if (!$("atlas-controls").hidden) { controls(false); $("atlas-controls-toggle").focus(); } else if (!inspector.hidden) closeInspector(true); }
+    if (e.key === "Escape") { if (!$("atlas-search-results").hidden) { closeSearch(); $("atlas-quick-search").blur(); } else if (!$("atlas-help-panel").hidden) { $("atlas-help-panel").hidden = true; $("atlas-help").setAttribute("aria-expanded", "false"); } else if (!$("atlas-controls").hidden) { controls(false); $("atlas-controls-toggle").focus(); } else if (!inspector.hidden) closeInspector(true); }
     if (e.key === "/" && !["INPUT", "SELECT", "TEXTAREA"].includes(document.activeElement.tagName)) { e.preventDefault(); $("atlas-quick-search").focus(); }
   });
   function restoreLocation() {
@@ -433,6 +497,7 @@
         const option = el("option", `${d.name} · ${d.count}`); option.value = d.name; $("atlas-domain").append(option);
         const b = el("button", d.name); b.type = "button"; b.dataset.domain = d.name; const catIndex = graph.nodes.filter(n => n.kind === "category").findIndex(n => n.label === d.name); b.style.setProperty("--chip-color", `var(--cluster-${Math.max(0, catIndex) % 10})`); b.append(el("small", d.count)); b.onclick = () => selectDomain(d.name); chips.append(b);
       }
+      if (width <= 720) setDiscovery(false);
       restoreLocation();
     } catch {
       $("atlas-status").textContent = "지도를 불러오지 못했습니다."; $("atlas-empty").hidden = false;
