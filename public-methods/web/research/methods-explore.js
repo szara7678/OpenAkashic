@@ -10,6 +10,7 @@
   let graph, selected = null, visible = [], edges = [], nodeElements = new Map(), edgeElements = [];
   let width = 1100, height = 760, zoom = 1, shift = { x: 0, y: 0 }, drag = null, suppressClick = false;
   let detailRequest = 0, animation = 0, ticks = 0, trail = [], filterTimer, cameraFrame = 0;
+  let cameraTarget = null;
   let motion = !reduceMotion.matches, showAllLabels = false, lastFocusedNode = null;
   let recordTab = "overview", searchIndex = -1, searchItems = [], shareTimer;
   const map = $("atlas-map"), inspector = $("atlas-inspector");
@@ -138,7 +139,7 @@
       const title = svg("title"); title.textContent = relations[e.relation] || "기록 연결"; line.append(title); $("atlas-edges").append(line); edgeElements.push([line, e]);
     }
     for (const n of visible) {
-      const r = n.kind === "category" ? 8 + Math.min(4, neighbors(n.id).length / 4) : n.kind === "method" ? 5.5 + Math.min(3, neighbors(n.id).length * .25) : 5;
+      const r = n.kind === "category" ? 7 + Math.min(2, neighbors(n.id).length / 7) : n.kind === "method" ? 3.4 + Math.min(1.4, neighbors(n.id).length * .15) : 5;
       const g = svg("g", { class: "network-node " + role(n), tabindex: "0", role: "button", "data-node-id": n.id, "aria-label": `${label(n)}: ${n.label.slice(0, 150)}`, "aria-pressed": String(selected?.id === n.id) });
       g.style.setProperty("--node-color", color(n)); g.append(svg("circle", { r: r + 13, class: "node-halo" }), svg("circle", { r: 20, class: "network-hit" }), svg("circle", { r, class: "node-core" }));
       const title = svg("title"); title.textContent = `${label(n)} · ${n.label}`; g.append(title);
@@ -189,13 +190,13 @@
       const overlaps = occupied.some(b => box.x < b.x + b.w && box.x + box.w > b.x && box.y < b.y + b.h && box.y + box.h > b.y);
       const important = n.id === selected?.id || n.id === hover;
       const covered = obstacles.some(b => box.x < b.x + b.w && box.x + box.w > b.x && box.y < b.y + b.h && box.y + box.h > b.y);
-      const detailed = width > 720 || zoom > 1.15 || n.kind === "category" || Boolean(selected) || $("atlas-domain").value || $("atlas-filter").value;
+      const detailed = zoom > 1.15 || n.kind === "category" || (selected && neighbors(selected.id).some(x => x.id === n.id)) || $("atlas-domain").value || $("atlas-filter").value;
       const show = within && !covered && (important || ((detailed || showAllLabels) && !overlaps));
       node.classList.toggle("hint-label", show);
       if (show) occupied.push(box);
       node.querySelector(".network-hit").setAttribute("r", Math.max(17, 18 / zoom));
-      const baseRadius = n.kind === "category" ? 8 + Math.min(4, neighbors(n.id).length / 4) : n.kind === "method" ? 5.5 + Math.min(3, neighbors(n.id).length * .25) : 5;
-      node.querySelector(".node-core").setAttribute("r", Math.max(baseRadius, (n.kind === "category" ? 7 : 4) / zoom));
+      const baseRadius = n.kind === "category" ? 7 + Math.min(2, neighbors(n.id).length / 7) : n.kind === "method" ? 3.4 + Math.min(1.4, neighbors(n.id).length * .15) : 5;
+      node.querySelector(".node-core").setAttribute("r", Math.max(baseRadius, (n.kind === "category" ? 7 : 3.3) / zoom));
     }
   }
 
@@ -305,27 +306,53 @@
     if (p.y < box.top + pad || p.y > box.bottom - pad) target.y += (box.top + box.bottom) / 2 - p.y;
     moveCamera(target);
   }
-  function moveCamera(target) {
-    cancelAnimationFrame(cameraFrame);
-    if (reduceMotion.matches) { shift = target; transform(); return; }
-    const start = { ...shift }, time = performance.now();
-    const frame = now => { const p = Math.min(1, (now - time) / 220), ease = 1 - Math.pow(1 - p, 3); shift = { x: start.x + (target.x - start.x) * ease, y: start.y + (target.y - start.y) * ease }; transform(); if (p < 1) cameraFrame = requestAnimationFrame(frame); };
+  // A single cancellable camera transition: wheel bursts accumulate toward a
+  // target, while pointer dragging and pinching always take immediate control.
+  function stopCamera() { cancelAnimationFrame(cameraFrame); cameraFrame = 0; cameraTarget = null; }
+  function animateCamera(target) {
+    const start = { zoom, x: shift.x, y: shift.y };
+    stopCamera();
+    if (reduceMotion.matches) { zoom = target.zoom; shift = { x: target.x, y: target.y }; transform(); return; }
+    cameraTarget = target; const time = performance.now();
+    const frame = now => {
+      const p = Math.min(1, (now - time) / 260), ease = 1 - Math.pow(1 - p, 3);
+      zoom = start.zoom + (target.zoom - start.zoom) * ease;
+      shift = { x: start.x + (target.x - start.x) * ease, y: start.y + (target.y - start.y) * ease };
+      transform();
+      if (p < 1) cameraFrame = requestAnimationFrame(frame); else { cameraFrame = 0; cameraTarget = null; }
+    };
     cameraFrame = requestAnimationFrame(frame);
+  }
+  function moveCamera(target) { animateCamera({ ...target, zoom }); }
+  function renderStars() {
+    let layer = $("atlas-stars");
+    if (!layer) { layer = svg("g", { id: "atlas-stars", class: "cosmic-stars", "aria-hidden": "true", "pointer-events": "none" }); map.insertBefore(layer, $("atlas-viewport")); }
+    layer.replaceChildren();
+    let seed = 271828;
+    const random = () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296; };
+    const count = Math.min(180, Math.max(48, Math.round(width * height / 8500)));
+    for (let i = 0; i < count; i++) {
+      const x = random() * width, y = random() * height, bright = i % 13 === 0;
+      layer.append(svg("circle", { cx: x.toFixed(2), cy: y.toFixed(2), r: bright ? 1.1 : (.35 + random() * .45).toFixed(2), opacity: bright ? .55 : (.15 + random() * .3).toFixed(2), class: bright ? "cosmic-star-bright" : "cosmic-star" }));
+    }
   }
   function transform() {
     $("atlas-viewport").setAttribute("transform", `translate(${width / 2 + shift.x} ${height / 2 + shift.y}) scale(${zoom}) translate(${-width / 2} ${-height / 2})`);
     $("atlas-zoom-label").textContent = Math.round(zoom * 100) + "%"; updateLabels();
   }
-  function fitVisible() {
-    cancelAnimationFrame(cameraFrame); if (!visible.length) return;
+  function fitVisible(animate = false) {
+    stopCamera(); if (!visible.length) return;
     const ps = visible.map(n => points.get(n.id)), xs = ps.map(p => p.x), ys = ps.map(p => p.y);
     const pad = width <= 720 ? 22 : 65, minX = Math.min(...xs) - pad, maxX = Math.max(...xs) + pad, minY = Math.min(...ys) - 30, maxY = Math.max(...ys) + 30, box = availableRect();
-    zoom = Math.max(.16, Math.min(1.7, (box.right - box.left) / (maxX - minX), (box.bottom - box.top) / (maxY - minY)));
-    shift = { x: (box.left + box.right) / 2 - width / 2 - ((minX + maxX) / 2 - width / 2) * zoom, y: (box.top + box.bottom) / 2 - height / 2 - ((minY + maxY) / 2 - height / 2) * zoom }; transform();
+    const next = Math.max(.16, Math.min(1.7, (box.right - box.left) / (maxX - minX), (box.bottom - box.top) / (maxY - minY)));
+    const target = { zoom: next, x: (box.left + box.right) / 2 - width / 2 - ((minX + maxX) / 2 - width / 2) * next, y: (box.top + box.bottom) / 2 - height / 2 - ((minY + maxY) / 2 - height / 2) * next };
+    if (animate) animateCamera(target); else { zoom = next; shift = { x: target.x, y: target.y }; transform(); }
   }
-  function scale(factor, anchor = { x: width / 2, y: height / 2 }) {
-    cancelAnimationFrame(cameraFrame); const next = Math.max(.16, Math.min(7, zoom * factor)), ratio = next / zoom;
-    shift = { x: anchor.x - width / 2 - (anchor.x - width / 2 - shift.x) * ratio, y: anchor.y - height / 2 - (anchor.y - height / 2 - shift.y) * ratio }; zoom = next; transform();
+  function scale(factor, anchor = { x: width / 2, y: height / 2 }, smooth = false) {
+    const from = smooth && cameraTarget ? cameraTarget : { zoom, x: shift.x, y: shift.y };
+    const next = Math.max(.16, Math.min(7, from.zoom * factor)), ratio = next / from.zoom;
+    const target = { zoom: next, x: anchor.x - width / 2 - (anchor.x - width / 2 - from.x) * ratio, y: anchor.y - height / 2 - (anchor.y - height / 2 - from.y) * ratio };
+    if (smooth) animateCamera(target); else { stopCamera(); zoom = next; shift = { x: target.x, y: target.y }; transform(); }
   }
   function coords(x, y) { return new DOMPoint(x, y).matrixTransform(map.getScreenCTM().inverse()); }
   function tooltip(n, e) {
@@ -382,9 +409,9 @@
   $("atlas-labels").onclick = () => { showAllLabels = !showAllLabels; $("atlas-labels").setAttribute("aria-pressed", String(showAllLabels)); updateLabels(); };
   $("atlas-motion").setAttribute("aria-pressed", String(motion));
   $("atlas-motion").onclick = () => { motion = !motion; $("atlas-motion").setAttribute("aria-pressed", String(motion)); if (motion) startMotion(); else stopMotion(); };
-  reduceMotion.addEventListener("change", () => { if (reduceMotion.matches) { motion = false; stopMotion(); $("atlas-motion").setAttribute("aria-pressed", "false"); } });
-  $("atlas-reset").onclick = () => resetMap(); $("atlas-fit").onclick = fitVisible;
-  $("atlas-zoom-in").onclick = () => scale(1.25); $("atlas-zoom-out").onclick = () => scale(.8);
+  reduceMotion.addEventListener("change", () => { if (reduceMotion.matches) { stopCamera(); motion = false; stopMotion(); $("atlas-motion").setAttribute("aria-pressed", "false"); } });
+  $("atlas-reset").onclick = () => resetMap(); $("atlas-fit").onclick = () => fitVisible(true);
+  $("atlas-zoom-in").onclick = () => scale(1.25, undefined, true); $("atlas-zoom-out").onclick = () => scale(.8, undefined, true);
   $("atlas-focus").onclick = () => setLocal(Number($("atlas-depth").value) ? 0 : 2);
   $("atlas-back").onclick = () => history.back();
   $("atlas-expand").onclick = async () => { try { if (document.fullscreenElement) await document.exitFullscreen(); else if (document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen(); } catch { $("atlas-status").textContent = "브라우저 전체 화면은 지원되지 않습니다. 현재 지도는 창 크기에 맞춰져 있습니다."; } };
@@ -427,9 +454,9 @@
   $("atlas-depth").onchange = () => { if (!selected) $("atlas-depth").value = "0"; view(true); writeHistory(false); };
   $("atlas-reports-start").onclick = () => reportFilter("reports"); $("atlas-failures-start").onclick = () => reportFilter("failure");
 
-  map.addEventListener("wheel", e => { if (!graph || !e.deltaY) return; e.preventDefault(); const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? height : 1; scale(Math.exp(-Math.max(-200, Math.min(200, e.deltaY * unit)) * .0025), coords(e.clientX, e.clientY)); $("atlas-tooltip").hidden = true; }, { passive: false });
+  map.addEventListener("wheel", e => { if (!graph || !e.deltaY) return; e.preventDefault(); const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? height : 1; scale(Math.exp(-Math.max(-200, Math.min(200, e.deltaY * unit)) * .0025), coords(e.clientX, e.clientY), true); $("atlas-tooltip").hidden = true; }, { passive: false });
   map.addEventListener("pointerdown", e => {
-    if (e.button !== 0 || !graph) return; cancelAnimationFrame(cameraFrame); stopMotion(); const p = coords(e.clientX, e.clientY);
+    if (e.button !== 0 || !graph) return; stopCamera(); stopMotion(); const p = coords(e.clientX, e.clientY);
     pointers.set(e.pointerId, p); suppressClick = false; const node = e.target.closest(".network-node")?.dataset.nodeId;
     drag = { pointer: e.pointerId, last: p, client: { x: e.clientX, y: e.clientY }, moved: false, node };
     if (!node) map.setPointerCapture(e.pointerId);
@@ -462,7 +489,7 @@
   map.addEventListener("dblclick", e => { if (!e.target.closest(".network-node")) scale(1.4, coords(e.clientX, e.clientY)); });
   map.addEventListener("keydown", e => {
     const move = e.shiftKey ? 100 : 40, shifts = { ArrowLeft: [move, 0], ArrowRight: [-move, 0], ArrowUp: [0, move], ArrowDown: [0, -move] };
-    if (["+", "=", "-", "Home", ...Object.keys(shifts)].includes(e.key)) { e.preventDefault(); if (e.key === "Home") fitVisible(); else if (shifts[e.key]) { shift.x += shifts[e.key][0]; shift.y += shifts[e.key][1]; transform(); } else scale(e.key === "-" ? .8 : 1.25); }
+    if (["+", "=", "-", "Home", ...Object.keys(shifts)].includes(e.key)) { e.preventDefault(); if (e.key === "Home") fitVisible(); else if (shifts[e.key]) { stopCamera(); shift.x += shifts[e.key][0]; shift.y += shifts[e.key][1]; transform(); } else scale(e.key === "-" ? .8 : 1.25); }
   });
   document.addEventListener("keydown", e => {
     if (e.key === "Escape") { if (!$("atlas-search-results").hidden) { closeSearch(); $("atlas-quick-search").blur(); } else if (!$("atlas-help-panel").hidden) { $("atlas-help-panel").hidden = true; $("atlas-help").setAttribute("aria-expanded", "false"); } else if (!$("atlas-controls").hidden) { controls(false); $("atlas-controls-toggle").focus(); } else if (!inspector.hidden) closeInspector(true); }
@@ -479,10 +506,10 @@
     else { selected = null; ++detailRequest; closeInspector(); renderTrail(); view(true); }
   }
   window.addEventListener("popstate", restoreLocation);
-  document.addEventListener("visibilitychange", () => { if (document.hidden) stopMotion(); });
+  document.addEventListener("visibilitychange", () => { if (document.hidden) { stopMotion(); stopCamera(); } });
   const observer = new ResizeObserver(() => {
     const r = map.getBoundingClientRect(); if (!r.width || !r.height) return;
-    const previousWidth = width, dx = r.width - width, dy = r.height - height; width = r.width; height = r.height; map.setAttribute("viewBox", `0 0 ${width} ${height}`);
+    const previousWidth = width, dx = r.width - width, dy = r.height - height; width = r.width; height = r.height; map.setAttribute("viewBox", `0 0 ${width} ${height}`); stopCamera(); renderStars();
     for (const p of points.values()) { p.x += dx / 2; p.ax += dx / 2; p.y += dy / 2; p.ay += dy / 2; }
     if (graph && width <= 720 && previousWidth > 720) normalizeMobile(); positionElements(); if (graph) { if (selected) { transform(); requestAnimationFrame(keepSelectedInView); } else fitVisible(); }
   }); observer.observe(map);

@@ -29,3 +29,13 @@ The first query suggested a generic landing-page hero and orange palette. Those 
 ## Validation boundary
 
 Browser interaction checks, visual inspections and public asset readback are release checks. They do not establish improved task completion, accessibility certification, graph retrieval quality, business value or model-token savings. Mobile viewport emulation does not replace physical-device testing. Original evaluation evidence is unchanged.
+
+## Cosmic presentation refinement
+
+The 2026-11-10 visual revision uses midnight blue, diffuse blue/violet gradients, small luminous graph nodes, fine connections and quiet translucent surfaces. The decorative starfield is deterministic SVG, capped at 180 small points, not records or evidence. It is hidden from assistive technology and never accepts pointer input. No image download, external font, additional library, or perpetual animation is required.
+
+Overview labels now prioritize subjects. Method names appear on hover/focus, through topic/search filters, when zoomed in, or with the name-display control. Full text remains available in the existing list and reader. Existing graph objects, versions and evidence are unchanged.
+
+Wheel bursts accumulate toward one cancellable 260ms camera transition. Fit and zoom buttons use the same transition; pointer drag and pinch take immediate control. Reduced-motion preference disables camera interpolation. The transition also stops when the document becomes hidden. Decorative gradients remain static; the existing optional graph physics settles rather than running continuously.
+
+These are presentation and interaction refinements, not new retrieval-quality or user-effectiveness measurements.
