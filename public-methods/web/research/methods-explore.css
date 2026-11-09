@@ -63,10 +63,11 @@ input::placeholder {color:var(--subtle)}
 .brand-mark {display:grid;place-items:center;width:36px;height:36px;border-radius:50%;color:var(--accent);background:radial-gradient(circle,var(--accent-soft),transparent 74%)}
 .brand-mark svg {width:21px;height:21px}
 .brand-tag {padding-left:10px;border-left:1px solid var(--line);font-size:12px;font-weight:500;color:var(--muted)}
-.top nav {justify-self:end;gap:16px}
+.top nav {justify-self:end;gap:8px}
 .library-link {min-height:var(--touch);font-size:13px;color:var(--muted);text-decoration:none}
 .library-link:hover {color:var(--ink)}
-#atlas-theme {min-width:var(--touch);padding-inline:10px;border-color:transparent;border-radius:999px;background:transparent;color:var(--muted)}
+#atlas-theme,#atlas-shelf-toggle {min-width:var(--touch);padding-inline:10px;border-color:transparent;border-radius:999px;background:transparent;color:var(--muted)}
+#atlas-shelf-toggle[aria-expanded=true],#atlas-shelf-toggle:hover,#atlas-theme:hover {color:var(--accent);background:var(--accent-soft)}
 .search-shell {position:relative;min-width:0}
 .quick-search {display:flex;align-items:center;gap:8px;padding:0 12px;border:1px solid var(--line);border-radius:999px;background:var(--raised);color:var(--muted)}
 .quick-search:focus-within {outline:2px solid var(--focus);outline-offset:2px}
@@ -139,7 +140,16 @@ main {height:calc(100dvh - var(--top))}
   filter:drop-shadow(0 0 3px color-mix(in srgb,var(--node-color,var(--method)) 44%,transparent))
 }
 .map-tooltip,.map-empty {position:absolute;z-index:12;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 16px;box-shadow:var(--shadow);pointer-events:none}
-.map-tooltip {width:max-content;max-width:min(270px,calc(100% - 16px));font-size:13px;overflow-wrap:anywhere}
+.map-tooltip {
+  width:max-content;max-width:min(304px,calc(100% - 16px));padding:14px 16px;
+  background:var(--glass);backdrop-filter:blur(14px);font-size:13px;overflow-wrap:anywhere
+}
+.map-tooltip .preview-meta {display:block;margin:0 0 4px;color:var(--accent);font-size:11px;font-weight:650}
+.map-tooltip strong {display:block;margin:0;color:var(--ink);font-size:15px;line-height:1.4;text-wrap:pretty}
+.preview-field {display:grid;grid-template-columns:auto minmax(0,1fr);align-items:baseline;gap:8px;margin:8px 0 0}
+.preview-field small {color:var(--accent);font-size:11px;font-weight:650}
+.preview-field span {color:var(--muted);font-size:12px;line-height:1.45}
+.preview-foot {display:block;margin:10px 0 0;padding-top:8px;border-top:1px solid var(--line);color:var(--subtle);font-size:11px}
 .map-empty {top:48%;left:50%;transform:translate(-50%,-50%);max-width:80%;min-width:240px;text-align:center}
 .map-empty p {margin:4px 0 0;color:var(--muted)}
 .atlas-toolbar {position:absolute;z-index:14;top:var(--inset);left:var(--inset);right:var(--inset);display:flex;align-items:center;justify-content:space-between;gap:8px;pointer-events:none}
@@ -174,14 +184,15 @@ main {height:calc(100dvh - var(--top))}
 .map-hint {right:var(--inset);bottom:108px;font-size:12px}
 
 /* Discover, follow, and filter. */
-.discovery,.controls,.help-panel,.inspector {
+.discovery,.controls,.help-panel,.inspector,.atlas-shelf {
   position:absolute;border:1px solid var(--line);background:var(--glass);
   border-radius:var(--radius);box-shadow:var(--shadow);backdrop-filter:blur(16px)
 }
 .discovery {z-index:10;top:calc(var(--inset) + 60px);left:var(--inset);width:min(252px,calc(100% - var(--inset) * 2));padding:4px 12px 10px}
 .discovery:has(#atlas-discovery-content[hidden]) {width:max-content;padding:0 4px 0 12px}
 .discovery-heading {display:flex;align-items:center;justify-content:space-between;gap:8px}
-.discovery-heading h2 {margin:0;padding-left:6px;font-size:14px;font-weight:680}
+.discovery-heading h2 {margin:0;padding-left:6px;font-size:14px;font-weight:700;letter-spacing:-.025em}
+.discovery-intro {margin:-1px 6px 10px;color:var(--muted);font-size:12px;line-height:1.45;text-wrap:pretty}
 #atlas-discovery-toggle {width:var(--touch);border:0;background:transparent;padding:0;color:var(--muted);font-size:20px}
 #atlas-discovery-toggle svg {transition:transform .2s ease}
 #atlas-discovery-toggle[aria-expanded=false] svg {transform:rotate(180deg)}
@@ -217,6 +228,35 @@ main {height:calc(100dvh - var(--top))}
 .help-panel a {display:inline-flex;align-items:center;min-height:var(--touch);color:var(--accent)}
 .controls-open .discovery,.controls-open .atlas-trail {visibility:hidden}
 
+/* Personal reading history floats over the discovery side of the map. */
+.atlas-shelf {
+  z-index:18;top:calc(var(--inset) + 60px);left:var(--inset);display:flex;flex-direction:column;
+  width:min(312px,calc(100% - var(--inset) * 2));max-height:min(60dvh,calc(100% - var(--inset) * 2 - 60px));
+  padding:12px;overflow:hidden
+}
+.atlas-shell:has(.atlas-shelf:not([hidden])) .discovery {visibility:hidden}
+.shelf-heading,.shelf-foot {display:flex;align-items:center;justify-content:space-between;gap:8px}
+.shelf-heading {padding:4px 4px 12px}
+.shelf-heading h2 {margin:2px 0 0;font-size:19px;line-height:1.35;letter-spacing:-.025em}
+#atlas-shelf-close {align-self:flex-start;width:var(--touch);padding:0;border-color:transparent;background:transparent;color:var(--muted)}
+#atlas-shelf-close:hover,#atlas-shelf-clear:hover {background:var(--accent-soft);color:var(--accent)}
+.shelf-tabs {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px;padding:2px;border:1px solid var(--line);border-radius:999px;background:var(--bg)}
+.shelf-tabs button {border-radius:999px;border-color:transparent;background:transparent;color:var(--muted);font-size:13px}
+.shelf-tabs button[aria-pressed=true] {color:var(--accent);background:var(--accent-soft)}
+.shelf-list {min-height:0;min-width:0;margin-top:8px;padding:2px;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin}
+.shelf-list>p,.shelf-empty {margin:0;padding:16px 8px;color:var(--muted);font-size:13px;text-wrap:pretty}
+.shelf-list button {
+  display:block;width:100%;padding:8px 10px;border-color:transparent;background:transparent;
+  text-align:left;white-space:normal;overflow-wrap:anywhere;line-height:1.4
+}
+.shelf-list button:hover {background:var(--accent-soft)}
+.shelf-list strong,.shelf-list small {display:block}
+.shelf-list strong {font-size:13px;font-weight:650}
+.shelf-list small {margin-top:4px;color:var(--muted);font-size:11px}
+.shelf-foot {flex-wrap:wrap;margin-top:6px;padding-top:2px;border-top:1px solid var(--line)}
+.shelf-foot p {margin:0 0 0 4px;color:var(--subtle);font-size:11px}
+#atlas-shelf-clear {margin-left:auto;padding-inline:6px;border-color:transparent;background:transparent;color:var(--muted);font-size:11px}
+
 /* Floating reader and its secondary navigation. */
 .inspector {
   z-index:15;top:calc(var(--inset) + 60px);right:var(--inset);bottom:var(--inset);
@@ -228,14 +268,26 @@ main {height:calc(100dvh - var(--top))}
 .inspector-nav #atlas-focus {margin-left:auto}
 .inspector-grip,#atlas-inspector-expand {display:none}
 .inspector .panel-heading {margin:0 0 16px}
-.record-heading-meta {display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px}
+.record-heading-meta {display:flex;align-items:center;justify-content:space-between;gap:4px;min-height:44px}
+.record-actions {display:flex;align-items:center;flex:none;gap:2px}
 .eyebrow {margin:0;color:var(--accent);font-size:12px;font-weight:650;letter-spacing:.05em}
-#atlas-share {padding:0 8px;border-color:transparent;background:transparent;color:var(--muted);font-size:12px;white-space:nowrap}
-#atlas-share:hover {color:var(--accent);background:var(--accent-soft)}
+#atlas-share,#atlas-bookmark {padding:0 8px;border-color:transparent;background:transparent;color:var(--muted);font-size:12px;white-space:nowrap}
+#atlas-bookmark {gap:4px}
+#atlas-bookmark svg {width:15px;height:15px}
+#atlas-bookmark[aria-pressed=true] svg {fill:currentColor}
+#atlas-share:hover,#atlas-bookmark:is(:hover,[aria-pressed=true]) {color:var(--accent);background:var(--accent-soft)}
 #atlas-record-title {margin:4px 0 0;font-size:25px;line-height:1.36;font-weight:700;letter-spacing:-.025em;overflow-wrap:anywhere;text-wrap:pretty}
 .record-tabs {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin-bottom:16px;padding:3px;border:1px solid var(--line);border-radius:999px;background:var(--bg)}
 .record-tabs button {padding:0 4px;border-color:transparent;border-radius:999px;background:transparent;color:var(--muted);font-size:13px;font-weight:620;white-space:nowrap}
 .record-tabs button[aria-pressed=true] {color:var(--accent);border-color:transparent;background:var(--accent-soft)}
+.reading-route {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin:0 0 16px}
+.route-step {
+  position:relative;display:flex;flex-wrap:wrap;align-content:center;justify-content:flex-start;
+  gap:3px 7px;padding:7px 8px;border-color:transparent;background:var(--hover);
+  color:var(--muted);font-size:12px;font-weight:620;line-height:1.35;text-align:left
+}
+.route-step small {color:var(--subtle);font-size:11px;font-variant-numeric:tabular-nums}
+.route-step.is-current {border-color:var(--line);background:var(--accent-soft);color:var(--accent)}
 .quiet {color:var(--muted)}
 .primary {background:var(--accent);color:var(--accent-ink);border-color:transparent;font-weight:650}
 .record-kind {display:inline-block;padding:3px 8px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-size:12px}
@@ -260,6 +312,12 @@ main {height:calc(100dvh - var(--top))}
 .path-card {margin:8px 0;padding:12px;border:1px solid var(--line);border-left:3px solid var(--node-color,var(--accent));border-radius:14px;background:var(--raised)}
 .path-card .path-role {display:block;margin-bottom:4px;color:var(--node-color,var(--accent));font-size:12px;font-weight:650}
 .path-card p {margin:0;font-size:14px;line-height:1.6}
+.connection-group {margin:16px 0 0}
+.connection-group h4 {display:flex;align-items:baseline;gap:8px;margin:0 0 6px;font-size:14px;font-weight:680}
+.connection-group h4 small,.connection-group>small {color:var(--subtle);font-size:11px;font-variant-numeric:tabular-nums}
+.connection-note {margin:4px 0 14px;color:var(--muted);font-size:13px;line-height:1.55}
+.path-card .path-context,.path-card .path-relation {display:block;color:var(--muted);font-size:12px;line-height:1.5}
+.path-card .path-relation {margin:0 0 3px;color:var(--node-color,var(--accent));font-weight:650}
 .path-card button {display:block;width:100%;padding:2px 0;text-align:left;border-color:transparent;background:transparent;overflow-wrap:anywhere}
 .inspector-open .map-tools {right:calc(420px + var(--inset) * 2)}
 .inspector-open .map-hint,.inspector-open .map-counts {display:none}
@@ -269,6 +327,7 @@ main {height:calc(100dvh - var(--top))}
   .top {grid-template-columns:auto minmax(0,1fr) auto;padding-inline:var(--inset)}
   .brand-tag {display:none}
   #atlas-status {max-width:160px}
+  .atlas-shelf {width:min(282px,calc(100% - var(--inset) * 2))}
   .inspector {width:min(380px,calc(100% - var(--inset) * 2))}
   .inspector-open .map-tools {right:calc(380px + var(--inset) * 2)}
   .inspector-open .atlas-trail {max-width:calc(100% - 380px - var(--inset) * 3)}
@@ -277,7 +336,9 @@ main {height:calc(100dvh - var(--top))}
   :root {--top:56px;--inset:8px}
   .top {gap:8px;padding-left:max(8px,env(safe-area-inset-left));padding-right:max(8px,env(safe-area-inset-right))}
   .brand {width:44px;min-height:44px;justify-content:center}
-  .brand>span:nth-child(2),.quick-search kbd,.library-link,#atlas-theme span {display:none}
+  .brand>span:nth-child(2),.quick-search kbd,.library-link,#atlas-theme span,#atlas-shelf-toggle span {display:none}
+  .top nav {gap:2px}
+  #atlas-shelf-toggle,#atlas-theme {width:var(--touch);padding:0}
   .quick-search {gap:6px;padding:0 8px}
   .quick-search input,.controls input,.controls select {font-size:16px}
   .quick-search input::placeholder {font-size:14px}
@@ -286,6 +347,8 @@ main {height:calc(100dvh - var(--top))}
   .atlas-toolbar .toolbar-main button {padding-inline:8px;gap:4px;font-size:13px;min-width:44px}
   #atlas-status {display:none}
   .discovery {width:min(374px,calc(100% - var(--inset) * 2));padding:0 8px 6px}
+  .discovery-intro {margin-top:-4px;margin-bottom:6px}
+  .atlas-shelf {top:var(--inset);width:min(374px,calc(100% - var(--inset) * 2));max-height:min(60dvh,calc(100% - var(--inset) * 2))}
   .discovery-paths {grid-template-columns:1.35fr 1fr 1fr;gap:2px;margin-bottom:4px}
   .discovery-paths .discovery-primary {grid-column:auto;justify-content:center;gap:4px;padding-inline:4px;font-size:12px}
   .discovery-paths .discovery-primary svg {width:14px;height:14px}
@@ -316,10 +379,13 @@ main {height:calc(100dvh - var(--top))}
 }
 @media(max-height:520px) {
   .discovery {max-height:calc(100% - var(--inset) * 2 - 60px);overflow:auto;overscroll-behavior:contain}
+  .discovery-intro {display:none}
   .domain-chips {max-height:52px}
   .map-hint,.map-caption {display:none}
 }
 @media(max-height:420px) {
+  .atlas-shelf {overflow:auto;overscroll-behavior:contain}
+  .shelf-list {flex:none;overflow:visible}
   .map-foot {display:none}
   .map-tools {bottom:var(--inset)}
 }

@@ -1,8 +1,8 @@
 {
   "schema": "public-methods-release-manifest-v3",
-  "previous_public_commit": "4543bb747add8b2dece48863c8c035f6f0959614",
-  "scope": "Cosmic knowhow atlas; subtle starfield, clear labels, translucent controls and cancellable smooth camera; data and API unchanged",
-  "created_at": "2026-11-09T15:34:10.330008+00:00",
+  "previous_public_commit": "459ae921b2982a3467059065b353c85e57cbae85",
+  "scope": "Second-brain reading UX; contextual previews, explicit relation groups, browser-local exact-ID bookmarks; data and API unchanged",
+  "created_at": "2026-11-09T16:07:47.589588+00:00",
   "files": [
     {
       "path": "public-methods/.gitignore",
@@ -26,7 +26,7 @@
     },
     {
       "path": "public-methods/README.md",
-      "sha256": "6e91b5fc24871d82086fa63aa75cbe672b8886757ea442bd3e41e292e957d81b"
+      "sha256": "6eb0e6390b0f0d6d82b74eb9d157d5d986c5ad6b3080cd001a70f56bf9b4539f"
     },
     {
       "path": "public-methods/api/app/__init__.py",
@@ -2578,7 +2578,7 @@
     },
     {
       "path": "public-methods/docs/atlas-ui-design.md",
-      "sha256": "a6e02c384586a1040f1f832dfa3395e3a4dd1cf264963d16b4296598c4e98ff3"
+      "sha256": "4fff96f87079bf8f819e492abc69935d0d8b1c3fc2c94f3f2f12a082d4880a59"
     },
     {
       "path": "public-methods/docs/judgment-methods.md",
@@ -2718,15 +2718,15 @@
     },
     {
       "path": "public-methods/web/research/methods-explore.css",
-      "sha256": "60e42c75c6bec97807f68a1ff618954231d34196367fed11d514d8ea8ed1669c"
+      "sha256": "32ae4cca45b42697d54fe5100ef3ae7e9b462cf3b840cff0014dab6e291b2593"
     },
     {
       "path": "public-methods/web/research/methods-explore.html",
-      "sha256": "97e9ecac535fcdc81431f5b4dc6b993807763d880050d42b126c750902b028c9"
+      "sha256": "e94632044d14c0cb2912c141332e44481efc6a9cceaa33bca0bf141920f8a911"
     },
     {
       "path": "public-methods/web/research/methods-explore.js",
-      "sha256": "596e75902d6361a9a8c5c5e1432464cfea252bb5f13d95e4688e31dd5e337ef4"
+      "sha256": "16582a7924b73d0a74aecc9799c74c346d4839fd7ca7c874e124aca8b43e8add"
     },
     {
       "path": "public-methods/web/research/methods-graph.js",

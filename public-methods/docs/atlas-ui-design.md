@@ -39,3 +39,20 @@ Overview labels now prioritize subjects. Method names appear on hover/focus, thr
 Wheel bursts accumulate toward one cancellable 260ms camera transition. Fit and zoom buttons use the same transition; pointer drag and pinch take immediate control. Reduced-motion preference disables camera interpolation. The transition also stops when the document becomes hidden. Decorative gradients remain static; the existing optional graph physics settles rather than running continuously.
 
 These are presentation and interaction refinements, not new retrieval-quality or user-effectiveness measurements.
+
+
+## Second-brain reading and return paths (2026-11-10)
+
+Inspected the actual public pages and screenshots, not only search snippets:
+
+- [Quartz](https://github.com/jackyzha0/quartz) is MIT-licensed. Its [popover previews](https://quartz.jzhao.xyz/features/popover-previews) and [local graph / visited nodes](https://quartz.jzhao.xyz/features/graph-view) informed a preview-before-opening pattern and visible return paths.
+- [Simon Späti's public Second Brain](https://www.ssp.sh/brain/) and [source repository](https://github.com/sspaeti/second-brain-public), reached from the author's [Reddit showcase](https://www.reddit.com/r/ObsidianMD/comments/1vthjv0/public_second_brain_showcase_currated_with/), use explicit search, linked reading and topic maps as starting points. This is a customized Quartz v3/Hugo site, distinct from current Quartz documentation. The showcase is design inspiration, not evidence of improved user outcomes.
+- [Capacities backlinks](https://docs.capacities.io/reference/backlinks) show a reference in its original context. Capacities is a commercial product reference here, not an open-source dependency.
+
+Applied patterns are original HTML/CSS/JS; no reference code, imagery, fonts or analytics were copied. Dependency count is unchanged. Full-screen cosmic graph remains the primary surface.
+
+The graph preview now shows the actual stored situation, goal, method version and direct linked report count. It makes no additional request. Reading routes lead from context to procedure and recorded connections. Connections are grouped by actual neighbor types; relation labels and method-purpose snippets remain visible. No links or relevance scores are inferred from screen proximity.
+
+Bookmarks and recent-opened records use browser-local storage key `openakashic-atlas-reading-v1`, containing only exact node IDs (100 saved / 24 recent). They are private to that browser profile and are not account storage, encrypted storage or server contributions. Missing IDs remain retained and clearly unavailable in the current loaded graph; they are never silently redirected to a different version. Either list can be cleared separately. Unavailable storage falls back to the current page session; invalid persisted input is bounded and ignored. Browser Back and shared URLs remain separate from this local shelf.
+
+Functional verification covers pointer/keyboard previews, exact-ID persistence, grouping against real edges, storage failure/malformed data, no write requests, responsive surfaces, keyboard navigation and existing camera/graph behavior. These checks do not prove human task-success improvements or token savings.
