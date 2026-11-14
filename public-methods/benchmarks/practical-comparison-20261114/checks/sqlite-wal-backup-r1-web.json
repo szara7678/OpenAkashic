@@ -1,0 +1,31 @@
+{
+  "task": "sqlite-wal-backup",
+  "checker_exit_code": 0,
+  "checker_seconds": 0.8934039149899036,
+  "result": {
+    "task": "sqlite-wal-backup",
+    "all_passed": true,
+    "checks": [
+      {
+        "name": "corrupt source and partial destination cleanup",
+        "passed": true
+      },
+      {
+        "name": "WAL committed rows and integrity",
+        "passed": true
+      },
+      {
+        "name": "existing destination preserved",
+        "passed": true
+      },
+      {
+        "name": "same source rejected",
+        "passed": true
+      },
+      {
+        "name": "failure cleanup",
+        "passed": true
+      }
+    ]
+  }
+}

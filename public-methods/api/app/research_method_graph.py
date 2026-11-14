@@ -6,7 +6,16 @@ from pathlib import Path
 
 from app.research_store import digest
 
-DOMAINS = ("커리어", "제품·사업", "학습", "팀 의사결정", "글쓰기·전달", "협상", "투자 판단", "오픈소스·커뮤니티")
+DOMAINS = ("커리어", "제품·사업", "학습", "팀 의사결정", "글쓰기·전달", "협상", "투자 판단", "오픈소스·커뮤니티",
+           "디자인", "조사·분석", "개발·운영")
+
+# Explicit editorial tags only. Keep legacy aliases ahead of narrower additions
+# so existing mixed-tag records retain their established category. Evidence-kind
+# and fixture tags do not describe a domain; unknown tags remain unclassified.
+DOMAIN_ALIASES = (("design", "디자인"), ("연구", "조사·분석"), ("협업", "팀 의사결정"), ("운영", "개발·운영"),
+                  ("duckdb", "개발·운영"), ("tanstack", "개발·운영"), ("streamlit", "개발·운영"),
+                  ("SQLite", "개발·운영"), ("서비스운영", "개발·운영"), ("CI", "개발·운영"),
+                  ("코드리뷰", "개발·운영"), ("문서검토", "글쓰기·전달"))
 
 
 def domain_for(method):
@@ -14,7 +23,7 @@ def domain_for(method):
     for domain in DOMAINS:
         if domain in tags:
             return domain
-    for tag, domain in (("design", "디자인"), ("연구", "조사·분석"), ("협업", "팀 의사결정"), ("운영", "개발·운영")):
+    for tag, domain in DOMAIN_ALIASES:
         if tag in tags:
             return domain
     return "기타"

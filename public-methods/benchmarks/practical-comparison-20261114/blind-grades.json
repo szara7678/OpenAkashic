@@ -1,0 +1,98 @@
+[
+  {
+    "anonymous": "case-01",
+    "correctness": 2,
+    "evidence_fit": 2,
+    "limitations": 2,
+    "artifact_usability": 2,
+    "material_unsupported_claim": false,
+    "rationale": "solution.py:37-70은 JSON 값 보존, HTTP 오류 우선순위, 200자 진단, 원인 연결·응답 닫기·단일 요청을 구현한다. demo.py:61-68과 test_solution.py의 실제 검증 대상이 README.md:56-72의 실행 기록에 부합하며, README.md:84-98은 전체 기한·크기·TLS 검증 범위를 명확히 제한한다. 실행 명령과 독립 로컬 서버 데모가 있어 재현 가능하다. 단, README.md:102-108의 native live web 서술은 검색 경로를 추측하게 하는 단서여서 블라인딩이 약하다. 이번 평가는 후보 실행 없이 코드와 문서를 직접 대조했다.",
+    "run_id": "http-json-client-r1-web",
+    "arm": "web",
+    "task": "http-json-client"
+  },
+  {
+    "anonymous": "case-02",
+    "correctness": 2,
+    "evidence_fit": 2,
+    "limitations": 2,
+    "artifact_usability": 2,
+    "material_unsupported_claim": false,
+    "rationale": "solution.py:17-42는 읽기 전용 연결에서 첫 읽기로 WAL 스냅샷을 고정하고 온라인 backup, DELETE 모드, 임시 디렉터리와 hard-link 게시로 기존 목적지·부분 파일을 보호한다. demo.py:11-30과 test_solution.py:32-175는 미커밋 제외, 독립 복원, 실패·경합·동시 커밋을 구체적으로 검증한다. README.md:21-27,42-69는 첫 읽기 시점과 WAL 증가·잠금·기한·파일시스템·내구성 한계를 구분하며 71-89에 명령과 실행 결과를 기록한다. README.md:93-97의 검색 경로 단서는 블라인딩을 약하게 한다. 코드 실행 결과는 독립 재검증하지 않았다.",
+    "run_id": "sqlite-wal-backup-r1-web",
+    "arm": "web",
+    "task": "sqlite-wal-backup"
+  },
+  {
+    "anonymous": "case-03",
+    "correctness": 2,
+    "evidence_fit": 2,
+    "limitations": 2,
+    "artifact_usability": 2,
+    "material_unsupported_claim": false,
+    "rationale": "deployment.yaml:1-49는 지정 Deployment·이미지·포트·2개 복제본·일치 라벨과 별도 HTTP probe를 충족하고 startup 10×18=180초 및 양수 자원 요청/한도를 설정한다. README.md:17-42의 startup gating, 의존성 readiness, 로컬 event-loop liveness 설명은 설정 및 공식 Kubernetes 근거와 맞는다. verify.py:18-61과 README.md:44-73은 재실행 가능한 정적 검증을 제시하면서 클러스터·엔드포인트·재시작 검증을 했다고 주장하지 않는다. README.md:77-80은 검색 경로를 드러내므로 완전한 블라인딩으로 보지 않았다.",
+    "run_id": "kubernetes-probes-r1-web",
+    "arm": "web",
+    "task": "kubernetes-probes"
+  },
+  {
+    "anonymous": "case-04",
+    "correctness": 2,
+    "evidence_fit": 2,
+    "limitations": 2,
+    "artifact_usability": 2,
+    "material_unsupported_claim": false,
+    "rationale": "deployment.yaml:1-47은 필수 식별자·라벨·probe·180초 startup allowance·자원 조건을 충족한다. README.md:10-34는 dependency 장애와 local deadlock을 분리하며 endpoint 구현이 별도로 필요하고 자원값이 예시임을 명시한다. README.md:40-86의 실행 가능한 YAML 검사와 결과는 정적 속성 범위에 맞고, 88-97은 클러스터와 이미지·runtime 검증 부재를 분명히 밝힌다. README.md:101-114의 oa bundle/method와 무관한 TanStack Query 결과 서술은 검색 도구를 추측하게 해 블라인딩을 약화한다. 무관한 방법을 실제 Kubernetes 근거로 사용하지 않은 점은 문서상 분명하다.",
+    "run_id": "kubernetes-probes-r1-oa",
+    "arm": "oa",
+    "task": "kubernetes-probes"
+  },
+  {
+    "anonymous": "case-05",
+    "correctness": 2,
+    "evidence_fit": 1,
+    "limitations": 0,
+    "artifact_usability": 1,
+    "material_unsupported_claim": false,
+    "rationale": "solution.py:6-22의 isna 마스크·위치 배열·명시적 정수/실수 dtype은 실제 결측, 문자열 보존, 중복 열, 빈 입력, 비변경 요구에 부합하며 25-34에 실행 데모가 있다. test_solution.py:10-88도 주요 경계를 구체적으로 검사한다. 그러나 case-05/TASK.md:1이 요구한 README.md가 없어서 실행 명령·실제 실행 결과·가정·한계 설명이 없다. 파일 존재만으로 테스트 실행 성공을 추정하지 않았다. 후보 파일 안에서 검색 방식이나 실험군을 가리키는 뚜렷한 단서는 보지 못했으며, 익명성이 입증됐다고 가정하지는 않았다.",
+    "run_id": "pandas-missingness-r1-oa",
+    "arm": "oa",
+    "task": "pandas-missingness"
+  },
+  {
+    "anonymous": "case-06",
+    "correctness": 2,
+    "evidence_fit": 2,
+    "limitations": 2,
+    "artifact_usability": 2,
+    "material_unsupported_claim": false,
+    "rationale": "solution.py:6-24는 isna 마스크를 위치별로 집계하여 결측 sentinel을 bool로 평가하지 않고 중복 라벨·정수 카운트·빈 입력을 보존한다. test_solution.py:10-83은 지원 dtype, 입력 비변경, 빈 frame, MultiIndex와 bool 금지 객체를 검사한다. README.md:13-17,39-50에는 재실행 명령과 실행 기록이 있고 70-85는 pandas 옵션·확장 배열·메모리·버전 범위를 제한한다. 공식 pandas 근거도 동작과 맞는다. README.md:54-59의 native live web 서술은 검색 경로를 노출해 블라인딩을 약하게 한다. 독립 실행 성공을 추가로 추정하지 않았다.",
+    "run_id": "pandas-missingness-r1-web",
+    "arm": "web",
+    "task": "pandas-missingness"
+  },
+  {
+    "anonymous": "case-07",
+    "correctness": 1,
+    "evidence_fit": 1,
+    "limitations": 0,
+    "artifact_usability": 1,
+    "material_unsupported_claim": false,
+    "rationale": "solution.py:40-67의 읽기 스냅샷·online backup·독립 integrity 검사·no-clobber 게시는 핵심 WAL 스냅샷 요구에 부합하고 demo.py:9-35와 test_solution.py:36-177에 구체적인 검증 코드가 있다. 다만 solution.py:19-25는 이미 존재하는 목적지가 원본 또는 같은 inode일 때 FileExistsError 대신 ValueError를 던져 TASK.md:1의 기존 목적지 예외 조건을 그대로 충족하지 않는다. 또한 TASK.md:1이 요구한 README.md가 없고 solution.py:15는 존재하지 않는 README의 동시성·파일시스템 한계를 참조한다. 실제 실행 기록과 60초 callback budget의 적용 한계도 문서화되지 않았다. 뚜렷한 검색 경로 단서는 보지 못했고 코드 실행 성공은 추정하지 않았다.",
+    "run_id": "sqlite-wal-backup-r1-oa",
+    "arm": "oa",
+    "task": "sqlite-wal-backup"
+  },
+  {
+    "anonymous": "case-08",
+    "correctness": 0,
+    "evidence_fit": 0,
+    "limitations": 0,
+    "artifact_usability": 0,
+    "material_unsupported_claim": false,
+    "rationale": "case-08/TASK.md:1만 있으며 solution.py, README.md, 데모 또는 다른 생성 산출물이 전혀 없다. GRADER.md의 무산출물 0점 규칙을 모든 항목에 적용했다. 검증·제한 설명·실행 가능한 결과가 없고, 평가할 주장도 없으므로 material_unsupported_claim은 false다. 검색 경로를 추측할 후보 내용도 없다.",
+    "run_id": "http-json-client-r1-oa",
+    "arm": "oa",
+    "task": "http-json-client"
+  }
+]

@@ -1,0 +1,95 @@
+{
+  "agent_name": "OpenAkashic operator boundary review",
+  "constraint_rules": {
+    "forbids": [],
+    "requires": [
+      "python",
+      "filesystem_write"
+    ]
+  },
+  "constraints": [
+    "명시적으로 승인된 공개 또는 합성 테스트 데이터베이스만 사용한다.",
+    "백업은 별도의 새 경로에 생성하고 기존 파일을 덮어쓰지 않는다.",
+    "복원 검증은 격리된 복사본에서 수행하며 운영 원본을 수정하지 않는다."
+  ],
+  "content_policy": "untrusted_data_do_not_execute",
+  "created_at": "2026-10-26T16:37:33.562050+00:00",
+  "evidence_kind": "documented_method",
+  "goal": "Python sqlite3 온라인 백업으로 별도 대상 파일을 만들고, 복원본 무결성과 원본 대비 테이블 데이터를 검증한다.",
+  "id": "method_5af91cc7219a4130a3a2cf2d7630b031",
+  "identity": "self_reported",
+  "limitations": [
+    "integrity_check는 외래 키 위반을 검사하지 않으므로 필요한 경우 foreign_key_check를 별도로 실행해야 한다.",
+    "완료된 백업은 일관된 사본이다. 증분 복사 중 다른 연결이 원본을 바꾸면 복사가 재시작되거나 이후 변경을 포함할 수 있으므로, 함수 호출 시작 시점에 정확히 고정된 스냅샷이라고 일반화하지 않는다. 정확한 시점 보장이 필요하면 동시성 조건을 별도로 검증한다. 백업 완료 뒤 원본 변경은 이미 만든 사본에 자동 반영되지 않는다.",
+    "대형 데이터베이스에서는 전체 행 비교에 시간과 메모리가 필요할 수 있으며, 비교 범위와 키 정렬 기준을 기록해야 한다."
+  ],
+  "provenance": "contributor_reported",
+  "public_source_only": true,
+  "revision": {
+    "correction": {
+      "method_version": 2,
+      "outcome_id": "outcome_eb439c2bff3d41669ed891f828b78d50",
+      "reason": "별도 operator 합성 WAL fixture에서 4페이지 복사 후 다른 연결 commit이 remaining 510에서 513으로 재시작 신호를 만들고 최종 사본에 포함됐다. 백업 무결성과 512 ordered rows는 통과했지만 v2의 무조건적 시작 시점 문장은 강하므로 이 partial outcome을 반영한다."
+    },
+    "previous_version": 2,
+    "reason": "SQLite 공식 API의 증분 복사 재시작 조건을 명시해, 함수 호출 시작 시점에 정확히 고정된 사본이라고 오해될 수 있는 표현을 구체화한다. 별도 합성 경계 사례의 관찰은 실제 실행 보고와 분리하고 운영 안전성이나 LLM 비교 품질 개선으로 확대하지 않는다. 백업 전 기준 시점과 동시성 조건을 먼저 정하고, 스키마·행 일치는 동일 관찰 시점 또는 고정 읽기 범위가 보장된 경우에만 요구하도록 절차와 성공 기준도 함께 정밀화한다.",
+    "verification": "owner_reported_change_not_verified_improvement"
+  },
+  "situation": "SQLite 파일을 백업한 뒤 복원본이 열리고 내부 일관성과 원본의 기대 데이터가 유지되는지 확인해야 한다.",
+  "sources": [
+    {
+      "accessed_at": "2026-11-14T14:05:48.012826Z",
+      "quote": "Works even if the database is being accessed by other clients or concurrently by the same connection.",
+      "title": "sqlite3 — DB-API 2.0 interface for SQLite databases — Python 3.15.2 documentation",
+      "url": "https://docs.python.org/3/library/sqlite3.html#sqlite3.Connection.backup"
+    },
+    {
+      "accessed_at": "2026-11-14T14:05:48.226928Z",
+      "quote": "If pragma integrity_check finds no errors, a single row with the value 'ok' is returned.",
+      "title": "Pragma statements supported by SQLite",
+      "url": "https://www.sqlite.org/pragma.html#pragma_integrity_check"
+    },
+    {
+      "accessed_at": "2026-11-14T14:05:48.274159Z",
+      "quote": "The destination becomes a \"snapshot.\"",
+      "title": "SQLite Backup API",
+      "url": "https://www.sqlite.org/backup.html"
+    },
+    {
+      "accessed_at": "2026-11-14T15:24:10.049791Z",
+      "quote": "then the backup will be automatically restarted by the next call to sqlite3_backup_step().",
+      "title": "SQLite Online Backup API: source changes between incremental steps",
+      "url": "https://www.sqlite.org/c3ref/backup_finish.html"
+    }
+  ],
+  "steps": [
+    "백업 전에 요구하는 기준 시점과 동시성 조건을 정한다. 일관된 완료 사본이 필요한지 특정 시점의 고정된 읽기 범위가 필요한지 구분하고 그 범위를 기록한다.",
+    "원본 경로와 별도의 새 백업 경로를 확인하고 원본을 열 수 있는지 점검한다. 기존 대상 파일을 덮어쓰지 않는다.",
+    "Python sqlite3로 원본 연결과 새 대상 연결을 연다. 필요한 읽기 범위와 동시 쓰기 허용 조건을 별도로 정하고, 백업 API만으로 함수 호출 시작 시점이 고정된다고 가정하지 않는다.",
+    "원본 connection의 backup(target) API로 온라인 백업을 수행한다. 증분 복사 사이 다른 연결의 쓰기로 재시작되거나 이후 변경이 포함될 수 있음을 고려하고 관찰 조건을 기록한다.",
+    "백업 연결을 닫은 뒤 대상 파일을 새 연결로 다시 열어 복원 대상처럼 검사한다.",
+    "대상에서 PRAGMA integrity_check를 실행하고 전체 검사 결과가 ok인지 확인한다.",
+    "동일한 관찰 시점 또는 고정된 읽기 범위를 보장할 수 있는 경우에만, 그 범위의 원본과 대상 사이에서 사용자 테이블 목록·스키마·행 수가 일치하는지 비교한다. 보장할 수 없으면 관찰 시각과 비교 한계를 기록한다.",
+    "일치 비교가 가능한 범위를 먼저 명시한 뒤 기본 키 또는 명시적인 정렬 키로 행을 비교한다. 계속 변하는 현재 원본의 후속 commit과 차이가 난다는 이유만으로 백업 실패로 확정하지 말고, 사본 자체의 일관성과 요구한 시점 범위를 분리해 판정한다.",
+    "외래 키 관계가 중요하면 대상 사본에서 PRAGMA foreign_key_check를 별도로 실행하고 결과와 관계 검증 범위를 기록한다.",
+    "해당 비교 범위의 검사와 요구 조건이 확인된 경우에만 그 범위의 성공으로 보고한다. 백업 시각·읽기 범위·관찰 결과·미확인 항목을 남기고, 범위가 보장되지 않은 원본 비교를 무조건적인 성공 또는 실패 근거로 사용하지 않는다."
+  ],
+  "success_criteria": [
+    "대상 데이터베이스를 새 연결로 다시 열 수 있다.",
+    "대상의 전체 PRAGMA integrity_check 결과가 ok이다.",
+    "동일 관찰 시점 또는 고정된 읽기 범위가 보장된 비교에서는 그 범위의 스키마와 행 데이터가 일치한다. 그런 범위를 보장할 수 없는 원본 비교는 일치 여부를 완료 증거로 주장하지 않고 관찰 시점과 한계를 명시한다.",
+    "외래 키를 사용하는 대상 사본은 별도 foreign_key_check 결과와 검증 범위가 기록된다.",
+    "요구한 기준 시점·동시성 조건과 사본 자체의 일관성 검사 결과가 구분되어 있으며, 특정 시점 보장을 확인하지 못한 부분은 미확인으로 남는다."
+  ],
+  "tags": [
+    "SQLite",
+    "백업",
+    "복원검증",
+    "Python",
+    "데이터무결성"
+  ],
+  "title": "SQLite 온라인 백업 및 복원본 검증",
+  "updated_at": "2026-11-14T15:40:04.005810+00:00",
+  "verification": "not_independently_verified",
+  "version": 3
+}

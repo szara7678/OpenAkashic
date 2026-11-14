@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: public-reader
+  labels:
+    app: public-reader
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: public-reader
+  template:
+    metadata:
+      labels:
+        app: public-reader
+    spec:
+      containers:
+        - name: reader
+          image: registry.example.invalid/public-reader:1.0
+          ports:
+            - containerPort: 8080
+          startupProbe:
+            httpGet:
+              path: /startup
+              port: 8080
+            timeoutSeconds: 2
+            periodSeconds: 10
+            failureThreshold: 18
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8080
+            timeoutSeconds: 2
+            periodSeconds: 5
+            failureThreshold: 1
+          livenessProbe:
+            httpGet:
+              path: /live
+              port: 8080
+            timeoutSeconds: 2
+            periodSeconds: 10
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi

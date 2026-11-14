@@ -1,0 +1,15 @@
+{
+  "schema": "openakashic-sqlite-boundary-artifacts-v1",
+  "run_state": "bounded_observations_for_revised_method_review",
+  "method_id": "method_5af91cc7219a4130a3a2cf2d7630b031",
+  "method_version": 3,
+  "method_snapshot_sha256": "a9a12731ab5b6695efe1f6f2c866f043492eadc0776fc24db070a3fa2daaf225",
+  "files_sha256": {
+    "exercise-source.py": "dc524e82a5c2bee004236071cd17b0af8b63c2c4dd008fa96e522638ad0a9f27",
+    "method-snapshot.json": "75a6426ee36ff819b87486024f9fa72ed79641cbdee1e7a332c6d04fea8c9895",
+    "progress.json": "07c6aea85beb4b872e54b257d23bc5bc6fa500d86264f8e506003859adee488a",
+    "report.json": "81da1b0fa015792b38bbcf9d84137e3cf314999b6d8dc2ec2dfda496d4aff116"
+  },
+  "fixture_databases_retained": false,
+  "temporary_fixture_removed": true
+}

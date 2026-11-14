@@ -1,8 +1,8 @@
 {
   "schema": "public-methods-release-manifest-v3",
-  "previous_public_commit": "d45a119d1003d789d3d65620d6c3f437b6b9b5c9",
-  "scope": "Clear selection on dismiss; explicit situation-goal meaning search; shared-source navigation and evidence-bounded archive review",
-  "created_at": "2026-11-14T13:56:49.788093+00:00",
+  "previous_public_commit": "f03f97edb7909c327c74ebc0cc4a69946d5fa68c",
+  "scope": "Grounded source excerpts and explicit domains; bounded web/OA task comparison with failures; exact-version application and SQLite temporal correction evidence",
+  "created_at": "2026-11-14T15:47:46.032648+00:00",
   "files": [
     {
       "path": "public-methods/.gitignore",
@@ -26,7 +26,7 @@
     },
     {
       "path": "public-methods/README.md",
-      "sha256": "d34a5967a49e3f651edfd614aecbd0873443ff419e2d4512fd8116151db5620f"
+      "sha256": "1bd2165ffadb6b866fb7e1ba6534c1dfcef08847dbaea74fdf4c6f0a55d3509d"
     },
     {
       "path": "public-methods/api/app/__init__.py",
@@ -62,7 +62,7 @@
     },
     {
       "path": "public-methods/api/app/research_method_graph.py",
-      "sha256": "8ab4fc0d88d638196c945e6a1c0fcfd31e3d8be9d696a99ede393d8a1d14f6c8"
+      "sha256": "729e3968e5250f430ea74d008b8e50827dc4ad49a168ee87771522010a10216c"
     },
     {
       "path": "public-methods/api/app/research_method_revisions.py",
@@ -139,6 +139,10 @@
     {
       "path": "public-methods/api/tests/test_method_bundle.py",
       "sha256": "be7c56d4c01205b5327fb8361156b32952a69f58800fdab67dd6254d39dce0d4"
+    },
+    {
+      "path": "public-methods/api/tests/test_method_classification.py",
+      "sha256": "db81641aa22bcec1be1662ae68fd8446d8e40747a3645fb7e97fd97d19bff84c"
     },
     {
       "path": "public-methods/api/tests/test_method_context.py",
@@ -2301,6 +2305,242 @@
       "sha256": "2d4e2dfe208a44cfba94624ce9eebbcd1ebd5cc74d4215d26f12f0856e15c5c0"
     },
     {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/PROTOCOL.md",
+      "sha256": "3ce77590320fdf293a38057683f6f6f3079d2119967b7a63fb0e9c4da49ea3ee"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/PUBLIC_EXPORT_SCAN.json",
+      "sha256": "4c1d43e83d3d6f8c297769832ec5bc774bc632726f2980a27c133a5a4a2c8e7e"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/README.md",
+      "sha256": "ebcf3f6e277c2341879812d2d83441afe944c1906b77606850762fe8901b3418"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/RUBRIC.md",
+      "sha256": "d196e3bde6d815e14d3b408ec35b71e756908dd0dc68eef201882983e62eb662"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/SHA256SUMS",
+      "sha256": "9360d3b7635d2b6dbad99fecd5e89bcbc102cb4847b45e95389ab1eb92205a3c"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/blind-grades.json",
+      "sha256": "61f2cc97798acc0b21ba86438335ddfc9fceb03aa891523ae9f88b32415df186"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/candidate-artifact-provenance.json",
+      "sha256": "8aa7297db2b8fbb2b64090160a853bdadb8284a18c4c540a17a36ee901f968e7"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/candidates/http-json-client-r1-oa/ARTIFACT_STATUS.json",
+      "sha256": "8e8b5714ec2b3d2897cc2ef5eba00d491143a9fb2bdc29d0e9889cf4ddc67d37"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/candidates/http-json-client-r1-web/ARTIFACT_STATUS.json",
+      "sha256": "e00c766aa6043142daf75d4429bdfec7a9183acf116c5e890aa0387ba12b56fa"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/candidates/http-json-client-r1-web/README.md",
+      "sha256": "3069b97726de38f362ea841b5468d322493416dded0e47709a95a3e766f5e48a"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/candidates/http-json-client-r1-web/demo.py",
+      "sha256": "f428d13773f971b84c5f4842a801189b38a0758bd0ad10b0e7ffb53d73d8d74e"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/candidates/http-json-client-r1-web/solution.py",
+      "sha256": "bf3a1c14f6190037f199e01b356ebc10433b14a636585aa643248a9c1fa61aa0"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/candidates/http-json-client-r1-web/test_solution.py",
+      "sha256": "2cc35217794eb06c941b951e0c30534e1d1042b57fe85acc381af9cbdd213edd"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/candidates/kubernetes-probes-r1-oa/ARTIFACT_STATUS.json",
+      "sha256": "c3eb37be3514fdc98d4d9c7a344ad6a5ecbfce401ebda0ba9565bc5efbaf6b46"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/candidates/kubernetes-probes-r1-oa/README.md",
+      "sha256": "283106b24e4094de681c07e88f569328733b9931a8a87e61f8356e09cf68fd43"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/candidates/kubernetes-probes-r1-oa/deployment.yaml",
+      "sha256": "ff6a6b6bf48c0ffc6ace1e12845c616612b4111ec5aeda58ed68c5c8043c53ac"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/candidates/kubernetes-probes-r1-web/ARTIFACT_STATUS.json",
+      "sha256": "c3eb37be3514fdc98d4d9c7a344ad6a5ecbfce401ebda0ba9565bc5efbaf6b46"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/candidates/kubernetes-probes-r1-web/README.md",
+      "sha256": "47efbde061b686ff476874c1fa02d30eb7abf2e48acd5b83929996338691fdab"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/candidates/kubernetes-probes-r1-web/deployment.yaml",
+      "sha256": "3ec9621942c097a04baf471995658f07966b3260430b01780ad9a5704f4259e6"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/candidates/kubernetes-probes-r1-web/verify.py",
+      "sha256": "26c529765f19709afc001ac52d5efa26225d37601444f73e29af8acba6ba680b"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/candidates/pandas-missingness-r1-oa/ARTIFACT_STATUS.json",
+      "sha256": "9882e10354f2d8d19aaf9a4ceaaf69e57bd932d8f0c51b2eb78b675075f256b3"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/candidates/pandas-missingness-r1-oa/solution.py",
+      "sha256": "0c40ee600550fef3a8cc75741657f9a37e54ef2c805372bf2c61f54588ac4de0"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/candidates/pandas-missingness-r1-oa/test_solution.py",
+      "sha256": "d1c6dbe2da91e67bf450a3308e2ee1199157c801d2cbb18b9eb20a54f6af5486"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/candidates/pandas-missingness-r1-web/ARTIFACT_STATUS.json",
+      "sha256": "e00c766aa6043142daf75d4429bdfec7a9183acf116c5e890aa0387ba12b56fa"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/candidates/pandas-missingness-r1-web/README.md",
+      "sha256": "1c22af83e88f2e6e9deedfc3afc57291e57805a182e4dcdc6fef7adba1e78264"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/candidates/pandas-missingness-r1-web/solution.py",
+      "sha256": "8eed1ef59bfda499aab1574b3fd1ddfaff05fc0de4950a95dc9c84aa73b67d7b"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/candidates/pandas-missingness-r1-web/test_solution.py",
+      "sha256": "6af9a88b908a1d1fd0db3628d2f472f59d7e4b5237a671eeab10263f879b2d16"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/candidates/sqlite-wal-backup-r1-oa/ARTIFACT_STATUS.json",
+      "sha256": "9882e10354f2d8d19aaf9a4ceaaf69e57bd932d8f0c51b2eb78b675075f256b3"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/candidates/sqlite-wal-backup-r1-oa/demo.py",
+      "sha256": "cdd3e9085660015f8aff6b2a5ed7c84ce81307079f3ca4145427e0e7faa1033e"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/candidates/sqlite-wal-backup-r1-oa/solution.py",
+      "sha256": "923aa2cbc7d90cab53d75467b279d83a74fc9706e66c28a6de53074eb35ad7ad"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/candidates/sqlite-wal-backup-r1-oa/test_solution.py",
+      "sha256": "6367dfb7abe0461808e85c1310d79bec1488abc95bcc0d52c76e1cc76297c0cb"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/candidates/sqlite-wal-backup-r1-web/ARTIFACT_STATUS.json",
+      "sha256": "e00c766aa6043142daf75d4429bdfec7a9183acf116c5e890aa0387ba12b56fa"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/candidates/sqlite-wal-backup-r1-web/README.md",
+      "sha256": "423b037c7263aa94c46a32ec0cb114747df1e3ea1afad96506897d7185c6e8e6"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/candidates/sqlite-wal-backup-r1-web/demo.py",
+      "sha256": "6c65ba25f02058231d6ec09057ec92e2fdd1b9ad3fc0820d8489bcdc082494e6"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/candidates/sqlite-wal-backup-r1-web/solution.py",
+      "sha256": "9d83b160d31dfcf31fe1ccb5ce622c08dd2726243f0465a29c59aded324b0b7c"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/candidates/sqlite-wal-backup-r1-web/test_solution.py",
+      "sha256": "b6312f63d46c7a04ee10053d2470d72d25f476071e39e59c83d87c6b6f7f838c"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/checker.py",
+      "sha256": "d80f77c519eee4269aa1d5f9ac209f77a9e49bf5eaf26fbf8093aa97277fe8e7"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/checks/http-json-client-r1-oa.json",
+      "sha256": "4c685201a4e7f759813b17acbc26ba03c11fdce620ba2165bd4aeed89538518e"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/checks/http-json-client-r1-web.json",
+      "sha256": "6b175e109b81f3d16a0d0c85dd5e88a765ebe6037c0287ba923dea777c78b773"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/checks/kubernetes-probes-r1-oa.json",
+      "sha256": "749890e22a2d8a5a97f951ea04e6a12508b159ef36dad3a412ea02e9c12d669d"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/checks/kubernetes-probes-r1-web.json",
+      "sha256": "5cb566c4be1a62459dc860a1e07b36cb1f470947ad570a330dd324d7e790193c"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/checks/pandas-missingness-r1-oa.json",
+      "sha256": "749540a77f947d0255f9d8716c65a17653efac3590b729612cb6f08dfe382475"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/checks/pandas-missingness-r1-web.json",
+      "sha256": "2a7305c4531d4479c34b819d19ced5d074c0b00aa1b982d5f4622ef038d9ba3a"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/checks/sqlite-wal-backup-r1-oa.json",
+      "sha256": "fe403d9e35f472d9b65f7d823cc24ef1adebc48bf54e5e1742d9531a3cbe24cf"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/checks/sqlite-wal-backup-r1-web.json",
+      "sha256": "c98536a1373a01047fae82264452483720b62865cf3d60444eb6e2c297fc9274"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/environment/Dockerfile",
+      "sha256": "d3e327b1ee0936a697d65769ec7f46912d204778434f359da858fd170ed7030d"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/environment/original.Dockerfile",
+      "sha256": "4bff7c81d5f229a7eb6a7756bdf69a7b847055a443601deb6d423da43faf8162"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/environment/requirements-replay.txt",
+      "sha256": "fbfa28fa97f7bd6fc17f7cfedb49a31caaaae99e11f5dff35950ba0f2a7cd330"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/fetched-source-hashes.json",
+      "sha256": "80d4129dc2cc8ae5dd398cf5e930cc7571291ec501fe027e61f17d0410caa48b"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/method-snapshot-hashes.json",
+      "sha256": "120674eeeea48c45203725f96ff235b392b59df76d3ac762abca614fd2f12a64"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/prior-negative-cohorts.json",
+      "sha256": "7cf2a0d1567482607f4bd7595f1f5cda6900db635377ea50416fa5c71e805fa6"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/provenance.json",
+      "sha256": "82380ddf5d335f31ab543d807d0ed401f9fe56a67303c4882a7c79c6807970a6"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/retrieval-coverage.json",
+      "sha256": "85c523b091057eb60fdaca32bbf2a73b6d05b4768c32a206a79d424ed74b020b"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/run-metrics.json",
+      "sha256": "74d7ffb3551015a7a0b42c0f98468bb987dc52dea283b515d81f88d92e96ec3e"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/schedule.json",
+      "sha256": "f95c34b5e082093ea41e2e514f6e89f570f2c91b8fae43cd788d6cd362251a83"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/source-validation-summary.json",
+      "sha256": "b8e33f16e241c39ad2a8969baf89802b8a35d2bd0c882510ffc4b6d02719eb67"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/summary.json",
+      "sha256": "ccf883dc38acee84fd04b5696782f5ccc5fe66ea9479debed703bb68c76fd29c"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/tasks.json",
+      "sha256": "0f238c59392f637bb8e3cc1b381fd06517039ecf33a340ff749b9bf006fa365c"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-comparison-20261114/verify_results.py",
+      "sha256": "9f7eaf967a816ce984e942e4598bc1534d998c7f09dba60a5b53087f18ef9e2a"
+    },
+    {
       "path": "public-methods/benchmarks/retrieval-cost-2026-10-29/README.md",
       "sha256": "eb3b513a31098b4b19a1004f836c13b4b9fcd93edffa9c616af827abc24780b2"
     },
@@ -2573,6 +2813,78 @@
       "sha256": "4446b697f740a0e6ba8cbaf54baf5a2fcac93eda480f28eea3535851493deb15"
     },
     {
+      "path": "public-methods/benchmarks/sqlite-temporal-boundary-20261115/README.md",
+      "sha256": "ea430e5d05ac839b827943b9138423f3478a84462c0cddca44a6eaf61303bf70"
+    },
+    {
+      "path": "public-methods/benchmarks/sqlite-temporal-boundary-20261115/SHA256SUMS",
+      "sha256": "91b0f0f5049e229d614126780e6094d6f97bd53bafe1895ae154362632e60c9e"
+    },
+    {
+      "path": "public-methods/benchmarks/sqlite-temporal-boundary-20261115/manifest.json",
+      "sha256": "180f296656b2a5303fe33ed8b49d0b1433647997e6193d85452cecca86c95965"
+    },
+    {
+      "path": "public-methods/benchmarks/sqlite-temporal-boundary-20261115/run_fixture.py",
+      "sha256": "156c9009694a25eea12d534646e531fc4812660e182ad0c4f9baeb82655dd2ee"
+    },
+    {
+      "path": "public-methods/benchmarks/sqlite-temporal-boundary-20261115/v2-original/artifact-manifest.json",
+      "sha256": "f8d5c56b9587ff55a929bb7fc51a5e8ce28e04c0a51b67306ffd8832f729787c"
+    },
+    {
+      "path": "public-methods/benchmarks/sqlite-temporal-boundary-20261115/v2-original/exercise-source.py",
+      "sha256": "dc524e82a5c2bee004236071cd17b0af8b63c2c4dd008fa96e522638ad0a9f27"
+    },
+    {
+      "path": "public-methods/benchmarks/sqlite-temporal-boundary-20261115/v2-original/method-snapshot.json",
+      "sha256": "1cd4079d5a3a6a8aa9482e3b2c4073fb982dcafaa0d1a16b3af797f274ed7e3f"
+    },
+    {
+      "path": "public-methods/benchmarks/sqlite-temporal-boundary-20261115/v2-original/progress.json",
+      "sha256": "07c6aea85beb4b872e54b257d23bc5bc6fa500d86264f8e506003859adee488a"
+    },
+    {
+      "path": "public-methods/benchmarks/sqlite-temporal-boundary-20261115/v2-original/public-outcome.json",
+      "sha256": "55c022687dd72991d4144a67db6d975ef57d5d2e3135585dcb64f4e93699daa1"
+    },
+    {
+      "path": "public-methods/benchmarks/sqlite-temporal-boundary-20261115/v2-original/report.json",
+      "sha256": "5eacb90f8becd3b2e3524e33df42496d0df1477874a96552975fd40c73a363cd"
+    },
+    {
+      "path": "public-methods/benchmarks/sqlite-temporal-boundary-20261115/v3-corrected/artifact-manifest.json",
+      "sha256": "01f5ac1a86e0e9c4c2c539a836e1f983f9be30d4fde8bebdf577aaeb5f638120"
+    },
+    {
+      "path": "public-methods/benchmarks/sqlite-temporal-boundary-20261115/v3-corrected/exercise-source.py",
+      "sha256": "dc524e82a5c2bee004236071cd17b0af8b63c2c4dd008fa96e522638ad0a9f27"
+    },
+    {
+      "path": "public-methods/benchmarks/sqlite-temporal-boundary-20261115/v3-corrected/method-snapshot.json",
+      "sha256": "75a6426ee36ff819b87486024f9fa72ed79641cbdee1e7a332c6d04fea8c9895"
+    },
+    {
+      "path": "public-methods/benchmarks/sqlite-temporal-boundary-20261115/v3-corrected/progress.json",
+      "sha256": "07c6aea85beb4b872e54b257d23bc5bc6fa500d86264f8e506003859adee488a"
+    },
+    {
+      "path": "public-methods/benchmarks/sqlite-temporal-boundary-20261115/v3-corrected/public-outcome.json",
+      "sha256": "cbf22fe2b880500f5aa9c169f91492bcaf9960eada77d6327ea7f5e327a860a4"
+    },
+    {
+      "path": "public-methods/benchmarks/sqlite-temporal-boundary-20261115/v3-corrected/report.json",
+      "sha256": "81da1b0fa015792b38bbcf9d84137e3cf314999b6d8dc2ec2dfda496d4aff116"
+    },
+    {
+      "path": "public-methods/benchmarks/sqlite-temporal-boundary-20261115/v3-corrected/semantic-review.json",
+      "sha256": "6e7934c1a7f50f427d366abf8b56f412edfabaaf921e3ae96bdd870b789d19ba"
+    },
+    {
+      "path": "public-methods/benchmarks/sqlite-temporal-boundary-20261115/verify_pack.py",
+      "sha256": "b8961483e14caa9ea89b7763815b8e9492793ca6b763a6f30676a3cdd91821af"
+    },
+    {
       "path": "public-methods/deploy/public-research/Dockerfile",
       "sha256": "688c762ccf478b4f58334d16cae9502a27ea5372f0f2f39cf49540d084c91c39"
     },
@@ -2601,8 +2913,12 @@
       "sha256": "6c4b99653c9e1206d52d47285d1ca8cad86fceb536600407e9d4452956de704d"
     },
     {
+      "path": "public-methods/docs/practical-comparison-2026-11-14.md",
+      "sha256": "ac8f478f5130dcd7b293ab1fdb2b9912b3bb992693323dad8713b7ea8d12203f"
+    },
+    {
       "path": "public-methods/docs/public-methods.md",
-      "sha256": "d772fe22b4a9a6612c523e988aa688c646b5b7a414d60ee6333d16043f8a2513"
+      "sha256": "59cc43cb3d1661b58f036669add3d2d225042f75e780fd2a9af612a0139bea67"
     },
     {
       "path": "public-methods/examples/documented-exceptions.json",
@@ -2622,7 +2938,7 @@
     },
     {
       "path": "public-methods/llms-install.md",
-      "sha256": "98fcc1eefe9656d8de1566b1961e9c0a8dd7a5d48bb90df99a371e8f4c7212cc"
+      "sha256": "1bc18f3092315164245adc2734c0b71dc9b0c6f26988453f20e57eee0ab74d9b"
     },
     {
       "path": "public-methods/mcp/README.md",

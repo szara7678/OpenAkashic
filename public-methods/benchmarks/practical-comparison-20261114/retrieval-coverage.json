@@ -1,0 +1,217 @@
+[
+  {
+    "run_id": "sqlite-wal-backup-r1-oa",
+    "task": "sqlite-wal-backup",
+    "coverage_category": "related_method_read",
+    "assessment": "SQLite backup method matches the task; reading is not proof of causal application or efficacy.",
+    "assessment_type": "post-hoc descriptive retrieval-log review, not a changed inclusion criterion",
+    "events": [
+      {
+        "kind": "oa_bundle",
+        "response_projection_sha256": "34419db05a6e05ef360e19c7d04c4b0ac9d55bd06d00c778e5b77bd4740f8899",
+        "search_total": null,
+        "full_method_ids": [
+          {
+            "id": "method_5af91cc7219a4130a3a2cf2d7630b031",
+            "version": 2
+          }
+        ],
+        "bundle_items": [
+          {
+            "id": "method_5af91cc7219a4130a3a2cf2d7630b031",
+            "version": 2,
+            "complete": true,
+            "source_hash": "47c399a165d06ba8f8fb0b467ba1fd1e7df3a1a02d61c1c9c5f5271de19a5d8f"
+          },
+          {
+            "id": "method_6b0d7239262e45b296e4cb893342c20c",
+            "version": 2,
+            "complete": false,
+            "source_hash": "c7c86d733e2352e504c3c9cf1fd7dd621d466ba75d7019ba4ee508531f2f7dbd"
+          }
+        ]
+      },
+      {
+        "kind": "oa_method",
+        "response_projection_sha256": "ca2a4fbc991de8fe0a0fc94f694a8a33c358b3b36ceb85b5639f26680f86ac49",
+        "search_total": null,
+        "full_method_ids": [
+          {
+            "id": "method_5af91cc7219a4130a3a2cf2d7630b031",
+            "version": 2
+          }
+        ]
+      },
+      {
+        "kind": "oa_method",
+        "response_projection_sha256": "ca2a4fbc991de8fe0a0fc94f694a8a33c358b3b36ceb85b5639f26680f86ac49",
+        "search_total": null,
+        "full_method_ids": [
+          {
+            "id": "method_5af91cc7219a4130a3a2cf2d7630b031",
+            "version": 2
+          }
+        ]
+      },
+      {
+        "kind": "oa_bundle",
+        "response_projection_sha256": "34419db05a6e05ef360e19c7d04c4b0ac9d55bd06d00c778e5b77bd4740f8899",
+        "search_total": null,
+        "full_method_ids": [
+          {
+            "id": "method_5af91cc7219a4130a3a2cf2d7630b031",
+            "version": 2
+          }
+        ],
+        "bundle_items": [
+          {
+            "id": "method_5af91cc7219a4130a3a2cf2d7630b031",
+            "version": 2,
+            "complete": true,
+            "source_hash": "47c399a165d06ba8f8fb0b467ba1fd1e7df3a1a02d61c1c9c5f5271de19a5d8f"
+          },
+          {
+            "id": "method_6b0d7239262e45b296e4cb893342c20c",
+            "version": 2,
+            "complete": false,
+            "source_hash": "c7c86d733e2352e504c3c9cf1fd7dd621d466ba75d7019ba4ee508531f2f7dbd"
+          }
+        ]
+      }
+    ],
+    "actually_exposed_complete_methods": [
+      {
+        "id": "method_5af91cc7219a4130a3a2cf2d7630b031",
+        "version": 2,
+        "title": "SQLite 온라인 백업 및 복원본 검증"
+      }
+    ],
+    "method_application_or_effect_verified": false,
+    "source_and_model_unchanged_after_review": true,
+    "corpus_scope_diagnostic": "related method retrieved"
+  },
+  {
+    "run_id": "kubernetes-probes-r1-oa",
+    "task": "kubernetes-probes",
+    "coverage_category": "off_task_recommendation_then_official_web_fallback",
+    "assessment": "Returned complete method is TanStack Query, not Kubernetes; subsequent OA search returned zero.",
+    "assessment_type": "post-hoc descriptive retrieval-log review, not a changed inclusion criterion",
+    "events": [
+      {
+        "kind": "oa_bundle",
+        "response_projection_sha256": "4a875efd82dc838b52c96871319576abd20247d63cfd73d1afd2669f6b833e8d",
+        "search_total": null,
+        "full_method_ids": [
+          {
+            "id": "method_8a0ec54815304f6d8926d4ab71bdab54",
+            "version": 2
+          }
+        ],
+        "bundle_items": [
+          {
+            "id": "method_8a0ec54815304f6d8926d4ab71bdab54",
+            "version": 2,
+            "complete": true,
+            "source_hash": "553374478e8e01e067fc9313a9bfff33e1a156f140349843472ae6698b3f82c1"
+          }
+        ]
+      },
+      {
+        "kind": "oa_method",
+        "response_projection_sha256": "dc4fc6dcfaaf2f19d42927fb0dfd5991768f55c73c754ea257c0e2f97581f242",
+        "search_total": null,
+        "full_method_ids": [
+          {
+            "id": "method_8a0ec54815304f6d8926d4ab71bdab54",
+            "version": 2
+          }
+        ]
+      },
+      {
+        "kind": "oa_search",
+        "response_projection_sha256": "86176631ff85ee324785c2717883a16ac9d38b5c3f8640b26f0885b4f3ff8c74",
+        "search_total": 0,
+        "full_method_ids": []
+      }
+    ],
+    "actually_exposed_complete_methods": [
+      {
+        "id": "method_8a0ec54815304f6d8926d4ab71bdab54",
+        "version": 2,
+        "title": "TanStack Query: 비활성 쿼리의 수동 실행 예외와 skipToken"
+      }
+    ],
+    "method_application_or_effect_verified": false,
+    "source_and_model_unchanged_after_review": true,
+    "corpus_scope_diagnostic": "related corpus method exists, but not retrieved; off-task method returned"
+  },
+  {
+    "run_id": "pandas-missingness-r1-oa",
+    "task": "pandas-missingness",
+    "coverage_category": "no_method_returned_then_official_web_fallback",
+    "assessment": "OA bundle returned no items; official pandas pages were fetched.",
+    "assessment_type": "post-hoc descriptive retrieval-log review, not a changed inclusion criterion",
+    "events": [
+      {
+        "kind": "oa_bundle",
+        "response_projection_sha256": "a38f740ddafa4b1c599ec175271c1c697fbf2b41a5b093e0ac328395d4594c56",
+        "search_total": null,
+        "full_method_ids": [],
+        "bundle_items": []
+      }
+    ],
+    "actually_exposed_complete_methods": [],
+    "method_application_or_effect_verified": false,
+    "source_and_model_unchanged_after_review": true,
+    "corpus_scope_diagnostic": "related corpus method exists, but no method returned"
+  },
+  {
+    "run_id": "http-json-client-r1-oa",
+    "task": "http-json-client",
+    "coverage_category": "off_task_recommendation_then_official_web_fallback",
+    "assessment": "Returned complete method is TanStack Query, not a Python standard-library JSON client.",
+    "assessment_type": "post-hoc descriptive retrieval-log review, not a changed inclusion criterion",
+    "events": [
+      {
+        "kind": "oa_bundle",
+        "response_projection_sha256": "4a875efd82dc838b52c96871319576abd20247d63cfd73d1afd2669f6b833e8d",
+        "search_total": null,
+        "full_method_ids": [
+          {
+            "id": "method_8a0ec54815304f6d8926d4ab71bdab54",
+            "version": 2
+          }
+        ],
+        "bundle_items": [
+          {
+            "id": "method_8a0ec54815304f6d8926d4ab71bdab54",
+            "version": 2,
+            "complete": true,
+            "source_hash": "553374478e8e01e067fc9313a9bfff33e1a156f140349843472ae6698b3f82c1"
+          }
+        ]
+      },
+      {
+        "kind": "oa_method",
+        "response_projection_sha256": "dc4fc6dcfaaf2f19d42927fb0dfd5991768f55c73c754ea257c0e2f97581f242",
+        "search_total": null,
+        "full_method_ids": [
+          {
+            "id": "method_8a0ec54815304f6d8926d4ab71bdab54",
+            "version": 2
+          }
+        ]
+      }
+    ],
+    "actually_exposed_complete_methods": [
+      {
+        "id": "method_8a0ec54815304f6d8926d4ab71bdab54",
+        "version": 2,
+        "title": "TanStack Query: 비활성 쿼리의 수동 실행 예외와 skipToken"
+      }
+    ],
+    "method_application_or_effect_verified": false,
+    "source_and_model_unchanged_after_review": true,
+    "corpus_scope_diagnostic": "outside original corpus coverage, predeclared fallback control"
+  }
+]

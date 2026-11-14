@@ -1,0 +1,177 @@
+{
+  "cohort": "v4, adaptive resource-calibration cohort",
+  "scheduled_runs": 8,
+  "tasks": 4,
+  "repetitions_per_task": 1,
+  "primary_population": "all eight scheduled attempts, including budget failures and timeout",
+  "arms": {
+    "web": {
+      "scheduled": 4,
+      "finalized": 4,
+      "artifact_checker_passed": 4,
+      "normal_CLI_completions": 2,
+      "timeouts": 0,
+      "wall_seconds_all_attempts": 735.2010782740545,
+      "provider_usage_all_attempts": {
+        "input_tokens": 747390,
+        "output_tokens": 26704,
+        "total_tokens": 774094,
+        "cached_input_tokens": 588032
+      },
+      "provider_usage_missing_runs": [],
+      "quality_successes": 2,
+      "quality_success_rate": 0.5,
+      "mean_wall_seconds": 183.8002695685136,
+      "observed_receipts_only_not_complete_attempt_total": {
+        "input_tokens": 747390,
+        "output_tokens": 26704,
+        "total_tokens": 774094
+      }
+    },
+    "oa": {
+      "scheduled": 4,
+      "finalized": 4,
+      "artifact_checker_passed": 3,
+      "normal_CLI_completions": 1,
+      "timeouts": 1,
+      "wall_seconds_all_attempts": 790.3423560600495,
+      "provider_usage_all_attempts": null,
+      "provider_usage_missing_runs": [
+        "http-json-client-r1-oa"
+      ],
+      "quality_successes": 1,
+      "quality_success_rate": 0.25,
+      "mean_wall_seconds": 197.58558901501237,
+      "observed_receipts_only_not_complete_attempt_total": {
+        "input_tokens": 695539,
+        "output_tokens": 27560,
+        "total_tokens": 723099
+      }
+    }
+  },
+  "overall_token_change_percent": null,
+  "overall_token_change_status": "undefined because HTTP OA has incomplete provider accounting",
+  "secondary_complete_usage_pairs": [
+    {
+      "task": "http-json-client",
+      "repeat": 1,
+      "scope": "descriptive completed pair; includes failed attempts; no success-normalized benefit claim",
+      "web_exit_code": 1,
+      "oa_exit_code": 137,
+      "web_checker_passed": true,
+      "oa_checker_passed": false,
+      "web_full_success": false,
+      "oa_full_success": false,
+      "web_provider_usage": {
+        "input_tokens": 198778,
+        "output_tokens": 7469,
+        "total_tokens": 206247,
+        "cached_input_tokens": 144512,
+        "receipt_count": 11
+      },
+      "oa_provider_usage": null,
+      "OA_total_token_change_percent": null,
+      "web_wall_seconds": 204.43546658201376,
+      "oa_wall_seconds": 240.8349545710371,
+      "OA_wall_change_percent": 17.804879259744723
+    },
+    {
+      "task": "kubernetes-probes",
+      "repeat": 1,
+      "scope": "descriptive completed pair; includes failed attempts; no success-normalized benefit claim",
+      "web_exit_code": 0,
+      "oa_exit_code": 0,
+      "web_checker_passed": true,
+      "oa_checker_passed": true,
+      "web_full_success": true,
+      "oa_full_success": true,
+      "web_provider_usage": {
+        "input_tokens": 187364,
+        "output_tokens": 5008,
+        "total_tokens": 192372,
+        "cached_input_tokens": 147584,
+        "receipt_count": 11
+      },
+      "oa_provider_usage": {
+        "input_tokens": 202894,
+        "output_tokens": 4523,
+        "total_tokens": 207417,
+        "cached_input_tokens": 174080,
+        "receipt_count": 11
+      },
+      "OA_total_token_change_percent": 7.8207847295864275,
+      "web_wall_seconds": 158.30460986698745,
+      "oa_wall_seconds": 140.91601258097216,
+      "OA_wall_change_percent": -10.984264640572206
+    },
+    {
+      "task": "pandas-missingness",
+      "repeat": 1,
+      "scope": "descriptive completed pair; includes failed attempts; no success-normalized benefit claim",
+      "web_exit_code": 0,
+      "oa_exit_code": 1,
+      "web_checker_passed": true,
+      "oa_checker_passed": true,
+      "web_full_success": true,
+      "oa_full_success": false,
+      "web_provider_usage": {
+        "input_tokens": 143303,
+        "output_tokens": 5432,
+        "total_tokens": 148735,
+        "cached_input_tokens": 104320,
+        "receipt_count": 9
+      },
+      "oa_provider_usage": {
+        "input_tokens": 186615,
+        "output_tokens": 5866,
+        "total_tokens": 192481,
+        "cached_input_tokens": 155776,
+        "receipt_count": 12
+      },
+      "OA_total_token_change_percent": 29.41204155040844,
+      "web_wall_seconds": 153.39850236702478,
+      "oa_wall_seconds": 174.32822713302448,
+      "OA_wall_change_percent": 13.64402157976925
+    },
+    {
+      "task": "sqlite-wal-backup",
+      "repeat": 1,
+      "scope": "descriptive completed pair; includes failed attempts; no success-normalized benefit claim",
+      "web_exit_code": 1,
+      "oa_exit_code": 1,
+      "web_checker_passed": true,
+      "oa_checker_passed": true,
+      "web_full_success": false,
+      "oa_full_success": false,
+      "web_provider_usage": {
+        "input_tokens": 217945,
+        "output_tokens": 8795,
+        "total_tokens": 226740,
+        "cached_input_tokens": 191616,
+        "receipt_count": 12
+      },
+      "oa_provider_usage": {
+        "input_tokens": 195796,
+        "output_tokens": 8991,
+        "total_tokens": 204787,
+        "cached_input_tokens": 168576,
+        "receipt_count": 10
+      },
+      "OA_total_token_change_percent": -9.682014642321601,
+      "web_wall_seconds": 219.06249945802847,
+      "oa_wall_seconds": 234.26316177501576,
+      "OA_wall_change_percent": 6.938961417218592
+    }
+  ],
+  "secondary_pair_scope": "Descriptive available-accounting subset; not primary, not success-normalized, and not a general efficiency result. Coverage groups were diagnosed after output and do not change the denominator.",
+  "grades_status": "completed independent review of eight shuffled packets; imperfect masking",
+  "provider_identity_fully_verified": false,
+  "cash_cost_measured": false,
+  "primary_result": "Full success web 2/4, OA 1/4; mean end-to-end wall web 183.80s, OA 197.59s. Overall OA token change is undefined because timeout accounting is incomplete.",
+  "grading_limits": [
+    "The grader reviewed candidate code and documents, did not independently execute them; executable acceptance is separate.",
+    "README search-tool descriptions leaked arm clues. This was an independent shuffled review with imperfect masking, not proven complete blindness.",
+    "One reviewer, four synthetic work types and one repetition per task do not establish general product effectiveness."
+  ],
+  "partial_usage_note": "Timeout row retains completed receipt counters as observed data, while full-attempt usage stays null. No missing request is imputed as zero."
+}

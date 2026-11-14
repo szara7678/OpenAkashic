@@ -1,0 +1,404 @@
+[
+  {
+    "cohort": "v2",
+    "scheduled": 16,
+    "started": 1,
+    "rows": [
+      {
+        "id": "sqlite-wal-backup-r1-web",
+        "task": "sqlite-wal-backup",
+        "arm": "web",
+        "started": true,
+        "status": "completed",
+        "exit_code": 1,
+        "wall_seconds": 0.7151815100223757,
+        "provider_usage": null,
+        "completed_receipts": 0
+      },
+      {
+        "id": "sqlite-wal-backup-r1-oa",
+        "task": "sqlite-wal-backup",
+        "arm": "oa",
+        "started": false,
+        "status": "not_launched",
+        "exit_code": null,
+        "wall_seconds": null,
+        "provider_usage": null,
+        "completed_receipts": 0
+      },
+      {
+        "id": "http-json-client-r1-oa",
+        "task": "http-json-client",
+        "arm": "oa",
+        "started": false,
+        "status": "not_launched",
+        "exit_code": null,
+        "wall_seconds": null,
+        "provider_usage": null,
+        "completed_receipts": 0
+      },
+      {
+        "id": "http-json-client-r1-web",
+        "task": "http-json-client",
+        "arm": "web",
+        "started": false,
+        "status": "not_launched",
+        "exit_code": null,
+        "wall_seconds": null,
+        "provider_usage": null,
+        "completed_receipts": 0
+      },
+      {
+        "id": "pandas-missingness-r1-web",
+        "task": "pandas-missingness",
+        "arm": "web",
+        "started": false,
+        "status": "not_launched",
+        "exit_code": null,
+        "wall_seconds": null,
+        "provider_usage": null,
+        "completed_receipts": 0
+      },
+      {
+        "id": "pandas-missingness-r1-oa",
+        "task": "pandas-missingness",
+        "arm": "oa",
+        "started": false,
+        "status": "not_launched",
+        "exit_code": null,
+        "wall_seconds": null,
+        "provider_usage": null,
+        "completed_receipts": 0
+      },
+      {
+        "id": "pandas-missingness-r2-oa",
+        "task": "pandas-missingness",
+        "arm": "oa",
+        "started": false,
+        "status": "not_launched",
+        "exit_code": null,
+        "wall_seconds": null,
+        "provider_usage": null,
+        "completed_receipts": 0
+      },
+      {
+        "id": "pandas-missingness-r2-web",
+        "task": "pandas-missingness",
+        "arm": "web",
+        "started": false,
+        "status": "not_launched",
+        "exit_code": null,
+        "wall_seconds": null,
+        "provider_usage": null,
+        "completed_receipts": 0
+      },
+      {
+        "id": "kubernetes-probes-r2-web",
+        "task": "kubernetes-probes",
+        "arm": "web",
+        "started": false,
+        "status": "not_launched",
+        "exit_code": null,
+        "wall_seconds": null,
+        "provider_usage": null,
+        "completed_receipts": 0
+      },
+      {
+        "id": "kubernetes-probes-r2-oa",
+        "task": "kubernetes-probes",
+        "arm": "oa",
+        "started": false,
+        "status": "not_launched",
+        "exit_code": null,
+        "wall_seconds": null,
+        "provider_usage": null,
+        "completed_receipts": 0
+      },
+      {
+        "id": "kubernetes-probes-r1-oa",
+        "task": "kubernetes-probes",
+        "arm": "oa",
+        "started": false,
+        "status": "not_launched",
+        "exit_code": null,
+        "wall_seconds": null,
+        "provider_usage": null,
+        "completed_receipts": 0
+      },
+      {
+        "id": "kubernetes-probes-r1-web",
+        "task": "kubernetes-probes",
+        "arm": "web",
+        "started": false,
+        "status": "not_launched",
+        "exit_code": null,
+        "wall_seconds": null,
+        "provider_usage": null,
+        "completed_receipts": 0
+      },
+      {
+        "id": "http-json-client-r2-web",
+        "task": "http-json-client",
+        "arm": "web",
+        "started": false,
+        "status": "not_launched",
+        "exit_code": null,
+        "wall_seconds": null,
+        "provider_usage": null,
+        "completed_receipts": 0
+      },
+      {
+        "id": "http-json-client-r2-oa",
+        "task": "http-json-client",
+        "arm": "oa",
+        "started": false,
+        "status": "not_launched",
+        "exit_code": null,
+        "wall_seconds": null,
+        "provider_usage": null,
+        "completed_receipts": 0
+      },
+      {
+        "id": "sqlite-wal-backup-r2-oa",
+        "task": "sqlite-wal-backup",
+        "arm": "oa",
+        "started": false,
+        "status": "not_launched",
+        "exit_code": null,
+        "wall_seconds": null,
+        "provider_usage": null,
+        "completed_receipts": 0
+      },
+      {
+        "id": "sqlite-wal-backup-r2-web",
+        "task": "sqlite-wal-backup",
+        "arm": "web",
+        "started": false,
+        "status": "not_launched",
+        "exit_code": null,
+        "wall_seconds": null,
+        "provider_usage": null,
+        "completed_receipts": 0
+      }
+    ],
+    "retained_original_freeze_sha256": "7c4571c10c89dc2212078ca2cf5eae521fca53a5c7653baff556fd5ccf98259c",
+    "operator_stop_sha256": null,
+    "scope": "separate historical negative/calibration cohort; never merged into v4"
+  },
+  {
+    "cohort": "v3",
+    "scheduled": 16,
+    "started": 7,
+    "rows": [
+      {
+        "id": "sqlite-wal-backup-r1-web",
+        "task": "sqlite-wal-backup",
+        "arm": "web",
+        "started": true,
+        "status": "completed",
+        "exit_code": 1,
+        "wall_seconds": 178.98073200898943,
+        "provider_usage": {
+          "input_tokens": 109508,
+          "output_tokens": 6976,
+          "total_tokens": 116484,
+          "cached_input_tokens": 89216
+        },
+        "completed_receipts": 7
+      },
+      {
+        "id": "sqlite-wal-backup-r1-oa",
+        "task": "sqlite-wal-backup",
+        "arm": "oa",
+        "started": true,
+        "status": "completed",
+        "exit_code": 1,
+        "wall_seconds": 119.93848587502725,
+        "provider_usage": {
+          "input_tokens": 115922,
+          "output_tokens": 4069,
+          "total_tokens": 119991,
+          "cached_input_tokens": 93824
+        },
+        "completed_receipts": 7
+      },
+      {
+        "id": "http-json-client-r1-oa",
+        "task": "http-json-client",
+        "arm": "oa",
+        "started": true,
+        "status": "completed",
+        "exit_code": 1,
+        "wall_seconds": 125.86502768995706,
+        "provider_usage": {
+          "input_tokens": 102906,
+          "output_tokens": 4337,
+          "total_tokens": 107243,
+          "cached_input_tokens": 73088
+        },
+        "completed_receipts": 7
+      },
+      {
+        "id": "http-json-client-r1-web",
+        "task": "http-json-client",
+        "arm": "web",
+        "started": true,
+        "status": "completed",
+        "exit_code": 1,
+        "wall_seconds": 176.87222816603025,
+        "provider_usage": {
+          "input_tokens": 105032,
+          "output_tokens": 7175,
+          "total_tokens": 112207,
+          "cached_input_tokens": 63360
+        },
+        "completed_receipts": 7
+      },
+      {
+        "id": "pandas-missingness-r1-web",
+        "task": "pandas-missingness",
+        "arm": "web",
+        "started": true,
+        "status": "completed",
+        "exit_code": 1,
+        "wall_seconds": 84.175862382981,
+        "provider_usage": {
+          "input_tokens": 106574,
+          "output_tokens": 2410,
+          "total_tokens": 108984,
+          "cached_input_tokens": 87296
+        },
+        "completed_receipts": 8
+      },
+      {
+        "id": "pandas-missingness-r1-oa",
+        "task": "pandas-missingness",
+        "arm": "oa",
+        "started": true,
+        "status": "completed",
+        "exit_code": 1,
+        "wall_seconds": 94.25161568500334,
+        "provider_usage": {
+          "input_tokens": 115081,
+          "output_tokens": 3086,
+          "total_tokens": 118167,
+          "cached_input_tokens": 87296
+        },
+        "completed_receipts": 7
+      },
+      {
+        "id": "pandas-missingness-r2-oa",
+        "task": "pandas-missingness",
+        "arm": "oa",
+        "started": true,
+        "status": "started_incomplete",
+        "exit_code": null,
+        "wall_seconds": null,
+        "provider_usage": null,
+        "completed_receipts": 4
+      },
+      {
+        "id": "pandas-missingness-r2-web",
+        "task": "pandas-missingness",
+        "arm": "web",
+        "started": false,
+        "status": "not_launched",
+        "exit_code": null,
+        "wall_seconds": null,
+        "provider_usage": null,
+        "completed_receipts": 0
+      },
+      {
+        "id": "kubernetes-probes-r2-web",
+        "task": "kubernetes-probes",
+        "arm": "web",
+        "started": false,
+        "status": "not_launched",
+        "exit_code": null,
+        "wall_seconds": null,
+        "provider_usage": null,
+        "completed_receipts": 0
+      },
+      {
+        "id": "kubernetes-probes-r2-oa",
+        "task": "kubernetes-probes",
+        "arm": "oa",
+        "started": false,
+        "status": "not_launched",
+        "exit_code": null,
+        "wall_seconds": null,
+        "provider_usage": null,
+        "completed_receipts": 0
+      },
+      {
+        "id": "kubernetes-probes-r1-oa",
+        "task": "kubernetes-probes",
+        "arm": "oa",
+        "started": false,
+        "status": "not_launched",
+        "exit_code": null,
+        "wall_seconds": null,
+        "provider_usage": null,
+        "completed_receipts": 0
+      },
+      {
+        "id": "kubernetes-probes-r1-web",
+        "task": "kubernetes-probes",
+        "arm": "web",
+        "started": false,
+        "status": "not_launched",
+        "exit_code": null,
+        "wall_seconds": null,
+        "provider_usage": null,
+        "completed_receipts": 0
+      },
+      {
+        "id": "http-json-client-r2-web",
+        "task": "http-json-client",
+        "arm": "web",
+        "started": false,
+        "status": "not_launched",
+        "exit_code": null,
+        "wall_seconds": null,
+        "provider_usage": null,
+        "completed_receipts": 0
+      },
+      {
+        "id": "http-json-client-r2-oa",
+        "task": "http-json-client",
+        "arm": "oa",
+        "started": false,
+        "status": "not_launched",
+        "exit_code": null,
+        "wall_seconds": null,
+        "provider_usage": null,
+        "completed_receipts": 0
+      },
+      {
+        "id": "sqlite-wal-backup-r2-oa",
+        "task": "sqlite-wal-backup",
+        "arm": "oa",
+        "started": false,
+        "status": "not_launched",
+        "exit_code": null,
+        "wall_seconds": null,
+        "provider_usage": null,
+        "completed_receipts": 0
+      },
+      {
+        "id": "sqlite-wal-backup-r2-web",
+        "task": "sqlite-wal-backup",
+        "arm": "web",
+        "started": false,
+        "status": "not_launched",
+        "exit_code": null,
+        "wall_seconds": null,
+        "provider_usage": null,
+        "completed_receipts": 0
+      }
+    ],
+    "retained_original_freeze_sha256": "08ce5da4507ce17a7abd97a0b9942ff7829975db4e8e57edd321f92237744655",
+    "operator_stop_sha256": "29922366c87492939d3dbd266e58d93ca19c3f1b3a5d6322515273069b7e148e",
+    "scope": "separate historical negative/calibration cohort; never merged into v4"
+  }
+]

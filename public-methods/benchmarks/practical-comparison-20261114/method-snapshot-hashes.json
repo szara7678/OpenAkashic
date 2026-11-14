@@ -1,0 +1,567 @@
+{
+  "snapshot_sha256": "94f1b71ecf6ffa99be7b37faddf7d4baf50a2b221485542de02563aabfc6cdfe",
+  "method_count": 61,
+  "source_text_included": false,
+  "methods": [
+    {
+      "id": "method_0b8450340161413d96cd38d879e84ae3",
+      "version": 2,
+      "title": "소재에서 시각 방향을 도출하고 한 곳에 개성을 집중하기",
+      "stored_public_method_body_sha256": "02897aaf6039f1e3d434c4cd6cab023f5443c22a14b1dc3be5e52202388b184e",
+      "source_urls": [
+        "https://raw.githubusercontent.com/anthropics/skills/41bbe19d1a1a7eaab5e7bb9050a417e5c6cffc8f/skills/frontend-design/SKILL.md"
+      ]
+    },
+    {
+      "id": "method_103585915b604ffba57d547fd36da259",
+      "version": 2,
+      "title": "설명문을 독자 과제·개념·참조로 나눠 쓰기",
+      "stored_public_method_body_sha256": "dc2ac78f4369e6e75dbb6a37861f8999d1caaaad56ef9d926cccc41ab0e1c7a7",
+      "source_urls": [
+        "https://engineering.homeoffice.gov.uk/patterns/write-effective-documentation/"
+      ]
+    },
+    {
+      "id": "method_13dad5a5dcb942c382816e96049edcf6",
+      "version": 2,
+      "title": "확정 전 요약 확인과 값이 보존되는 수정 경로 만들기",
+      "stored_public_method_body_sha256": "1e6c27ddb1f7114e53017c51b73611a2f6b10e8661a1bb2a12c4917cc4478df3",
+      "source_urls": [
+        "https://design-system.service.gov.uk/patterns/check-answers/"
+      ]
+    },
+    {
+      "id": "method_17f6da889fe34a25bd84a860ab77007a",
+      "version": 2,
+      "title": "검토 댓글을 실행 항목으로 전환",
+      "stored_public_method_body_sha256": "9c9b276f6c5c83b63e2cc469a20e22257229b7977faaa1c26c4fcc2e5867e449",
+      "source_urls": [
+        "https://support.google.com/docs/answer/65129"
+      ]
+    },
+    {
+      "id": "method_1f1e279f40a341be94d39582c3f07bf3",
+      "version": 2,
+      "title": "사후 리뷰에서 개선 작업 추출",
+      "stored_public_method_body_sha256": "585b44e905346dbfec016ba776cd437308e31fc6d3d538c054aa561b3b3fb5ca",
+      "source_urls": [
+        "https://learn.microsoft.com/en-us/azure/well-architected/design-guides/incident-management"
+      ]
+    },
+    {
+      "id": "method_21c0995c2768476da59e7115c73205e5",
+      "version": 2,
+      "title": "실험 결과에서 관찰·해석·다음 행동 분리하기",
+      "stored_public_method_body_sha256": "ad7544732443c4e3770aaf9cebcb6deeda3b61852ef2489646ec1b4bc7d58ae7",
+      "source_urls": [
+        "https://www.strategyzer.com/library/capture-customer-insights-and-actions-with-the-learning-card"
+      ]
+    },
+    {
+      "id": "method_252f680bb20944a190aa1d1355e6b5d5",
+      "version": 2,
+      "title": "두 문서 변경점 검토",
+      "stored_public_method_body_sha256": "d90101f51c45598248221a70ba55d32ce5a96fe3be2eeb47282e85f652a8b1b3",
+      "source_urls": [
+        "https://support.google.com/docs/answer/18512262?hl=en"
+      ]
+    },
+    {
+      "id": "method_33a595e82ddc478698be3669934e6760",
+      "version": 2,
+      "title": "홍보 문구를 줄이고 독자가 찾는 정보부터 보이게 쓰기",
+      "stored_public_method_body_sha256": "210431a485b8f54215dc4204bb98b0cd5c35ff9d74ad817f15ba9d96391d24c4",
+      "source_urls": [
+        "https://www.nngroup.com/articles/applying-writing-guidelines-web-pages/"
+      ]
+    },
+    {
+      "id": "method_435e3ceb63134fd887c4d9a2c722f9e5",
+      "version": 2,
+      "title": "한 번에 몰아 공부하지 않고 복습 기회 나누기",
+      "stored_public_method_body_sha256": "ed764e3066621696c0c745b4d1803abc923a7e8924a71199648f378b5d3e47a2",
+      "source_urls": [
+        "https://www.learningscientists.org/blog/2016/7/21-1"
+      ]
+    },
+    {
+      "id": "method_4409287a86e44a46ab31171d93a7b7f7",
+      "version": 2,
+      "title": "변동이 큰 커리어 계획을 A·B·Z와 재검토 시점으로 나누기",
+      "stored_public_method_body_sha256": "9d5c4ea97aee96cfc20c9eb9bfaf92a166311a37c57a8af0662205f5023b493f",
+      "source_urls": [
+        "https://80000hours.org/career-guide/career-planning/"
+      ]
+    },
+    {
+      "id": "method_4ae1a991a2954dc2b7c8e30465a08215",
+      "version": 2,
+      "title": "기존 수정본 차이 설명 작성",
+      "stored_public_method_body_sha256": "29b0fc2a3db0fcd809278d95df7a2078a43dc8d19a811ddc3166eb89e0b6e8a7",
+      "source_urls": [
+        "https://support.google.com/docs/answer/18512262?hl=en"
+      ]
+    },
+    {
+      "id": "method_5af91cc7219a4130a3a2cf2d7630b031",
+      "version": 2,
+      "title": "SQLite 온라인 백업 및 복원본 검증",
+      "stored_public_method_body_sha256": "b61cd237e274aacf072471d7384def5acf1c7c369c6035be75ba17c8cf935941",
+      "source_urls": [
+        "https://docs.python.org/3/library/sqlite3.html#sqlite3.Connection.backup",
+        "https://www.sqlite.org/pragma.html#pragma_integrity_check",
+        "https://www.sqlite.org/backup.html"
+      ]
+    },
+    {
+      "id": "method_5b230aa120c54d198e86887fcf8a4ab3",
+      "version": 2,
+      "title": "입력 오류를 필드와 연결하고 복구 방법 전달하기",
+      "stored_public_method_body_sha256": "90abafbc15f1c1517aac0c4e398fb0bf4816a855138e9a3a3ebfb4ab0195f08e",
+      "source_urls": [
+        "https://www.w3.org/WAI/tutorials/forms/notifications/",
+        "https://www.w3.org/WAI/tutorials/forms/labels/"
+      ]
+    },
+    {
+      "id": "method_5d0c199705e14772a33a65b55c701c5e",
+      "version": 2,
+      "title": "시작 전에 비용·시간·조건과 다음 행동 알리기",
+      "stored_public_method_body_sha256": "acf1de980e557fbd61500f658f035fa0a5c820328b31b40b1156cd93e45db04b",
+      "source_urls": [
+        "https://design-system.service.gov.uk/patterns/start-using-a-service/"
+      ]
+    },
+    {
+      "id": "method_5f63fd77854742e98eba25b1a94ab470",
+      "version": 2,
+      "title": "Streamlit fragment: 부분 재실행이 외부 컨테이너를 비우지 않는 경우",
+      "stored_public_method_body_sha256": "36a5f64865bd71fd0ca9668fa370cd177a6bf0f6fc5ab2258ccfbeb5b79c7252",
+      "source_urls": [
+        "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/runtime/fragment.py"
+      ]
+    },
+    {
+      "id": "method_5fed1c9bbb4b493f85f9ae4127f28d6c",
+      "version": 2,
+      "title": "공개 예제 · 오프라인 문서 수량 집계",
+      "stored_public_method_body_sha256": "3034e32864d6db8c3c6a15ae061086f338df387b75230f460c70aa1adb6a2ba2",
+      "source_urls": []
+    },
+    {
+      "id": "method_62fd49754e2542da802845cb2fa8608c",
+      "version": 2,
+      "title": "유명세 대신 필요성·유지보수·라이선스로 도입 후보 비교하기",
+      "stored_public_method_body_sha256": "b05daf1a2a5209736784a7e939d5d21d99958453e83ffd385cbb540fe4b1796f",
+      "source_urls": [
+        "https://github.com/ossf/wg-best-practices-os-developers/blob/main/docs/Concise-Guide-for-Evaluating-Open-Source-Software.md"
+      ]
+    },
+    {
+      "id": "method_64c6d70e0ab547c29e3eb9bb9a98d0f6",
+      "version": 2,
+      "title": "데이터 인수 체크리스트",
+      "stored_public_method_body_sha256": "a272bb7b1c980ffd3b35e2d6895cdf8280a12831f37c815ce84a3646d3c0ea18",
+      "source_urls": [
+        "https://www.usgs.gov/data-management/data-management-plans",
+        "https://www.usgs.gov/data-management/manage-quality"
+      ]
+    },
+    {
+      "id": "method_6562f35901794b5e9f8f477796e7505b",
+      "version": 2,
+      "title": "결측값 처리 정책 비교",
+      "stored_public_method_body_sha256": "df912ff23e97cec8c53592449e598c1443da4fabc32f2ca05f63b333e28d1c3b",
+      "source_urls": [
+        "https://pandas.pydata.org/docs/user_guide/missing_data.html"
+      ]
+    },
+    {
+      "id": "method_681dc89fa9bc4ccb9ead50121fe5b0aa",
+      "version": 2,
+      "title": "리뷰 피드백 대응 추적",
+      "stored_public_method_body_sha256": "59b8bf52dbd97ba5438121476d8430f9173017ffeefdd6ccfbdb9f1f9a96f7a3",
+      "source_urls": [
+        "https://docs.github.com/en/pull-requests/how-tos/review-pull-requests",
+        "https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/incorporating-feedback-in-your-pull-request"
+      ]
+    },
+    {
+      "id": "method_69b5c6d56d384423a315b3c4905d81c8",
+      "version": 2,
+      "title": "외부 데이터 품질 선별",
+      "stored_public_method_body_sha256": "9dfbf0c96e8ea8f419af483bbb4d79b2e83a4a756b5447ccc558c9693ca56e25",
+      "source_urls": [
+        "https://www.usgs.gov/data-management/manage-quality"
+      ]
+    },
+    {
+      "id": "method_6b0d7239262e45b296e4cb893342c20c",
+      "version": 2,
+      "title": "TanStack Query: 구독 해제와 실제 요청 취소가 달라지는 경계",
+      "stored_public_method_body_sha256": "768c528a416198b9fd3c7e3d559724b85bcb7b84e9e9b581f6104988e53c9d64",
+      "source_urls": [
+        "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/query-cancellation.md",
+        "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/packages/query-core/src/query.ts"
+      ]
+    },
+    {
+      "id": "method_70ceb860f1514053bb8314db63a326ef",
+      "version": 2,
+      "title": "보고서 검토 라운드 관리",
+      "stored_public_method_body_sha256": "5d5d545b0065c43a444c2438b8d0c185e437f8610f1d36652336adbc7fce0930",
+      "source_urls": [
+        "https://support.google.com/docs/answer/6033474?hl=en",
+        "https://support.google.com/docs/answer/65129"
+      ]
+    },
+    {
+      "id": "method_710ecbba8f2742ba93b4a68ff2143aae",
+      "version": 2,
+      "title": "제품 개발 전에 가설·실험·지표·통과 기준 고정하기",
+      "stored_public_method_body_sha256": "ea34a529c496d1e956c83d555c7c3f7edce21a26482f42ac51342365e864d7c2",
+      "source_urls": [
+        "https://www.strategyzer.com/library/validate-your-ideas-with-the-test-card"
+      ]
+    },
+    {
+      "id": "method_72c20c6ba92448e892491d9840fd691c",
+      "version": 2,
+      "title": "읽은 내용을 가리고 회상한 뒤 오답 교정하기",
+      "stored_public_method_body_sha256": "8e26e6eb4c507fbfb9440ac96a5417c181a41a717bcc0fcea84f08b2009610b4",
+      "source_urls": [
+        "https://www.learningscientists.org/blog/2016/6/23-1"
+      ]
+    },
+    {
+      "id": "method_769519565d9e4eb68ce27c60bc879490",
+      "version": 2,
+      "title": "퇴사·진학 전에 직무 적합성을 작은 실험으로 확인하기",
+      "stored_public_method_body_sha256": "addfab22407392b22ca5c239b3122cb6e54446bcc8f519aba630c8019d329b97",
+      "source_urls": [
+        "https://80000hours.org/career-guide/personal-fit/"
+      ]
+    },
+    {
+      "id": "method_769e62c4f39a41fea7b3e75b03a144d5",
+      "version": 2,
+      "title": "운영 비밀정보 범위 최소화",
+      "stored_public_method_body_sha256": "a4b90ddc14f7c00bf40939924290784e1d9f0b1f91848a82e2544390b83560a5",
+      "source_urls": [
+        "https://docs.github.com/en/actions/concepts/security/secrets",
+        "https://docs.github.com/en/actions/concepts/workflows-and-actions/deployment-environments"
+      ]
+    },
+    {
+      "id": "method_78c6bc2939a645c1a02c4cae35c0c79a",
+      "version": 2,
+      "title": "빌드 아티팩트와 캐시 구분",
+      "stored_public_method_body_sha256": "80cb09903b15a0a8a8ef95c10d6b0a3b276767d4e63317a6db7a1762d74ad063",
+      "source_urls": [
+        "https://docs.github.com/en/actions/concepts/workflows-and-actions/workflow-artifacts"
+      ]
+    },
+    {
+      "id": "method_7c5dc3d99bfc4e03ba08ebe209259bae",
+      "version": 2,
+      "title": "투자 대안을 거래 비용과 지속 비용으로 나눠 비교하기",
+      "stored_public_method_body_sha256": "06b9ab4ab6ec5a1245547db2cfe31589ebe74596ee165573af022c88ae8f2428",
+      "source_urls": [
+        "https://www.investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins/updated"
+      ]
+    },
+    {
+      "id": "method_8a0ec54815304f6d8926d4ab71bdab54",
+      "version": 2,
+      "title": "TanStack Query: 비활성 쿼리의 수동 실행 예외와 skipToken",
+      "stored_public_method_body_sha256": "d740f1906fa426906475155635367be499d7c1622dffea1a50a7f5bbe57febdc",
+      "source_urls": [
+        "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/docs/framework/react/guides/disabling-queries.md",
+        "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/packages/query-core/src/utils.ts",
+        "https://raw.githubusercontent.com/TanStack/query/ecdf96296b1dfcee617a5a5b9afdf2a42ad436ba/packages/query-core/src/queryClient.ts"
+      ]
+    },
+    {
+      "id": "method_8bd35edb30bc4bc6b425113fa28d4320",
+      "version": 2,
+      "title": "CSV 수집 스키마 점검",
+      "stored_public_method_body_sha256": "1c51c45ed3d4d7e87e919ba364f0d8162be60f0b2e043128ef54efb1684ac4ee",
+      "source_urls": [
+        "https://pandas.pydata.org/docs/user_guide/io.html"
+      ]
+    },
+    {
+      "id": "method_8be94f157fba42ec95ee906e4b53ae03",
+      "version": 2,
+      "title": "다중 파일 시계열 통합",
+      "stored_public_method_body_sha256": "48842a12e2a8cd22ee7094b99eb5fa949a9be3600cdc3233554034819863fc18",
+      "source_urls": [
+        "https://pandas.pydata.org/docs/user_guide/timeseries.html",
+        "https://pandas.pydata.org/docs/user_guide/io.html"
+      ]
+    },
+    {
+      "id": "method_8e25f26e4dc04645baac2d888405da77",
+      "version": 2,
+      "title": "배포 환경 승인 게이트 구성",
+      "stored_public_method_body_sha256": "820b9d9a5d850087412efbc84d466bec378978434f26695ce497fe025731387a",
+      "source_urls": [
+        "https://docs.github.com/en/actions/concepts/workflows-and-actions/deployment-environments"
+      ]
+    },
+    {
+      "id": "method_9210344a5c964d4a94657848b2ce3f8f",
+      "version": 2,
+      "title": "프로젝트 데이터 계획서 작성",
+      "stored_public_method_body_sha256": "965d77da7cb90b478d7d1ccc0aeba4786903ce6fc2af92ba8572daa1f8dff311",
+      "source_urls": [
+        "https://www.usgs.gov/data-management/data-management-plans"
+      ]
+    },
+    {
+      "id": "method_9317be20ea014745ad2797501d8071f2",
+      "version": 2,
+      "title": "운영 경보 액션성 검토",
+      "stored_public_method_body_sha256": "8064a40154114c0c076cb840ec190d2b90a7048fff37a61001ff218e845260b6",
+      "source_urls": [
+        "https://learn.microsoft.com/en-us/azure/well-architected/operational-excellence/principles"
+      ]
+    },
+    {
+      "id": "method_9de7657701024d8bba83793ef08c4887",
+      "version": 2,
+      "title": "Streamlit fragment: fragment 함수 안에서도 부분 rerun이 금지되는 실행",
+      "stored_public_method_body_sha256": "65899b0149f2164bf88cdd0b2d7850cb54700510f9f2630ba0030e0076232d06",
+      "source_urls": [
+        "https://raw.githubusercontent.com/streamlit/streamlit/5ab38d948223f4a3904127008e7e01abbc57017a/lib/streamlit/commands/execution_control.py"
+      ]
+    },
+    {
+      "id": "method_a0cc103673c54d9a89a76f7218576a77",
+      "version": 2,
+      "title": "자료 사전과 메타데이터 정리",
+      "stored_public_method_body_sha256": "d116eb378a2717df406d842d3c2fa8d3b45ad3c6d4aefc250347f589d589534a",
+      "source_urls": [
+        "https://www.usgs.gov/data-management/data-management-plans",
+        "https://www.usgs.gov/data-management/data-dictionaries"
+      ]
+    },
+    {
+      "id": "method_aa62abb9e67e47488f69c1251cd43304",
+      "version": 2,
+      "title": "결정이 표류할 때 추진자·결정권자·자문·공유 대상 정하기",
+      "stored_public_method_body_sha256": "6d81034f12493b5904b162ff31cf4748809dd8f3c97db628ecbe5e51adf5dcd7",
+      "source_urls": [
+        "https://www.atlassian.com/team-playbook/plays/daci"
+      ]
+    },
+    {
+      "id": "method_afc7efba9f844983991fa3d189d590f5",
+      "version": 2,
+      "title": "장애 심각도와 분류 기준 정리",
+      "stored_public_method_body_sha256": "5f198b9514d77cf77e5c6091c9651f14bba42a1cdbc81393ad4935591ca7c66e",
+      "source_urls": [
+        "https://learn.microsoft.com/en-us/azure/well-architected/design-guides/incident-management"
+      ]
+    },
+    {
+      "id": "method_b7bf97be541c4646b582b31f21416147",
+      "version": 2,
+      "title": "협업 문서에 이름 있는 기준 버전 기록",
+      "stored_public_method_body_sha256": "b07f0a3e7e838f2483bec0f23044fb8ddc9f584bcb48938f6af57fad0113d948",
+      "source_urls": [
+        "https://support.google.com/docs/answer/190843?co=GENIE.Platform%3DDesktop&hl=en-bs"
+      ]
+    },
+    {
+      "id": "method_bab61e9f0dab4d7cb2b91e32f2fc64c7",
+      "version": 2,
+      "title": "범주값 정규화 감사",
+      "stored_public_method_body_sha256": "eb35c7aa95e2f69647e0374bcb7182bab908cc9f77a3bb4b481e9c2ffae37b16",
+      "source_urls": [
+        "https://pandas.pydata.org/docs/user_guide/categorical.html",
+        "https://pandas.pydata.org/docs/user_guide/text.html"
+      ]
+    },
+    {
+      "id": "method_bcc11858c6c9496aa4960f750a0e846a",
+      "version": 2,
+      "title": "PR 변경사항 검토",
+      "stored_public_method_body_sha256": "ca4067451b078eb91021d8f4d87ef6f87d1ea147e0e63043cbd5e94da69854c8",
+      "source_urls": [
+        "https://docs.github.com/en/pull-requests/how-tos/review-pull-requests",
+        "https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/reviewing-proposed-changes-in-a-pull-request"
+      ]
+    },
+    {
+      "id": "method_c3143b21b6834185b18db0a05276efc2",
+      "version": 2,
+      "title": "DuckDB SQL: 업그레이드 후 문자열 함수의 숫자 인수가 바인딩 오류를 내는 경우",
+      "stored_public_method_body_sha256": "7cd149a3ac26d14b19e36125cb37fe8a40929d3a9a29d31e325b16ae6e6c7c94",
+      "source_urls": [
+        "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/docs/0.10/sql/data_types/typecasting.md"
+      ]
+    },
+    {
+      "id": "method_c3aa4545035847fbb1d95ebdce5ed1ce",
+      "version": 2,
+      "title": "상대 제안을 받기 전에 합의 결렬 시 대안 정리하기",
+      "stored_public_method_body_sha256": "a675122030fd5f759979cfdea8fc016fcaeab168224ab3da0c5efe659c567e88",
+      "source_urls": [
+        "https://www.pon.harvard.edu/daily/business-negotiations/negotiation-preparation-strategies/"
+      ]
+    },
+    {
+      "id": "method_c3ea85077885406a812eeb31cd1a0f25",
+      "version": 2,
+      "title": "DuckDB SQL: 동일한 날짜 문자열도 리터럴과 VARCHAR의 비교가 다른 경우",
+      "stored_public_method_body_sha256": "c1406f10e8ddbabc5868b6a0535a254461f648ebc3bc572aadf4b5ca20d62cb9",
+      "source_urls": [
+        "https://raw.githubusercontent.com/duckdb/duckdb-web/343c29a3530fcb77c88a994fc3665ad3129520bd/_posts/2024-02-13-announcing-duckdb-0100.md"
+      ]
+    },
+    {
+      "id": "method_c3fb38e44f2443feb02cfd3564d96fc3",
+      "version": 2,
+      "title": "장애 대응 준비도 문서화",
+      "stored_public_method_body_sha256": "b90db6a08b3e6cba424bb2a68155ec1a681910823c01ae48a3838967d2dd186b",
+      "source_urls": [
+        "https://learn.microsoft.com/en-us/azure/well-architected/design-guides/incident-management",
+        "https://learn.microsoft.com/en-us/azure/well-architected/operational-excellence/incident-response"
+      ]
+    },
+    {
+      "id": "method_ca9a0e9cfe634cba9c28b0b086b12670",
+      "version": 2,
+      "title": "상품 선택 전에 목표 기간·손실 감내·집중 위험 확인하기",
+      "stored_public_method_body_sha256": "6e5b7dd47e598434da6398c258f8bd949dcaf1fb69df9f2ccae8c7e5cffb953d",
+      "source_urls": [
+        "https://www.investor.gov/introduction-investing/getting-started/asset-allocation"
+      ]
+    },
+    {
+      "id": "method_d1d75cc1bc94400c9560324063ec5287",
+      "version": 2,
+      "title": "문서 제안 편집 검토",
+      "stored_public_method_body_sha256": "89b9277f8ad7b27478708831c4ca244b8a854000ed43e21439bbe2bac88c7efe",
+      "source_urls": [
+        "https://support.google.com/docs/answer/6033474?hl=en"
+      ]
+    },
+    {
+      "id": "method_d210e9033f2042a9b17537de7d701bd0",
+      "version": 2,
+      "title": "필요한 질문만 묶고 재입력 없이 진행하기",
+      "stored_public_method_body_sha256": "33e334a716c36966a1a427f7776a9293c8ad9ff02cd30ff75391f85a25144728",
+      "source_urls": [
+        "https://design-system.service.gov.uk/patterns/question-pages/"
+      ]
+    },
+    {
+      "id": "method_d340976ef2f543a2a168b66f51c10beb",
+      "version": 2,
+      "title": "Kubernetes 준비 상태 프로브 설계",
+      "stored_public_method_body_sha256": "3b2e13be73e74ec5cc6822249d5226ed04f93991ffe3db0170601dbbf663ebc3",
+      "source_urls": [
+        "https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/"
+      ]
+    },
+    {
+      "id": "method_d6bab8275ed741ae959436712962e7ce",
+      "version": 2,
+      "title": "공개 예제 · 오프라인 문서 검색에서 원문 ID와 인용 보존",
+      "stored_public_method_body_sha256": "871a5aab7d85861e9ec6127509ff22e58315ce3eb86b4f586a8f05d17d6d54b7",
+      "source_urls": []
+    },
+    {
+      "id": "method_db0a40d480064c61bd720e62b232ca5d",
+      "version": 2,
+      "title": "금액만 보지 않고 조건 묶음의 수락 한계 정하기",
+      "stored_public_method_body_sha256": "d8a9af309409bb2d20faeb5c96eb95db83c1b1924e9ea4bc6e0ad7453b772e01",
+      "source_urls": [
+        "https://www.pon.harvard.edu/daily/business-negotiations/negotiation-preparation-strategies/"
+      ]
+    },
+    {
+      "id": "method_e554a06582d14c8f99683436ae00fcba",
+      "version": 2,
+      "title": "자료 출처 표와 요약 메모",
+      "stored_public_method_body_sha256": "a1191cb88aa46184df45e6553f9b89bd2c016523cc210971f7bd0f885a4f2500",
+      "source_urls": [
+        "https://www.nice.org.uk/process/pmg4/chapter/reviewing-the-scientific-evidence"
+      ]
+    },
+    {
+      "id": "method_ecbf46a7f49149cda31dd6d01799cf4f",
+      "version": 2,
+      "title": "공개 예제 · 온라인 뉴스의 최신 링크 모으기",
+      "stored_public_method_body_sha256": "1fd793a724cf813fc06d0d92cd891a3fe47ebba318a96a626bda93bbc280cee1",
+      "source_urls": []
+    },
+    {
+      "id": "method_f040265d2ae640c49d8614c218e06d61",
+      "version": 2,
+      "title": "결과 민감도 비교표",
+      "stored_public_method_body_sha256": "0bd5d035c196b1fbed9abe020018cb26382dcc8719db30ee09a24886ac8ff6f0",
+      "source_urls": [
+        "https://pandas.pydata.org/docs/user_guide/groupby.html",
+        "https://pandas.pydata.org/docs/user_guide/missing_data.html"
+      ]
+    },
+    {
+      "id": "method_f1e336e8600447259c14626ef98584d8",
+      "version": 2,
+      "title": "두 표 키 관계 검증",
+      "stored_public_method_body_sha256": "afbf2159fe0ef66c650fad03e737969572f9a327811cb31073773faf5ce15a10",
+      "source_urls": [
+        "https://pandas.pydata.org/docs/user_guide/merging.html"
+      ]
+    },
+    {
+      "id": "method_f2369e7d6c8f4b0c8106488e0d045040",
+      "version": 2,
+      "title": "장애 종료 전 검증 체크",
+      "stored_public_method_body_sha256": "409cd4d737814b0374c3b37bfce5d1ca1576b04abd53621b3d603cac05e3332f",
+      "source_urls": [
+        "https://learn.microsoft.com/en-us/azure/well-architected/design-guides/incident-management"
+      ]
+    },
+    {
+      "id": "method_f6a1798ca0f4474589bdbd5bf74eae8a",
+      "version": 2,
+      "title": "기여 전에 기존 논의와 프로젝트 규칙을 확인하기",
+      "stored_public_method_body_sha256": "4986f4fe45d04c5ed209b5a0e9c6c7da5ed69c02c79d900d0de456dd3be505bc",
+      "source_urls": [
+        "https://opensource.guide/how-to-contribute/"
+      ]
+    },
+    {
+      "id": "method_f70995d13acc49adb28497af7bcb14a1",
+      "version": 2,
+      "title": "출시 전에 실패했다고 가정하고 위험·예방 행동 찾기",
+      "stored_public_method_body_sha256": "8118bb18d620b39f2156fb3ccaa072031f8b15597923e0e7eb34eb6534e1d313",
+      "source_urls": [
+        "https://www.atlassian.com/team-playbook/plays/pre-mortem"
+      ]
+    },
+    {
+      "id": "method_fa79358fbb3143459eaeab135bcdb023",
+      "version": 2,
+      "title": "글자·여백의 역할을 정하고 콘텐츠 위계 점검하기",
+      "stored_public_method_body_sha256": "8907cc2ab4cc49d93955000dfa9e13fda3d0ff6206a0cef8bd4ec7c03e7a8f31",
+      "source_urls": [
+        "https://raw.githubusercontent.com/anthropics/skills/41bbe19d1a1a7eaab5e7bb9050a417e5c6cffc8f/skills/frontend-design/SKILL.md"
+      ]
+    },
+    {
+      "id": "method_fe795a3d5f804d128698b245460e110f",
+      "version": 2,
+      "title": "팀 지식 문서에서 조치 목록 만들기",
+      "stored_public_method_body_sha256": "72ed42eeb2c31e9cd80057e537b4d88c0375d84d103332a5d38b9d38ae5223dd",
+      "source_urls": [
+        "https://support.google.com/docs/answer/65129",
+        "https://learn.microsoft.com/en-us/azure/well-architected/operational-excellence/formalize-operations-tasks"
+      ]
+    }
+  ]
+}

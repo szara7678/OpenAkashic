@@ -1,0 +1,23 @@
+{
+  "task": "kubernetes-probes",
+  "checker_exit_code": 0,
+  "checker_seconds": 0.7480146170128137,
+  "result": {
+    "task": "kubernetes-probes",
+    "all_passed": true,
+    "checks": [
+      {
+        "name": "deployment identity and selector",
+        "passed": true
+      },
+      {
+        "name": "probe semantics and startup budget",
+        "passed": true
+      },
+      {
+        "name": "positive resource requests and bounded limits",
+        "passed": true
+      }
+    ]
+  }
+}

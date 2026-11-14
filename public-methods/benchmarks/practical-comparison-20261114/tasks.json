@@ -1,0 +1,18 @@
+[
+  {
+    "id": "sqlite-wal-backup",
+    "prompt": "Write solution.py with backup_database(source, destination) for a live SQLite WAL service while other connections can remain open. Create a consistent independently openable snapshot including transactions committed before backup begins. Preserve source; do not copy the live main file alone. Reject source==destination without damage. If destination already exists raise FileExistsError and preserve it. Remove partial destination on failure. Use Python standard library. Include README.md, runnable demonstration, concurrency limits and actual verification. This is a synthetic service-work fixture, not a production incident."
+  },
+  {
+    "id": "pandas-missingness",
+    "prompt": "Write solution.py with summarize_missing(frame), returning a pandas DataFrame columns column, missing_count, total_rows, missing_fraction in original column order. Count real missing values None, NaN, NaT, pd.NA, preserving literal strings \"NaN\", \"None\" and \"\". Never cast missing sentinels to bool. Do not mutate input. Counts are integers. Empty input fractions are 0.0. Preserve duplicate column labels as separate rows. Support nullable Int64, boolean, string, datetime and object columns. pandas 2.3.3 is installed. Include README.md and runnable demonstration. This is a synthetic import-quality task with no private data."
+  },
+  {
+    "id": "kubernetes-probes",
+    "prompt": "Write deployment.yaml with one apps/v1 Deployment public-reader, two replicas, matching selector/labels, container reader image registry.example.invalid/public-reader:1.0 and port 8080. Initialization can take 150 seconds; dependency outages are transient; event loop can deadlock. Configure distinct HTTP startup/readiness/liveness probes /startup, /ready, /live on port 8080. Explicit positive timeoutSeconds and periodSeconds. Startup periodSeconds*failureThreshold must be 150..180 seconds. Readiness removes unavailable pods without restart; liveness handles local deadlock; slow initialization must not trigger early liveness restarts. Set positive CPU/memory requests and limits >= requests. README.md must explain verification and limitations: no live cluster is available. This is a synthetic public-reader fixture."
+  },
+  {
+    "id": "http-json-client",
+    "prompt": "Write solution.py implementing fetch_json(url, *, timeout=2.0) using Python standard library with public exceptions HTTPFailure, InvalidJSON, TransportFailure. Return any valid JSON including null, false, []. HTTPFailure exposes numeric status and body <=200 characters. Non-2xx has priority over invalid JSON. Malformed successful JSON or invalid UTF-8 is InvalidJSON. Connection failures/timeouts are TransportFailure. Respect timeout, close responses, preserve exception causes, never retry automatically. Include README.md and runnable local fake-server demonstration. No external business API/credentials. This is a synthetic service-client task."
+  }
+]

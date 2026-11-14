@@ -1,0 +1,296 @@
+[
+  {
+    "run_id": "sqlite-wal-backup-r1-web",
+    "url": "https://docs.python.org/3/library/sqlite3.html",
+    "final_url": "https://docs.python.org/3/library/sqlite3.html",
+    "fetched_bytes_sha256": "73972a794afe99f0eda4a88efcff282fdfe435b446f5d88a5a8e6b091d492d24",
+    "truncated": true
+  },
+  {
+    "run_id": "sqlite-wal-backup-r1-web",
+    "url": "https://www.sqlite.org/backup.html",
+    "final_url": "https://www.sqlite.org/backup.html",
+    "fetched_bytes_sha256": "306b6cca5c7c2f93b648040ae139f14d7d3221c0d16d79b5749e69d808382e04",
+    "truncated": false
+  },
+  {
+    "run_id": "sqlite-wal-backup-r1-web",
+    "url": "https://www.sqlite.org/backup.html",
+    "final_url": "https://www.sqlite.org/backup.html",
+    "fetched_bytes_sha256": "306b6cca5c7c2f93b648040ae139f14d7d3221c0d16d79b5749e69d808382e04",
+    "truncated": false
+  },
+  {
+    "run_id": "sqlite-wal-backup-r1-web",
+    "url": "https://www.sqlite.org/isolation.html",
+    "final_url": "https://www.sqlite.org/isolation.html",
+    "fetched_bytes_sha256": "23395653f04984e4310b287ed548202d874e06ecd2cba17f32b2714e5b7ebef7",
+    "truncated": false
+  },
+  {
+    "run_id": "sqlite-wal-backup-r1-web",
+    "url": "https://docs.python.org/3.12/library/sqlite3.html",
+    "final_url": "https://docs.python.org/3.12/library/sqlite3.html",
+    "fetched_bytes_sha256": "f5ad65412c72af4edae2471a59e20dfa17f8a3f605110da762aed9efef8a727f",
+    "truncated": true
+  },
+  {
+    "run_id": "sqlite-wal-backup-r1-web",
+    "url": "https://www.sqlite.org/isolation.html",
+    "final_url": "https://www.sqlite.org/isolation.html",
+    "fetched_bytes_sha256": "23395653f04984e4310b287ed548202d874e06ecd2cba17f32b2714e5b7ebef7",
+    "truncated": false
+  },
+  {
+    "run_id": "sqlite-wal-backup-r1-web",
+    "url": "https://www.sqlite.org/wal.html",
+    "final_url": "https://www.sqlite.org/wal.html",
+    "fetched_bytes_sha256": "f3467b530b883d4a00574fe1a898b3d121ed72764ae28cf66941080ac0badb9e",
+    "truncated": false
+  },
+  {
+    "run_id": "sqlite-wal-backup-r1-web",
+    "url": "https://docs.python.org/3.12/library/os.html",
+    "final_url": "https://docs.python.org/3.12/library/os.html",
+    "fetched_bytes_sha256": "3089331868c28214052263f37a946d4e7235a0bd566b2275b1529fbefb25bc83",
+    "truncated": true
+  },
+  {
+    "run_id": "sqlite-wal-backup-r1-web",
+    "url": "https://www.sqlite.org/pragma.html#pragma_journal_mode",
+    "final_url": "https://www.sqlite.org/pragma.html#pragma_journal_mode",
+    "fetched_bytes_sha256": "af75d7d7ab00c29e6eea98618cb1259a3919c308af60a6173215bf9798706034",
+    "truncated": false
+  },
+  {
+    "run_id": "sqlite-wal-backup-r1-oa",
+    "url": "https://www.sqlite.org/backup.html",
+    "final_url": "https://www.sqlite.org/backup.html",
+    "fetched_bytes_sha256": "306b6cca5c7c2f93b648040ae139f14d7d3221c0d16d79b5749e69d808382e04",
+    "truncated": false
+  },
+  {
+    "run_id": "sqlite-wal-backup-r1-oa",
+    "url": "https://docs.python.org/3/library/sqlite3.html#sqlite3.Connection.backup",
+    "final_url": "https://docs.python.org/3/library/sqlite3.html#sqlite3.Connection.backup",
+    "fetched_bytes_sha256": "73972a794afe99f0eda4a88efcff282fdfe435b446f5d88a5a8e6b091d492d24",
+    "truncated": true
+  },
+  {
+    "run_id": "sqlite-wal-backup-r1-oa",
+    "url": "https://www.sqlite.org/backup.html",
+    "final_url": "https://www.sqlite.org/backup.html",
+    "fetched_bytes_sha256": "306b6cca5c7c2f93b648040ae139f14d7d3221c0d16d79b5749e69d808382e04",
+    "truncated": false
+  },
+  {
+    "run_id": "sqlite-wal-backup-r1-oa",
+    "url": "https://www.sqlite.org/c3ref/backup_finish.html",
+    "final_url": "https://www.sqlite.org/c3ref/backup_finish.html",
+    "fetched_bytes_sha256": "3beb8d98440837d57fe8841e13a0d90c4a71b7387ed8dbaf5b92c79f4247325b",
+    "truncated": false
+  },
+  {
+    "run_id": "sqlite-wal-backup-r1-oa",
+    "url": "https://docs.python.org/3/library/sqlite3.html",
+    "final_url": "https://docs.python.org/3/library/sqlite3.html",
+    "fetched_bytes_sha256": "73972a794afe99f0eda4a88efcff282fdfe435b446f5d88a5a8e6b091d492d24",
+    "truncated": true
+  },
+  {
+    "run_id": "sqlite-wal-backup-r1-oa",
+    "url": "https://www.sqlite.org/pragma.html#pragma_integrity_check",
+    "final_url": "https://www.sqlite.org/pragma.html#pragma_integrity_check",
+    "fetched_bytes_sha256": "af75d7d7ab00c29e6eea98618cb1259a3919c308af60a6173215bf9798706034",
+    "truncated": false
+  },
+  {
+    "run_id": "sqlite-wal-backup-r1-oa",
+    "url": "https://www.sqlite.org/isolation.html",
+    "final_url": "https://www.sqlite.org/isolation.html",
+    "fetched_bytes_sha256": "23395653f04984e4310b287ed548202d874e06ecd2cba17f32b2714e5b7ebef7",
+    "truncated": false
+  },
+  {
+    "run_id": "sqlite-wal-backup-r1-oa",
+    "url": "https://docs.python.org/3/library/os.html#os.link",
+    "final_url": "https://docs.python.org/3/library/os.html#os.link",
+    "fetched_bytes_sha256": "58dbccdf6e0cd9f7a25f719ed144b6bfe3a0bccdadf352f037b8c8988cebb1c7",
+    "truncated": true
+  },
+  {
+    "run_id": "kubernetes-probes-r1-oa",
+    "url": "https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/",
+    "final_url": "https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/",
+    "fetched_bytes_sha256": "0daab5f1658687da8915b1ab4390f18b735bbaa1aae722123effea96c0bdb8aa",
+    "truncated": true
+  },
+  {
+    "run_id": "kubernetes-probes-r1-oa",
+    "url": "https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/",
+    "final_url": "https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/",
+    "fetched_bytes_sha256": "2d49db5f4afc88829ae29c04b6c8e0c8ead7cd1119b3da0cf31b010ef08fdf42",
+    "truncated": true
+  },
+  {
+    "run_id": "kubernetes-probes-r1-oa",
+    "url": "https://raw.githubusercontent.com/kubernetes/website/main/content/en/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes.md",
+    "final_url": "https://raw.githubusercontent.com/kubernetes/website/main/content/en/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes.md",
+    "fetched_bytes_sha256": "bf80ca8ec4ffa9c71c06a11c515dcb34f18132b4cbe52896b5acd9b5989c6c0c",
+    "truncated": false
+  },
+  {
+    "run_id": "kubernetes-probes-r1-oa",
+    "url": "https://raw.githubusercontent.com/kubernetes/website/main/content/en/docs/concepts/configuration/manage-resources-containers.md",
+    "final_url": "https://raw.githubusercontent.com/kubernetes/website/main/content/en/docs/concepts/configuration/manage-resources-containers.md",
+    "fetched_bytes_sha256": "cbb176ded47da163df33bcf0e643dc38361b19f6dc77a98302320704e20c95ac",
+    "truncated": false
+  },
+  {
+    "run_id": "kubernetes-probes-r1-web",
+    "url": "https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/",
+    "final_url": "https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/",
+    "fetched_bytes_sha256": "0daab5f1658687da8915b1ab4390f18b735bbaa1aae722123effea96c0bdb8aa",
+    "truncated": true
+  },
+  {
+    "run_id": "kubernetes-probes-r1-web",
+    "url": "https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#container-probes",
+    "final_url": "https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#container-probes",
+    "fetched_bytes_sha256": "fc886afd0182482d0ed52393a4ce5692bbc286ead6043cfb1ff0bb920f7ac9a9",
+    "truncated": true
+  },
+  {
+    "run_id": "kubernetes-probes-r1-web",
+    "url": "https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/",
+    "final_url": "https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/",
+    "fetched_bytes_sha256": "2d49db5f4afc88829ae29c04b6c8e0c8ead7cd1119b3da0cf31b010ef08fdf42",
+    "truncated": true
+  },
+  {
+    "run_id": "kubernetes-probes-r1-web",
+    "url": "https://raw.githubusercontent.com/kubernetes/website/main/content/en/docs/concepts/configuration/manage-resources-containers.md",
+    "final_url": "https://raw.githubusercontent.com/kubernetes/website/main/content/en/docs/concepts/configuration/manage-resources-containers.md",
+    "fetched_bytes_sha256": "cbb176ded47da163df33bcf0e643dc38361b19f6dc77a98302320704e20c95ac",
+    "truncated": false
+  },
+  {
+    "run_id": "kubernetes-probes-r1-web",
+    "url": "https://raw.githubusercontent.com/kubernetes/website/main/content/en/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes.md",
+    "final_url": "https://raw.githubusercontent.com/kubernetes/website/main/content/en/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes.md",
+    "fetched_bytes_sha256": "bf80ca8ec4ffa9c71c06a11c515dcb34f18132b4cbe52896b5acd9b5989c6c0c",
+    "truncated": false
+  },
+  {
+    "run_id": "pandas-missingness-r1-web",
+    "url": "https://pandas.pydata.org/pandas-docs/version/2.3.3/reference/api/pandas.DataFrame.isna.html",
+    "final_url": "https://pandas.pydata.org/pandas-docs/version/2.3.3/reference/api/pandas.DataFrame.isna.html",
+    "fetched_bytes_sha256": "5fce7e43190d2df326cf9392e987ef15853bf1ce0a750f066f08fdd2d1ca532b",
+    "truncated": false
+  },
+  {
+    "run_id": "pandas-missingness-r1-web",
+    "url": "https://pandas.pydata.org/pandas-docs/version/2.3.3/user_guide/missing_data.html",
+    "final_url": "https://pandas.pydata.org/pandas-docs/version/2.3.3/user_guide/missing_data.html",
+    "fetched_bytes_sha256": "9e1b9cae75712b351094123c6a9d2f7cbd5e96b9af86ce7c508c957dfbf70f15",
+    "truncated": false
+  },
+  {
+    "run_id": "pandas-missingness-r1-web",
+    "url": "https://pandas.pydata.org/pandas-docs/version/2.3.3/reference/api/pandas.DataFrame.sum.html",
+    "final_url": "https://pandas.pydata.org/pandas-docs/version/2.3.3/reference/api/pandas.DataFrame.sum.html",
+    "fetched_bytes_sha256": "f6e0f814242f7fa8294aa7082fc3a0c0f5331a3f9fa103a7be5b23dec66d661d",
+    "truncated": false
+  },
+  {
+    "run_id": "pandas-missingness-r1-oa",
+    "url": "https://pandas.pydata.org/pandas-docs/version/2.3.3/reference/api/pandas.DataFrame.isna.html",
+    "final_url": "https://pandas.pydata.org/pandas-docs/version/2.3.3/reference/api/pandas.DataFrame.isna.html",
+    "fetched_bytes_sha256": "5fce7e43190d2df326cf9392e987ef15853bf1ce0a750f066f08fdd2d1ca532b",
+    "truncated": false
+  },
+  {
+    "run_id": "pandas-missingness-r1-oa",
+    "url": "https://pandas.pydata.org/pandas-docs/version/2.3.3/user_guide/missing_data.html",
+    "final_url": "https://pandas.pydata.org/pandas-docs/version/2.3.3/user_guide/missing_data.html",
+    "fetched_bytes_sha256": "9e1b9cae75712b351094123c6a9d2f7cbd5e96b9af86ce7c508c957dfbf70f15",
+    "truncated": false
+  },
+  {
+    "run_id": "pandas-missingness-r1-oa",
+    "url": "https://pandas.pydata.org/pandas-docs/version/2.3.3/user_guide/duplicates.html",
+    "final_url": "https://pandas.pydata.org/pandas-docs/version/2.3.3/user_guide/duplicates.html",
+    "fetched_bytes_sha256": "a0d7bb2d54bacdc04c250cd5e98d4e9371000dc5c8481389a44824565cccc50d",
+    "truncated": false
+  },
+  {
+    "run_id": "pandas-missingness-r1-oa",
+    "url": "https://pandas.pydata.org/pandas-docs/version/2.3.3/user_guide/missing_data.html",
+    "final_url": "https://pandas.pydata.org/pandas-docs/version/2.3.3/user_guide/missing_data.html",
+    "fetched_bytes_sha256": "9e1b9cae75712b351094123c6a9d2f7cbd5e96b9af86ce7c508c957dfbf70f15",
+    "truncated": false
+  },
+  {
+    "run_id": "pandas-missingness-r1-oa",
+    "url": "https://pandas.pydata.org/pandas-docs/version/2.3.3/user_guide/duplicates.html",
+    "final_url": "https://pandas.pydata.org/pandas-docs/version/2.3.3/user_guide/duplicates.html",
+    "fetched_bytes_sha256": "a0d7bb2d54bacdc04c250cd5e98d4e9371000dc5c8481389a44824565cccc50d",
+    "truncated": false
+  },
+  {
+    "run_id": "http-json-client-r1-oa",
+    "url": "https://docs.python.org/3.12/library/urllib.request.html",
+    "final_url": "https://docs.python.org/3.12/library/urllib.request.html",
+    "fetched_bytes_sha256": "310f081c2b01b9833d166445a4d0c51b452c3e39b977a4e6dd0f3a7a86366217",
+    "truncated": true
+  },
+  {
+    "run_id": "http-json-client-r1-oa",
+    "url": "https://docs.python.org/3.12/library/json.html",
+    "final_url": "https://docs.python.org/3.12/library/json.html",
+    "fetched_bytes_sha256": "61534059deb718a77f803e5d1f63203463032d24b89c204b5acbdc1d5c549f52",
+    "truncated": false
+  },
+  {
+    "run_id": "http-json-client-r1-web",
+    "url": "https://docs.python.org/3/library/urllib.request.html",
+    "final_url": "https://docs.python.org/3/library/urllib.request.html",
+    "fetched_bytes_sha256": "3d24ad81addfa6f54209221f15c986cba92c33f35f947a9ccfd77900104c0bd6",
+    "truncated": true
+  },
+  {
+    "run_id": "http-json-client-r1-web",
+    "url": "https://docs.python.org/3/library/urllib.error.html",
+    "final_url": "https://docs.python.org/3/library/urllib.error.html",
+    "fetched_bytes_sha256": "bb7cb53417335e4f3c70cd4ea3e74e8ecf0470c9828da12e05c985f5f18c9509",
+    "truncated": false
+  },
+  {
+    "run_id": "http-json-client-r1-web",
+    "url": "https://docs.python.org/3/library/json.html",
+    "final_url": "https://docs.python.org/3/library/json.html",
+    "fetched_bytes_sha256": "846d21553be76014620e336b22331cdefa43ba08a29bb7321ce80af756d8444b",
+    "truncated": false
+  },
+  {
+    "run_id": "http-json-client-r1-web",
+    "url": "https://docs.python.org/3.12/library/urllib.request.html",
+    "final_url": "https://docs.python.org/3.12/library/urllib.request.html",
+    "fetched_bytes_sha256": "310f081c2b01b9833d166445a4d0c51b452c3e39b977a4e6dd0f3a7a86366217",
+    "truncated": true
+  },
+  {
+    "run_id": "http-json-client-r1-web",
+    "url": "https://docs.python.org/3.12/library/urllib.error.html",
+    "final_url": "https://docs.python.org/3.12/library/urllib.error.html",
+    "fetched_bytes_sha256": "70be7d11a07807a9abe63cf5ad11c67cf47f519605b950f999460e3c656475cc",
+    "truncated": false
+  },
+  {
+    "run_id": "http-json-client-r1-web",
+    "url": "https://docs.python.org/3.12/library/json.html",
+    "final_url": "https://docs.python.org/3.12/library/json.html",
+    "fetched_bytes_sha256": "61534059deb718a77f803e5d1f63203463032d24b89c204b5acbdc1d5c549f52",
+    "truncated": false
+  }
+]

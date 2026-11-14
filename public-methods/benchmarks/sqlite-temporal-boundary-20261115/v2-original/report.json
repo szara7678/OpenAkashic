@@ -1,0 +1,101 @@
+{
+  "schema": "openakashic-sqlite-temporal-boundary-v1",
+  "started_at": "2026-11-14T15:27:22.707117+00:00",
+  "scope": "Separate operator synthetic fixture, not an LLM-quality benchmark or production recovery.",
+  "method": {
+    "id": "method_5af91cc7219a4130a3a2cf2d7630b031",
+    "version": 2,
+    "snapshot_sha256": "47c399a165d06ba8f8fb0b467ba1fd1e7df3a1a02d61c1c9c5f5271de19a5d8f",
+    "supplied_snapshot_file_sha256": "94f1b71ecf6ffa99be7b37faddf7d4baf50a2b221485542de02563aabfc6cdfe"
+  },
+  "claim_under_test": {
+    "historical_method_version": 2,
+    "exact_text": "온라인 백업은 백업 시작 시점의 스냅샷이므로 백업 후 원본 변경을 포함하지 않는다.",
+    "present_in_loaded_snapshot": true,
+    "loaded_revised_method_semantic_agreement": null,
+    "boundary": "The counterexample flag targets this historical v2 sentence. Loaded v3 wording requires separate owner review and is not automatically called false."
+  },
+  "runtime": {
+    "python": "3.12.3",
+    "sqlite": "3.45.1",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39"
+  },
+  "fixture": {
+    "row_count": 512,
+    "payload_characters_per_row": 3000,
+    "requested_page_size": 4096,
+    "journal_mode": "WAL",
+    "backup_pages_per_step": 1,
+    "inject_after_copied_pages": 4,
+    "intentional_update": "one other connection commits a value change for id=1"
+  },
+  "observations": {
+    "injection": {
+      "committed": true,
+      "callback_index": 4,
+      "copied_this_pass": 4,
+      "changed_rows": 1,
+      "committed_at": "2026-11-14T15:27:22.775077+00:00"
+    },
+    "progress_callbacks": 518,
+    "remaining_increases": [
+      {
+        "from_callback": 4,
+        "to_callback": 5,
+        "from_remaining": 510,
+        "to_remaining": 513
+      }
+    ],
+    "restart_signal_observed": true,
+    "later_commit_in_destination": true,
+    "all_ordered_destination_rows_equal_final_source": true,
+    "all_ordered_standalone_rows_equal_final_source": true,
+    "row_counts": {
+      "before": 512,
+      "final_source": 512,
+      "destination": 512
+    },
+    "ordered_row_sha256": {
+      "before": "1d78b22ec4e27de1d5684142f5a154d88542d817990d5339e7f647bf2d375f06",
+      "final_source": "fceaed092b7e1ad1c275ab3cff753e655ba0a118b107996542a4673ad6e05538",
+      "destination": "fceaed092b7e1ad1c275ab3cff753e655ba0a118b107996542a4673ad6e05538",
+      "standalone": "fceaed092b7e1ad1c275ab3cff753e655ba0a118b107996542a4673ad6e05538"
+    },
+    "schema_sha256": {
+      "before": "611ef81d4ff1519c781106d1ea2f436e2defa5bd73d3790a8e48877084677e36",
+      "final_source": "611ef81d4ff1519c781106d1ea2f436e2defa5bd73d3790a8e48877084677e36",
+      "destination": "611ef81d4ff1519c781106d1ea2f436e2defa5bd73d3790a8e48877084677e36"
+    },
+    "closed_database_sha256": {
+      "source": "dc2f0ec8cbba2ef689404c9a0f87006dc9a7dae1fef12b8656838b2e5766ea53",
+      "destination": "a02546161aa1b4490bc68b087e1f125cb0f51d14be81591015ad96aff5981ef4",
+      "standalone": "a02546161aa1b4490bc68b087e1f125cb0f51d14be81591015ad96aff5981ef4"
+    },
+    "foreign_key_scope": "No foreign-key relationships exist in this one-table fixture; empty checks do not validate complex FK recovery."
+  },
+  "checks": {
+    "fixture_spans_at_least_eight_pages": true,
+    "source_and_destination_are_distinct": true,
+    "destination_was_created_exclusively": true,
+    "intentional_other_connection_commit_after_exactly_four_pages": true,
+    "source_logical_state_changed_only_by_intentional_fixture_update": true,
+    "source_reopen_integrity_ok": true,
+    "destination_reopen_integrity_ok": true,
+    "destination_schema_equals_source": true,
+    "destination_all_ordered_rows_match_one_expected_committed_state": true,
+    "standalone_main_file_integrity_ok": true,
+    "standalone_schema_and_all_ordered_rows_equal_destination": true,
+    "foreign_key_check_executed_no_violations": true
+  },
+  "counterexample_observed": true,
+  "state": "counterexample_observed_in_bounded_fixture",
+  "production_or_API_or_model_writes": 0,
+  "conclusion_boundary": "A later committed change appears in a valid backup. This contradicts the quoted historical v2 start-time claim for this configuration; it does not claim the loaded revised method is false.",
+  "cleanup_observation": {
+    "removed": true,
+    "remaining_files": [],
+    "fixture_databases_retained": false
+  },
+  "temporary_fixture_removed": true,
+  "finished_at": "2026-11-14T15:27:24.084895+00:00"
+}

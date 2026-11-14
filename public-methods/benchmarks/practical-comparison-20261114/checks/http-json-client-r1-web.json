@@ -1,0 +1,27 @@
+{
+  "task": "http-json-client",
+  "checker_exit_code": 0,
+  "checker_seconds": 1.3795303310034797,
+  "result": {
+    "task": "http-json-client",
+    "all_passed": true,
+    "checks": [
+      {
+        "name": "falsey JSON values",
+        "passed": true
+      },
+      {
+        "name": "invalid JSON encoding and exception cause",
+        "passed": true
+      },
+      {
+        "name": "HTTP failure precedence and no retries",
+        "passed": true
+      },
+      {
+        "name": "timeout classification and cause",
+        "passed": true
+      }
+    ]
+  }
+}

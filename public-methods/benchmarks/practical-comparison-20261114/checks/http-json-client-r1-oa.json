@@ -1,0 +1,17 @@
+{
+  "task": "http-json-client",
+  "checker_exit_code": 1,
+  "checker_seconds": 0.8305235850275494,
+  "result": {
+    "task": "http-json-client",
+    "all_passed": false,
+    "checks": [
+      {
+        "name": "load artifact",
+        "passed": false,
+        "error_type": "FileNotFoundError",
+        "message": "[Errno 2] No such file or directory: '/work/solution.py'"
+      }
+    ]
+  }
+}

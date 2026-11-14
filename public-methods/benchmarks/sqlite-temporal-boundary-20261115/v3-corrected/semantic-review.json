@@ -1,0 +1,14 @@
+{
+  "schema": "openakashic-v3-bounded-semantic-review-v1",
+  "method_id": "method_5af91cc7219a4130a3a2cf2d7630b031",
+  "method_version": 3,
+  "method_snapshot_sha256": "a9a12731ab5b6695efe1f6f2c866f043492eadc0776fc24db070a3fa2daaf225",
+  "report_sha256": "81da1b0fa015792b38bbcf9d84137e3cf314999b6d8dc2ec2dfda496d4aff116",
+  "review_kind": "Agent/operator interpretation after actual execution; separate from raw measurements.",
+  "observed": "The same fresh one-update WAL fixture includes the later commit, with valid standalone backup, equal final 512 ordered rows and cleanup.",
+  "assessment": "This bounded observation agrees with v3 wording that incremental backup may restart/include later changes. It contradicts only the historical unconditional v2 sentence.",
+  "comparison_scope": "Only one intentional atomic update occurred; no later writes followed. Equality to final source is valid within this controlled comparison scope, not a rule for an arbitrarily changing live source.",
+  "production_or_general_temporal_guarantee": false,
+  "new_LLM_benchmark": false,
+  "raw_report_preserved": "The original report keeps loaded_revised_method_semantic_agreement=null and counterexample_observed for the historical v2 claim. It is not edited to simulate an automatic semantic test."
+}

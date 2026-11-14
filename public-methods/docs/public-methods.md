@@ -504,3 +504,8 @@ failures, original outputs and experiment-specific baselines.
 
 For installation, public/owner separation and backup/recovery, see
 [the operations guide](knowhow-operations.md).
+
+
+## Current-archive executable comparison
+
+The November 14–15 grounded comparison preserves all scheduled runs, missing provider usage and prior initialization/resource failures. Web/OA-first full success was 2/4 versus 1/4; source coverage and actual application differed. It does not establish general efficiency. See [the complete report](practical-comparison-2026-11-14.md) and [sanitized reproducibility materials](../benchmarks/practical-comparison-20261114/README.md).

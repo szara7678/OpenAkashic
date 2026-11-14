@@ -1,0 +1,58 @@
+[
+  {
+    "id": "sqlite-wal-backup-r1-web",
+    "task": "sqlite-wal-backup",
+    "repeat": 1,
+    "arm": "web",
+    "model": "gpt-6.1-sol"
+  },
+  {
+    "id": "sqlite-wal-backup-r1-oa",
+    "task": "sqlite-wal-backup",
+    "repeat": 1,
+    "arm": "oa",
+    "model": "gpt-6.1-sol"
+  },
+  {
+    "id": "kubernetes-probes-r1-oa",
+    "task": "kubernetes-probes",
+    "repeat": 1,
+    "arm": "oa",
+    "model": "gpt-6.1-sol"
+  },
+  {
+    "id": "kubernetes-probes-r1-web",
+    "task": "kubernetes-probes",
+    "repeat": 1,
+    "arm": "web",
+    "model": "gpt-6.1-sol"
+  },
+  {
+    "id": "pandas-missingness-r1-web",
+    "task": "pandas-missingness",
+    "repeat": 1,
+    "arm": "web",
+    "model": "gpt-6.1-sol"
+  },
+  {
+    "id": "pandas-missingness-r1-oa",
+    "task": "pandas-missingness",
+    "repeat": 1,
+    "arm": "oa",
+    "model": "gpt-6.1-sol"
+  },
+  {
+    "id": "http-json-client-r1-oa",
+    "task": "http-json-client",
+    "repeat": 1,
+    "arm": "oa",
+    "model": "gpt-6.1-sol"
+  },
+  {
+    "id": "http-json-client-r1-web",
+    "task": "http-json-client",
+    "repeat": 1,
+    "arm": "web",
+    "model": "gpt-6.1-sol"
+  }
+]

@@ -1,0 +1,27 @@
+{
+  "task": "pandas-missingness",
+  "checker_exit_code": 0,
+  "checker_seconds": 1.416163477988448,
+  "result": {
+    "task": "pandas-missingness",
+    "all_passed": true,
+    "checks": [
+      {
+        "name": "zero columns fixed schema",
+        "passed": true
+      },
+      {
+        "name": "nullable types and source preservation",
+        "passed": true
+      },
+      {
+        "name": "empty denominator",
+        "passed": true
+      },
+      {
+        "name": "duplicate labels",
+        "passed": true
+      }
+    ]
+  }
+}

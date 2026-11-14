@@ -1,0 +1,17 @@
+{
+  "scope": "comparison freeze, before model outputs; exact excerpt/source preparation validation is not method efficacy",
+  "comparison_freeze_methods": 61,
+  "comparison_freeze_documented_methods": 58,
+  "comparison_freeze_quote_records": 75,
+  "comparison_freeze_nonempty_quote_records": 75,
+  "source_preparation_exact_excerpt_checks_passed": 75,
+  "source_preparation_exact_excerpt_checks_total": 75,
+  "method_versions": [
+    2
+  ],
+  "comparison_snapshot_sha256": "94f1b71ecf6ffa99be7b37faddf7d4baf50a2b221485542de02563aabfc6cdfe",
+  "full_source_text_included": false,
+  "comparison_frozen_quotes_matching_validated_preparation_proposals": 75,
+  "preparation_proposal_sha256": "eb5098d76f54140b1fe6726fe2bbf7776eb6b4ee3724b8e477848dce085f2501",
+  "preparation_validation_sha256": "7e65b0ade7b9ee22ddd598a092d2d7e017a5135f826b7bdfd278e1c5390f4c84"
+}

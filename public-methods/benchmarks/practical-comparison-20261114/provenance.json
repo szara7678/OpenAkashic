@@ -1,0 +1,45 @@
+{
+  "cohort_freeze_sha256": "610d6e60119fbd3e670693a45197b93aac56bfb10011ab79644c0217b4550676",
+  "source_snapshot_sha256": "94f1b71ecf6ffa99be7b37faddf7d4baf50a2b221485542de02563aabfc6cdfe",
+  "tasks_original_sha256": "37268e591693b892eafc003399f4a0e1cab9befa5cf666eb6186e60157d06580",
+  "checker_original_sha256": "d80f77c519eee4269aa1d5f9ac209f77a9e49bf5eaf26fbf8093aa97277fe8e7",
+  "protocol_original_sha256": "3ce77590320fdf293a38057683f6f6f3079d2119967b7a63fb0e9c4da49ea3ee",
+  "runner_original_sha256": "c78a4495c18fcd674c686a32a6f8160d73500a7776a19ed1d0d64fae247d5c54",
+  "model": "gpt-6.1-sol",
+  "reasoning": "medium",
+  "timeout_seconds": 240,
+  "maximum_provider_calls": 12,
+  "cumulative_provider_token_ceiling": 200000,
+  "candidate_image_id": "sha256:16852764ffbac591979779d80c881d42d53f27946a785ecb672ad6debdee8308",
+  "native_CLI_version": "0.157.1",
+  "python_version": "3.12.16",
+  "previous_seven_attempts_byte_unchanged_after_resume": true,
+  "last_row_was_never_started_before_resume": true,
+  "resume_selected_ids": [
+    "http-json-client-r1-web"
+  ],
+  "resume_original_runner_unchanged": true,
+  "new_model_runs_during_export": 0,
+  "identity_limitations": [
+    "Mutable receipt call ordinal is unreliable; never deduplicate by it.",
+    "Original broker did not record response IDs, successful raw SSE hashes or raw request-body hashes.",
+    "Reported sums are logged provider usage counters with input cache already included, not independently identity-verified billing or money."
+  ],
+  "public_projection_excludes": [
+    "raw provider/system prompts",
+    "model traces",
+    "environment or credentials",
+    "private host paths",
+    "fetched source full text",
+    "full source corpus",
+    "private memory"
+  ],
+  "projection_original_hashes_are_not_public_projection_hashes": true,
+  "blind_grade_original_sha256": "6da82db1d80e5ffe7a75fced972f2e7120a4c27361c8c0372f823700b463c46a",
+  "blind_grade_packet_count": 8,
+  "anonymization_limitations": [
+    "The grader reviewed candidate code and documents, did not independently execute them; executable acceptance is separate.",
+    "README search-tool descriptions leaked arm clues. This was an independent shuffled review with imperfect masking, not proven complete blindness.",
+    "One reviewer, four synthetic work types and one repetition per task do not establish general product effectiveness."
+  ]
+}

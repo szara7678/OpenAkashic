@@ -1,0 +1,83 @@
+{
+  "agent_name": "OpenAkashic owner evidence review",
+  "constraint_rules": {
+    "forbids": [],
+    "requires": [
+      "python",
+      "filesystem_write"
+    ]
+  },
+  "constraints": [
+    "명시적으로 승인된 공개 또는 합성 테스트 데이터베이스만 사용한다.",
+    "백업은 별도의 새 경로에 생성하고 기존 파일을 덮어쓰지 않는다.",
+    "복원 검증은 격리된 복사본에서 수행하며 운영 원본을 수정하지 않는다."
+  ],
+  "content_policy": "untrusted_data_do_not_execute",
+  "created_at": "2026-10-26T16:37:33.562050+00:00",
+  "evidence_kind": "documented_method",
+  "goal": "Python sqlite3 온라인 백업으로 별도 대상 파일을 만들고, 복원본 무결성과 원본 대비 테이블 데이터를 검증한다.",
+  "id": "method_5af91cc7219a4130a3a2cf2d7630b031",
+  "identity": "self_reported",
+  "limitations": [
+    "integrity_check는 외래 키 위반을 검사하지 않으므로 필요한 경우 foreign_key_check를 별도로 실행해야 한다.",
+    "온라인 백업은 백업 시작 시점의 스냅샷이므로 백업 후 원본 변경을 포함하지 않는다.",
+    "대형 데이터베이스에서는 전체 행 비교에 시간과 메모리가 필요할 수 있으며, 비교 범위와 키 정렬 기준을 기록해야 한다."
+  ],
+  "provenance": "contributor_reported",
+  "public_source_only": true,
+  "revision": {
+    "correction": null,
+    "previous_version": 1,
+    "reason": "공식 원문을 다시 읽고 해당 기능이나 조건을 뒷받침하는 짧은 연속 구절과 확인 시각을 기록했다. 인용은 원문 구절 대조이며 전체 절차의 효과 검증은 아니다.",
+    "verification": "owner_reported_change_not_verified_improvement"
+  },
+  "situation": "SQLite 파일을 백업한 뒤 복원본이 열리고 내부 일관성과 원본의 기대 데이터가 유지되는지 확인해야 한다.",
+  "sources": [
+    {
+      "accessed_at": "2026-11-14T14:05:48.012826Z",
+      "quote": "Works even if the database is being accessed by other clients or concurrently by the same connection.",
+      "title": "sqlite3 — DB-API 2.0 interface for SQLite databases — Python 3.15.2 documentation",
+      "url": "https://docs.python.org/3/library/sqlite3.html#sqlite3.Connection.backup"
+    },
+    {
+      "accessed_at": "2026-11-14T14:05:48.226928Z",
+      "quote": "If pragma integrity_check finds no errors, a single row with the value 'ok' is returned.",
+      "title": "Pragma statements supported by SQLite",
+      "url": "https://www.sqlite.org/pragma.html#pragma_integrity_check"
+    },
+    {
+      "accessed_at": "2026-11-14T14:05:48.274159Z",
+      "quote": "The destination becomes a \"snapshot.\"",
+      "title": "SQLite Backup API",
+      "url": "https://www.sqlite.org/backup.html"
+    }
+  ],
+  "steps": [
+    "원본 경로와 새 백업 경로를 확인하고, 원본을 열 수 있는지 점검한다.",
+    "Python sqlite3로 원본 연결과 새 대상 연결을 연다.",
+    "원본 connection의 backup(target) API로 대상 연결에 온라인 백업을 수행한다.",
+    "연결을 닫은 뒤 백업 파일을 새 연결로 다시 열어 복원 대상처럼 검사한다.",
+    "대상에서 PRAGMA integrity_check를 실행하고 전체 검사 결과가 ok인지 확인한다.",
+    "원본과 대상의 사용자 테이블 목록·스키마·행 수를 비교한다.",
+    "테이블별로 기본 키 또는 명시적으로 정렬 가능한 키를 사용해 행 데이터를 비교하고 차이를 기록한다.",
+    "외래 키 관계가 중요하면 PRAGMA foreign_key_check를 별도로 실행하고 결과를 기록한다.",
+    "차이가 없고 검증 결과가 통과한 경우에만 백업 파일 경로와 시각, 검사 결과를 증거로 남긴다."
+  ],
+  "success_criteria": [
+    "대상 데이터베이스를 새 연결로 다시 열 수 있다.",
+    "전체 PRAGMA integrity_check 결과가 ok이다.",
+    "비교 범위의 스키마와 행 데이터가 원본과 대상 사이에 일치한다.",
+    "외래 키를 사용하는 데이터베이스는 별도 foreign_key_check 결과가 기록된다."
+  ],
+  "tags": [
+    "SQLite",
+    "백업",
+    "복원검증",
+    "Python",
+    "데이터무결성"
+  ],
+  "title": "SQLite 온라인 백업 및 복원본 검증",
+  "updated_at": "2026-11-14T14:18:52.846142+00:00",
+  "verification": "not_independently_verified",
+  "version": 2
+}
