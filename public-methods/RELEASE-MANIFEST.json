@@ -1,8 +1,8 @@
 {
   "schema": "public-methods-release-manifest-v3",
-  "previous_public_commit": "459ae921b2982a3467059065b353c85e57cbae85",
-  "scope": "Second-brain reading UX; contextual previews, explicit relation groups, browser-local exact-ID bookmarks; data and API unchanged",
-  "created_at": "2026-11-09T16:07:47.589588+00:00",
+  "previous_public_commit": "d45a119d1003d789d3d65620d6c3f437b6b9b5c9",
+  "scope": "Clear selection on dismiss; explicit situation-goal meaning search; shared-source navigation and evidence-bounded archive review",
+  "created_at": "2026-11-14T13:56:49.788093+00:00",
   "files": [
     {
       "path": "public-methods/.gitignore",
@@ -26,7 +26,7 @@
     },
     {
       "path": "public-methods/README.md",
-      "sha256": "6eb0e6390b0f0d6d82b74eb9d157d5d986c5ad6b3080cd001a70f56bf9b4539f"
+      "sha256": "d34a5967a49e3f651edfd614aecbd0873443ff419e2d4512fd8116151db5620f"
     },
     {
       "path": "public-methods/api/app/__init__.py",
@@ -2578,7 +2578,7 @@
     },
     {
       "path": "public-methods/docs/atlas-ui-design.md",
-      "sha256": "4fff96f87079bf8f819e492abc69935d0d8b1c3fc2c94f3f2f12a082d4880a59"
+      "sha256": "2b8510b9207dd6b3d4119c73d69472a79022b0f5bc321cdd515f9c022a462794"
     },
     {
       "path": "public-methods/docs/judgment-methods.md",
@@ -2726,7 +2726,7 @@
     },
     {
       "path": "public-methods/web/research/methods-explore.js",
-      "sha256": "16582a7924b73d0a74aecc9799c74c346d4839fd7ca7c874e124aca8b43e8add"
+      "sha256": "60e2a7bd00dd7f04fe6275cdbcaca56918763b6670e993e32fc78d6cef3e73ef"
     },
     {
       "path": "public-methods/web/research/methods-graph.js",
