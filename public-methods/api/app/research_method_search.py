@@ -17,7 +17,7 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlparse
 from urllib.request import Request, build_opener, ProxyHandler, HTTPRedirectHandler
 
-from app.research_method_store import axis_match, adequate_axis
+from app.research_method_store import axis_match, adequate_axis, tokens
 from app.research_store import canonical, digest
 
 SCHEMA_VERSION = "method-index-v1"
@@ -238,12 +238,62 @@ def scope_match(method, domain="", product=""):
     return (not domain or domain_for(method) == domain) and (not product or product in tags)
 
 
+# Editorial/source subject vocabulary, not an ontology or capability claim.
+SUBJECT_NOISE = frozenset({"www", "docs", "doc", "documentation", "raw", "github",
+    "githubusercontent", "readthedocs", "com", "org", "io", "net", "dev", "edu"})
+
+
+def recall_terms(text):
+    # Retain identifiers and their parts (startupProbe, missing_data).
+    expanded = re.sub(r"([a-z])([A-Z])", r"\1 \2", text)
+    words = set(tokens(text)) | set(tokens(expanded))
+    return words | {w[:-1] for w in words if len(w) > 4 and w.endswith("s") and not w.endswith("ss")}
+
+
+def declared_subjects(method):
+    identity = " ".join(str(method.get(k, "")) for k in ("title", "situation", "goal"))
+    identity += " " + " ".join(method.get("constraints", []))
+    source_text = " ".join(str(s.get(k, "")) for s in method.get("sources", []) for k in ("title", "quote"))
+    declared = set()
+    for tag in method.get("tags", []):
+        if re.fullmatch(r"[A-Za-z][A-Za-z0-9]{1,39}", tag) and tag.casefold() in recall_terms(identity):
+            declared.add(tag.casefold())
+    # Source host labels must also occur in written identity/citation text.
+    # A URL or its path alone cannot declare a method subject.
+    written = recall_terms(identity + " " + source_text)
+    for source in method.get("sources", []):
+        host = urlparse(source.get("url", "")).hostname or ""
+        declared.update(label for label in host.casefold().split(".")
+                        if label not in SUBJECT_NOISE and len(label) > 2 and label in written)
+    return declared - SUBJECT_NOISE
+
+
+def subject_basis(method, query_subjects, vocabulary, situation, goal):
+    subjects = declared_subjects(method)
+    covered, missing = query_subjects & subjects, query_subjects - subjects
+    title_subjects = subjects & recall_terms(method.get("title", ""))
+    unmentioned_title_subjects = title_subjects - query_subjects
+    subject_words = set().union(*(recall_terms(word) for word in vocabulary)) if vocabulary else set()
+    topic = recall_terms(" ".join(str(method.get(k, "")) for k in ("title", "situation", "goal"))
+                         + " " + " ".join(method.get("steps", []))
+                         + " " + " ".join(str(s.get(k, "")) for s in method.get("sources", [])
+                                              for k in ("title", "quote"))) - subject_words
+    evidence = {field: sorted((recall_terms(text) - subject_words) & topic)
+                for field, text in (("situation", situation), ("goal", goal))}
+    return {"policy": "declared_subject_and_topic_v1", "query_subjects": sorted(query_subjects),
+            "method_subjects": sorted(subjects), "covered": sorted(covered), "undeclared": sorted(missing),
+            "unmentioned_title_subjects": sorted(unmentioned_title_subjects),
+            "topic_terms": evidence, "status": "unknown" if missing else "declared_overlap" if covered else "not_selected",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"}
+
+
 def search_methods(store, situation, goal, constraints="", limit=5, *, mode="hybrid", requires=(),
                    forbids=(), domain="", product="", index_path=None, embedder=None, config=None):
-    """Retrieve methods; hybrid uses independent lexical/vector ranks, no lexical gate.
+    """Retrieve methods with disclosed subject/topic checks and independent ranks.
 
-    Both semantic axes must pass frozen floors. Missing/stale/mismatched vectors
-    abstain; they never silently become a lexical recommendation.
+    Semantic candidates pass both frozen floors. Hybrid may also return explicitly
+    labeled subject-and-topic lexical candidates. Both routes require a current
+    pinned index and available embedder; neither bypasses staleness or constraints.
     """
     if mode not in {"semantic", "hybrid", "lexical"}:
         raise ValueError("unknown method search mode")
@@ -272,10 +322,18 @@ def search_methods(store, situation, goal, constraints="", limit=5, *, mode="hyb
     config = config or SearchConfig.from_env()
     metadata = {"available": False, "status": "unavailable", "eligible_methods": 0,
                 "stale_or_missing_methods": 0, "weak_axis_methods": 0, "constraint_conflicts": 0, "relevance_status": "unknown", "floors": {"situation": config.situation_floor, "goal": config.goal_floor},
-                "floor_policy": "operator_frozen_before_evaluation", "ranking": "reciprocal_rank_fusion" if mode == "hybrid" else "mean_axis_cosine"}
+                "floor_policy": "operator_frozen_before_evaluation", "ranking": "reciprocal_rank_fusion" if mode == "hybrid" else "mean_axis_cosine",
+                "subject_policy": "declared_subject_and_topic_v1",
+                "subject_unknown_policy": "undeclared_subject_or_topic_excluded_not_proven_incompatible",
+                "subject_unknown_methods": 0, "lexical_recall_methods": 0}
     result["search"] = metadata
     try:
         methods = source_methods(store)
+        vocabulary = set().union(*(declared_subjects(m) for m in methods)) if methods else set()
+        query_subjects = (recall_terms(situation) | recall_terms(goal)) & vocabulary
+        metadata["query_subjects"] = sorted(query_subjects)
+        if query_subjects:
+            result["cautions"].append("Automatic declared subject/topic checks narrow retrieval; missing subject labels are unknown, not proven incompatibility.")
         index_meta, entries = _read_index(index_path or os.getenv("OPENAKASHIC_METHOD_INDEX", ""), config)
         metadata.update({key: index_meta[key] for key in ("model", "revision", "embedding_spec")})
         query = (embedder or HTTPEmbedder(config)).embed([situation, goal], "query")
@@ -287,7 +345,7 @@ def search_methods(store, situation, goal, constraints="", limit=5, *, mode="hyb
             raise SearchUnavailable("query/index dimensions mismatch")
         vectors = {(r["method_id"], r["version"], r["field"]): r for r in entries}
         eligible = []
-        lexical_rank = []
+        lexical_rank = {}
         for method in methods:
             if not scope_match(method, domain, product):
                 continue
@@ -312,23 +370,37 @@ def search_methods(store, situation, goal, constraints="", limit=5, *, mode="hyb
                 metadata["constraint_conflicts"] += 1
                 continue
             s, g = axis_match(situation, method["situation"]), axis_match(goal, method["goal"])
-            if adequate_axis(s) and adequate_axis(g):
-                lexical_rank.append((method["id"], (s["coverage"]+g["coverage"])/2))
-            if axes["situation"] < config.situation_floor or axes["goal"] < config.goal_floor:
-                metadata["weak_axis_methods"] += 1
+            basis = subject_basis(method, query_subjects, vocabulary, situation, goal)
+            topic_overlap = all(basis["topic_terms"].values())
+            if query_subjects and (basis["undeclared"] or basis["unmentioned_title_subjects"] or not topic_overlap):
+                metadata["subject_unknown_methods"] += 1
                 continue
+            lexical_recall = bool(mode == "hybrid" and query_subjects and topic_overlap)
+            if adequate_axis(s) and adequate_axis(g):
+                lexical_rank[method["id"]] = (s["coverage"]+g["coverage"])/2
+            semantic = axes["situation"] >= config.situation_floor and axes["goal"] >= config.goal_floor
+            if not semantic:
+                metadata["weak_axis_methods"] += 1
+                if not lexical_recall:
+                    continue
+                metadata["lexical_recall_methods"] += 1
+                lexical_rank[method["id"]] = sum(len(x) for x in basis["topic_terms"].values())
             for field, match in (("situation", s), ("goal", g)):
-                match.update({"similarity": round(axes[field], 6), "status": "relevant", "floor": getattr(config, field+"_floor")})
+                match.update({"similarity": round(axes[field], 6), "status": "relevant" if semantic else "lexical_candidate_below_semantic_floor", "floor": getattr(config, field+"_floor")})
             c = axis_match(constraints, " ".join(method["constraints"]))
             c["status"] = "requires_review" if constraints else "not_reviewed"
             eligible.append({"method": method, "match": {"situation": s, "goal": g, "constraints": c,
-                            "constraint_rules": rule_match, "semantic_relevance": round(sum(axes.values())/2, 6),
+                            "constraint_rules": rule_match, "retrieval_basis": "semantic_axes" if semantic else "declared_subject_topic_lexical",
+                            "subject_match": basis, "semantic_eligible": semantic, "semantic_relevance": round(sum(axes.values())/2, 6),
                             "cautions": result["cautions"]}})
         eligible.sort(key=lambda x: (-x["match"]["semantic_relevance"], x["method"]["id"]))
-        lex_ranks = {mid: rank for rank, (mid, _) in enumerate(sorted(lexical_rank, key=lambda x: (-x[1], x[0])), 1)}
-        for rank, row in enumerate(eligible, 1):
+        lex_ranks = {mid: rank for rank, (mid, _) in enumerate(sorted(lexical_rank.items(), key=lambda x: (-x[1], x[0])), 1)}
+        semantic_ranks = {row["method"]["id"]: rank for rank, row in enumerate(
+            [x for x in eligible if x["match"]["semantic_eligible"]], 1)}
+        for row in eligible:
+            rank = semantic_ranks.get(row["method"]["id"])
             lr = lex_ranks.get(row["method"]["id"])
-            row["match"]["score"] = (round(1/(config.rrf_k+rank) + (1/(config.rrf_k+lr) if lr else 0), 8)
+            row["match"]["score"] = (round((1/(config.rrf_k+rank) if rank else 0) + (1/(config.rrf_k+lr) if lr else 0), 8)
                                           if mode == "hybrid" else row["match"]["semantic_relevance"])
             row["match"]["ranks"] = {"semantic": rank, "lexical": lr}
         eligible.sort(key=lambda x: (-x["match"]["score"], x["method"]["id"]))
@@ -339,6 +411,8 @@ def search_methods(store, situation, goal, constraints="", limit=5, *, mode="hyb
         metadata.update({"available": True, "eligible_methods": len(eligible),
                          "status": "partial_index" if metadata["stale_or_missing_methods"] else "ready",
                          "source_methods": len(methods), "relevance_status": "candidates" if eligible else "unknown"})
+        if metadata["lexical_recall_methods"]:
+            result["cautions"].append("Some candidates use declared subject/topic lexical recall below semantic floors; inspect the retrieval basis and full method before applying.")
         if metadata["stale_or_missing_methods"]:
             result["cautions"].append("Some current methods lack a matching index entry and were excluded.")
     except (SearchUnavailable, ValueError, KeyError, TypeError) as exc:

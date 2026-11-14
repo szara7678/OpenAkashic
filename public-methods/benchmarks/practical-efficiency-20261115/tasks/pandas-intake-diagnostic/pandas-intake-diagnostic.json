@@ -1,0 +1,17 @@
+[
+  {
+    "desk": "A",
+    "wait_minutes": 3,
+    "charge": null
+  },
+  {
+    "desk": "A",
+    "wait_minutes": null,
+    "charge": 12
+  },
+  {
+    "desk": "B",
+    "wait_minutes": null,
+    "charge": null
+  }
+]

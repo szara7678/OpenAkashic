@@ -1,0 +1,37 @@
+{
+  "resolved_grades_sha256": "9cf6c9520964749df2e05691c32ba0678d0b79396e86ec2fff62880cc16faea7",
+  "reviewer_record_sha256": [
+    "08ca94febf1f3bac98ef57fcfff34572f116104fed124164643f88ef8910b080",
+    "59703144dd027f70e04ff39e5dda974146e7bb72fec25b282e44c95239bd350d"
+  ],
+  "approved_by": "parent",
+  "independent_reviews_complete": true,
+  "adjudication": [
+    {
+      "anonymous": "A09",
+      "decision": "documented_verification=2, evidence_fit=2, artifact_usability=2",
+      "basis": "Original mixed command and output corroborate the final strict six-test rerun, warning correction and documented 0.036s result. Preserve both original reviews; missing packet evidence is not candidate failure."
+    },
+    {
+      "anonymous": "A13",
+      "decision": "evidence_fit=2; documented_verification remains2",
+      "basis": "Original mixed command and output corroborate final nine-test rerun at0.012s and exact CLI JSON smoke. Preserve original review gap separately."
+    },
+    {
+      "anonymous": "A10",
+      "decision": "sources_and_limitations=1, evidence_fit=1, normal_completion=0",
+      "basis": "Official-source URL/body artifacts are present, as reviewerA identifies. Incomplete README source list remains a citation/usability gap, not fabricated retrieval; resource failure still disqualifies full success."
+    },
+    {
+      "anonymous": "A16",
+      "decision": "evidence_fit=1 (conservative), documented_verification=0, normal_completion=0",
+      "basis": "Retain lower disputed support score for incomplete final evidence record. Neither primary failure nor paired denominator changes."
+    }
+  ],
+  "approval_sha256": "826ae29723e096f2f605bc784dc65aeebdfe168f1ee1ae6836d3a58690e11509",
+  "initial_reviewer_notes_before_parent_supplement": [
+    "A09: retained initial six-test pass with warnings supports README ordinary-command/initial-pass statement, but final warning-as-error rerun is unconfirmable.",
+    "A13: retained initial nine-test pass supports documented unittest verification, but final rerun timing and CLI smoke are unconfirmable.",
+    "A04, A10 and A16 have no normal final. A04 and A16 also omit actual observed verification results in README. A10 has a missing promised source-list section but bundled primary source files."
+  ]
+}

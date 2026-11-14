@@ -160,3 +160,22 @@ def test_explicit_scope_forwarded_anonymously(server, command, capsys):
     assert query["product"] == ["postgresql"]
     assert method == "GET" and body is None
     assert not any(name.lower() == "x-openakashic-key" for name in headers)
+
+
+def test_opt_in_cache_validates_fresh_network_and_refetches_explicitly(server, capsys, tmp_path):
+    base, requests, state = server
+    value = {"id": "method_1", "version": 1, "steps": ["complete"], "sources": []}
+    state["response"] = value
+    args = ["--endpoint", base, "--read-cache", str(tmp_path), "fetch", "method_1"]
+    assert client.main(args) == 0
+    assert json.loads(capsys.readouterr().out) == value
+    assert client.main(args) == 0
+    receipt = json.loads(capsys.readouterr().out)
+    assert receipt["already_read"]
+    assert json.loads(Path(receipt["artifact"]).read_text()) == value
+    assert len(requests) == 2  # Cache never skips current source validation.
+    state["response"] = dict(value, version=2)
+    assert client.main(args) == 0
+    assert json.loads(capsys.readouterr().out) == state["response"]
+    assert client.main(args[:4] + ["--refetch"] + args[4:]) == 0
+    assert json.loads(capsys.readouterr().out) == state["response"]

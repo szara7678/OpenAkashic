@@ -1,0 +1,28 @@
+{
+  "source_sha256": "d73c75a02782a48276ec78fb20bf700d15eb6f89d40d1f22cc0c9ab9033cee14",
+  "supplement": {
+    "schema": "nov15-neutral-verification-supplement-v1",
+    "items": [
+      {
+        "anonymous": "A09",
+        "original_item_sha256": "4420f447438b16ce84f33e36b530bd6d75a92b0de3067c9d658bc16b757ba367",
+        "original_trace_sha256": "7cd07cab8fd148e516484cfdf21e574608149d5da0329de56e026cee44f0782b",
+        "original_line": 33,
+        "extraction_policy": "Exact command suffix and exact observed output suffix after external source text. Mixed command had been excluded wholesale from blind packets; no new candidate execution.",
+        "command_suffix": "python -W error::FutureWarning -m unittest -v test_solution > /tmp/intake-test-results.txt 2>&1\nstatus=\"'$?\ncat /tmp/intake-test-results.txt\nif [ \"$status\" -ne 0 ]; then exit \"$status\"; fi\npython - <<'\"'PY'\nfrom pathlib import Path\nimport platform\nimport pandas as pd\nresult = Path('/tmp/intake-test-results.txt').read_text()\nwith Path('README.md').open('a') as handle:\n    handle.write('\\\\n## Actual verification\\\\n\\\\n')\n    handle.write(f'Executed with Python {platform.python_version()} and pandas {pd.__version__}:\\\\n\\\\n')\n    handle.write('\"'```sh'\"\\\\npython -W error::FutureWarning -m unittest -v test_solution\\\\n\"'```'\"\\\\n\\\\n')\n    handle.write('Observed output (exit status 0):\\\\n\\\\n\"'```text'\"\\\\n' + result + '\"'```'\"\\\\n')\nPY\"",
+        "observed_output_suffix": "test_all_missing (test_solution.DiagnoseTests.test_all_missing) ... ok\ntest_empty (test_solution.DiagnoseTests.test_empty) ... ok\ntest_missing_desk_labels (test_solution.DiagnoseTests.test_missing_desk_labels) ... ok\ntest_mixed_patterns_and_policies (test_solution.DiagnoseTests.test_mixed_patterns_and_policies) ... ok\ntest_no_missing (test_solution.DiagnoseTests.test_no_missing) ... ok\ntest_nullable_integers_fractional_median_and_multiindex (test_solution.DiagnoseTests.test_nullable_integers_fractional_median_and_multiindex) ... ok\n\n----------------------------------------------------------------------\nRan 6 tests in 0.036s\n\nOK\n",
+        "exit_code": 0
+      },
+      {
+        "anonymous": "A13",
+        "original_item_sha256": "e800be0f55156b6c6b18795413eab0d8dc6a4a643666fc475c461fbc54f14f0d",
+        "original_trace_sha256": "e7c6bfe8c25cc61ed61278c94ccb9d615b80739edfa00c311f8e2c3bb582dd01",
+        "original_line": 25,
+        "extraction_policy": "Exact command suffix and exact observed output suffix after external source text. Mixed command had been excluded wholesale from blind packets; no new candidate execution.",
+        "command_suffix": "python -m unittest -v\npython - <<'PY'\nimport sqlite3,sys,subprocess,tempfile\nfrom pathlib import Path\nprint('Python:',sys.version.split()[0])\nprint('SQLite:',sqlite3.sqlite_version)\nwith tempfile.TemporaryDirectory() as directory:\n source=str(Path(directory)/'source.db');target=str(Path(directory)/'backup.db')\n subprocess.run([sys.executable,'make_sqlite.py',source],check=True)\n subprocess.run([sys.executable,'solution.py',source,target],check=True)\nPY\"",
+        "observed_output_suffix": "test_bad_source_cleanup (test_solution.BackupReviewTests.test_bad_source_cleanup) ... ok\ntest_dangling_target_symlink (test_solution.BackupReviewTests.test_dangling_target_symlink) ... ok\ntest_empty_database (test_solution.BackupReviewTests.test_empty_database) ... ok\ntest_existing_target_unchanged (test_solution.BackupReviewTests.test_existing_target_unchanged) ... ok\ntest_missing_source_creates_nothing (test_solution.BackupReviewTests.test_missing_source_creates_nothing) ... ok\ntest_rows_are_type_sensitive_multisets (test_solution.BackupReviewTests.test_rows_are_type_sensitive_multisets) ... ok\ntest_same_path (test_solution.BackupReviewTests.test_same_path) ... ok\ntest_schema_quoted_names_duplicates_and_types (test_solution.BackupReviewTests.test_schema_quoted_names_duplicates_and_types) ... ok\ntest_wal_commits_and_foreign_key_violation (test_solution.BackupReviewTests.test_wal_commits_and_foreign_key_violation) ... ok\n\n----------------------------------------------------------------------\nRan 9 tests in 0.012s\n\nOK\n{\"copy_matches\": true, \"foreign_key_violations\": [[\"tickets\", 6, \"desks\", 0]], \"integrity_ok\": true, \"relation_valid\": false, \"tables\": {\"desks\": 1, \"tickets\": 2}}\nPython: 3.12.16\nSQLite: 3.53.4\n",
+        "exit_code": 0
+      }
+    ]
+  }
+}

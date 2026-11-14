@@ -1,8 +1,8 @@
 {
   "schema": "public-methods-release-manifest-v3",
-  "previous_public_commit": "f03f97edb7909c327c74ebc0cc4a69946d5fa68c",
-  "scope": "Grounded source excerpts and explicit domains; bounded web/OA task comparison with failures; exact-version application and SQLite temporal correction evidence",
-  "created_at": "2026-11-14T15:47:46.032648+00:00",
+  "previous_public_commit": "c6a670883a0f727a85248252361ac55720773a0d",
+  "scope": "Declared subject/topic recall and exact-body session cache; isolated16-run web/OA comparison with both independent reviews, preserved failures and bounded actual applications",
+  "created_at": "2026-11-14T20:10:48.906552+00:00",
   "files": [
     {
       "path": "public-methods/.gitignore",
@@ -26,7 +26,7 @@
     },
     {
       "path": "public-methods/README.md",
-      "sha256": "1bd2165ffadb6b866fb7e1ba6534c1dfcef08847dbaea74fdf4c6f0a55d3509d"
+      "sha256": "c262643e2e737455162f4af313c8c5843e976e3420fcc1618bb5104f9f42a699"
     },
     {
       "path": "public-methods/api/app/__init__.py",
@@ -54,7 +54,7 @@
     },
     {
       "path": "public-methods/api/app/research_method_context.py",
-      "sha256": "576fb4a8432373289e883a24446c2e3bb58bc28c5adb90e642ff0a20757e9fa2"
+      "sha256": "d4582993631ef7631573b33d67af2a0854ac4d934e99cde3021f572f64b5bafd"
     },
     {
       "path": "public-methods/api/app/research_method_evidence.py",
@@ -70,7 +70,7 @@
     },
     {
       "path": "public-methods/api/app/research_method_search.py",
-      "sha256": "ed00793f82fc4051a154be7c5dad5ef316404202c82fae8e85bf7341db831ad9"
+      "sha256": "b26bbf8ff136140e61935c56121b721df09e7880a32a431cf48e37b63dd18f5f"
     },
     {
       "path": "public-methods/api/app/research_method_store.py",
@@ -114,11 +114,15 @@
     },
     {
       "path": "public-methods/api/scripts/method_agent.py",
-      "sha256": "628e405ad8dedf7f111da0f8ff2478440680f218a9bf294b86b15057eb8a0bc9"
+      "sha256": "7aad73e138d779a7e24c83670128cd2ce27d02a8e1a15c8298016da1a2a14ff6"
     },
     {
       "path": "public-methods/api/scripts/method_embedding_server.py",
       "sha256": "055c145a5dc3475595276764837f0215f1b8cbbc787f8852c5c170e81cd8beec"
+    },
+    {
+      "path": "public-methods/api/scripts/method_read_cache.py",
+      "sha256": "0f66fe82377473f1dce1177957dc3203b0fcff672f4e73c973b232686671003b"
     },
     {
       "path": "public-methods/api/scripts/seed_methods.py",
@@ -134,7 +138,7 @@
     },
     {
       "path": "public-methods/api/tests/test_method_agent_client.py",
-      "sha256": "6077100946b917dad55e983036c0b3f354a37ded8d9566dea5c2e0dcf1105d39"
+      "sha256": "3386f0b759f91b2953021e88b42ad3a681f6815d9768e50b519a980b5d4dfbb9"
     },
     {
       "path": "public-methods/api/tests/test_method_bundle.py",
@@ -161,6 +165,10 @@
       "sha256": "a0b0f6aa900d4af98935c82e38c7a5e5315d6f0c99933bc06ddbdd3119b0db89"
     },
     {
+      "path": "public-methods/api/tests/test_method_read_cache.py",
+      "sha256": "e757bf84232c212b9729b440592fa1d5245a49bfcafd550bc91cb542760b78dd"
+    },
+    {
       "path": "public-methods/api/tests/test_method_revisions.py",
       "sha256": "c3bc76144fe79bf04ed158667e0acd86cc97a3e979a572004605030d8ebd40d5"
     },
@@ -171,6 +179,10 @@
     {
       "path": "public-methods/api/tests/test_method_semantic_search.py",
       "sha256": "0aa3d67802b68024d4d38edce92e8d7a31cba1c256acab1e9452c58650ee0eef"
+    },
+    {
+      "path": "public-methods/api/tests/test_method_subject_recall.py",
+      "sha256": "aaa379d5ff621388085bf96c808b58e63b78dd3a8061ceb5d7f01a33af682b13"
     },
     {
       "path": "public-methods/api/tests/test_methods_standalone.py",
@@ -2541,6 +2553,314 @@
       "sha256": "9f7eaf967a816ce984e942e4598bc1534d998c7f09dba60a5b53087f18ef9e2a"
     },
     {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/EXPORT_POLICY.md",
+      "sha256": "f0b1e50b12255b596e014551f7d74c9eb1caf8282d799576eda895ab58a1b134"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/MANIFEST.json",
+      "sha256": "76ca4e08be3ea5d87e3e7479f012f94543b76df248b5f07b958129666d4c2f7d"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/README.md",
+      "sha256": "c986e688223b82e58f032333ecb195aef5a94c564b3bee5fb58bfff100ed1b92"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/application-review.json",
+      "sha256": "3b5f1adb4bebd0e99f74622dad9762afc23cb1664eb4cee08e867250cb7f19fa"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/http-retry-after-r1-oa/README.md",
+      "sha256": "a198fb792645f44c1ce54f592847bddf21c14132a8b19778005611165ac0ddf2"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/http-retry-after-r1-oa/solution.py",
+      "sha256": "9ef635ef36c2ee924073bbd721393db1082349f68e06d1827af81551eda3216c"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/http-retry-after-r1-oa/test_solution.py",
+      "sha256": "1c7bd8b654af2b8e0a4f2b52626b37afe74e58d91d4241842a38d91e8fb160c0"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/http-retry-after-r1-web/README.md",
+      "sha256": "49719e4bfbbf065ba616d6e3de9ab71677ad780b6b496c5beb32bc7e134b21bc"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/http-retry-after-r1-web/solution.py",
+      "sha256": "8e05d2ca0d2653546a4eb492172da6bb4050fac86f78118c859f3bdc09aac736"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/http-retry-after-r1-web/test_solution.py",
+      "sha256": "5725637a220ca50fe05153bf2fd1fb6e14244c2a0985a274a22b1f8f273aa1b6"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/http-retry-after-r2-oa/README.md",
+      "sha256": "ecb78965c8ea05359d5e22b64ef8a8c8f7420d70361d8f7b27c4e7db32ae9e5e"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/http-retry-after-r2-oa/solution.py",
+      "sha256": "4952a6b62656bbd15dda1f9651bc5daeb100170cc6d4b5db474a54fa4855e6f5"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/http-retry-after-r2-oa/test_solution.py",
+      "sha256": "6ecbfc1d7027dc5a542225de09deef2f66cc9961b9f2975c20c4e6b387c573df"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/http-retry-after-r2-web/README.md",
+      "sha256": "29a17f57467ad9c2ca7ce98821aae9475bf13e1056339379c4b6964285527a04"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/http-retry-after-r2-web/solution.py",
+      "sha256": "860aadf08ab20d65f32661f10155b48b921045be03559c096bacaaa031d2d325"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/http-retry-after-r2-web/test_solution.py",
+      "sha256": "065c9b50428cadd37ce3f671905efa3b218a58c2f28d27fd8fe34ad050d0a9e8"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/pandas-intake-diagnostic-r1-oa/README.md",
+      "sha256": "835a9356ed6218500e030ed12e214daa72336903b6706c2ed6e5635988b29b42"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/pandas-intake-diagnostic-r1-oa/solution.py",
+      "sha256": "0b740a157574ecc98998c374eb545e2d454bacf25c487d563136f069843792c7"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/pandas-intake-diagnostic-r1-oa/test_solution.py",
+      "sha256": "0b8a46c49652f03ab9edd907bab9266af565624abd03e6ebc9165bb619d6b390"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/pandas-intake-diagnostic-r1-web/README.md",
+      "sha256": "984fc314049d5ea696ba8cf303c1a955d6b8e6cbfb0fb485fe222ec81e4470bb"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/pandas-intake-diagnostic-r1-web/solution.py",
+      "sha256": "4e55c61ec328db5dd9f41d2508394a5fca60c918ac42c0e9337e1e7621046fa3"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/pandas-intake-diagnostic-r1-web/test_solution.py",
+      "sha256": "3ecdabe4b28800587ade59c4770f138f92944d470720daad03a50a879a9f67af"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/pandas-intake-diagnostic-r2-oa/README.md",
+      "sha256": "76a811966760b4d33d9dd3fd5902204a69f12d414d1dc7483015e44f5a02fa89"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/pandas-intake-diagnostic-r2-oa/solution.py",
+      "sha256": "10a7ba84315edbe42085300ad1a594ace5e997c3759ff0fca967094d55bf3354"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/pandas-intake-diagnostic-r2-oa/test_solution.py",
+      "sha256": "a6aef7e0d1a134a4c5a1ff3212386317b8679aab3d6d820bd83de280767c36f8"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/pandas-intake-diagnostic-r2-web/README.md",
+      "sha256": "8a8f98176bb520a8a96f7df6dae54e3c79102448746d25efc1c276a6846e519e"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/pandas-intake-diagnostic-r2-web/solution.py",
+      "sha256": "35a21112f6f7499afc5cc643aff27482b398abad00f35e313e58ce3b7f705f23"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/pandas-intake-diagnostic-r2-web/test_solution.py",
+      "sha256": "79be9945909798c5132caeed4ba36a25286f37b02cbcbf44146e68592764eadf"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/probe-routing-review-r1-oa/README.md",
+      "sha256": "54527bf3bfbd25acfa0c342eb460031a6c1cba7278ec84150b0cdf8e80b50647"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/probe-routing-review-r1-oa/solution.py",
+      "sha256": "4b8fdb32c7e8d957ddb472fd112e1c49f349b51cf00d6eece3182e26e1624ec3"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/probe-routing-review-r1-oa/test_solution.py",
+      "sha256": "901a817e713d205041bc00e88b610282ab38bc415e52a3b7de2b1a0c945548a2"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/probe-routing-review-r1-web/README.md",
+      "sha256": "364a57597b00b56bc5e522b2894fee8226ab18d68acb1105c68ad1beed36c4af"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/probe-routing-review-r1-web/solution.py",
+      "sha256": "fb5b02a21a86c2b67444521e74e9d3e3abacdf407e2e35f12c26ebb80806b7ad"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/probe-routing-review-r1-web/test_solution.py",
+      "sha256": "c6780c4a7bf23fdf84cd9742ff10f60b00b33cb944fef3850be62d687befc291"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/probe-routing-review-r2-oa/README.md",
+      "sha256": "158593b2c5682af138c17b8b0ba2929767a99f19bba5ec40a0607c82e75c5fb6"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/probe-routing-review-r2-oa/solution.py",
+      "sha256": "b307bfeddb78b473809c114042afb018c04ae6ed9a08f6b0a9034fd3953c59e7"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/probe-routing-review-r2-oa/test_solution.py",
+      "sha256": "2960e9435d6e68dc82cf5d345f9753062d253016ccb2a833b93d9f3660dd492b"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/probe-routing-review-r2-web/README.md",
+      "sha256": "35652d3520a53b720422f25a7cfddcd97fb93f2d3d95f1bca9c78f63c1a056d2"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/probe-routing-review-r2-web/solution.py",
+      "sha256": "76a5ce257ead0df0492ba92775b958e394cc87927c454ee392c5c91cfcc4f4de"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/probe-routing-review-r2-web/test_solution.py",
+      "sha256": "71a58825a4331a36283e10daef01c023de032e71ca9ba3208434c2015e5875d2"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/sqlite-backup-review-r1-oa/README.md",
+      "sha256": "ed2dbb804bda6af62a21d8ef185914e1e0e7c6360fb004339263f6a5bcb8d7b2"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/sqlite-backup-review-r1-oa/make_sqlite.py",
+      "sha256": "6bf1e4d8878d0359e929e2c32d47e144a26c4b9360c8b9ff233cbc2c1a0c9f98"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/sqlite-backup-review-r1-oa/solution.py",
+      "sha256": "810bbd8d5a94657a36bb491467c76c787c8f6804cf6c56d59a49fbba1b27e40f"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/sqlite-backup-review-r1-oa/test_solution.py",
+      "sha256": "b99ca869d76fc5b5bf437ce5350ea0c884e24a8447300f29ce21543d7508afe6"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/sqlite-backup-review-r1-web/README.md",
+      "sha256": "f91c584635316e092bceb13ed67fcfec8bab15be0ceb4b0dfaaa795191e14fd0"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/sqlite-backup-review-r1-web/make_sqlite.py",
+      "sha256": "6bf1e4d8878d0359e929e2c32d47e144a26c4b9360c8b9ff233cbc2c1a0c9f98"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/sqlite-backup-review-r1-web/solution.py",
+      "sha256": "da400fb8fb8079143dc37dd25358f43a19139cf9424b312787d715589b64d648"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/sqlite-backup-review-r1-web/test_solution.py",
+      "sha256": "da42fd5c9dff33e75a9fd92e0a115e8818f4a3746d4e2a635c339e69a2637068"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/sqlite-backup-review-r2-oa/README.md",
+      "sha256": "4e8a48b257cfdb67a46eac5aede9bc0fce72e364e7dc7c742d228f50914998ae"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/sqlite-backup-review-r2-oa/make_sqlite.py",
+      "sha256": "6bf1e4d8878d0359e929e2c32d47e144a26c4b9360c8b9ff233cbc2c1a0c9f98"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/sqlite-backup-review-r2-oa/solution.py",
+      "sha256": "0a396e7261ab2719870e39c0b832de579e52f33f8f972b70ea7b25f6a4f05d98"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/sqlite-backup-review-r2-oa/test_solution.py",
+      "sha256": "5f750a6795f84ee9fa411ac1203b5774bab51b632c4d4c464b225bc97ee94a30"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/sqlite-backup-review-r2-web/README.md",
+      "sha256": "ec57f63b29eb74ca6ddef5b0af3e27ff30497e26ac184e731b9e32e4fdd90469"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/sqlite-backup-review-r2-web/make_sqlite.py",
+      "sha256": "6bf1e4d8878d0359e929e2c32d47e144a26c4b9360c8b9ff233cbc2c1a0c9f98"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/sqlite-backup-review-r2-web/solution.py",
+      "sha256": "c2fbc09d3a4ad8f89c549b788fa0b91859c460653455549693af0f4c41544ed4"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/artifacts/sqlite-backup-review-r2-web/test_solution.py",
+      "sha256": "496e6258069ea8a1cfeb3fe9086ddaf81fad6e2e6876b80357d323323eabf64b"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/checker.py",
+      "sha256": "f0f1e363bf1c65cc7e31417ea7155ac66518c6249f2f51dafbd1708ef905426b"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/grades.json",
+      "sha256": "9cf6c9520964749df2e05691c32ba0678d0b79396e86ec2fff62880cc16faea7"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/grades/parent-resolution.json",
+      "sha256": "9c9c714e14227c7673cfe3baed26d9782fb20705223f46e4b228eedd9ccbc2a1"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/grades/reviewer-1.json",
+      "sha256": "00abec8ba5d0fdc430dcff027bceff372408d505c07805af3b9f45ece8c0fa08"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/grades/reviewer-2.json",
+      "sha256": "934bab89d60b20aaabd5481a6102681a66fcaa6581e77c9aa943fae0edbac4f1"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/metrics.json",
+      "sha256": "47b15307faa0ba6820b55cf2eaa13f3198bc95ee48e5c0fa6b406116c79390e7"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/proposed-owner-feedback.json",
+      "sha256": "f0bdefc79ce9b562afb76bb2a3ee68da39637691075037cf17234ce5c0dec95c"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/protocol/PROTOCOL.md",
+      "sha256": "44edffe89cc5e8e028df74dbe80fda183ab447e302b0a750a8f12bf7146a67ee"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/protocol/SECONDARY_RUBRIC.md",
+      "sha256": "622b876beb9506b0d6772e38dbad4221b2cf16a10fcac76189eb4d32506e13ac"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/protocol/cohort-change.json",
+      "sha256": "c994e43feb15166a280bc708b2c270fe0838eac7849c1c04c0f46f3800fe7751"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/protocol/control-amendment.json",
+      "sha256": "d71afd1c4be1a8a8349d032a494523e545d4d418b2e15363590d01ef2f24fbd6"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/provenance/parent-verification-supplement.json",
+      "sha256": "a6796ef62f21c43cc5b4b713103b20efccfa386a5fa4075f1f32c4f4f42514dd"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/provenance/receipts.json",
+      "sha256": "c30e19500d33b5e283e8ead4184d435b6b27de5c886a37e009ad33df59c0081c"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/tasks/http-retry-after/TASK.md",
+      "sha256": "39fe76a75b5356285dba83c61a499f585010085505457c9a9bd3f25aac12c534"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/tasks/http-retry-after/http-retry-after.json",
+      "sha256": "77dc4223728e196446971ff2c82809927d3fdf8b72d06fb0f8f8814264e54a13"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/tasks/pandas-intake-diagnostic/TASK.md",
+      "sha256": "a31b873391f1693bda372ff07571ed69903623b9cfe8da73cf91ebeca0c1e340"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/tasks/pandas-intake-diagnostic/pandas-intake-diagnostic.json",
+      "sha256": "37e79a5d4e459525a5cad34eab6c1cc40ac24fa40a208cf1dd0e60aee7b16070"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/tasks/probe-routing-review/TASK.md",
+      "sha256": "8551a068840b382cd24ad8952f88ccbd9ad3712e603d9d0920067c54021c9910"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/tasks/probe-routing-review/probe-routing-review.json",
+      "sha256": "9ce576071cabce548d42ffbe9c6e41924c36fc8ef415a66bf6a0a77c1b1875c4"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/tasks/sqlite-backup-review/TASK.md",
+      "sha256": "b42839213e0de8edc576ad8ad0fe37905fd0be84caf35401c4e24e57dfe2ea91"
+    },
+    {
+      "path": "public-methods/benchmarks/practical-efficiency-20261115/tasks/sqlite-backup-review/make_sqlite.py",
+      "sha256": "6bf1e4d8878d0359e929e2c32d47e144a26c4b9360c8b9ff233cbc2c1a0c9f98"
+    },
+    {
       "path": "public-methods/benchmarks/retrieval-cost-2026-10-29/README.md",
       "sha256": "eb3b513a31098b4b19a1004f836c13b4b9fcd93edffa9c616af827abc24780b2"
     },
@@ -2889,6 +3209,10 @@
       "sha256": "688c762ccf478b4f58334d16cae9502a27ea5372f0f2f39cf49540d084c91c39"
     },
     {
+      "path": "public-methods/docs/agent-read-cache.md",
+      "sha256": "ab6005f27cb69956e88e15dc0774c6b88a18426ae410d5ad7c71eb06743d7235"
+    },
+    {
       "path": "public-methods/docs/atlas-ui-design.md",
       "sha256": "2b8510b9207dd6b3d4119c73d69472a79022b0f5bc321cdd515f9c022a462794"
     },
@@ -2917,8 +3241,16 @@
       "sha256": "ac8f478f5130dcd7b293ab1fdb2b9912b3bb992693323dad8713b7ea8d12203f"
     },
     {
+      "path": "public-methods/docs/practical-efficiency-2026-11-15.md",
+      "sha256": "ddf292b065e253b793d21ec32123be4308b84a2e09ba1822c7dce3e9deb0c9f3"
+    },
+    {
       "path": "public-methods/docs/public-methods.md",
-      "sha256": "59cc43cb3d1661b58f036669add3d2d225042f75e780fd2a9af612a0139bea67"
+      "sha256": "8d627edaf4a5b4c06fd9c5db4dc36db0d0d8074bcffa84827adca218e64a2bbd"
+    },
+    {
+      "path": "public-methods/docs/subject-topic-retrieval.md",
+      "sha256": "13b484fbaa1c2fb1eaa689e12efcec535dfde30366a0fccc1b08550799a7d7ec"
     },
     {
       "path": "public-methods/examples/documented-exceptions.json",
@@ -2938,7 +3270,7 @@
     },
     {
       "path": "public-methods/llms-install.md",
-      "sha256": "1bc18f3092315164245adc2734c0b71dc9b0c6f26988453f20e57eee0ab74d9b"
+      "sha256": "16afd9d3cf4c4045f856ac83f59482fc49e2af5711aaf476cdcea554a7ef4afd"
     },
     {
       "path": "public-methods/mcp/README.md",

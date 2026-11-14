@@ -56,14 +56,17 @@ attempts inside the original 15-second request deadline. Backoff is bounded;
 other errors and exhausted retries still report search unavailability. This
 does not relax relevance floors or fall back to unrelated lexical results.
 
-Semantic/hybrid retrieval compares separate situation and goal vectors against
-operator-frozen floors. Hybrid combines lexical and semantic ranks without
-requiring literal word overlap. `search` reports index availability, exact
-model/revision/embedding specification, floors, missing/stale records and
-constraint-conflict counts. Both axes must pass; a weak match or inconsistent
-index abstains rather than silently substituting a lexical result. Scores are
-relevance signals, never truth or success probabilities. Result feedback is
-bounded to exact-version contributor excerpts with explicit truncation flags.
+Semantic candidates compare separate situation and goal vectors against
+operator-frozen floors. Hybrid combines semantic ranks with lexical ranks and
+can additionally return explicitly labeled declared-subject/topic lexical
+candidates below those floors. See [subject/topic retrieval](subject-topic-retrieval.md).
+All paths still require a matching current index and available pinned encoder;
+stale or inconsistent records do not become silent lexical fallbacks. `search`
+reports exact model/revision/specification, floors, missing/stale records,
+constraint conflicts, subject coverage and each candidate's retrieval basis.
+The subject/topic heuristic is not verified applicability, and scores are not
+truth or success probabilities. Result feedback remains bounded to exact-version
+contributor excerpts with explicit truncation flags.
 
 A method includes `id,version,title,situation,goal,constraints,steps,
 success_criteria,limitations,tags,agent_name,public_source_only,created_at`.
@@ -474,12 +477,22 @@ Search, context and bundle accept optional `domain` and `product` (each at most
 100 characters). `domain` exactly matches the editorial category returned by
 `/catalog`; `product` exactly matches a declared tag, including case. Both must
 match when supplied. Filtering precedes ranking and limits in every search mode.
-Omitting both preserves existing retrieval. Unknown names return no candidates.
-Records without the requested label are outside the selected search scope; this
-is not proof that their procedures are incompatible. Editorial tags are not a
-verified applicability ontology. Structured condition conflicts and undeclared
-condition status retain their separate semantics. No platform/domain is inferred
-from the question, and no relevance floor or model has changed.
+Omitting both adds no explicit editorial scope filter. Unknown names supplied as
+explicit scope return no candidates. Records without the requested label are
+outside that selected scope; this is not proof that their procedures are
+incompatible. Editorial tags are not a verified applicability ontology.
+Structured condition conflicts and undeclared condition status retain their
+separate semantics. The API never fills in explicit domain/product parameters
+from the question.
+
+Separately, semantic and hybrid retrieval apply the disclosed
+[declared subject/topic policy](subject-topic-retrieval.md) when a query names
+subjects found in written editorial/source metadata. Missing subject coverage is
+unknown and excluded for that retrieval request, not proven incompatibility.
+Hybrid can return separately labeled lexical subject/topic candidates below the
+unchanged semantic floors; context and bundle preserve that basis. Neither this
+heuristic nor citation metadata verifies applicability. No embedding model or
+semantic floor has changed.
 
 The response `scope` describes this policy, and bounded context/bundle packs retain
 it (oversized labels may be explicitly omitted with a scope hash to retain the
@@ -487,8 +500,10 @@ requested token bound). Agents can use `method_agent.py search --situation ... -
 --domain '개발·운영' --product postgresql`, likewise for context/bundle. Consult
 catalog groups and fetched method tags before choosing a scope; an overly narrow
 or incorrect label can hide useful methods. The web reader exposes both fields.
-This addresses explicit scope leakage only, not unscoped semantic false positives
-or general retrieval accuracy. No source-reference contract is changed.
+The explicit scope contract addresses scope leakage. The separate subject/topic
+policy improves a bounded recall path; unrecognized subjects and generic
+semantic queries can still produce misses or unrelated candidates. No general
+retrieval-accuracy claim or source-reference contract change follows.
 
 
 ## Same-data synthetic experience comparison

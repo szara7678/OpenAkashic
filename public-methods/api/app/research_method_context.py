@@ -41,6 +41,7 @@ def pack_context(result, max_tokens=1024):
             "source_hash": digest(method),
             "fetch": "/research/api/methods/" + method["id"],
         }
+        reference.update({k: row["match"][k] for k in ("retrieval_basis", "semantic_eligible") if k in row["match"]})
         item = {
             **reference, "situation": method["situation"], "goal": method["goal"],
             "constraints": method["constraints"], "limitations": method["limitations"],
@@ -115,7 +116,10 @@ def pack_bundle(result, max_tokens=1024):
             "complete": False, "needs_fetch": True,
             "omission_reason": "whole_method_exceeds_remaining_budget",
         }
+        disclosure = {k: match[k] for k in ("retrieval_basis", "semantic_eligible") if k in match}
+        reference.update(disclosure)
         item = {
+            **disclosure,
             "id": method["id"], "version": method["version"],
             "source_hash": digest(method), "complete": True, "needs_fetch": False,
             "method": method,

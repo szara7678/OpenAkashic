@@ -1,0 +1,20 @@
+{
+  "schema": "nov15-common-input-interface-revision-v1",
+  "parent_cohort_freeze_sha256": "747c007684124331ce2471bfd2b97e1ae88c27929aac89d15221934f45d65887",
+  "old_cohort_preserved": true,
+  "old_completed_runs": 2,
+  "old_unlaunched_runs": 14,
+  "model_requests_launched_for_v2": 0,
+  "behavioral_change": "Initial prompt includes exact task bytes in both arms before any model tool invocation, with identical generic guidance to query the actual situation and desired outcome instead of filenames or wrapper instructions.",
+  "unchanged": [
+    "model and reasoning",
+    "native CLI binary and image",
+    "common tools and retrieval client",
+    "candidate engine and public snapshot/index",
+    "four tasks and hidden checker",
+    "limits and schedule algorithm"
+  ],
+  "prompt_construction": "COMMON + designated arm instructions + identical generic task-query guidance + common task header + TASK.md raw UTF-8 bytes",
+  "pilot_review_addition": "Inspect first OA request situation/goal: must reflect actual task, not a literal instruction to read TASK.md. Separately inspect whether complete method bodies were actually delivered and applicable. A valid archive miss/fallback is permitted but cannot establish OA method effect.",
+  "old_pilot_interpretation": "Transport/receipt/checker preflight passed, but literal/generic OA query returned no complete methods. Cheaper fallback is not evidence of actual OA method benefit."
+}

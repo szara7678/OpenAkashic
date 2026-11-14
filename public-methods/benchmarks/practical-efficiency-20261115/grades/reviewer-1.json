@@ -1,0 +1,320 @@
+{
+  "source_sha256": "08ca94febf1f3bac98ef57fcfff34572f116104fed124164643f88ef8910b080",
+  "record": {
+    "schema": "nov15-resolved-grades-v1",
+    "reviewer_id": "blind_quality_a_nov15",
+    "grades": [
+      {
+        "anonymous": "A01",
+        "primary": {
+          "documented_verification": 2,
+          "sources_and_limitations": 1,
+          "normal_completion": 1
+        },
+        "secondary": {
+          "correctness": 2,
+          "evidence_fit": 2,
+          "limitations": 2,
+          "artifact_usability": 2
+        },
+        "material_unsupported_claim": false,
+        "rationale": "solution.py:35-75 protects paths, uses the backup API, closes/reopens a DELETE-journal copy, compares schema and typed duplicate-bearing complete rows, and separates all integrity rows from FK validity. README.md:32-38 gives the actual nine-test command/result; EXECUTION.json:5-8 corroborates nine passing candidate tests, including open-WAL preservation and standalone reopening (test_solution.py:106-128). README.md:96-101 smoke output is also corroborated at EXECUTION.json:17-20. Sources at README.md:51-65 and quiescent-writer, filesystem, feature and memory boundaries at :74-92 support the scope. FINAL.md:1-6 is a concise normal final. No hidden-check result was used.",
+        "suspected_arm_clues": [
+          "README.md:42-49 describes a complete redacted stored method version 3 and applied steps, while official SQLite citations survive. This is a provenance clue; no arm identity was looked up."
+        ]
+      },
+      {
+        "anonymous": "A02",
+        "primary": {
+          "documented_verification": 2,
+          "sources_and_limitations": 1,
+          "normal_completion": 1
+        },
+        "secondary": {
+          "correctness": 2,
+          "evidence_fit": 2,
+          "limitations": 2,
+          "artifact_usability": 2
+        },
+        "material_unsupported_claim": false,
+        "rationale": "solution.py:6-39 sets the exact named-port probe definitions using a deep copy; :43-57 validates kind/count before startup gating and returns the specified effects. README.md:44-55 documents unittest and seven passing tests, corroborated by EXECUTION.json:11-14. README.md:65-79 cites official Kubernetes source Markdown for named ports, startup gating and readiness versus liveness, with exact numbers attributed to TASK.md. README.md:95-103 accurately limits the result to offline transformation and the simplified failure helper. FINAL.md:1-9 is readable and normal.",
+        "suspected_arm_clues": [
+          "README.md:59-63 explicitly describes a native web search followed by public fetches; :81-83 disclaims a method ID/hash. Official Kubernetes URLs also survive."
+        ]
+      },
+      {
+        "anonymous": "A03",
+        "primary": {
+          "documented_verification": 2,
+          "sources_and_limitations": 1,
+          "normal_completion": 1
+        },
+        "secondary": {
+          "correctness": 2,
+          "evidence_fit": 2,
+          "limitations": 2,
+          "artifact_usability": 2
+        },
+        "material_unsupported_claim": false,
+        "rationale": "solution.py:24-48 computes sorted observed masks/patterns; :50-65 uses separate float copies, complete-case masking and per-desk per-column median transforms, preserving input and remaining missing cells. README.md:41-55 documents nine passing tests and 100 seeded reference cases; EXECUTION.json:5-8 corroborates the test command/result and :11-14 compilation completion. Sources/version conditions at README.md:72-91 support the API use; :93-101 rejects causal, recovery and policy-ranking inferences. FINAL.md:1-6 is a normal concise final.",
+        "suspected_arm_clues": [
+          "README.md:59-70 names a complete redacted method version 2 and attributed pandas passages. That surviving method/application narrative may reveal provenance without establishing identity."
+        ]
+      },
+      {
+        "anonymous": "A04",
+        "primary": {
+          "documented_verification": 0,
+          "sources_and_limitations": 1,
+          "normal_completion": 0
+        },
+        "secondary": {
+          "correctness": 2,
+          "evidence_fit": 2,
+          "limitations": 2,
+          "artifact_usability": 1
+        },
+        "material_unsupported_claim": false,
+        "rationale": "Static implementation at solution.py:42-90 meets the quiescent backup contract, including a pinned read transaction, exclusive new target, safe identifiers, full typed rows and independent reopened integrity/FK review. EXECUTION.json:11-14 shows nine candidate tests passed, but README.md:86-88 remains only a promise to record validation: it supplies neither an actually run verification command nor its concrete observed result. This is absent documentation, not a corroborated README verification, so documented_verification=0 and usability=1. README.md:66-84 supplies primary URLs and :39-64 accurately states concurrency/WAL/filesystem and feature boundaries. FINAL.md:1 explicitly says no normal final output; normal_completion=0.",
+        "suspected_arm_clues": [
+          "README.md:68-70 describes native web search followed by official-page reads, and :84 explicitly disclaims an external method pack/ID/hash. Official SQLite URLs survive."
+        ]
+      },
+      {
+        "anonymous": "A05",
+        "primary": {
+          "documented_verification": 2,
+          "sources_and_limitations": 1,
+          "normal_completion": 1
+        },
+        "secondary": {
+          "correctness": 2,
+          "evidence_fit": 2,
+          "limitations": 2,
+          "artifact_usability": 2
+        },
+        "material_unsupported_claim": false,
+        "rationale": "solution.py:6-35 exactly replaces only renderer probes on a deep copy; :39-53 implements the required validation, gating and threshold effects. README.md:25-34 gives unittest and nine passing tests, corroborated at EXECUTION.json:5-8. README.md:50-81 distinguishes the task-supplied numbers, directly read official Kubernetes Markdown and the incomplete method quotation; :83-93 clearly separates configuration sizing and offline helper testing from kubelet, endpoint, traffic and restart observations. FINAL.md:1-8 completes normally.",
+        "suspected_arm_clues": [
+          "README.md:38-48 preserves a redacted complete method version 2, Korean title, hash and applied-step description; :65 explicitly says OA. These are surviving arm clues, not a verified identity."
+        ]
+      },
+      {
+        "anonymous": "A06",
+        "primary": {
+          "documented_verification": 2,
+          "sources_and_limitations": 1,
+          "normal_completion": 1
+        },
+        "secondary": {
+          "correctness": 2,
+          "evidence_fit": 2,
+          "limitations": 2,
+          "artifact_usability": 2
+        },
+        "material_unsupported_claim": false,
+        "rationale": "solution.py:29-52 checks awareness before missing input, strictly recognizes ASCII integers and valid English date tokens, validates calendar values and uses aware subtraction/ceil/clamping; numeric conversion is chunked. README.md:46-65 gives actual command/result, corroborated at EXECUTION.json:29-32 after the earlier failed assertion at :23-26. README.md:67-71 honestly corrects a bad test expectation rather than claiming the initial run passed. README.md:80-94 uses Python documentation and explicitly refuses to infer unseen RFC contents; :19-42 states format, long-input, clock, calendar and precision limits. FINAL.md:1-6 is normal.",
+        "suspected_arm_clues": [
+          "README.md:77-79 describes a redacted hybrid bundle with an empty result and no applied method. This retrieval wording is a surviving provenance clue even without a method."
+        ]
+      },
+      {
+        "anonymous": "A07",
+        "primary": {
+          "documented_verification": 2,
+          "sources_and_limitations": 1,
+          "normal_completion": 1
+        },
+        "secondary": {
+          "correctness": 2,
+          "evidence_fit": 2,
+          "limitations": 2,
+          "artifact_usability": 2
+        },
+        "material_unsupported_claim": false,
+        "rationale": "solution.py:19-40 returns sorted observed missingness combinations and :42-54 implements nonmutating observed, complete-case and within-desk median summaries with null empty means. README.md:25-33 documents eight passing candidate tests; EXECUTION.json:5-8 corroborates them. Version-aware official pandas references at README.md:72-90 support grouping and mean/median behavior. README.md:94-104 correctly distinguishes descriptive sensitivity from inferred missingness causes, recovered truth or policy advice, and states numeric/schema assumptions. FINAL.md:1-6 is normal.",
+        "suspected_arm_clues": [
+          "README.md:52-69 preserves two complete redacted methods, version numbers and applied steps; source-version correction text also survives. No identity mapping was accessed."
+        ]
+      },
+      {
+        "anonymous": "A08",
+        "primary": {
+          "documented_verification": 2,
+          "sources_and_limitations": 1,
+          "normal_completion": 1
+        },
+        "secondary": {
+          "correctness": 2,
+          "evidence_fit": 2,
+          "limitations": 2,
+          "artifact_usability": 2
+        },
+        "material_unsupported_claim": false,
+        "rationale": "solution.py:24-58 uses a private positional frame and nullable float values, exact sorted pattern enumeration, per-desk median transformation, and null output means without mutating input. README.md:19-41 gives unittest and nine passing tests including 100 reference cases; EXECUTION.json:11-14 corroborates the result. README.md:85-105 cites tested-version pandas APIs and honestly says installation was not run (:18). README.md:107-120 states schema/numeric precision/version limits and rejects causal, bias and operational-policy conclusions. FINAL.md:1-7 is normal.",
+        "suspected_arm_clues": [
+          "README.md:85-90 explicitly describes native web retrieval/public fetches, and :105 disclaims a method pack/ID/hash. Version-pinned official pandas citations survive."
+        ]
+      },
+      {
+        "anonymous": "A09",
+        "primary": {
+          "documented_verification": 2,
+          "sources_and_limitations": 1,
+          "normal_completion": 1
+        },
+        "secondary": {
+          "correctness": 2,
+          "evidence_fit": 1,
+          "limitations": 2,
+          "artifact_usability": 2
+        },
+        "material_unsupported_claim": false,
+        "rationale": "solution.py:31-71 implements the explicit valid-fixture semantics, including all-missing preservation, complete-case filtering and per-desk median fills; the task/rubric does not require missing desk identifiers. README.md:15 supplies the ordinary unittest command and :82 explicitly records its initial six-test pass with FutureWarnings, actually corroborated by EXECUTION.json:11-14; that documented initial candidate-example verification earns 2. The stronger final warning-as-error claim at README.md:93-109 and FINAL.md:7 is NOT corroborated by retained execution and earns no extra credit; evidence_fit=1 for that gap. README.md:73-86 cites version-pinned APIs and acknowledges the warning fix; :39-63 accurately limits descriptive interpretations. The normal final exists. Omitted mixed retrieval commands prevent calling the unconfirmed rerun fabricated.",
+        "suspected_arm_clues": [
+          "README.md:67-71 describes native general-web search/public fetches and :86 disclaims method IDs/hashes. These provenance descriptions and official citations may reveal an arm clue."
+        ]
+      },
+      {
+        "anonymous": "A10",
+        "primary": {
+          "documented_verification": 2,
+          "sources_and_limitations": 1,
+          "normal_completion": 0
+        },
+        "secondary": {
+          "correctness": 2,
+          "evidence_fit": 1,
+          "limitations": 2,
+          "artifact_usability": 2
+        },
+        "material_unsupported_claim": false,
+        "rationale": "solution.py:47-97 protects target/source paths, pins a source transaction, copies committed WAL state, closes/reopens, and compares full typed duplicate-bearing rows and schema separately from FK validity. README.md:11-32 gives the actual ten-test command/result, corroborated at EXECUTION.json:11-14. README.md:59-89 states relevant concurrency, path ownership, SQL-visible row, decoding and failure limits. The source section ends at README.md:103 after saying successful passages are recorded below (:93-97); the promised source list is absent, although artifacts/sources/{python-sqlite3,sqlite-backup,sqlite-keywords,sqlite-pragma,sqlite-wal}.json contain official URLs/bodies. This is a minor citation/documentation gap (evidence_fit=1), not a false technical claim. FINAL.md:1 has no normal final; normal_completion=0.",
+        "suspected_arm_clues": [
+          "README.md:93-97 describes native web retrieval and explicitly disclaims a method pack/ID/hash. Bundled official-source responses survive as provenance clues."
+        ]
+      },
+      {
+        "anonymous": "A11",
+        "primary": {
+          "documented_verification": 2,
+          "sources_and_limitations": 1,
+          "normal_completion": 1
+        },
+        "secondary": {
+          "correctness": 2,
+          "evidence_fit": 2,
+          "limitations": 2,
+          "artifact_usability": 2
+        },
+        "material_unsupported_claim": false,
+        "rationale": "solution.py:6-34 exactly configures the renderer probes on a deep copy; :38-52 handles type/count validation, startup gating and required effects. README.md:27-44 provides the actual eight-test unittest result, corroborated at EXECUTION.json:11-14. Official source citations at README.md:58-77 support startup gating, named HTTP ports, readiness effects and the non-guaranteed startup-budget product; exact parameters come from TASK.md. README.md:79-90 accurately bounds offline transformation, scheduling, endpoints, traffic and restart-policy scope. FINAL.md:1-9 is a normal readable final.",
+        "suspected_arm_clues": [
+          "README.md:48-56 explicitly describes native web/public-source retrieval and :72-73 disclaims method ID/hash. Official Kubernetes source links remain visible."
+        ]
+      },
+      {
+        "anonymous": "A12",
+        "primary": {
+          "documented_verification": 2,
+          "sources_and_limitations": 1,
+          "normal_completion": 1
+        },
+        "secondary": {
+          "correctness": 2,
+          "evidence_fit": 2,
+          "limitations": 2,
+          "artifact_usability": 2
+        },
+        "material_unsupported_claim": false,
+        "rationale": "solution.py:6-34 supplies exact renderer-only probe replacement and deep copying; :38-52 validates inputs before gating and applies threshold actions. README.md:29-43 documents ten passing tests, corroborated at EXECUTION.json:11-14. README.md:55-65 accurately separates insufficient method evidence, official Kubernetes source support and task-provided constants. README.md:67-74 describes failed retrievals honestly and limits claims to offline transformation/consecutive failures, without asserting cluster or application observations. FINAL.md:1-9 is a concise normal final.",
+        "suspected_arm_clues": [
+          "README.md:47-53 preserves a complete redacted method version 2, Korean title and applied-step narrative. These are surviving provenance clues despite masked IDs."
+        ]
+      },
+      {
+        "anonymous": "A13",
+        "primary": {
+          "documented_verification": 2,
+          "sources_and_limitations": 1,
+          "normal_completion": 1
+        },
+        "secondary": {
+          "correctness": 2,
+          "evidence_fit": 1,
+          "limitations": 2,
+          "artifact_usability": 2
+        },
+        "material_unsupported_claim": false,
+        "rationale": "solution.py:36-77 implements protected new-target backup, destination close/reopen, complete typed-row/schema comparison, all integrity results and independent inherited-FK reporting. README.md:44 documents unittest and :47-55 reports nine tests passed; EXECUTION.json:5-8 independently corroborates an initial nine-test pass. That actual candidate-example run earns verification=2. Its trace timing is 0.016s, not the separately claimed final 0.012s; README.md:47-49 final rerun and :57-77 CLI smoke are not corroborated in the retained trace and are not counted. This incomplete support yields evidence_fit=1, without inferring fabrication from excluded commands. Primary references at README.md:96-115 are semantically appropriate; :120-148 accurately states quiescence, snapshot and path/feature limits. FINAL.md:1-6 is normal.",
+        "suspected_arm_clues": [
+          "README.md:81-94 preserves a redacted method version 3, Korean title, method-read path/hash-like basename and applied steps. These may reveal provenance; no identity key was read."
+        ]
+      },
+      {
+        "anonymous": "A14",
+        "primary": {
+          "documented_verification": 2,
+          "sources_and_limitations": 1,
+          "normal_completion": 1
+        },
+        "secondary": {
+          "correctness": 2,
+          "evidence_fit": 2,
+          "limitations": 2,
+          "artifact_usability": 2
+        },
+        "material_unsupported_claim": false,
+        "rationale": "solution.py:27-52 implements first-checked awareness, ASCII-only chunked delay integers, strict weekday/month/date grammar, calendar validation, and aware ceil/clamp arithmetic. README.md:40-50 documents thirteen passing tests, corroborated by EXECUTION.json:5-8 and the rerun at :11-14; compilation is also in the latter command. README.md:59-81 explicitly distinguishes the narrower task grammar from general HTTP recipient requirements and explains truncated source scope; official RFC/Python citations support those statements. README.md:17-36 states clock, precision, year, leap-second and long-input limits. FINAL.md:1-6 is normal.",
+        "suspected_arm_clues": [
+          "README.md:54-57 preserves the redacted hybrid-bundle request parameters and an empty result/no applied method. This is a surviving retrieval clue; no actual arm identity was inferred."
+        ]
+      },
+      {
+        "anonymous": "A15",
+        "primary": {
+          "documented_verification": 2,
+          "sources_and_limitations": 1,
+          "normal_completion": 1
+        },
+        "secondary": {
+          "correctness": 2,
+          "evidence_fit": 2,
+          "limitations": 2,
+          "artifact_usability": 2
+        },
+        "material_unsupported_claim": false,
+        "rationale": "solution.py:28-53 meets the strict offline contract with awareness first, chunked ASCII integer conversion, exact valid tokens/calendar checks and aware ceil/clamp subtraction. README.md:74-90 gives the actually run unittest/compile commands and eleven-test result, corroborated at EXECUTION.json:11-14. README.md:48-68 clearly labels RFC 7231 historical/superseded and limits its use to the task-fixed format; it does not misrepresent it as current HTTP authority. README.md:15-37 accurately states narrow parsing, precision/calendar/clock and resource limits; :90 correctly bounds the no-I/O guard. FINAL.md:1-6 is normal.",
+        "suspected_arm_clues": [
+          "README.md:41-46 describes native web/public-source retrieval and :65 disclaims method IDs/hashes; the historical RFC fallback and official citations survive as writing/source clues."
+        ]
+      },
+      {
+        "anonymous": "A16",
+        "primary": {
+          "documented_verification": 0,
+          "sources_and_limitations": 1,
+          "normal_completion": 0
+        },
+        "secondary": {
+          "correctness": 2,
+          "evidence_fit": 2,
+          "limitations": 2,
+          "artifact_usability": 1
+        },
+        "material_unsupported_claim": false,
+        "rationale": "solution.py:25-54 meets the explicit parser semantics: awareness first, strict ASCII numeric and English date-token grammar, calendar validation and aware ceil/clamp arithmetic, without I/O. EXECUTION.json:11-14 shows eleven tests passed, but README.md:29-40 contains only a command and the placeholder that actual results will be recorded below; no concrete observed result is present anywhere below it. Thus documented_verification=0 and artifact_usability=1 even though evaluator-visible execution passed. Sources at README.md:48-62 are semantically appropriate primary RFC/Python references and :8-27 states narrow-format, clock, precision and resource limits. FINAL.md:1 explicitly has no normal final; normal_completion=0.",
+        "suspected_arm_clues": [
+          "README.md:44-46 describes native live web search and subsequent official-source reads. The absence of a method narrative and surviving official citations are possible provenance clues, not proven arm identity."
+        ]
+      }
+    ],
+    "review_scope": "Independent static review of all 16 anonymous packets only, plus their cited primary official URLs. No candidate code executed, no hidden checker, identity map, metrics, timing, retrieval traces, experiment summaries, or other experiment directories read. All surviving retrieval/provenance clues declared; blindness is not asserted as proven.",
+    "verification_interpretation": "documented_verification=2 may rest on an explicitly documented initial candidate-example command/pass corroborated by retained execution; a stronger uncorroborated final rerun or smoke statement is separately flagged and earns no credit. A04/A16 README result placeholders remain 0 despite evaluator-visible passing tests. No excluded command is presumed to have succeeded.",
+    "adjudication_notes": [
+      "A09: retained initial six-test pass with warnings supports README ordinary-command/initial-pass statement, but final warning-as-error rerun is unconfirmable.",
+      "A13: retained initial nine-test pass supports documented unittest verification, but final rerun timing and CLI smoke are unconfirmable.",
+      "A04, A10 and A16 have no normal final. A04 and A16 also omit actual observed verification results in README. A10 has a missing promised source-list section but bundled primary source files."
+    ]
+  }
+}

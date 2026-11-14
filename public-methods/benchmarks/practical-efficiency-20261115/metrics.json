@@ -1,0 +1,1302 @@
+{
+  "schema": "nov15-efficiency-summary-v1",
+  "readiness": {
+    "scheduled_runs": 16,
+    "terminal_runs": 16,
+    "missing_run_ids": [],
+    "grades_complete": true,
+    "independent_grades_final": true,
+    "all_provider_usage_complete": true,
+    "ready_for_final_report": true
+  },
+  "pairs": [
+    {
+      "task": "http-retry-after",
+      "repeat": 1,
+      "web_id": "http-retry-after-r1-web",
+      "oa_id": "http-retry-after-r1-oa",
+      "joint_full_success": true,
+      "pair_quality_preserved": true,
+      "joint_usage_and_wall_known": true,
+      "token_ratio_oa_over_web": 0.9948369171996643,
+      "time_ratio_oa_over_web": 1.2891588483669825,
+      "primary_subset_member": true,
+      "not_joint_success_reason": null
+    },
+    {
+      "task": "http-retry-after",
+      "repeat": 2,
+      "web_id": "http-retry-after-r2-web",
+      "oa_id": "http-retry-after-r2-oa",
+      "joint_full_success": false,
+      "pair_quality_preserved": false,
+      "joint_usage_and_wall_known": false,
+      "token_ratio_oa_over_web": null,
+      "time_ratio_oa_over_web": null,
+      "primary_subset_member": false,
+      "not_joint_success_reason": "At least one arm lacks strict full success or final independent grade."
+    },
+    {
+      "task": "pandas-intake-diagnostic",
+      "repeat": 1,
+      "web_id": "pandas-intake-diagnostic-r1-web",
+      "oa_id": "pandas-intake-diagnostic-r1-oa",
+      "joint_full_success": true,
+      "pair_quality_preserved": true,
+      "joint_usage_and_wall_known": true,
+      "token_ratio_oa_over_web": 0.7009211153209157,
+      "time_ratio_oa_over_web": 0.9120165940970137,
+      "primary_subset_member": true,
+      "not_joint_success_reason": null
+    },
+    {
+      "task": "pandas-intake-diagnostic",
+      "repeat": 2,
+      "web_id": "pandas-intake-diagnostic-r2-web",
+      "oa_id": "pandas-intake-diagnostic-r2-oa",
+      "joint_full_success": true,
+      "pair_quality_preserved": true,
+      "joint_usage_and_wall_known": true,
+      "token_ratio_oa_over_web": 0.6504891512269771,
+      "time_ratio_oa_over_web": 0.7840929992948832,
+      "primary_subset_member": true,
+      "not_joint_success_reason": null
+    },
+    {
+      "task": "probe-routing-review",
+      "repeat": 1,
+      "web_id": "probe-routing-review-r1-web",
+      "oa_id": "probe-routing-review-r1-oa",
+      "joint_full_success": true,
+      "pair_quality_preserved": true,
+      "joint_usage_and_wall_known": true,
+      "token_ratio_oa_over_web": 0.9545620981404,
+      "time_ratio_oa_over_web": 1.0016760867916235,
+      "primary_subset_member": true,
+      "not_joint_success_reason": null
+    },
+    {
+      "task": "probe-routing-review",
+      "repeat": 2,
+      "web_id": "probe-routing-review-r2-web",
+      "oa_id": "probe-routing-review-r2-oa",
+      "joint_full_success": true,
+      "pair_quality_preserved": true,
+      "joint_usage_and_wall_known": true,
+      "token_ratio_oa_over_web": 1.0007796374405455,
+      "time_ratio_oa_over_web": 1.041864356863195,
+      "primary_subset_member": true,
+      "not_joint_success_reason": null
+    },
+    {
+      "task": "sqlite-backup-review",
+      "repeat": 1,
+      "web_id": "sqlite-backup-review-r1-web",
+      "oa_id": "sqlite-backup-review-r1-oa",
+      "joint_full_success": false,
+      "pair_quality_preserved": false,
+      "joint_usage_and_wall_known": false,
+      "token_ratio_oa_over_web": null,
+      "time_ratio_oa_over_web": null,
+      "primary_subset_member": false,
+      "not_joint_success_reason": "At least one arm lacks strict full success or final independent grade."
+    },
+    {
+      "task": "sqlite-backup-review",
+      "repeat": 2,
+      "web_id": "sqlite-backup-review-r2-web",
+      "oa_id": "sqlite-backup-review-r2-oa",
+      "joint_full_success": false,
+      "pair_quality_preserved": false,
+      "joint_usage_and_wall_known": false,
+      "token_ratio_oa_over_web": null,
+      "time_ratio_oa_over_web": null,
+      "primary_subset_member": false,
+      "not_joint_success_reason": "At least one arm lacks strict full success or final independent grade."
+    }
+  ],
+  "totals": {
+    "all": {
+      "scheduled_runs": 16,
+      "terminal_runs": 16,
+      "full_successes": 13,
+      "complete_usage_runs": 16,
+      "unknown_or_missing_usage_runs": 0,
+      "provider_usage_all_runs": {
+        "input_tokens": 2899810,
+        "output_tokens": 90333,
+        "total_tokens": 2990143,
+        "cached_input_tokens": 2269696,
+        "uncached_input_tokens": 630114
+      },
+      "known_completed_receipt_usage_lower_bound": {
+        "input_tokens": 2899810,
+        "output_tokens": 90333,
+        "total_tokens": 2990143,
+        "cached_input_tokens": 2269696,
+        "uncached_input_tokens": 630114
+      },
+      "wall_seconds_all_runs": 2594.997136850201,
+      "known_wall_seconds": 2594.997136850201,
+      "wall_known_runs": 16,
+      "cached_accounting": "cached input is a subset of input_tokens; total_tokens=input_tokens+output_tokens exactly once"
+    },
+    "oa": {
+      "scheduled_runs": 8,
+      "terminal_runs": 8,
+      "full_successes": 8,
+      "complete_usage_runs": 8,
+      "unknown_or_missing_usage_runs": 0,
+      "provider_usage_all_runs": {
+        "input_tokens": 1333757,
+        "output_tokens": 45701,
+        "total_tokens": 1379458,
+        "cached_input_tokens": 1066752,
+        "uncached_input_tokens": 267005
+      },
+      "known_completed_receipt_usage_lower_bound": {
+        "input_tokens": 1333757,
+        "output_tokens": 45701,
+        "total_tokens": 1379458,
+        "cached_input_tokens": 1066752,
+        "uncached_input_tokens": 267005
+      },
+      "wall_seconds_all_runs": 1293.925417679071,
+      "known_wall_seconds": 1293.925417679071,
+      "wall_known_runs": 8,
+      "cached_accounting": "cached input is a subset of input_tokens; total_tokens=input_tokens+output_tokens exactly once"
+    },
+    "web": {
+      "scheduled_runs": 8,
+      "terminal_runs": 8,
+      "full_successes": 5,
+      "complete_usage_runs": 8,
+      "unknown_or_missing_usage_runs": 0,
+      "provider_usage_all_runs": {
+        "input_tokens": 1566053,
+        "output_tokens": 44632,
+        "total_tokens": 1610685,
+        "cached_input_tokens": 1202944,
+        "uncached_input_tokens": 363109
+      },
+      "known_completed_receipt_usage_lower_bound": {
+        "input_tokens": 1566053,
+        "output_tokens": 44632,
+        "total_tokens": 1610685,
+        "cached_input_tokens": 1202944,
+        "uncached_input_tokens": 363109
+      },
+      "wall_seconds_all_runs": 1301.07171917113,
+      "known_wall_seconds": 1301.07171917113,
+      "wall_known_runs": 8,
+      "cached_accounting": "cached input is a subset of input_tokens; total_tokens=input_tokens+output_tokens exactly once"
+    }
+  },
+  "gates": {
+    "final_independent_grades_approved": true,
+    "all_16_terminal": true,
+    "oa_full_success_count_not_lower": true,
+    "all_joint_pairs_correctness_evidence_fit_nondecreasing": true,
+    "joint_mean_secondary_total_not_lower": true,
+    "all_joint_usage_and_wall_known": true,
+    "token_total_lower_on_fixed_joint_set": true,
+    "wall_total_lower_on_same_fixed_joint_set": true,
+    "claim_supported": true
+  },
+  "efficiency": {
+    "same_joint_success_pair_count": 5,
+    "paired_denominator": 8,
+    "fixed_joint_pair_ids": [
+      [
+        "http-retry-after-r1-web",
+        "http-retry-after-r1-oa"
+      ],
+      [
+        "pandas-intake-diagnostic-r1-web",
+        "pandas-intake-diagnostic-r1-oa"
+      ],
+      [
+        "pandas-intake-diagnostic-r2-web",
+        "pandas-intake-diagnostic-r2-oa"
+      ],
+      [
+        "probe-routing-review-r1-web",
+        "probe-routing-review-r1-oa"
+      ],
+      [
+        "probe-routing-review-r2-web",
+        "probe-routing-review-r2-oa"
+      ]
+    ],
+    "sum_token_ratio": 0.8573742550540625,
+    "sum_wall_ratio": 0.9946459232260813,
+    "bootstrap_geometric_ratios": {
+      "seed": 20261115,
+      "replicates": 10000,
+      "pair_count": 5,
+      "token_geometric_mean_ratio": 0.8459812705580539,
+      "token_percentile95_interval": [
+        0.7188333899838191,
+        0.9890015644769617
+      ],
+      "wall_geometric_mean_ratio": 0.9923001280846455,
+      "wall_percentile95_interval": [
+        0.8647916112014911,
+        1.152780561024422
+      ],
+      "limitation": "At most eight synthetic matched pairs; descriptive uncertainty only. Repetitions share four task templates; this pair bootstrap does not model task-cluster dependence. No formal noninferiority or general causal/user-utility claim."
+    },
+    "exploratory_known_subset": {
+      "pair_count": 5,
+      "ratio_scope": "Exploratory only; primary ratios remain null if ANY fixed joint-success pair has unknown accounting/time. Quality-drop pairs are not excluded.",
+      "token_ratio": 0.8573742550540625,
+      "wall_ratio": 0.9946459232260813
+    }
+  },
+  "limitations": [
+    "Four synthetic tasks, two repetitions, eight pairs; no formal noninferiority or general causal efficiency/user-utility claim.",
+    "New public snapshot, retrieval policy and shared workflow/deadline differ from v4; cross-cohort savings cannot be attributed solely to retrieval.",
+    "Model-visible delivery and a cited method do not establish attention or application; application requires separate read/code-step evidence."
+  ],
+  "runs": [
+    {
+      "id": "probe-routing-review-r1-web",
+      "task": "probe-routing-review",
+      "repeat": 1,
+      "arm": "web",
+      "terminal": true,
+      "status": "completed",
+      "exit_code": 0,
+      "normal_final": true,
+      "primary": {
+        "code_checks": true,
+        "documented_verification": 2,
+        "sources_and_limitations": 1,
+        "normal_completion": 1,
+        "full_success": true
+      },
+      "secondary": {
+        "correctness": 2,
+        "evidence_fit": 2,
+        "limitations": 2,
+        "artifact_usability": 2,
+        "total": 8
+      },
+      "material_unsupported_claim": false,
+      "wall_seconds": 154.41546718403697,
+      "usage_complete": true,
+      "provider_usage": {
+        "input_tokens": 200240,
+        "output_tokens": 4589,
+        "total_tokens": 204829,
+        "cached_input_tokens": 142464,
+        "uncached_input_tokens": 57776
+      },
+      "known_completed_receipt_usage": {
+        "input_tokens": 200240,
+        "output_tokens": 4589,
+        "total_tokens": 204829,
+        "cached_input_tokens": 142464,
+        "uncached_input_tokens": 57776
+      },
+      "admitted_requests": 10,
+      "terminal_receipts": 10,
+      "forwarding_attempted": 10,
+      "forwarded_to_provider": 10,
+      "request_receipt_hash_join_complete": true,
+      "response_ids_unique": true,
+      "incomplete_or_missing_receipts": 0,
+      "local_denials": 0,
+      "first_attempted_retrieval_family": "web",
+      "first_successful_retrieval_family": "web",
+      "retrieval_compliant": true,
+      "checker": {
+        "passed": 5,
+        "total": 5,
+        "all_pass": true
+      }
+    },
+    {
+      "id": "probe-routing-review-r1-oa",
+      "task": "probe-routing-review",
+      "repeat": 1,
+      "arm": "oa",
+      "terminal": true,
+      "status": "completed",
+      "exit_code": 0,
+      "normal_final": true,
+      "primary": {
+        "code_checks": true,
+        "documented_verification": 2,
+        "sources_and_limitations": 1,
+        "normal_completion": 1,
+        "full_success": true
+      },
+      "secondary": {
+        "correctness": 2,
+        "evidence_fit": 2,
+        "limitations": 2,
+        "artifact_usability": 2,
+        "total": 8
+      },
+      "material_unsupported_claim": false,
+      "wall_seconds": 154.67428090900648,
+      "usage_complete": true,
+      "provider_usage": {
+        "input_tokens": 190728,
+        "output_tokens": 4794,
+        "total_tokens": 195522,
+        "cached_input_tokens": 148992,
+        "uncached_input_tokens": 41736
+      },
+      "known_completed_receipt_usage": {
+        "input_tokens": 190728,
+        "output_tokens": 4794,
+        "total_tokens": 195522,
+        "cached_input_tokens": 148992,
+        "uncached_input_tokens": 41736
+      },
+      "admitted_requests": 9,
+      "terminal_receipts": 9,
+      "forwarding_attempted": 9,
+      "forwarded_to_provider": 9,
+      "request_receipt_hash_join_complete": true,
+      "response_ids_unique": true,
+      "incomplete_or_missing_receipts": 0,
+      "local_denials": 0,
+      "first_attempted_retrieval_family": "oa",
+      "first_successful_retrieval_family": "oa",
+      "retrieval_compliant": true,
+      "checker": {
+        "passed": 5,
+        "total": 5,
+        "all_pass": true
+      }
+    },
+    {
+      "id": "http-retry-after-r1-oa",
+      "task": "http-retry-after",
+      "repeat": 1,
+      "arm": "oa",
+      "terminal": true,
+      "status": "completed",
+      "exit_code": 0,
+      "normal_final": true,
+      "primary": {
+        "code_checks": true,
+        "documented_verification": 2,
+        "sources_and_limitations": 1,
+        "normal_completion": 1,
+        "full_success": true
+      },
+      "secondary": {
+        "correctness": 2,
+        "evidence_fit": 2,
+        "limitations": 2,
+        "artifact_usability": 2,
+        "total": 8
+      },
+      "material_unsupported_claim": false,
+      "wall_seconds": 185.00469858001452,
+      "usage_complete": true,
+      "provider_usage": {
+        "input_tokens": 165086,
+        "output_tokens": 6787,
+        "total_tokens": 171873,
+        "cached_input_tokens": 135680,
+        "uncached_input_tokens": 29406
+      },
+      "known_completed_receipt_usage": {
+        "input_tokens": 165086,
+        "output_tokens": 6787,
+        "total_tokens": 171873,
+        "cached_input_tokens": 135680,
+        "uncached_input_tokens": 29406
+      },
+      "admitted_requests": 10,
+      "terminal_receipts": 10,
+      "forwarding_attempted": 10,
+      "forwarded_to_provider": 10,
+      "request_receipt_hash_join_complete": true,
+      "response_ids_unique": true,
+      "incomplete_or_missing_receipts": 0,
+      "local_denials": 0,
+      "first_attempted_retrieval_family": "oa",
+      "first_successful_retrieval_family": "oa",
+      "retrieval_compliant": true,
+      "checker": {
+        "passed": 5,
+        "total": 5,
+        "all_pass": true
+      }
+    },
+    {
+      "id": "http-retry-after-r1-web",
+      "task": "http-retry-after",
+      "repeat": 1,
+      "arm": "web",
+      "terminal": true,
+      "status": "completed",
+      "exit_code": 0,
+      "normal_final": true,
+      "primary": {
+        "code_checks": true,
+        "documented_verification": 2,
+        "sources_and_limitations": 1,
+        "normal_completion": 1,
+        "full_success": true
+      },
+      "secondary": {
+        "correctness": 2,
+        "evidence_fit": 2,
+        "limitations": 2,
+        "artifact_usability": 2,
+        "total": 8
+      },
+      "material_unsupported_claim": false,
+      "wall_seconds": 143.5080702539999,
+      "usage_complete": true,
+      "provider_usage": {
+        "input_tokens": 167541,
+        "output_tokens": 5224,
+        "total_tokens": 172765,
+        "cached_input_tokens": 132224,
+        "uncached_input_tokens": 35317
+      },
+      "known_completed_receipt_usage": {
+        "input_tokens": 167541,
+        "output_tokens": 5224,
+        "total_tokens": 172765,
+        "cached_input_tokens": 132224,
+        "uncached_input_tokens": 35317
+      },
+      "admitted_requests": 9,
+      "terminal_receipts": 9,
+      "forwarding_attempted": 9,
+      "forwarded_to_provider": 9,
+      "request_receipt_hash_join_complete": true,
+      "response_ids_unique": true,
+      "incomplete_or_missing_receipts": 0,
+      "local_denials": 0,
+      "first_attempted_retrieval_family": "web",
+      "first_successful_retrieval_family": "web",
+      "retrieval_compliant": true,
+      "checker": {
+        "passed": 5,
+        "total": 5,
+        "all_pass": true
+      }
+    },
+    {
+      "id": "pandas-intake-diagnostic-r2-web",
+      "task": "pandas-intake-diagnostic",
+      "repeat": 2,
+      "arm": "web",
+      "terminal": true,
+      "status": "completed",
+      "exit_code": 0,
+      "normal_final": true,
+      "primary": {
+        "code_checks": true,
+        "documented_verification": 2,
+        "sources_and_limitations": 1,
+        "normal_completion": 1,
+        "full_success": true
+      },
+      "secondary": {
+        "correctness": 2,
+        "evidence_fit": 2,
+        "limitations": 2,
+        "artifact_usability": 2,
+        "total": 8
+      },
+      "material_unsupported_claim": false,
+      "wall_seconds": 172.67352867801674,
+      "usage_complete": true,
+      "provider_usage": {
+        "input_tokens": 195307,
+        "output_tokens": 5960,
+        "total_tokens": 201267,
+        "cached_input_tokens": 140160,
+        "uncached_input_tokens": 55147
+      },
+      "known_completed_receipt_usage": {
+        "input_tokens": 195307,
+        "output_tokens": 5960,
+        "total_tokens": 201267,
+        "cached_input_tokens": 140160,
+        "uncached_input_tokens": 55147
+      },
+      "admitted_requests": 9,
+      "terminal_receipts": 9,
+      "forwarding_attempted": 9,
+      "forwarded_to_provider": 9,
+      "request_receipt_hash_join_complete": true,
+      "response_ids_unique": true,
+      "incomplete_or_missing_receipts": 0,
+      "local_denials": 0,
+      "first_attempted_retrieval_family": "web",
+      "first_successful_retrieval_family": "web",
+      "retrieval_compliant": true,
+      "checker": {
+        "passed": 5,
+        "total": 5,
+        "all_pass": true
+      }
+    },
+    {
+      "id": "pandas-intake-diagnostic-r2-oa",
+      "task": "pandas-intake-diagnostic",
+      "repeat": 2,
+      "arm": "oa",
+      "terminal": true,
+      "status": "completed",
+      "exit_code": 0,
+      "normal_final": true,
+      "primary": {
+        "code_checks": true,
+        "documented_verification": 2,
+        "sources_and_limitations": 1,
+        "normal_completion": 1,
+        "full_success": true
+      },
+      "secondary": {
+        "correctness": 2,
+        "evidence_fit": 2,
+        "limitations": 2,
+        "artifact_usability": 2,
+        "total": 8
+      },
+      "material_unsupported_claim": false,
+      "wall_seconds": 135.39210499997716,
+      "usage_complete": true,
+      "provider_usage": {
+        "input_tokens": 125711,
+        "output_tokens": 5211,
+        "total_tokens": 130922,
+        "cached_input_tokens": 109568,
+        "uncached_input_tokens": 16143
+      },
+      "known_completed_receipt_usage": {
+        "input_tokens": 125711,
+        "output_tokens": 5211,
+        "total_tokens": 130922,
+        "cached_input_tokens": 109568,
+        "uncached_input_tokens": 16143
+      },
+      "admitted_requests": 7,
+      "terminal_receipts": 7,
+      "forwarding_attempted": 7,
+      "forwarded_to_provider": 7,
+      "request_receipt_hash_join_complete": true,
+      "response_ids_unique": true,
+      "incomplete_or_missing_receipts": 0,
+      "local_denials": 0,
+      "first_attempted_retrieval_family": "oa",
+      "first_successful_retrieval_family": "oa",
+      "retrieval_compliant": true,
+      "checker": {
+        "passed": 5,
+        "total": 5,
+        "all_pass": true
+      }
+    },
+    {
+      "id": "sqlite-backup-review-r2-oa",
+      "task": "sqlite-backup-review",
+      "repeat": 2,
+      "arm": "oa",
+      "terminal": true,
+      "status": "completed",
+      "exit_code": 0,
+      "normal_final": true,
+      "primary": {
+        "code_checks": true,
+        "documented_verification": 2,
+        "sources_and_limitations": 1,
+        "normal_completion": 1,
+        "full_success": true
+      },
+      "secondary": {
+        "correctness": 2,
+        "evidence_fit": 2,
+        "limitations": 2,
+        "artifact_usability": 2,
+        "total": 8
+      },
+      "material_unsupported_claim": false,
+      "wall_seconds": 186.909361181024,
+      "usage_complete": true,
+      "provider_usage": {
+        "input_tokens": 225717,
+        "output_tokens": 6685,
+        "total_tokens": 232402,
+        "cached_input_tokens": 194176,
+        "uncached_input_tokens": 31541
+      },
+      "known_completed_receipt_usage": {
+        "input_tokens": 225717,
+        "output_tokens": 6685,
+        "total_tokens": 232402,
+        "cached_input_tokens": 194176,
+        "uncached_input_tokens": 31541
+      },
+      "admitted_requests": 11,
+      "terminal_receipts": 11,
+      "forwarding_attempted": 11,
+      "forwarded_to_provider": 11,
+      "request_receipt_hash_join_complete": true,
+      "response_ids_unique": true,
+      "incomplete_or_missing_receipts": 0,
+      "local_denials": 0,
+      "first_attempted_retrieval_family": "oa",
+      "first_successful_retrieval_family": "oa",
+      "retrieval_compliant": true,
+      "checker": {
+        "passed": 6,
+        "total": 6,
+        "all_pass": true
+      }
+    },
+    {
+      "id": "sqlite-backup-review-r2-web",
+      "task": "sqlite-backup-review",
+      "repeat": 2,
+      "arm": "web",
+      "terminal": true,
+      "status": "completed",
+      "exit_code": 1,
+      "normal_final": false,
+      "primary": {
+        "code_checks": true,
+        "documented_verification": 0,
+        "sources_and_limitations": 1,
+        "normal_completion": 0,
+        "full_success": false
+      },
+      "secondary": {
+        "correctness": 2,
+        "evidence_fit": 2,
+        "limitations": 2,
+        "artifact_usability": 1,
+        "total": 7
+      },
+      "material_unsupported_claim": false,
+      "wall_seconds": 186.4001998199965,
+      "usage_complete": true,
+      "provider_usage": {
+        "input_tokens": 236166,
+        "output_tokens": 6834,
+        "total_tokens": 243000,
+        "cached_input_tokens": 183680,
+        "uncached_input_tokens": 52486
+      },
+      "known_completed_receipt_usage": {
+        "input_tokens": 236166,
+        "output_tokens": 6834,
+        "total_tokens": 243000,
+        "cached_input_tokens": 183680,
+        "uncached_input_tokens": 52486
+      },
+      "admitted_requests": 11,
+      "terminal_receipts": 11,
+      "forwarding_attempted": 11,
+      "forwarded_to_provider": 11,
+      "request_receipt_hash_join_complete": true,
+      "response_ids_unique": true,
+      "incomplete_or_missing_receipts": 0,
+      "local_denials": 1,
+      "first_attempted_retrieval_family": "web",
+      "first_successful_retrieval_family": "web",
+      "retrieval_compliant": true,
+      "checker": {
+        "passed": 6,
+        "total": 6,
+        "all_pass": true
+      }
+    },
+    {
+      "id": "http-retry-after-r2-web",
+      "task": "http-retry-after",
+      "repeat": 2,
+      "arm": "web",
+      "terminal": true,
+      "status": "completed",
+      "exit_code": 1,
+      "normal_final": false,
+      "primary": {
+        "code_checks": true,
+        "documented_verification": 0,
+        "sources_and_limitations": 1,
+        "normal_completion": 0,
+        "full_success": false
+      },
+      "secondary": {
+        "correctness": 2,
+        "evidence_fit": 1,
+        "limitations": 2,
+        "artifact_usability": 1,
+        "total": 6
+      },
+      "material_unsupported_claim": false,
+      "wall_seconds": 157.81230235903058,
+      "usage_complete": true,
+      "provider_usage": {
+        "input_tokens": 209113,
+        "output_tokens": 5619,
+        "total_tokens": 214732,
+        "cached_input_tokens": 178944,
+        "uncached_input_tokens": 30169
+      },
+      "known_completed_receipt_usage": {
+        "input_tokens": 209113,
+        "output_tokens": 5619,
+        "total_tokens": 214732,
+        "cached_input_tokens": 178944,
+        "uncached_input_tokens": 30169
+      },
+      "admitted_requests": 11,
+      "terminal_receipts": 11,
+      "forwarding_attempted": 11,
+      "forwarded_to_provider": 11,
+      "request_receipt_hash_join_complete": true,
+      "response_ids_unique": true,
+      "incomplete_or_missing_receipts": 0,
+      "local_denials": 1,
+      "first_attempted_retrieval_family": "web",
+      "first_successful_retrieval_family": "web",
+      "retrieval_compliant": true,
+      "checker": {
+        "passed": 5,
+        "total": 5,
+        "all_pass": true
+      }
+    },
+    {
+      "id": "http-retry-after-r2-oa",
+      "task": "http-retry-after",
+      "repeat": 2,
+      "arm": "oa",
+      "terminal": true,
+      "status": "completed",
+      "exit_code": 0,
+      "normal_final": true,
+      "primary": {
+        "code_checks": true,
+        "documented_verification": 2,
+        "sources_and_limitations": 1,
+        "normal_completion": 1,
+        "full_success": true
+      },
+      "secondary": {
+        "correctness": 2,
+        "evidence_fit": 2,
+        "limitations": 2,
+        "artifact_usability": 2,
+        "total": 8
+      },
+      "material_unsupported_claim": false,
+      "wall_seconds": 145.18505762901623,
+      "usage_complete": true,
+      "provider_usage": {
+        "input_tokens": 131034,
+        "output_tokens": 5493,
+        "total_tokens": 136527,
+        "cached_input_tokens": 90752,
+        "uncached_input_tokens": 40282
+      },
+      "known_completed_receipt_usage": {
+        "input_tokens": 131034,
+        "output_tokens": 5493,
+        "total_tokens": 136527,
+        "cached_input_tokens": 90752,
+        "uncached_input_tokens": 40282
+      },
+      "admitted_requests": 7,
+      "terminal_receipts": 7,
+      "forwarding_attempted": 7,
+      "forwarded_to_provider": 7,
+      "request_receipt_hash_join_complete": true,
+      "response_ids_unique": true,
+      "incomplete_or_missing_receipts": 0,
+      "local_denials": 0,
+      "first_attempted_retrieval_family": "oa",
+      "first_successful_retrieval_family": "oa",
+      "retrieval_compliant": true,
+      "checker": {
+        "passed": 5,
+        "total": 5,
+        "all_pass": true
+      }
+    },
+    {
+      "id": "probe-routing-review-r2-oa",
+      "task": "probe-routing-review",
+      "repeat": 2,
+      "arm": "oa",
+      "terminal": true,
+      "status": "completed",
+      "exit_code": 0,
+      "normal_final": true,
+      "primary": {
+        "code_checks": true,
+        "documented_verification": 2,
+        "sources_and_limitations": 1,
+        "normal_completion": 1,
+        "full_success": true
+      },
+      "secondary": {
+        "correctness": 2,
+        "evidence_fit": 2,
+        "limitations": 2,
+        "artifact_usability": 2,
+        "total": 8
+      },
+      "material_unsupported_claim": false,
+      "wall_seconds": 137.04052913503256,
+      "usage_complete": true,
+      "provider_usage": {
+        "input_tokens": 173841,
+        "output_tokens": 4586,
+        "total_tokens": 178427,
+        "cached_input_tokens": 137216,
+        "uncached_input_tokens": 36625
+      },
+      "known_completed_receipt_usage": {
+        "input_tokens": 173841,
+        "output_tokens": 4586,
+        "total_tokens": 178427,
+        "cached_input_tokens": 137216,
+        "uncached_input_tokens": 36625
+      },
+      "admitted_requests": 9,
+      "terminal_receipts": 9,
+      "forwarding_attempted": 9,
+      "forwarded_to_provider": 9,
+      "request_receipt_hash_join_complete": true,
+      "response_ids_unique": true,
+      "incomplete_or_missing_receipts": 0,
+      "local_denials": 0,
+      "first_attempted_retrieval_family": "oa",
+      "first_successful_retrieval_family": "oa",
+      "retrieval_compliant": true,
+      "checker": {
+        "passed": 5,
+        "total": 5,
+        "all_pass": true
+      }
+    },
+    {
+      "id": "probe-routing-review-r2-web",
+      "task": "probe-routing-review",
+      "repeat": 2,
+      "arm": "web",
+      "terminal": true,
+      "status": "completed",
+      "exit_code": 0,
+      "normal_final": true,
+      "primary": {
+        "code_checks": true,
+        "documented_verification": 2,
+        "sources_and_limitations": 1,
+        "normal_completion": 1,
+        "full_success": true
+      },
+      "secondary": {
+        "correctness": 2,
+        "evidence_fit": 2,
+        "limitations": 2,
+        "artifact_usability": 2,
+        "total": 8
+      },
+      "material_unsupported_claim": false,
+      "wall_seconds": 131.53394511702936,
+      "usage_complete": true,
+      "provider_usage": {
+        "input_tokens": 174057,
+        "output_tokens": 4231,
+        "total_tokens": 178288,
+        "cached_input_tokens": 129792,
+        "uncached_input_tokens": 44265
+      },
+      "known_completed_receipt_usage": {
+        "input_tokens": 174057,
+        "output_tokens": 4231,
+        "total_tokens": 178288,
+        "cached_input_tokens": 129792,
+        "uncached_input_tokens": 44265
+      },
+      "admitted_requests": 9,
+      "terminal_receipts": 9,
+      "forwarding_attempted": 9,
+      "forwarded_to_provider": 9,
+      "request_receipt_hash_join_complete": true,
+      "response_ids_unique": true,
+      "incomplete_or_missing_receipts": 0,
+      "local_denials": 0,
+      "first_attempted_retrieval_family": "web",
+      "first_successful_retrieval_family": "web",
+      "retrieval_compliant": true,
+      "checker": {
+        "passed": 5,
+        "total": 5,
+        "all_pass": true
+      }
+    },
+    {
+      "id": "sqlite-backup-review-r1-web",
+      "task": "sqlite-backup-review",
+      "repeat": 1,
+      "arm": "web",
+      "terminal": true,
+      "status": "completed",
+      "exit_code": 1,
+      "normal_final": false,
+      "primary": {
+        "code_checks": true,
+        "documented_verification": 2,
+        "sources_and_limitations": 1,
+        "normal_completion": 0,
+        "full_success": false
+      },
+      "secondary": {
+        "correctness": 2,
+        "evidence_fit": 1,
+        "limitations": 2,
+        "artifact_usability": 2,
+        "total": 7
+      },
+      "material_unsupported_claim": false,
+      "wall_seconds": 194.92468088201713,
+      "usage_complete": true,
+      "provider_usage": {
+        "input_tokens": 212944,
+        "output_tokens": 6552,
+        "total_tokens": 219496,
+        "cached_input_tokens": 169600,
+        "uncached_input_tokens": 43344
+      },
+      "known_completed_receipt_usage": {
+        "input_tokens": 212944,
+        "output_tokens": 6552,
+        "total_tokens": 219496,
+        "cached_input_tokens": 169600,
+        "uncached_input_tokens": 43344
+      },
+      "admitted_requests": 11,
+      "terminal_receipts": 11,
+      "forwarding_attempted": 11,
+      "forwarded_to_provider": 11,
+      "request_receipt_hash_join_complete": true,
+      "response_ids_unique": true,
+      "incomplete_or_missing_receipts": 0,
+      "local_denials": 1,
+      "first_attempted_retrieval_family": "web",
+      "first_successful_retrieval_family": "web",
+      "retrieval_compliant": true,
+      "checker": {
+        "passed": 6,
+        "total": 6,
+        "all_pass": true
+      }
+    },
+    {
+      "id": "sqlite-backup-review-r1-oa",
+      "task": "sqlite-backup-review",
+      "repeat": 1,
+      "arm": "oa",
+      "terminal": true,
+      "status": "completed",
+      "exit_code": 0,
+      "normal_final": true,
+      "primary": {
+        "code_checks": true,
+        "documented_verification": 2,
+        "sources_and_limitations": 1,
+        "normal_completion": 1,
+        "full_success": true
+      },
+      "secondary": {
+        "correctness": 2,
+        "evidence_fit": 2,
+        "limitations": 2,
+        "artifact_usability": 2,
+        "total": 8
+      },
+      "material_unsupported_claim": false,
+      "wall_seconds": 203.9759187619784,
+      "usage_complete": true,
+      "provider_usage": {
+        "input_tokens": 202955,
+        "output_tokens": 7252,
+        "total_tokens": 210207,
+        "cached_input_tokens": 167296,
+        "uncached_input_tokens": 35659
+      },
+      "known_completed_receipt_usage": {
+        "input_tokens": 202955,
+        "output_tokens": 7252,
+        "total_tokens": 210207,
+        "cached_input_tokens": 167296,
+        "uncached_input_tokens": 35659
+      },
+      "admitted_requests": 10,
+      "terminal_receipts": 10,
+      "forwarding_attempted": 10,
+      "forwarded_to_provider": 10,
+      "request_receipt_hash_join_complete": true,
+      "response_ids_unique": true,
+      "incomplete_or_missing_receipts": 0,
+      "local_denials": 0,
+      "first_attempted_retrieval_family": "oa",
+      "first_successful_retrieval_family": "oa",
+      "retrieval_compliant": true,
+      "checker": {
+        "passed": 6,
+        "total": 6,
+        "all_pass": true
+      }
+    },
+    {
+      "id": "pandas-intake-diagnostic-r1-oa",
+      "task": "pandas-intake-diagnostic",
+      "repeat": 1,
+      "arm": "oa",
+      "terminal": true,
+      "status": "completed",
+      "exit_code": 0,
+      "normal_final": true,
+      "primary": {
+        "code_checks": true,
+        "documented_verification": 2,
+        "sources_and_limitations": 1,
+        "normal_completion": 1,
+        "full_success": true
+      },
+      "secondary": {
+        "correctness": 2,
+        "evidence_fit": 2,
+        "limitations": 2,
+        "artifact_usability": 2,
+        "total": 8
+      },
+      "material_unsupported_claim": false,
+      "wall_seconds": 145.74346648302162,
+      "usage_complete": true,
+      "provider_usage": {
+        "input_tokens": 118685,
+        "output_tokens": 4893,
+        "total_tokens": 123578,
+        "cached_input_tokens": 83072,
+        "uncached_input_tokens": 35613
+      },
+      "known_completed_receipt_usage": {
+        "input_tokens": 118685,
+        "output_tokens": 4893,
+        "total_tokens": 123578,
+        "cached_input_tokens": 83072,
+        "uncached_input_tokens": 35613
+      },
+      "admitted_requests": 6,
+      "terminal_receipts": 6,
+      "forwarding_attempted": 6,
+      "forwarded_to_provider": 6,
+      "request_receipt_hash_join_complete": true,
+      "response_ids_unique": true,
+      "incomplete_or_missing_receipts": 0,
+      "local_denials": 0,
+      "first_attempted_retrieval_family": "oa",
+      "first_successful_retrieval_family": "oa",
+      "retrieval_compliant": true,
+      "checker": {
+        "passed": 5,
+        "total": 5,
+        "all_pass": true
+      }
+    },
+    {
+      "id": "pandas-intake-diagnostic-r1-web",
+      "task": "pandas-intake-diagnostic",
+      "repeat": 1,
+      "arm": "web",
+      "terminal": true,
+      "status": "completed",
+      "exit_code": 0,
+      "normal_final": true,
+      "primary": {
+        "code_checks": true,
+        "documented_verification": 2,
+        "sources_and_limitations": 1,
+        "normal_completion": 1,
+        "full_success": true
+      },
+      "secondary": {
+        "correctness": 2,
+        "evidence_fit": 2,
+        "limitations": 2,
+        "artifact_usability": 2,
+        "total": 8
+      },
+      "material_unsupported_claim": false,
+      "wall_seconds": 159.80352487700293,
+      "usage_complete": true,
+      "provider_usage": {
+        "input_tokens": 170685,
+        "output_tokens": 5623,
+        "total_tokens": 176308,
+        "cached_input_tokens": 126080,
+        "uncached_input_tokens": 44605
+      },
+      "known_completed_receipt_usage": {
+        "input_tokens": 170685,
+        "output_tokens": 5623,
+        "total_tokens": 176308,
+        "cached_input_tokens": 126080,
+        "uncached_input_tokens": 44605
+      },
+      "admitted_requests": 8,
+      "terminal_receipts": 8,
+      "forwarding_attempted": 8,
+      "forwarded_to_provider": 8,
+      "request_receipt_hash_join_complete": true,
+      "response_ids_unique": true,
+      "incomplete_or_missing_receipts": 0,
+      "local_denials": 0,
+      "first_attempted_retrieval_family": "web",
+      "first_successful_retrieval_family": "web",
+      "retrieval_compliant": true,
+      "checker": {
+        "passed": 5,
+        "total": 5,
+        "all_pass": true
+      }
+    }
+  ],
+  "metadata": {
+    "generated_at": "2026-11-14T20:01:35.091747+00:00",
+    "cohort": "nov15-efficiency-v2-inline-task",
+    "model": "gpt-6.1-sol",
+    "reasoning": "medium",
+    "freeze_sha256": "7f64875810d1c2f143036ce5185e1696524cf7e4b382abee594552a62ace4703",
+    "grades_sha256": "9cf6c9520964749df2e05691c32ba0678d0b79396e86ec2fff62880cc16faea7",
+    "accounting_scope": "Actual provider receipts; cached input included exactly once. Unknown usage never zero. No quality inferred by this script.",
+    "first_pair_preexposed": "The original cohort exposed first probe-task integration behavior before v2. V2 uses fresh isolated model sessions; the common task-context correction did not change engine, tasks, checker or limits."
+  },
+  "previous_v4": {
+    "summary_ko": "이전 v4의 당시 평가에서는 일반 웹 검색 2/4회, OpenAkashic 1/4회가 완전 성공했습니다. 품질 평균은 각각 8.00/8점과 3.75/8점이었습니다. OpenAkashic 조건의 전체 토큰 기록이 불완전했고 품질도 낮아, 같은 품질에서 효율이 좋아졌다고 판단하지 않았습니다. 이전 과제와 조건의 결과를 이번 16회에 합치지 않습니다.",
+    "source_sha256": "b4027ea11532d55e090ed852c066f3f800baf0025060e7016735670be0c29824"
+  },
+  "previous_integration": {
+    "summary_ko": "첫 11월 15일 코호트에서는 실제 과제 본문을 읽기 전에 공통 지침 문구가 OpenAkashic 검색어로 들어갔고, 방법 팩이 비었습니다. 연동 오류를 확인한 뒤 첫 한 짝인 2회에서 중단했으며, 나머지 14회는 실행하지 않았습니다. 두 실행의 토큰과 시간은 연동 실패의 관찰 기록으로 보존하고 효율 개선 근거로 사용하지 않습니다. 재실행 코호트의 첫 짝은 이미 노출됐으므로 완전히 새로운 확인 실험이 아닙니다.",
+    "scheduled": 16,
+    "started": 2,
+    "unlaunched": 14,
+    "source_sha256": "a22316fbb77d740ca528e4286ad584fcd3a7630c1b4ea9d9efebe3ca9aa293f0",
+    "runs": [
+      {
+        "id": "probe-routing-review-r1-web",
+        "arm": "web",
+        "provider_usage": {
+          "input_tokens": 201663,
+          "output_tokens": 4155,
+          "total_tokens": 205818,
+          "cached_input_tokens": 146304
+        },
+        "wall_seconds": 138.67158792703412,
+        "status": "completed"
+      },
+      {
+        "id": "probe-routing-review-r1-oa",
+        "arm": "oa",
+        "provider_usage": {
+          "input_tokens": 148757,
+          "output_tokens": 3983,
+          "total_tokens": 152740,
+          "cached_input_tokens": 117248
+        },
+        "wall_seconds": 115.48709670599783,
+        "status": "completed"
+      }
+    ]
+  },
+  "control_amendment": {
+    "source_sha256": "1aa46481d74c7114542274616fad2465092fc819dc6ee6b02a8c3a83a1e4764f",
+    "after_finalized_runs": 8,
+    "remaining_prescheduled_unlaunched_rows": 8,
+    "failed_run_preserved": "sqlite-backup-review-r2-web",
+    "retry_failed_run": false,
+    "resource_limits_raised": false,
+    "interpretation": "Exploratory cohort: after the local budget failure, parent amended only the controller stop policy to run every already scheduled unlaunched row. All16 and the failure remain in denominator. Original frozen harness/protocol/model/code/tasks/prompts/limits were unchanged. Shared infrastructure, unknown usage, authentication or retrieval protocol failures still stop."
+  },
+  "mechanistic": {
+    "summary_ko": "실제 16회에서는 중복 본문을 생략하는 캐시 영수증이 한 번도 나오지 않았습니다. 따라서 실제 토큰이나 시간 차이를 캐시 적중 효과로 설명하지 않습니다. 별도 무모델 재생에서는 같은 SQLite v3 GET 응답을 같은 JSON 직렬화 방식으로 비교했고, 완전한 본문을 먼저 받은 뒤 중복 본문을 영수증으로 바꾸면서도 최신 피드백은 보존했습니다. 이는 클라이언트 동작 확인이며 실제 모델 비용이나 품질 검증과 구분합니다.",
+    "source_sha256": "b0f236942055aedfe82877bcae95518d058c3499b3839901d66909555d568e28",
+    "actual_cache_hits": 0,
+    "offline_replay_model_calls": 0,
+    "offline_replay_full_compact_bytes": 18851,
+    "offline_replay_receipt_compact_bytes": 12475
+  },
+  "application_review": [
+    {
+      "task": "probe-routing-review",
+      "read_evidence": "두 OA 실행 모두 method_d340976ef2f543a2a168b66f51c10beb v2의 완전한 방법 팩이 native stdout에 표시됐고 클라이언트 본문 해시와 일치합니다.",
+      "application_evidence": "README 귀속과 solution.py의 단계 1–4 역할 분리, 초기 여유, 준비 실패의 서비스 제외, 생존 실패의 재시작 코드를 대조했습니다.",
+      "fallback": "startup 게이팅과 named port 등 부족한 근거는 공식 Kubernetes 문서로 보완했습니다.",
+      "limitation": "클러스터 관찰과 단계 5는 실행하지 않았습니다. 사전 변환과 제한된 실패 횟수 함수의 부분 적용입니다."
+    },
+    {
+      "task": "sqlite-backup-review",
+      "read_evidence": "두 OA 실행 모두 method_5af91cc7219a4130a3a2cf2d7630b031 v3의 로컬 완전 본문을 명시적으로 다시 출력했습니다. 한 실행은 완전 JSON, 다른 실행은 모든 필드의 key/value 출력이 저장 본문과 정확히 일치했습니다.",
+      "application_evidence": "README 귀속과 backup API, 새 대상 보호, 닫기와 재개방, 무결성, 전체 행 멀티셋, 외래 키 별도 검사 구현을 대조했습니다.",
+      "fallback": "공식 SQLite/Python 문서도 읽었습니다. 원래 GET의 긴 과거 피드백과 본문을 구분했습니다.",
+      "limitation": "쓰기 정지 합성 과제의 성공 범위입니다. 실제 운영 복구나 동시 쓰기 중 정확한 호출 시작 시점은 검증하지 않았습니다."
+    },
+    {
+      "task": "pandas-intake-diagnostic",
+      "read_evidence": "r1은 결측 정책 방법과 민감도 비교 방법 두 개, r2는 민감도 비교 방법 한 개의 v2 완전 본문이 native stdout에 표시되고 클라이언트 해시와 일치했습니다.",
+      "application_evidence": "README 귀속과 열별 결측/패턴 집계, 원본 보존, 세 대안 및 동일 평균/표본 수 계산 코드를 대조했습니다.",
+      "fallback": "설치된 pandas 버전에 맞는 공식 문서로 부족한 동작 근거를 보완했습니다.",
+      "limitation": "합성 자료의 기술적 비교입니다. 실제 결측 원인, 모집단 편향 제거, 최선 운영 정책이나 원천 교체는 검증하지 않았습니다."
+    },
+    {
+      "task": "http-retry-after",
+      "read_evidence": "두 OA 실행 모두 방법 팩이 비었고 실제 완전 방법 본문이나 적용 근거가 없습니다.",
+      "application_evidence": "방법 적용으로 기록하지 않습니다.",
+      "fallback": "공식 HTTP/Python 문서로 후속 구현했습니다.",
+      "limitation": "정당한 검색 미회수와 웹 후속 진행이며 OA 방법 적용 성공으로 바꾸지 않습니다."
+    }
+  ],
+  "review_provenance": {
+    "independent_reviews": [
+      {
+        "reviewer": "reviewer-a",
+        "packet_directory": "[local path removed]",
+        "packet_manifest_sha256": "5122c6a09db4061ad600defdcd2bdc3124c4a9f93253d18474a3b3a6a091c93e",
+        "review_path": "[local path removed]",
+        "review_sha256": "08ca94febf1f3bac98ef57fcfff34572f116104fed124164643f88ef8910b080"
+      },
+      {
+        "reviewer": "reviewer-b",
+        "packet_directory": "[local path removed]",
+        "packet_manifest_sha256": "5122c6a09db4061ad600defdcd2bdc3124c4a9f93253d18474a3b3a6a091c93e",
+        "review_path": "[local path removed]",
+        "review_sha256": "59703144dd027f70e04ff39e5dda974146e7bb72fec25b282e44c95239bd350d"
+      }
+    ],
+    "packet_manifest": {
+      "source_sha256": "5122c6a09db4061ad600defdcd2bdc3124c4a9f93253d18474a3b3a6a091c93e"
+    },
+    "verification_supplement": {
+      "source_sha256": "d73c75a02782a48276ec78fb20bf700d15eb6f89d40d1f22cc0c9ab9033cee14"
+    },
+    "parent_resolution": {
+      "source_sha256": "9cf6c9520964749df2e05691c32ba0678d0b79396e86ec2fff62880cc16faea7"
+    },
+    "parent_approval": {
+      "source_sha256": "826ae29723e096f2f605bc784dc65aeebdfe168f1ee1ae6836d3a58690e11509"
+    },
+    "mixed_command_note_ko": "블라인드 패킷에서 검색이 섞인 명령 전체를 제외하면서 A09와 A13의 일부 실제 검증 출력도 빠졌습니다. 부모 검토자가 원본 명령의 비검색 뒷부분과 마지막 재실행 출력을 대조해 확인했고, 그 보충 근거와 최종 판정을 별도로 남겼습니다. 원래 실행과 실패 기록은 고치지 않았습니다.",
+    "verification_scope": "Parent-attributed execution corroboration and adjudication; this application-evidence agent did not assign quality scores.",
+    "private_identity_key_exported": false
+  }
+}

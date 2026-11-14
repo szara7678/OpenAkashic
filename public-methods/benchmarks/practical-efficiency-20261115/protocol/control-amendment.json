@@ -1,0 +1,29 @@
+{
+  "schema": "nov15-local-control-amendment-v1",
+  "cohort_root": "[local path removed]",
+  "source_freeze_sha256": "7f64875810d1c2f143036ce5185e1696524cf7e4b382abee594552a62ace4703",
+  "original_frozen_runner_sha256": "ead439fc4c5d982372465c4824d702e71c6011fb003fe0abddfaf00db4cf1a28",
+  "original_protocol_sha256": "44edffe89cc5e8e028df74dbe80fda183ab447e302b0a750a8f12bf7146a67ee",
+  "trigger_run": "sqlite-backup-review-r2-web",
+  "trigger_preserved": {
+    "exit_code": 1,
+    "total_tokens": 243000,
+    "local_denial_count": 1,
+    "checker": "6/6; does not establish normal completion or strict full success"
+  },
+  "change": "Continue independent prescheduled unlaunched cases after an accounted per-case local budget denial; do not rerun or alter the failed case. Shared infrastructure, unknown usage, authentication or retrieval protocol failures still stop.",
+  "unchanged": [
+    "all16 scheduled IDs and order",
+    "model and reasoning",
+    "nativeCLI binary/image",
+    "candidate code and public snapshot/index",
+    "task prompts and fixtures",
+    "checker/rubric",
+    "12provider calls/200000soft admission/240s candidate wall/24retrieval requests",
+    "125s transport deadline/130s receipt drain"
+  ],
+  "existing_terminal_runs": 8,
+  "remaining_prescheduled_unlaunched_runs": 8,
+  "exploratory_disclosure": "Controller stopping policy amended after observing a local resource failure. All sixteen attempts, including this failure, remain in denominator; do not present as an unchanged confirmatory cohort.",
+  "parent_authorization": "Parent explicitly requested preparation; launch requires hash-bound PARENT_RESUME_APPROVED.json after review."
+}

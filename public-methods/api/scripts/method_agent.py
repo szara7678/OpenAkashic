@@ -115,6 +115,14 @@ def run(args):
         raise ClientError("HTTP " + str(exc.code) + ": " + summary + ".")
     except (URLError, OSError, ValueError):
         raise ClientError("Request failed or response was not valid JSON.")
+    if getattr(args, "read_cache", None) and not writing:
+        # Sibling import also supports importlib-loaded embedding clients.
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("method_read_cache", Path(__file__).with_name("method_read_cache.py"))
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        result = module.MethodReadCache(args.read_cache, base).present(
+            args.command, result, refetch=getattr(args, "refetch", False))
     output = json.dumps(result, ensure_ascii=False, indent=2) + "\n"
     if args.output:
         try:
@@ -128,6 +136,8 @@ def run(args):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--endpoint", default="https://knowledge.openakashic.com")
+    parser.add_argument("--read-cache", help="Session-only artifact directory; suppress exact methods already delivered, after fresh server validation")
+    parser.add_argument("--refetch", action="store_true", help="Always return full content even when already delivered in this read-cache session")
     parser.add_argument("--key-file", help="Read write key from this file; never printed")
     parser.add_argument("--output", help="Save full public JSON response as UTF-8")
     commands = parser.add_subparsers(dest="command", required=True)

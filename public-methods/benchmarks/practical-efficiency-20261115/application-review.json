@@ -1,0 +1,568 @@
+{
+  "schema": "nov15-actual-application-review-v1",
+  "prepared_at": "2026-11-14T19:56:20.311679+00:00",
+  "freeze_sha256": "7f64875810d1c2f143036ce5185e1696524cf7e4b382abee594552a62ace4703",
+  "scope": "본문 노출, README 귀속과 구체적 코드 단계의 대조다. 독립 블라인드 품질 점수나 OA 효과의 인과 평가가 아니다.",
+  "distinct_applied_cases": 6,
+  "method_applications": 7,
+  "abstained_cases": 2,
+  "cases": [
+    {
+      "case_id": "probe-routing-review-r1-oa",
+      "classification": "bounded_application",
+      "method_id": "method_d340976ef2f543a2a168b66f51c10beb",
+      "semantic_reviewed_by": "application-evidence-agent; separate from blinded quality grading",
+      "proposed_status": "partial",
+      "bounded_situation": "공개 합성 문서 렌더링 워커의 느린 초기화와 세 상태 엔드포인트를 오프라인 Python 사전으로 모델링했다.",
+      "bounded_goal": "실제 클러스터를 실행하지 않고 startup, readiness, liveness 설정과 지정된 연속 실패 동작을 구분한다.",
+      "observed_actions": [
+        "완전한 방법 v2가 native stdout에 표시됐고 클라이언트가 기록한 정확한 방법 본문 해시와 일치함을 확인했다.",
+        "README의 적용 설명과 solution.py에서 방법 단계 1–4의 설정 및 실패 동작을 대조했다.",
+        "클러스터 이벤트 관찰, 실제 엔드포인트나 재시작 실험은 하지 않았다."
+      ],
+      "observed_result": "native 실행 기록에 자체 unittest 9개 통과와 OK가 있다. 별도 고정 checker 5/5를 통과했고 후보는 exit0으로 끝났다. 확인한 결과는 사전 변환과 제한된 실패 횟수 함수뿐이다. 방법 단계 5의 운영 이벤트 관찰이나 클러스터 내 효과는 확인하지 않았으며 OA의 인과적 효과를 주장하지 않는다.",
+      "specific_artifact_step_links": [
+        {
+          "method_step_index": 1,
+          "code_file": "solution.py",
+          "start_line": 6,
+          "end_line": 9,
+          "description": "시작, 준비, 생존 상태를 서로 다른 경로와 임계값으로 구분한다."
+        },
+        {
+          "method_step_index": 2,
+          "code_file": "solution.py",
+          "start_line": 7,
+          "end_line": 7,
+          "description": "느린 초기화에 startupProbe의 5초 주기와 32회 임계값을 설정한다."
+        },
+        {
+          "method_step_index": 3,
+          "code_file": "solution.py",
+          "start_line": 51,
+          "end_line": 52,
+          "description": "준비 실패를 서비스 제외로 구분한다."
+        },
+        {
+          "method_step_index": 4,
+          "code_file": "solution.py",
+          "start_line": 47,
+          "end_line": 53,
+          "description": "시작 전 게이팅, 실패 임계값 및 복구를 위한 재시작을 분리한다."
+        }
+      ],
+      "unverified_scope": [
+        "클러스터 API 검증",
+        "실제 라우팅 및 컨테이너 재시작",
+        "과부하 이벤트 관찰"
+      ],
+      "read_evidence": [
+        {
+          "method_id": "method_d340976ef2f543a2a168b66f51c10beb",
+          "version": 2,
+          "method_core_sha256": "bf3594fd72f210d9a6980d22b144feaa5ea7ad3ec7a67bca7b177f2d7078f24d",
+          "origin": "complete_bundle",
+          "native_item_id": "item_2",
+          "native_command_sha256": "9394a45b8b839b7c24a2cc4b2e5fc2d75c3af2fa2525ca8c0bfcf0fc9302de01",
+          "native_stdout_sha256": "60c39862492117711d7aa7b6116e029536295b9206a8c0ad6bd5f71d7855b914",
+          "parsed_full_json_sha256": "c2a34b8c87b52c9d874edc2dc1918663c480f2420776cf8077033ba7e1ec27dd",
+          "client_presented_sha_corroborated": true,
+          "client_method_core_identity_corroborated": true,
+          "complete_core_matches_frozen_store": true,
+          "truncation_boundary": "Exact parsed core matches frozen stored core; no inference from snippets, cache receipts or unparseable/truncated JSON."
+        }
+      ],
+      "README_attribution": [
+        {
+          "method_id": "method_d340976ef2f543a2a168b66f51c10beb",
+          "README_line": 40,
+          "excerpt": "`method_d340976ef2f543a2a168b66f51c10beb`, version **2**, titled"
+        }
+      ]
+    },
+    {
+      "case_id": "probe-routing-review-r2-oa",
+      "classification": "bounded_application",
+      "method_id": "method_d340976ef2f543a2a168b66f51c10beb",
+      "semantic_reviewed_by": "application-evidence-agent; separate from blinded quality grading",
+      "proposed_status": "partial",
+      "bounded_situation": "공개 합성 문서 렌더링 워커의 느린 초기화와 세 상태 엔드포인트를 오프라인 Python 사전으로 모델링했다.",
+      "bounded_goal": "실제 클러스터를 실행하지 않고 startup, readiness, liveness 설정과 지정된 연속 실패 동작을 구분한다.",
+      "observed_actions": [
+        "완전한 방법 v2가 native stdout에 표시됐고 클라이언트가 기록한 정확한 방법 본문 해시와 일치함을 확인했다.",
+        "README의 적용 설명과 solution.py에서 방법 단계 1–4의 설정 및 실패 동작을 대조했다.",
+        "클러스터 이벤트 관찰, 실제 엔드포인트나 재시작 실험은 하지 않았다."
+      ],
+      "observed_result": "native 실행 기록에 자체 unittest 10개 통과와 OK가 있다. 별도 고정 checker 5/5를 통과했고 후보는 exit0으로 끝났다. 확인한 결과는 사전 변환과 제한된 실패 횟수 함수뿐이다. 방법 단계 5의 운영 이벤트 관찰이나 클러스터 내 효과는 확인하지 않았으며 OA의 인과적 효과를 주장하지 않는다.",
+      "specific_artifact_step_links": [
+        {
+          "method_step_index": 1,
+          "code_file": "solution.py",
+          "start_line": 6,
+          "end_line": 9,
+          "description": "시작, 준비, 생존 상태를 서로 다른 경로와 임계값으로 구분한다."
+        },
+        {
+          "method_step_index": 2,
+          "code_file": "solution.py",
+          "start_line": 7,
+          "end_line": 7,
+          "description": "느린 초기화에 startupProbe의 5초 주기와 32회 임계값을 설정한다."
+        },
+        {
+          "method_step_index": 3,
+          "code_file": "solution.py",
+          "start_line": 50,
+          "end_line": 51,
+          "description": "준비 실패를 서비스 제외로 구분한다."
+        },
+        {
+          "method_step_index": 4,
+          "code_file": "solution.py",
+          "start_line": 46,
+          "end_line": 52,
+          "description": "시작 전 게이팅, 실패 임계값 및 복구를 위한 재시작을 분리한다."
+        }
+      ],
+      "unverified_scope": [
+        "클러스터 API 검증",
+        "실제 라우팅 및 컨테이너 재시작",
+        "과부하 이벤트 관찰"
+      ],
+      "read_evidence": [
+        {
+          "method_id": "method_d340976ef2f543a2a168b66f51c10beb",
+          "version": 2,
+          "method_core_sha256": "bf3594fd72f210d9a6980d22b144feaa5ea7ad3ec7a67bca7b177f2d7078f24d",
+          "origin": "complete_bundle",
+          "native_item_id": "item_2",
+          "native_command_sha256": "707046a60faaabdd9d1ea7bd5a64c8e6ba3ed1bfe91b461509188f86459cc754",
+          "native_stdout_sha256": "60c39862492117711d7aa7b6116e029536295b9206a8c0ad6bd5f71d7855b914",
+          "parsed_full_json_sha256": "c2a34b8c87b52c9d874edc2dc1918663c480f2420776cf8077033ba7e1ec27dd",
+          "client_presented_sha_corroborated": true,
+          "client_method_core_identity_corroborated": true,
+          "complete_core_matches_frozen_store": true,
+          "truncation_boundary": "Exact parsed core matches frozen stored core; no inference from snippets, cache receipts or unparseable/truncated JSON."
+        }
+      ],
+      "README_attribution": [
+        {
+          "method_id": "method_d340976ef2f543a2a168b66f51c10beb",
+          "README_line": 49,
+          "excerpt": "- ID: `method_d340976ef2f543a2a168b66f51c10beb`"
+        }
+      ]
+    },
+    {
+      "case_id": "sqlite-backup-review-r1-oa",
+      "classification": "bounded_application",
+      "method_id": "method_5af91cc7219a4130a3a2cf2d7630b031",
+      "semantic_reviewed_by": "application-evidence-agent; separate from blinded quality grading",
+      "proposed_status": "success",
+      "bounded_situation": "쓰기 작업이 멈춰 있고 유휴 연결 때문에 커밋된 WAL이 남을 수 있는 공개 합성 SQLite 백업 과제다.",
+      "bounded_goal": "이 과제의 쓰기 정지 범위에서 새 자체 완결 백업을 만들고, 재개방 후 구조 무결성, 스키마와 전체 행의 복사 일치, 상속된 외래 키 위반을 각각 확인한다.",
+      "observed_actions": [
+        "방법 v3의 최초 GET에는 과거 피드백이 함께 들어갔다. 후보가 로컬 본문을 명시적으로 다시 출력한 기록을 모든 저장 필드와 대조해 완전한 열람을 확인했다.",
+        "README의 단계 1–10 적용 설명을 backup API, 새 대상 보호, 닫기와 재개방, 전체 행 멀티셋, integrity_check와 foreign_key_check 구현에 대조했다.",
+        "행 비교는 명시적 정렬 대신 자료형을 보존하는 순서 독립 멀티셋으로 조정했다."
+      ],
+      "observed_result": "native 실행 기록에 자체 unittest 9개 통과와 OK가 있다. 별도 고정 checker 6/6을 통과했고 후보는 exit0으로 끝났다. 합성 orphan 행을 유지한 채 copy_matches=true와 relation_valid=false를 분리한 예제도 기록됐다. 성공 표시는 이 쓰기 정지 합성 과제의 목표에만 해당한다. 실제 운영 복구, 동시 쓰기 중 정확한 호출 시작 시점, 임의 대형 DB나 장애 복구 전반의 검증이 아니며 OA의 인과적 효과도 확정하지 않는다.",
+      "specific_artifact_step_links": [
+        {
+          "method_step_index": 1,
+          "code_file": "solution.py",
+          "start_line": 36,
+          "end_line": 40,
+          "description": "함수 전체에 쓰기 정지가 필요하다는 비교 범위를 명시한다."
+        },
+        {
+          "method_step_index": 2,
+          "code_file": "solution.py",
+          "start_line": 42,
+          "end_line": 51,
+          "description": "기존 대상을 거부하고 별도 새 대상 파일을 배타적으로 만든다."
+        },
+        {
+          "method_step_index": 4,
+          "code_file": "solution.py",
+          "start_line": 49,
+          "end_line": 58,
+          "description": "원본 backup API 실행 후 대상 쓰기 연결을 닫고 새 연결로 재개방한다."
+        },
+        {
+          "method_step_index": 6,
+          "code_file": "solution.py",
+          "start_line": 59,
+          "end_line": 60,
+          "description": "모든 integrity 결과와 foreign_key_check를 별도로 읽는다."
+        },
+        {
+          "method_step_index": 7,
+          "code_file": "solution.py",
+          "start_line": 61,
+          "end_line": 71,
+          "description": "사용자 스키마와 행 수를 비교한다."
+        },
+        {
+          "method_step_index": 8,
+          "code_file": "solution.py",
+          "start_line": 29,
+          "end_line": 33,
+          "description": "정렬 키 대신 자료형을 포함한 전체 행 멀티셋으로 중복과 순서 차이를 처리한다."
+        },
+        {
+          "method_step_index": 9,
+          "code_file": "solution.py",
+          "start_line": 73,
+          "end_line": 77,
+          "description": "복사 일치와 외래 키 관계의 유효성을 별도 필드로 보고한다."
+        }
+      ],
+      "unverified_scope": [
+        "실제 운영 복구",
+        "동시 쓰기 중 정확한 시작 시점",
+        "대형 데이터 및 파일시스템 장애 안전성"
+      ],
+      "read_evidence": [
+        {
+          "method_id": "method_5af91cc7219a4130a3a2cf2d7630b031",
+          "version": 3,
+          "method_core_sha256": "a9a12731ab5b6695efe1f6f2c866f043492eadc0776fc24db070a3fa2daaf225",
+          "origin": "full_method_get",
+          "native_item_id": "item_5",
+          "native_command_sha256": "fcdc76439fc63f0276529c04f517ea2db3b7c321bc2ab64d820b75e3ef06a74a",
+          "native_stdout_sha256": "4a56964407437c09daf817e47f809bc0d157acd2d221ade956f8f0b0166d67d7",
+          "parsed_full_json_sha256": "3526f67878893e5eb9be5fa8f3c0a8d70cdcf589628eac8cfef43c38c1ee1b98",
+          "client_presented_sha_corroborated": false,
+          "client_method_core_identity_corroborated": true,
+          "complete_core_matches_frozen_store": true,
+          "truncation_boundary": "Exact parsed core matches frozen stored core; no inference from snippets, cache receipts or unparseable/truncated JSON."
+        }
+      ],
+      "README_attribution": [
+        {
+          "method_id": "method_5af91cc7219a4130a3a2cf2d7630b031",
+          "README_line": 85,
+          "excerpt": "- **`method_5af91cc7219a4130a3a2cf2d7630b031`, version 3**, “SQLite 온라인 백업 및"
+        }
+      ]
+    },
+    {
+      "case_id": "sqlite-backup-review-r2-oa",
+      "classification": "bounded_application",
+      "method_id": "method_5af91cc7219a4130a3a2cf2d7630b031",
+      "semantic_reviewed_by": "application-evidence-agent; separate from blinded quality grading",
+      "proposed_status": "success",
+      "bounded_situation": "쓰기 작업이 멈춰 있고 유휴 연결 때문에 커밋된 WAL이 남을 수 있는 공개 합성 SQLite 백업 과제다.",
+      "bounded_goal": "이 과제의 쓰기 정지 범위에서 새 자체 완결 백업을 만들고, 재개방 후 구조 무결성, 스키마와 전체 행의 복사 일치, 상속된 외래 키 위반을 각각 확인한다.",
+      "observed_actions": [
+        "방법 v3의 최초 GET에는 과거 피드백이 함께 들어갔다. 후보가 로컬 본문을 명시적으로 다시 출력한 기록을 모든 저장 필드와 대조해 완전한 열람을 확인했다.",
+        "README의 단계 1–10 적용 설명을 backup API, 새 대상 보호, 닫기와 재개방, 전체 행 멀티셋, integrity_check와 foreign_key_check 구현에 대조했다.",
+        "행 비교는 명시적 정렬 대신 자료형을 보존하는 순서 독립 멀티셋으로 조정했다."
+      ],
+      "observed_result": "native 실행 기록에 자체 unittest 9개 통과와 OK가 있다. 별도 고정 checker 6/6을 통과했고 후보는 exit0으로 끝났다. 합성 orphan 행을 유지한 채 copy_matches=true와 relation_valid=false를 분리한 예제도 기록됐다. 성공 표시는 이 쓰기 정지 합성 과제의 목표에만 해당한다. 실제 운영 복구, 동시 쓰기 중 정확한 호출 시작 시점, 임의 대형 DB나 장애 복구 전반의 검증이 아니며 OA의 인과적 효과도 확정하지 않는다.",
+      "specific_artifact_step_links": [
+        {
+          "method_step_index": 1,
+          "code_file": "solution.py",
+          "start_line": 35,
+          "end_line": 39,
+          "description": "쓰기 정지 조건의 비교 범위를 명시한다."
+        },
+        {
+          "method_step_index": 2,
+          "code_file": "solution.py",
+          "start_line": 41,
+          "end_line": 49,
+          "description": "기존 대상을 거부하고 새 파일만 만든다."
+        },
+        {
+          "method_step_index": 4,
+          "code_file": "solution.py",
+          "start_line": 47,
+          "end_line": 56,
+          "description": "backup API 호출, 대상 연결 종료, 읽기 전용 재개방을 분리한다."
+        },
+        {
+          "method_step_index": 6,
+          "code_file": "solution.py",
+          "start_line": 57,
+          "end_line": 58,
+          "description": "전체 integrity 결과와 외래 키 검사를 분리한다."
+        },
+        {
+          "method_step_index": 7,
+          "code_file": "solution.py",
+          "start_line": 59,
+          "end_line": 69,
+          "description": "스키마, 사용자 테이블 수와 행 비교 결과를 모은다."
+        },
+        {
+          "method_step_index": 8,
+          "code_file": "solution.py",
+          "start_line": 28,
+          "end_line": 32,
+          "description": "행 순서 대신 자료형별 전체 행 멀티셋을 비교한다."
+        },
+        {
+          "method_step_index": 9,
+          "code_file": "solution.py",
+          "start_line": 71,
+          "end_line": 75,
+          "description": "복사 일치와 관계 유효성을 별도 반환한다."
+        }
+      ],
+      "unverified_scope": [
+        "실제 운영 복구",
+        "동시 쓰기 중 정확한 시작 시점",
+        "대형 데이터 및 파일시스템 장애 안전성"
+      ],
+      "read_evidence": [
+        {
+          "method_id": "method_5af91cc7219a4130a3a2cf2d7630b031",
+          "version": 3,
+          "method_core_sha256": "a9a12731ab5b6695efe1f6f2c866f043492eadc0776fc24db070a3fa2daaf225",
+          "origin": "complete_local_artifact_key_value_render",
+          "native_item_id": "item_5",
+          "native_command_sha256": "ed8b8dee8a8f711548bebac02dcec450c317da556803376f740785171dd1b2e8",
+          "native_stdout_sha256": "39880e1385160795d27007e12929326df3f02334ab42d3360f33ee211fc1c6cb",
+          "parsed_full_json_sha256": null,
+          "client_presented_sha_corroborated": false,
+          "client_method_core_identity_corroborated": true,
+          "complete_core_matches_frozen_store": true,
+          "truncation_boundary": "Every stored core field/value exactly matches the complete native stdout key/value render; cache receipt alone was not counted."
+        }
+      ],
+      "README_attribution": [
+        {
+          "method_id": "method_5af91cc7219a4130a3a2cf2d7630b031",
+          "README_line": 43,
+          "excerpt": "`method_5af91cc7219a4130a3a2cf2d7630b031`, version **3**. Read the full stored"
+        }
+      ]
+    },
+    {
+      "case_id": "pandas-intake-diagnostic-r1-oa",
+      "classification": "bounded_application",
+      "method_id": "method_f040265d2ae640c49d8614c218e06d61",
+      "semantic_reviewed_by": "application-evidence-agent; separate from blinded quality grading",
+      "proposed_status": "partial",
+      "bounded_situation": "결측이 미수집을 뜻하고 결측 요금이 0이 아닌 공개 합성 수리 접수 DataFrame 과제다.",
+      "bounded_goal": "원본을 보존하면서 지정된 세 결측 처리 대안의 표본 수와 평균을 같은 형식으로 비교한다.",
+      "observed_actions": [
+        "완전한 방법 v2가 native stdout에 표시되고 클라이언트가 기록한 방법 본문 해시와 일치함을 확인했다.",
+        "README의 해당 ID와 버전 및 적용 설명을 solution.py의 결측 집계, 대안 생성과 공통 요약 지표에 대조했다.",
+        "단계 1–3의 대안 및 공통 지표 비교를 구현했고 README에 남은 불확실성을 썼다. 단계 4의 별도 순위나 방향 변화 표시는 과제에 없어 추가하지 않았다."
+      ],
+      "observed_result": "native 실행 기록에 자체 unittest 8개 통과와 OK가 있다. 별도 고정 checker 5/5를 통과했고 후보는 exit0으로 끝났다. 확인 범위는 지정된 합성 자료의 기술적 대안 비교다. 실제 결측 원인, 모집단 편향 제거, 중앙값 대체의 정확성, 운영 원천 교체나 최선의 정책은 확인하지 않았으며 OA의 인과적 효과를 주장하지 않는다.",
+      "specific_artifact_step_links": [
+        {
+          "method_step_index": 1,
+          "code_file": "solution.py",
+          "start_line": 51,
+          "end_line": 55,
+          "description": "분석 선택을 세 정책으로 명시한다."
+        },
+        {
+          "method_step_index": 2,
+          "code_file": "solution.py",
+          "start_line": 42,
+          "end_line": 47,
+          "description": "비교할 대안 자료를 만든다."
+        },
+        {
+          "method_step_index": 3,
+          "code_file": "solution.py",
+          "start_line": 9,
+          "end_line": 14,
+          "description": "각 정책의 동일 지표와 표본 수를 계산한다."
+        }
+      ],
+      "unverified_scope": [
+        "실제 결측 원인",
+        "모집단 편향 제거",
+        "운영 데이터나 최선 정책 선택"
+      ],
+      "read_evidence": [
+        {
+          "method_id": "method_f040265d2ae640c49d8614c218e06d61",
+          "version": 2,
+          "method_core_sha256": "77a31b70b27adb222e4be8d331f7ed1b4d5e78dc7a71dea02e09e7c1abaa4493",
+          "origin": "complete_bundle",
+          "native_item_id": "item_2",
+          "native_command_sha256": "bf3ce14671f65180a06152e2df77a7bbec287b5b541c9f315733a2e447ab9755",
+          "native_stdout_sha256": "42617f07f4e3ebf7cd216436753a839fbfb487290e6d895b23af922070d26169",
+          "parsed_full_json_sha256": "c1fe9c5977efa184d63f5e9c9da6a6800ab95f44c09c00c88686aa36245931a9",
+          "client_presented_sha_corroborated": true,
+          "client_method_core_identity_corroborated": true,
+          "complete_core_matches_frozen_store": true,
+          "truncation_boundary": "Exact parsed core matches frozen stored core; no inference from snippets, cache receipts or unparseable/truncated JSON."
+        }
+      ],
+      "README_attribution": [
+        {
+          "method_id": "method_f040265d2ae640c49d8614c218e06d61",
+          "README_line": 62,
+          "excerpt": "- `method_f040265d2ae640c49d8614c218e06d61`, version 2: applied steps 1–3 and 5:"
+        }
+      ]
+    },
+    {
+      "case_id": "pandas-intake-diagnostic-r1-oa",
+      "classification": "bounded_application",
+      "method_id": "method_6562f35901794b5e9f8f477796e7505b",
+      "semantic_reviewed_by": "application-evidence-agent; separate from blinded quality grading",
+      "proposed_status": "partial",
+      "bounded_situation": "결측이 미수집을 뜻하고 결측 요금이 0이 아닌 공개 합성 수리 접수 DataFrame 과제다.",
+      "bounded_goal": "원본을 보존하면서 지정된 세 결측 처리 대안의 표본 수와 평균을 같은 형식으로 비교한다.",
+      "observed_actions": [
+        "완전한 방법 v2가 native stdout에 표시되고 클라이언트가 기록한 방법 본문 해시와 일치함을 확인했다.",
+        "README의 해당 ID와 버전 및 적용 설명을 solution.py의 결측 집계, 대안 생성과 공통 요약 지표에 대조했다.",
+        "단계 1, 3–5의 집계 및 비교와 과제에서 주어진 결측 의미를 사용했다. 실제 원천 운영 데이터의 결측 원인을 확인하거나 최종 정책을 선택한 것은 아니다."
+      ],
+      "observed_result": "native 실행 기록에 자체 unittest 8개 통과와 OK가 있다. 별도 고정 checker 5/5를 통과했고 후보는 exit0으로 끝났다. 확인 범위는 지정된 합성 자료의 기술적 대안 비교다. 실제 결측 원인, 모집단 편향 제거, 중앙값 대체의 정확성, 운영 원천 교체나 최선의 정책은 확인하지 않았으며 OA의 인과적 효과를 주장하지 않는다.",
+      "specific_artifact_step_links": [
+        {
+          "method_step_index": 1,
+          "code_file": "solution.py",
+          "start_line": 19,
+          "end_line": 40,
+          "description": "열별 결측 수, 비율과 두 열의 결측 조합을 집계한다."
+        },
+        {
+          "method_step_index": 3,
+          "code_file": "solution.py",
+          "start_line": 42,
+          "end_line": 47,
+          "description": "관측값, 완전사례, 책상별 중앙값 대안을 별도 자료로 만든다."
+        },
+        {
+          "method_step_index": 4,
+          "code_file": "solution.py",
+          "start_line": 9,
+          "end_line": 14,
+          "description": "정책마다 같은 행 수와 평균 지표를 계산한다."
+        },
+        {
+          "method_step_index": 5,
+          "code_file": "solution.py",
+          "start_line": 42,
+          "end_line": 47,
+          "description": "원본 대신 별도 작업 사본으로 결측 정책을 비교한다."
+        }
+      ],
+      "unverified_scope": [
+        "실제 결측 원인",
+        "모집단 편향 제거",
+        "운영 데이터나 최선 정책 선택"
+      ],
+      "read_evidence": [
+        {
+          "method_id": "method_6562f35901794b5e9f8f477796e7505b",
+          "version": 2,
+          "method_core_sha256": "116f927e44290b47704f7ba825f00c0ad3043aeaebbc0a5249e935294d4b0129",
+          "origin": "complete_bundle",
+          "native_item_id": "item_2",
+          "native_command_sha256": "bf3ce14671f65180a06152e2df77a7bbec287b5b541c9f315733a2e447ab9755",
+          "native_stdout_sha256": "42617f07f4e3ebf7cd216436753a839fbfb487290e6d895b23af922070d26169",
+          "parsed_full_json_sha256": "c1fe9c5977efa184d63f5e9c9da6a6800ab95f44c09c00c88686aa36245931a9",
+          "client_presented_sha_corroborated": true,
+          "client_method_core_identity_corroborated": true,
+          "complete_core_matches_frozen_store": true,
+          "truncation_boundary": "Exact parsed core matches frozen stored core; no inference from snippets, cache receipts or unparseable/truncated JSON."
+        }
+      ],
+      "README_attribution": [
+        {
+          "method_id": "method_6562f35901794b5e9f8f477796e7505b",
+          "README_line": 57,
+          "excerpt": "- `method_6562f35901794b5e9f8f477796e7505b`, version 2: applied steps 1–5:"
+        }
+      ]
+    },
+    {
+      "case_id": "pandas-intake-diagnostic-r2-oa",
+      "classification": "bounded_application",
+      "method_id": "method_f040265d2ae640c49d8614c218e06d61",
+      "semantic_reviewed_by": "application-evidence-agent; separate from blinded quality grading",
+      "proposed_status": "partial",
+      "bounded_situation": "결측이 미수집을 뜻하고 결측 요금이 0이 아닌 공개 합성 수리 접수 DataFrame 과제다.",
+      "bounded_goal": "원본을 보존하면서 지정된 세 결측 처리 대안의 표본 수와 평균을 같은 형식으로 비교한다.",
+      "observed_actions": [
+        "완전한 방법 v2가 native stdout에 표시되고 클라이언트가 기록한 방법 본문 해시와 일치함을 확인했다.",
+        "README의 해당 ID와 버전 및 적용 설명을 solution.py의 결측 집계, 대안 생성과 공통 요약 지표에 대조했다.",
+        "대안별 동일 지표와 표본 수 비교를 구현했고 README에 불확실성을 썼다. 테스트의 예상값 비교를 실제 운영 선택의 순위나 인과 효과 검증으로 확대하지 않는다."
+      ],
+      "observed_result": "native 실행 기록에 자체 unittest 9개 통과와 OK가 있다. 별도 고정 checker 5/5를 통과했고 후보는 exit0으로 끝났다. 확인 범위는 지정된 합성 자료의 기술적 대안 비교다. 실제 결측 원인, 모집단 편향 제거, 중앙값 대체의 정확성, 운영 원천 교체나 최선의 정책은 확인하지 않았으며 OA의 인과적 효과를 주장하지 않는다.",
+      "specific_artifact_step_links": [
+        {
+          "method_step_index": 1,
+          "code_file": "solution.py",
+          "start_line": 62,
+          "end_line": 66,
+          "description": "분석 선택을 세 정책으로 구분한다."
+        },
+        {
+          "method_step_index": 2,
+          "code_file": "solution.py",
+          "start_line": 50,
+          "end_line": 57,
+          "description": "완전사례와 책상별 중앙값 대안을 만든다."
+        },
+        {
+          "method_step_index": 3,
+          "code_file": "solution.py",
+          "start_line": 9,
+          "end_line": 14,
+          "description": "각 대안에 동일한 행 수와 평균 지표를 적용한다."
+        }
+      ],
+      "unverified_scope": [
+        "실제 결측 원인",
+        "모집단 편향 제거",
+        "운영 데이터나 최선 정책 선택"
+      ],
+      "read_evidence": [
+        {
+          "method_id": "method_f040265d2ae640c49d8614c218e06d61",
+          "version": 2,
+          "method_core_sha256": "77a31b70b27adb222e4be8d331f7ed1b4d5e78dc7a71dea02e09e7c1abaa4493",
+          "origin": "complete_bundle",
+          "native_item_id": "item_2",
+          "native_command_sha256": "5c055de7a58f50af98ca39fc0b2b6ff3a24c10c45f77c67160dd30d9e240505f",
+          "native_stdout_sha256": "79e1f04d116ceb7f3b34c8b379d0211c661cc945e8f93272c287b4f9c288dd2f",
+          "parsed_full_json_sha256": "6d8479bc340fe53cff03b9e41ecdaf890eaeb8a5c7c2d921719f004b7cf969cf",
+          "client_presented_sha_corroborated": true,
+          "client_method_core_identity_corroborated": true,
+          "complete_core_matches_frozen_store": true,
+          "truncation_boundary": "Exact parsed core matches frozen stored core; no inference from snippets, cache receipts or unparseable/truncated JSON."
+        }
+      ],
+      "README_attribution": [
+        {
+          "method_id": "method_f040265d2ae640c49d8614c218e06d61",
+          "README_line": 61,
+          "excerpt": "`method_f040265d2ae640c49d8614c218e06d61`, version **2**, titled"
+        }
+      ]
+    },
+    {
+      "case_id": "http-retry-after-r1-oa",
+      "classification": "archive_abstention_no_method_application",
+      "method_id": null,
+      "method_outcome_proposed": false,
+      "reason": "OA 방법 팩이 비었고 실제 완전 방법 열람이나 적용 근거가 없다. 공식 HTTP/Python 문서로 진행한 후속 구현은 방법 outcome으로 붙이지 않는다.",
+      "read_evidence": []
+    },
+    {
+      "case_id": "http-retry-after-r2-oa",
+      "classification": "archive_abstention_no_method_application",
+      "method_id": null,
+      "method_outcome_proposed": false,
+      "reason": "OA 방법 팩이 비었고 실제 완전 방법 열람이나 적용 근거가 없다. 공식 HTTP/Python 문서로 진행한 후속 구현은 방법 outcome으로 붙이지 않는다.",
+      "read_evidence": []
+    }
+  ],
+  "baseline_policy": "Web 조건의 실패와 토큰, 시간은 비교 보고서에만 남긴다. 미열람 방법의 outcome으로 등록하지 않는다.",
+  "publication_state": "root 검토 대기, API 쓰기 없음"
+}

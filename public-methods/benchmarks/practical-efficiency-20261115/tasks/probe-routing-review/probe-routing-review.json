@@ -1,0 +1,25 @@
+{
+  "apiVersion": "apps/v1",
+  "kind": "Deployment",
+  "metadata": {
+    "name": "preview"
+  },
+  "spec": {
+    "template": {
+      "spec": {
+        "containers": [
+          {
+            "name": "renderer",
+            "image": "example.invalid/render:synthetic",
+            "ports": [
+              {
+                "name": "health",
+                "containerPort": 8087
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

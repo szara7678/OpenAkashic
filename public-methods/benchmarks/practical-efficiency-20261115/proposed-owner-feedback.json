@@ -1,0 +1,363 @@
+{
+  "schema": "openakashic-owner-change-plan-v1",
+  "plan_version": 1,
+  "prepared_at": "2026-11-14T19:56:22.137691+00:00",
+  "state": "review_required_do_not_apply_while_cohort_frozen",
+  "scope": "Only actually delivered/read, README-attributed and manually code-step-reviewed OA procedures; no baseline failures or archive abstentions become method outcomes.",
+  "cohort": "nov15-efficiency-v2-inline-task",
+  "source_snapshot_sha256": "2ba643ec6fa3be93824d5ecb6ee39b5b6193762ffa53d18ba8a9a462b64beac0",
+  "source_freeze_sha256": "7f64875810d1c2f143036ce5185e1696524cf7e4b382abee594552a62ace4703",
+  "application_review_sha256": "3b5f1adb4bebd0e99f74622dad9762afc23cb1664eb4cee08e867250cb7f19fa",
+  "delivery_evidence_sha256": "165f5f92a964c3cc420415b3757be219e584ffd55d7018588bdcffcf770b19db",
+  "operations": [
+    {
+      "operation_id": "n15v2-probe-routing-review-r1-oa-outcome-method_d340976ef2f543a2a168b66f51c10beb",
+      "operation": "outcome",
+      "method_id": "method_d340976ef2f543a2a168b66f51c10beb",
+      "expected_version": 2,
+      "expected_method_sha256": "bf3594fd72f210d9a6980d22b144feaa5ea7ad3ec7a67bca7b177f2d7078f24d",
+      "request": {
+        "public_source_only": true,
+        "agent_name": "OpenAkashic bounded task observer",
+        "method_version": 2,
+        "status": "partial",
+        "situation": "공개 합성 문서 렌더링 워커의 느린 초기화와 세 상태 엔드포인트를 오프라인 Python 사전으로 모델링했다.",
+        "goal": "실제 클러스터를 실행하지 않고 startup, readiness, liveness 설정과 지정된 연속 실패 동작을 구분한다.",
+        "actions": [
+          "완전한 방법 v2가 native stdout에 표시됐고 클라이언트가 기록한 정확한 방법 본문 해시와 일치함을 확인했다.",
+          "README의 적용 설명과 solution.py에서 방법 단계 1–4의 설정 및 실패 동작을 대조했다.",
+          "클러스터 이벤트 관찰, 실제 엔드포인트나 재시작 실험은 하지 않았다."
+        ],
+        "observed_result": "native 실행 기록에 자체 unittest 9개 통과와 OK가 있다. 별도 고정 checker 5/5를 통과했고 후보는 exit0으로 끝났다. 확인한 결과는 사전 변환과 제한된 실패 횟수 함수뿐이다. 방법 단계 5의 운영 이벤트 관찰이나 클러스터 내 효과는 확인하지 않았으며 OA의 인과적 효과를 주장하지 않는다.",
+        "evidence": [
+          {
+            "sha256": "708d021af98b89f0b7572bb5538ee3e32da8349d78ec9ecd04187ab186485e4e",
+            "description": "probe-routing-review-r1-oa: native trace; preserved execution artifact digest, not a production-effect claim"
+          },
+          {
+            "sha256": "2f0ae1a8f46a8dfff5f009c60f080dc1354bd3154017c86b2f1b44666ab14ec0",
+            "description": "probe-routing-review-r1-oa: checker; preserved execution artifact digest, not a production-effect claim"
+          },
+          {
+            "sha256": "4b8fdb32c7e8d957ddb472fd112e1c49f349b51cf00d6eece3182e26e1624ec3",
+            "description": "probe-routing-review-r1-oa: solution.py; preserved execution artifact digest, not a production-effect claim"
+          },
+          {
+            "sha256": "54527bf3bfbd25acfa0c342eb460031a6c1cba7278ec84150b0cdf8e80b50647",
+            "description": "probe-routing-review-r1-oa: README.md; preserved execution artifact digest, not a production-effect claim"
+          },
+          {
+            "sha256": "3b5f1adb4bebd0e99f74622dad9762afc23cb1664eb4cee08e867250cb7f19fa",
+            "description": "probe-routing-review-r1-oa: manual application review; preserved execution artifact digest, not a production-effect claim"
+          }
+        ]
+      },
+      "idempotency_key": "oa-bounded-cdf64d7ae907e528c652fb2cbc70a957e38c5ad71d278fff",
+      "review_required": true,
+      "cohort": "nov15-efficiency-v2-inline-task",
+      "case_id": "probe-routing-review-r1-oa",
+      "review_boundary": "Proposal only. Bounded synthetic goal outcome; not whole-method production validation or causal OA benefit. Parent must inspect exact read/code/README/execution proof and live version before using the existing owner helper."
+    },
+    {
+      "operation_id": "n15v2-probe-routing-review-r2-oa-outcome-method_d340976ef2f543a2a168b66f51c10beb",
+      "operation": "outcome",
+      "method_id": "method_d340976ef2f543a2a168b66f51c10beb",
+      "expected_version": 2,
+      "expected_method_sha256": "bf3594fd72f210d9a6980d22b144feaa5ea7ad3ec7a67bca7b177f2d7078f24d",
+      "request": {
+        "public_source_only": true,
+        "agent_name": "OpenAkashic bounded task observer",
+        "method_version": 2,
+        "status": "partial",
+        "situation": "공개 합성 문서 렌더링 워커의 느린 초기화와 세 상태 엔드포인트를 오프라인 Python 사전으로 모델링했다.",
+        "goal": "실제 클러스터를 실행하지 않고 startup, readiness, liveness 설정과 지정된 연속 실패 동작을 구분한다.",
+        "actions": [
+          "완전한 방법 v2가 native stdout에 표시됐고 클라이언트가 기록한 정확한 방법 본문 해시와 일치함을 확인했다.",
+          "README의 적용 설명과 solution.py에서 방법 단계 1–4의 설정 및 실패 동작을 대조했다.",
+          "클러스터 이벤트 관찰, 실제 엔드포인트나 재시작 실험은 하지 않았다."
+        ],
+        "observed_result": "native 실행 기록에 자체 unittest 10개 통과와 OK가 있다. 별도 고정 checker 5/5를 통과했고 후보는 exit0으로 끝났다. 확인한 결과는 사전 변환과 제한된 실패 횟수 함수뿐이다. 방법 단계 5의 운영 이벤트 관찰이나 클러스터 내 효과는 확인하지 않았으며 OA의 인과적 효과를 주장하지 않는다.",
+        "evidence": [
+          {
+            "sha256": "fdede8598017311a2c867bf1bd66c205b34c74e8f6e8b6c3058066ebc6acd87d",
+            "description": "probe-routing-review-r2-oa: native trace; preserved execution artifact digest, not a production-effect claim"
+          },
+          {
+            "sha256": "e599ee4eedc75a6f989d44835786e05566e53a2ee5b098203e08acb3c9e43aff",
+            "description": "probe-routing-review-r2-oa: checker; preserved execution artifact digest, not a production-effect claim"
+          },
+          {
+            "sha256": "b307bfeddb78b473809c114042afb018c04ae6ed9a08f6b0a9034fd3953c59e7",
+            "description": "probe-routing-review-r2-oa: solution.py; preserved execution artifact digest, not a production-effect claim"
+          },
+          {
+            "sha256": "158593b2c5682af138c17b8b0ba2929767a99f19bba5ec40a0607c82e75c5fb6",
+            "description": "probe-routing-review-r2-oa: README.md; preserved execution artifact digest, not a production-effect claim"
+          },
+          {
+            "sha256": "3b5f1adb4bebd0e99f74622dad9762afc23cb1664eb4cee08e867250cb7f19fa",
+            "description": "probe-routing-review-r2-oa: manual application review; preserved execution artifact digest, not a production-effect claim"
+          }
+        ]
+      },
+      "idempotency_key": "oa-bounded-5a91494d1919abf0b37f96367547dfae36e1fae3539d5ffd",
+      "review_required": true,
+      "cohort": "nov15-efficiency-v2-inline-task",
+      "case_id": "probe-routing-review-r2-oa",
+      "review_boundary": "Proposal only. Bounded synthetic goal outcome; not whole-method production validation or causal OA benefit. Parent must inspect exact read/code/README/execution proof and live version before using the existing owner helper."
+    },
+    {
+      "operation_id": "n15v2-sqlite-backup-review-r1-oa-outcome-method_5af91cc7219a4130a3a2cf2d7630b031",
+      "operation": "outcome",
+      "method_id": "method_5af91cc7219a4130a3a2cf2d7630b031",
+      "expected_version": 3,
+      "expected_method_sha256": "a9a12731ab5b6695efe1f6f2c866f043492eadc0776fc24db070a3fa2daaf225",
+      "request": {
+        "public_source_only": true,
+        "agent_name": "OpenAkashic bounded task observer",
+        "method_version": 3,
+        "status": "success",
+        "situation": "쓰기 작업이 멈춰 있고 유휴 연결 때문에 커밋된 WAL이 남을 수 있는 공개 합성 SQLite 백업 과제다.",
+        "goal": "이 과제의 쓰기 정지 범위에서 새 자체 완결 백업을 만들고, 재개방 후 구조 무결성, 스키마와 전체 행의 복사 일치, 상속된 외래 키 위반을 각각 확인한다.",
+        "actions": [
+          "방법 v3의 최초 GET에는 과거 피드백이 함께 들어갔다. 후보가 로컬 본문을 명시적으로 다시 출력한 기록을 모든 저장 필드와 대조해 완전한 열람을 확인했다.",
+          "README의 단계 1–10 적용 설명을 backup API, 새 대상 보호, 닫기와 재개방, 전체 행 멀티셋, integrity_check와 foreign_key_check 구현에 대조했다.",
+          "행 비교는 명시적 정렬 대신 자료형을 보존하는 순서 독립 멀티셋으로 조정했다."
+        ],
+        "observed_result": "native 실행 기록에 자체 unittest 9개 통과와 OK가 있다. 별도 고정 checker 6/6을 통과했고 후보는 exit0으로 끝났다. 합성 orphan 행을 유지한 채 copy_matches=true와 relation_valid=false를 분리한 예제도 기록됐다. 성공 표시는 이 쓰기 정지 합성 과제의 목표에만 해당한다. 실제 운영 복구, 동시 쓰기 중 정확한 호출 시작 시점, 임의 대형 DB나 장애 복구 전반의 검증이 아니며 OA의 인과적 효과도 확정하지 않는다.",
+        "evidence": [
+          {
+            "sha256": "e7c6bfe8c25cc61ed61278c94ccb9d615b80739edfa00c311f8e2c3bb582dd01",
+            "description": "sqlite-backup-review-r1-oa: native trace; preserved execution artifact digest, not a production-effect claim"
+          },
+          {
+            "sha256": "8674aeb3e2899de8aca46a5e6a82f4016c113ab09a326829618f3b6e89b1a733",
+            "description": "sqlite-backup-review-r1-oa: checker; preserved execution artifact digest, not a production-effect claim"
+          },
+          {
+            "sha256": "810bbd8d5a94657a36bb491467c76c787c8f6804cf6c56d59a49fbba1b27e40f",
+            "description": "sqlite-backup-review-r1-oa: solution.py; preserved execution artifact digest, not a production-effect claim"
+          },
+          {
+            "sha256": "ed2dbb804bda6af62a21d8ef185914e1e0e7c6360fb004339263f6a5bcb8d7b2",
+            "description": "sqlite-backup-review-r1-oa: README.md; preserved execution artifact digest, not a production-effect claim"
+          },
+          {
+            "sha256": "3b5f1adb4bebd0e99f74622dad9762afc23cb1664eb4cee08e867250cb7f19fa",
+            "description": "sqlite-backup-review-r1-oa: manual application review; preserved execution artifact digest, not a production-effect claim"
+          }
+        ]
+      },
+      "idempotency_key": "oa-bounded-b29e8d88367af3f69fb1d90a565f220ed0c0bd120494d6d4",
+      "review_required": true,
+      "cohort": "nov15-efficiency-v2-inline-task",
+      "case_id": "sqlite-backup-review-r1-oa",
+      "review_boundary": "Proposal only. Bounded synthetic goal outcome; not whole-method production validation or causal OA benefit. Parent must inspect exact read/code/README/execution proof and live version before using the existing owner helper."
+    },
+    {
+      "operation_id": "n15v2-sqlite-backup-review-r2-oa-outcome-method_5af91cc7219a4130a3a2cf2d7630b031",
+      "operation": "outcome",
+      "method_id": "method_5af91cc7219a4130a3a2cf2d7630b031",
+      "expected_version": 3,
+      "expected_method_sha256": "a9a12731ab5b6695efe1f6f2c866f043492eadc0776fc24db070a3fa2daaf225",
+      "request": {
+        "public_source_only": true,
+        "agent_name": "OpenAkashic bounded task observer",
+        "method_version": 3,
+        "status": "success",
+        "situation": "쓰기 작업이 멈춰 있고 유휴 연결 때문에 커밋된 WAL이 남을 수 있는 공개 합성 SQLite 백업 과제다.",
+        "goal": "이 과제의 쓰기 정지 범위에서 새 자체 완결 백업을 만들고, 재개방 후 구조 무결성, 스키마와 전체 행의 복사 일치, 상속된 외래 키 위반을 각각 확인한다.",
+        "actions": [
+          "방법 v3의 최초 GET에는 과거 피드백이 함께 들어갔다. 후보가 로컬 본문을 명시적으로 다시 출력한 기록을 모든 저장 필드와 대조해 완전한 열람을 확인했다.",
+          "README의 단계 1–10 적용 설명을 backup API, 새 대상 보호, 닫기와 재개방, 전체 행 멀티셋, integrity_check와 foreign_key_check 구현에 대조했다.",
+          "행 비교는 명시적 정렬 대신 자료형을 보존하는 순서 독립 멀티셋으로 조정했다."
+        ],
+        "observed_result": "native 실행 기록에 자체 unittest 9개 통과와 OK가 있다. 별도 고정 checker 6/6을 통과했고 후보는 exit0으로 끝났다. 합성 orphan 행을 유지한 채 copy_matches=true와 relation_valid=false를 분리한 예제도 기록됐다. 성공 표시는 이 쓰기 정지 합성 과제의 목표에만 해당한다. 실제 운영 복구, 동시 쓰기 중 정확한 호출 시작 시점, 임의 대형 DB나 장애 복구 전반의 검증이 아니며 OA의 인과적 효과도 확정하지 않는다.",
+        "evidence": [
+          {
+            "sha256": "093579a25efa7d8de2162ba200bcac9300952064837623be73a6e669758558da",
+            "description": "sqlite-backup-review-r2-oa: native trace; preserved execution artifact digest, not a production-effect claim"
+          },
+          {
+            "sha256": "c6182e8fefa3f40cad3162680a5b20e2e4873564accb57e9eeb59e4b1b2ec46d",
+            "description": "sqlite-backup-review-r2-oa: checker; preserved execution artifact digest, not a production-effect claim"
+          },
+          {
+            "sha256": "0a396e7261ab2719870e39c0b832de579e52f33f8f972b70ea7b25f6a4f05d98",
+            "description": "sqlite-backup-review-r2-oa: solution.py; preserved execution artifact digest, not a production-effect claim"
+          },
+          {
+            "sha256": "4e8a48b257cfdb67a46eac5aede9bc0fce72e364e7dc7c742d228f50914998ae",
+            "description": "sqlite-backup-review-r2-oa: README.md; preserved execution artifact digest, not a production-effect claim"
+          },
+          {
+            "sha256": "3b5f1adb4bebd0e99f74622dad9762afc23cb1664eb4cee08e867250cb7f19fa",
+            "description": "sqlite-backup-review-r2-oa: manual application review; preserved execution artifact digest, not a production-effect claim"
+          }
+        ]
+      },
+      "idempotency_key": "oa-bounded-9110bf7a3a6587771634d0775c1d10961331836a88f48f93",
+      "review_required": true,
+      "cohort": "nov15-efficiency-v2-inline-task",
+      "case_id": "sqlite-backup-review-r2-oa",
+      "review_boundary": "Proposal only. Bounded synthetic goal outcome; not whole-method production validation or causal OA benefit. Parent must inspect exact read/code/README/execution proof and live version before using the existing owner helper."
+    },
+    {
+      "operation_id": "n15v2-pandas-intake-diagnostic-r1-oa-outcome-method_f040265d2ae640c49d8614c218e06d61",
+      "operation": "outcome",
+      "method_id": "method_f040265d2ae640c49d8614c218e06d61",
+      "expected_version": 2,
+      "expected_method_sha256": "77a31b70b27adb222e4be8d331f7ed1b4d5e78dc7a71dea02e09e7c1abaa4493",
+      "request": {
+        "public_source_only": true,
+        "agent_name": "OpenAkashic bounded task observer",
+        "method_version": 2,
+        "status": "partial",
+        "situation": "결측이 미수집을 뜻하고 결측 요금이 0이 아닌 공개 합성 수리 접수 DataFrame 과제다.",
+        "goal": "원본을 보존하면서 지정된 세 결측 처리 대안의 표본 수와 평균을 같은 형식으로 비교한다.",
+        "actions": [
+          "완전한 방법 v2가 native stdout에 표시되고 클라이언트가 기록한 방법 본문 해시와 일치함을 확인했다.",
+          "README의 해당 ID와 버전 및 적용 설명을 solution.py의 결측 집계, 대안 생성과 공통 요약 지표에 대조했다.",
+          "단계 1–3의 대안 및 공통 지표 비교를 구현했고 README에 남은 불확실성을 썼다. 단계 4의 별도 순위나 방향 변화 표시는 과제에 없어 추가하지 않았다."
+        ],
+        "observed_result": "native 실행 기록에 자체 unittest 8개 통과와 OK가 있다. 별도 고정 checker 5/5를 통과했고 후보는 exit0으로 끝났다. 확인 범위는 지정된 합성 자료의 기술적 대안 비교다. 실제 결측 원인, 모집단 편향 제거, 중앙값 대체의 정확성, 운영 원천 교체나 최선의 정책은 확인하지 않았으며 OA의 인과적 효과를 주장하지 않는다.",
+        "evidence": [
+          {
+            "sha256": "6c77e2c74fddd53571b3d4a226fb9820b910c8c30ff94b2dbf9093d58a1b9b6a",
+            "description": "pandas-intake-diagnostic-r1-oa: native trace; preserved execution artifact digest, not a production-effect claim"
+          },
+          {
+            "sha256": "bda9a877404e588736e2f0b7022b2650e181a5d28658c8ff6ca14d8e1d47a893",
+            "description": "pandas-intake-diagnostic-r1-oa: checker; preserved execution artifact digest, not a production-effect claim"
+          },
+          {
+            "sha256": "0b740a157574ecc98998c374eb545e2d454bacf25c487d563136f069843792c7",
+            "description": "pandas-intake-diagnostic-r1-oa: solution.py; preserved execution artifact digest, not a production-effect claim"
+          },
+          {
+            "sha256": "835a9356ed6218500e030ed12e214daa72336903b6706c2ed6e5635988b29b42",
+            "description": "pandas-intake-diagnostic-r1-oa: README.md; preserved execution artifact digest, not a production-effect claim"
+          },
+          {
+            "sha256": "3b5f1adb4bebd0e99f74622dad9762afc23cb1664eb4cee08e867250cb7f19fa",
+            "description": "pandas-intake-diagnostic-r1-oa: manual application review; preserved execution artifact digest, not a production-effect claim"
+          }
+        ]
+      },
+      "idempotency_key": "oa-bounded-edb65b08814c649b537b3610f93ce5084d74a09d43e997f4",
+      "review_required": true,
+      "cohort": "nov15-efficiency-v2-inline-task",
+      "case_id": "pandas-intake-diagnostic-r1-oa",
+      "review_boundary": "Proposal only. Bounded synthetic goal outcome; not whole-method production validation or causal OA benefit. Parent must inspect exact read/code/README/execution proof and live version before using the existing owner helper."
+    },
+    {
+      "operation_id": "n15v2-pandas-intake-diagnostic-r1-oa-outcome-method_6562f35901794b5e9f8f477796e7505b",
+      "operation": "outcome",
+      "method_id": "method_6562f35901794b5e9f8f477796e7505b",
+      "expected_version": 2,
+      "expected_method_sha256": "116f927e44290b47704f7ba825f00c0ad3043aeaebbc0a5249e935294d4b0129",
+      "request": {
+        "public_source_only": true,
+        "agent_name": "OpenAkashic bounded task observer",
+        "method_version": 2,
+        "status": "partial",
+        "situation": "결측이 미수집을 뜻하고 결측 요금이 0이 아닌 공개 합성 수리 접수 DataFrame 과제다.",
+        "goal": "원본을 보존하면서 지정된 세 결측 처리 대안의 표본 수와 평균을 같은 형식으로 비교한다.",
+        "actions": [
+          "완전한 방법 v2가 native stdout에 표시되고 클라이언트가 기록한 방법 본문 해시와 일치함을 확인했다.",
+          "README의 해당 ID와 버전 및 적용 설명을 solution.py의 결측 집계, 대안 생성과 공통 요약 지표에 대조했다.",
+          "단계 1, 3–5의 집계 및 비교와 과제에서 주어진 결측 의미를 사용했다. 실제 원천 운영 데이터의 결측 원인을 확인하거나 최종 정책을 선택한 것은 아니다."
+        ],
+        "observed_result": "native 실행 기록에 자체 unittest 8개 통과와 OK가 있다. 별도 고정 checker 5/5를 통과했고 후보는 exit0으로 끝났다. 확인 범위는 지정된 합성 자료의 기술적 대안 비교다. 실제 결측 원인, 모집단 편향 제거, 중앙값 대체의 정확성, 운영 원천 교체나 최선의 정책은 확인하지 않았으며 OA의 인과적 효과를 주장하지 않는다.",
+        "evidence": [
+          {
+            "sha256": "6c77e2c74fddd53571b3d4a226fb9820b910c8c30ff94b2dbf9093d58a1b9b6a",
+            "description": "pandas-intake-diagnostic-r1-oa: native trace; preserved execution artifact digest, not a production-effect claim"
+          },
+          {
+            "sha256": "bda9a877404e588736e2f0b7022b2650e181a5d28658c8ff6ca14d8e1d47a893",
+            "description": "pandas-intake-diagnostic-r1-oa: checker; preserved execution artifact digest, not a production-effect claim"
+          },
+          {
+            "sha256": "0b740a157574ecc98998c374eb545e2d454bacf25c487d563136f069843792c7",
+            "description": "pandas-intake-diagnostic-r1-oa: solution.py; preserved execution artifact digest, not a production-effect claim"
+          },
+          {
+            "sha256": "835a9356ed6218500e030ed12e214daa72336903b6706c2ed6e5635988b29b42",
+            "description": "pandas-intake-diagnostic-r1-oa: README.md; preserved execution artifact digest, not a production-effect claim"
+          },
+          {
+            "sha256": "3b5f1adb4bebd0e99f74622dad9762afc23cb1664eb4cee08e867250cb7f19fa",
+            "description": "pandas-intake-diagnostic-r1-oa: manual application review; preserved execution artifact digest, not a production-effect claim"
+          }
+        ]
+      },
+      "idempotency_key": "oa-bounded-b359c77f64a564d4a9c5908abc748608aa85b9f840a7c178",
+      "review_required": true,
+      "cohort": "nov15-efficiency-v2-inline-task",
+      "case_id": "pandas-intake-diagnostic-r1-oa",
+      "review_boundary": "Proposal only. Bounded synthetic goal outcome; not whole-method production validation or causal OA benefit. Parent must inspect exact read/code/README/execution proof and live version before using the existing owner helper."
+    },
+    {
+      "operation_id": "n15v2-pandas-intake-diagnostic-r2-oa-outcome-method_f040265d2ae640c49d8614c218e06d61",
+      "operation": "outcome",
+      "method_id": "method_f040265d2ae640c49d8614c218e06d61",
+      "expected_version": 2,
+      "expected_method_sha256": "77a31b70b27adb222e4be8d331f7ed1b4d5e78dc7a71dea02e09e7c1abaa4493",
+      "request": {
+        "public_source_only": true,
+        "agent_name": "OpenAkashic bounded task observer",
+        "method_version": 2,
+        "status": "partial",
+        "situation": "결측이 미수집을 뜻하고 결측 요금이 0이 아닌 공개 합성 수리 접수 DataFrame 과제다.",
+        "goal": "원본을 보존하면서 지정된 세 결측 처리 대안의 표본 수와 평균을 같은 형식으로 비교한다.",
+        "actions": [
+          "완전한 방법 v2가 native stdout에 표시되고 클라이언트가 기록한 방법 본문 해시와 일치함을 확인했다.",
+          "README의 해당 ID와 버전 및 적용 설명을 solution.py의 결측 집계, 대안 생성과 공통 요약 지표에 대조했다.",
+          "대안별 동일 지표와 표본 수 비교를 구현했고 README에 불확실성을 썼다. 테스트의 예상값 비교를 실제 운영 선택의 순위나 인과 효과 검증으로 확대하지 않는다."
+        ],
+        "observed_result": "native 실행 기록에 자체 unittest 9개 통과와 OK가 있다. 별도 고정 checker 5/5를 통과했고 후보는 exit0으로 끝났다. 확인 범위는 지정된 합성 자료의 기술적 대안 비교다. 실제 결측 원인, 모집단 편향 제거, 중앙값 대체의 정확성, 운영 원천 교체나 최선의 정책은 확인하지 않았으며 OA의 인과적 효과를 주장하지 않는다.",
+        "evidence": [
+          {
+            "sha256": "c5213d3b67c2e1faf7869fa7d8ee81176e17a54546d9d68fd07d8cfab524ced5",
+            "description": "pandas-intake-diagnostic-r2-oa: native trace; preserved execution artifact digest, not a production-effect claim"
+          },
+          {
+            "sha256": "9f93d852cb8097ae803cefe3e2d65ee0d2a025d14d5b3fb777d3c481882f370b",
+            "description": "pandas-intake-diagnostic-r2-oa: checker; preserved execution artifact digest, not a production-effect claim"
+          },
+          {
+            "sha256": "10a7ba84315edbe42085300ad1a594ace5e997c3759ff0fca967094d55bf3354",
+            "description": "pandas-intake-diagnostic-r2-oa: solution.py; preserved execution artifact digest, not a production-effect claim"
+          },
+          {
+            "sha256": "76a811966760b4d33d9dd3fd5902204a69f12d414d1dc7483015e44f5a02fa89",
+            "description": "pandas-intake-diagnostic-r2-oa: README.md; preserved execution artifact digest, not a production-effect claim"
+          },
+          {
+            "sha256": "3b5f1adb4bebd0e99f74622dad9762afc23cb1664eb4cee08e867250cb7f19fa",
+            "description": "pandas-intake-diagnostic-r2-oa: manual application review; preserved execution artifact digest, not a production-effect claim"
+          }
+        ]
+      },
+      "idempotency_key": "oa-bounded-ed3ef327a46ec330480362f01a0b3dbe5bb0bb7e3d49260e",
+      "review_required": true,
+      "cohort": "nov15-efficiency-v2-inline-task",
+      "case_id": "pandas-intake-diagnostic-r2-oa",
+      "review_boundary": "Proposal only. Bounded synthetic goal outcome; not whole-method production validation or causal OA benefit. Parent must inspect exact read/code/README/execution proof and live version before using the existing owner helper."
+    }
+  ],
+  "excluded_cases": [
+    {
+      "case_id": "http-retry-after-r1-oa",
+      "reason": "archive_abstention_no_method_application",
+      "method_outcome_proposed": false
+    },
+    {
+      "case_id": "http-retry-after-r2-oa",
+      "reason": "archive_abstention_no_method_application",
+      "method_outcome_proposed": false
+    }
+  ],
+  "api_writes": 0
+}
