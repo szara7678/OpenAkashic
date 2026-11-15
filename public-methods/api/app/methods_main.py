@@ -6,10 +6,12 @@ from fastapi.responses import FileResponse
 from app.research import WEB
 from app.research_methods import router, method_store
 from app.research_method_revisions import router as revision_router
+from app.research_skill_sources import router as skill_source_router
 
 app = FastAPI(title="OpenAkashic Methods", version="0.2.0", docs_url="/research/docs", openapi_url="/research/openapi.json")
 app.include_router(router)
 app.include_router(revision_router)
+app.include_router(skill_source_router)
 
 
 @app.middleware("http")

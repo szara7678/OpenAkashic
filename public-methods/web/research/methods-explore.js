@@ -40,6 +40,20 @@
   function safeLink(title, url) {
     try { const u = new URL(url); if (!["https:", "http:"].includes(u.protocol)) return null; const a = el("a", title, "record-source"); a.href = u.href; a.target = "_blank"; a.rel = "noopener noreferrer"; return a; } catch { return null; }
   }
+  function skillSourceCard(source) {
+    if (!/^skill_[a-f0-9]{32}$/.test(source.package_id || "") || !/^[a-f0-9]{64}$/.test(source.sha256 || "")) return null;
+    const path = source.path, start = source.start_line, end = source.end_line;
+    if (typeof path !== "string" || !path || path.length > 500 || path.includes("\\") || path.includes(":") || Array.from(path).some(c => c.charCodeAt(0) < 32) || path.split("/").some(x => !x || x === "." || x === "..") || !Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start < 1 || end < start) return null;
+    const card = el("section", null, "record-section");
+    const query = new URLSearchParams({ path, start: String(start), lines: String(Math.min(160, end - start + 1)) });
+    const a = el("a", (source.section || path) + " 원문 읽기", "record-source");
+    a.href = "/research/api/skill-sources/" + source.package_id + "/files?" + query;
+    a.target = "_blank"; a.rel = "noopener noreferrer";
+    card.append(a, el("p", path + ", " + start + "–" + end + "행", "quiet"),
+      el("code", source.package_id, "record-id"), el("p", "원본 SHA-256", "quiet"),
+      el("code", source.sha256, "record-id"));
+    return card;
+  }
   function matchingMethods() {
     const q = $("atlas-filter").value.trim().toLocaleLowerCase(), domain = $("atlas-domain").value, filter = $("atlas-record-filter").value;
     const ids = phraseResult?.query === q ? phraseResult.ids : null;
@@ -352,11 +366,13 @@
         const more = el("details", null, "record-more"); more.append(el("summary", "적용 조건 · 성공 기준 · 한계"), section("적용 조건", d.constraints || []), section("성공을 판단할 기준", d.success_criteria || []), section("한계와 주의점", d.limitations || [])); steps.append(more); more.open = true;
         if (d.revision) { content.append(section(`v${d.revision.previous_version}에서 달라진 점`, d.revision.reason)); if (d.revision.correction) content.append(section("반영한 수정", d.revision.correction.reason)); }
         if (d.sources?.length) { const sources = el("section", null, "record-section"); sources.append(el("h3", "원래 출처")); for (const source of d.sources) { const a = safeLink(source.title || source.url, source.url); if (a) sources.append(a, el("br")); } content.append(sources); }
+        if (d.skill_sources?.length) { const sources = el("section", null, "record-section"); sources.append(el("h3", "보존된 스킬 원문")); for (const source of d.skill_sources) { const card = skillSourceCard(source); if (card) sources.append(card); } content.append(sources); }
         content.append(el("p", d.evidence_kind === "documented_method" ? "문서에서 정리한 방법입니다. 적용 결과는 실행자의 보고이며, 효과의 독립 검증과 구분합니다." : "기록된 방법과 적용 보고를 함께 읽고, 자신의 상황에 맞는지 확인하세요.", "record-warning"));
         const a = el("a", "방법과 적용 보고 전체 읽기 ↗", "record-source"); a.href = "/research/methods/library/?method=" + encodeURIComponent(n.method_id); content.append(a);
         const go = el("button", "실행 순서 살펴보기 →", "primary"); go.type = "button"; go.onclick = () => setRecordTab("steps"); content.append(go);
       } catch { if (token === detailRequest) { loading.textContent = "본문을 불러오지 못했습니다. 연결된 기록을 살펴보거나 다시 선택해 주세요."; steps.replaceChildren(el("p", "실행 순서를 불러오지 못했습니다. 방법을 다시 선택해 주세요.", "quiet")); } }
     } else if (n.kind === "source") {
+      if (n.package_id) { const card = skillSourceCard(n); if (card) content.append(card); content.append(el("p", "원문과 참조 파일을 보존한 출처입니다. 스크립트와 의존 프로그램은 실행하지 않습니다.", "record-warning")); }
       const a = safeLink("원래 출처 열기 ↗", n.url); if (a) content.append(a);
       content.append(section("이 출처와 연결된 방법", "아래 방법을 정리할 때 참고한 출처입니다. 같은 출처를 사용했다는 것이 독립적인 검증을 뜻하지는 않습니다."));
     } else if (n.kind === "category") content.append(el("p", `‘${n.label}’에 연결된 방법 ${links.filter(a => index.get(a.id)?.kind === "method").length}개. 관심 있는 방법으로 이어가 보세요.`, "quiet"));

@@ -1,0 +1,19 @@
+{
+  "model": "gpt-6.1-sol",
+  "reasoning": "medium",
+  "image": "sha256:02c4645a0abbbaf6f8074e0f76d6d789f0cae2d8493abce93877fe1f0966b9b3",
+  "seed": 20261115,
+  "timeout_seconds": 300,
+  "max_provider_calls": 12,
+  "soft_cumulative_provider_token_ceiling": 200000,
+  "max_broker_retrievals": 24,
+  "repetitions_per_task": 2,
+  "scheduled_runs": 12,
+  "resources": {
+    "memory": "2g",
+    "cpus": "1",
+    "pids": 256,
+    "tmp_mib": 512,
+    "home_mib": 64
+  }
+}

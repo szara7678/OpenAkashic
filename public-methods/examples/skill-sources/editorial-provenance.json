@@ -1,0 +1,409 @@
+{
+  "schema": "public-skill-method-provenance-v1",
+  "methods": [
+    {
+      "public_id": "method_5e7068b00a05851048d12b4df2843163",
+      "sourceSpan": [
+        {
+          "package_id": "skill_07c728f6e8cc12349e73623954a260c7",
+          "path": "SKILL.md",
+          "sha256": "d91970639e9f5c37682ac7ab60094d35f1c7c1f38d731bd56396563aee10c1d3",
+          "start_line": 11,
+          "end_line": 13,
+          "section": "Ground your designs in the subject matter"
+        },
+        {
+          "package_id": "skill_07c728f6e8cc12349e73623954a260c7",
+          "path": "SKILL.md",
+          "sha256": "d91970639e9f5c37682ac7ab60094d35f1c7c1f38d731bd56396563aee10c1d3",
+          "start_line": 36,
+          "end_line": 55,
+          "section": "Process: plan, review against the brief, build, critique"
+        }
+      ],
+      "editorial_provenance": {
+        "slug": "subject-grounded-design-plan",
+        "source_id": "anthropics-frontend-design",
+        "public_id_role": "editorial fixture identity, not an existing/live API method UUID",
+        "field_attribution": {
+          "situation": "editorial scenario inferred from the source task scope",
+          "goal": "editorial restatement inferred from the source workflow",
+          "constraints": "explicit source preconditions paraphrased; see individual exceptions",
+          "steps": "explicit source procedure paraphrased",
+          "success_criteria": "inferred review criteria for the documented procedure, not measured success",
+          "limitations": "source cautions plus explicit editorial evidence boundary",
+          "tags": "editorial retrieval metadata, not source claims",
+          "constraint_rules": "empty; no implicit environment labels invented"
+        },
+        "effectiveness": "not evaluated; documented source procedure only",
+        "graph_policy": "No relationship edges inferred merely because skills share a repository or category."
+      }
+    },
+    {
+      "public_id": "method_a9b1e1082dd0d301cd30be768842ae72",
+      "sourceSpan": [
+        {
+          "package_id": "skill_07c728f6e8cc12349e73623954a260c7",
+          "path": "SKILL.md",
+          "sha256": "d91970639e9f5c37682ac7ab60094d35f1c7c1f38d731bd56396563aee10c1d3",
+          "start_line": 61,
+          "end_line": 71,
+          "section": "More on writing in design"
+        }
+      ],
+      "editorial_provenance": {
+        "slug": "action-clear-ui-copy",
+        "source_id": "anthropics-frontend-design",
+        "public_id_role": "editorial fixture identity, not an existing/live API method UUID",
+        "field_attribution": {
+          "situation": "editorial scenario inferred from the source task scope",
+          "goal": "editorial restatement inferred from the source workflow",
+          "constraints": "explicit source preconditions paraphrased; see individual exceptions",
+          "steps": "explicit source procedure paraphrased",
+          "success_criteria": "inferred review criteria for the documented procedure, not measured success",
+          "limitations": "source cautions plus explicit editorial evidence boundary",
+          "tags": "editorial retrieval metadata, not source claims",
+          "constraint_rules": "empty; no implicit environment labels invented"
+        },
+        "effectiveness": "not evaluated; documented source procedure only",
+        "graph_policy": "No relationship edges inferred merely because skills share a repository or category."
+      }
+    },
+    {
+      "public_id": "method_0160125e1d72ba173df2279a950c55c2",
+      "sourceSpan": [
+        {
+          "package_id": "skill_77687da51641a2447bceaa15d462a9f4",
+          "path": "SKILL.md",
+          "sha256": "1120b3769e2985cefb3d25be981b1f914abeba57ae079b83c20c666c164fa9fe",
+          "start_line": 1,
+          "end_line": 13,
+          "section": "Anthropic brand scope"
+        },
+        {
+          "package_id": "skill_77687da51641a2447bceaa15d462a9f4",
+          "path": "SKILL.md",
+          "sha256": "1120b3769e2985cefb3d25be981b1f914abeba57ae079b83c20c666c164fa9fe",
+          "start_line": 15,
+          "end_line": 59,
+          "section": "Brand Guidelines and Features"
+        }
+      ],
+      "editorial_provenance": {
+        "slug": "anthropic-brand-styling",
+        "source_id": "anthropics-brand-guidelines",
+        "public_id_role": "editorial fixture identity, not an existing/live API method UUID",
+        "field_attribution": {
+          "situation": "editorial scenario inferred from the source task scope",
+          "goal": "editorial restatement inferred from the source workflow",
+          "constraints": "source scope explicitly requires Anthropic look-and-feel; no authorization or trademark permission is inferred",
+          "steps": "explicit source procedure paraphrased",
+          "success_criteria": "inferred review criteria for the documented procedure, not measured success",
+          "limitations": "editorial scope/trademark boundary and unresolved font availability, not an upstream effectiveness claim",
+          "tags": "editorial retrieval metadata, not source claims",
+          "constraint_rules": "empty; no implicit environment labels invented"
+        },
+        "effectiveness": "not evaluated; documented source procedure only",
+        "graph_policy": "No relationship edges inferred merely because skills share a repository or category."
+      }
+    },
+    {
+      "public_id": "method_665152c5bd7922c4392e9238cfbea31b",
+      "sourceSpan": [
+        {
+          "package_id": "skill_b645bd7b8fcb43d29d72b7582ece950d",
+          "path": "SKILL.md",
+          "sha256": "d1c7caf5f35eb7d37877dd7fc33a095037be2b34fb5d2f7f4d43bde3165bb4ee",
+          "start_line": 79,
+          "end_line": 119,
+          "section": "pdfplumber - Text and Table Extraction"
+        }
+      ],
+      "editorial_provenance": {
+        "slug": "pdf-layout-table-extraction",
+        "source_id": "anthropics-pdf",
+        "public_id_role": "editorial fixture identity, not an existing/live API method UUID",
+        "field_attribution": {
+          "situation": "editorial scenario inferred from the source task scope",
+          "goal": "editorial restatement inferred from the source workflow",
+          "constraints": "library preconditions from imports; first-row header assumption is explicit in code, not a universal PDF property",
+          "steps": "explicit source procedure paraphrased",
+          "success_criteria": "inferred review criteria for the documented procedure, not measured success",
+          "limitations": "source cautions plus explicit editorial evidence boundary",
+          "tags": "editorial retrieval metadata, not source claims",
+          "constraint_rules": "empty; no implicit environment labels invented"
+        },
+        "effectiveness": "not evaluated; documented source procedure only",
+        "graph_policy": "No relationship edges inferred merely because skills share a repository or category."
+      }
+    },
+    {
+      "public_id": "method_a31588be14038e31ec1e4a30e4f8f24d",
+      "sourceSpan": [
+        {
+          "package_id": "skill_b645bd7b8fcb43d29d72b7582ece950d",
+          "path": "SKILL.md",
+          "sha256": "d1c7caf5f35eb7d37877dd7fc33a095037be2b34fb5d2f7f4d43bde3165bb4ee",
+          "start_line": 121,
+          "end_line": 187,
+          "section": "reportlab - Create PDFs"
+        }
+      ],
+      "editorial_provenance": {
+        "slug": "reportlab-pdf-report",
+        "source_id": "anthropics-pdf",
+        "public_id_role": "editorial fixture identity, not an existing/live API method UUID",
+        "field_attribution": {
+          "situation": "editorial scenario inferred from the source task scope",
+          "goal": "editorial restatement inferred from the source workflow",
+          "constraints": "explicit source preconditions paraphrased; see individual exceptions",
+          "steps": "explicit source procedure paraphrased",
+          "success_criteria": "inferred review criteria for the documented procedure, not measured success",
+          "limitations": "source cautions plus explicit editorial evidence boundary",
+          "tags": "editorial retrieval metadata, not source claims",
+          "constraint_rules": "empty; no implicit environment labels invented"
+        },
+        "effectiveness": "not evaluated; documented source procedure only",
+        "graph_policy": "No relationship edges inferred merely because skills share a repository or category."
+      }
+    },
+    {
+      "public_id": "method_954dc1a8e8c8102a62043ae84b378f9c",
+      "sourceSpan": [
+        {
+          "package_id": "skill_030e604af66e47e565b6efa0efa1d7b9",
+          "path": "SKILL.md",
+          "sha256": "e094096faf2861e4dbed2dd4ba1960dbc1a137f8a71403b22bf1e4df41b31051",
+          "start_line": 9,
+          "end_line": 17,
+          "section": "Task routing"
+        },
+        {
+          "package_id": "skill_030e604af66e47e565b6efa0efa1d7b9",
+          "path": "SKILL.md",
+          "sha256": "e094096faf2861e4dbed2dd4ba1960dbc1a137f8a71403b22bf1e4df41b31051",
+          "start_line": 36,
+          "end_line": 74,
+          "section": "Verify output and edit existing documents"
+        }
+      ],
+      "editorial_provenance": {
+        "slug": "docx-existing-edit-validate",
+        "source_id": "anthropics-docx",
+        "public_id_role": "editorial fixture identity, not an existing/live API method UUID",
+        "field_attribution": {
+          "situation": "editorial scenario inferred from the source task scope",
+          "goal": "editorial restatement inferred from the source workflow",
+          "constraints": "explicit source preconditions paraphrased; see individual exceptions",
+          "steps": "explicit source procedure paraphrased",
+          "success_criteria": "inferred review criteria for the documented procedure, not measured success",
+          "limitations": "source warnings plus separately observed static missing-schema dependency audit; no helper execution or document effectiveness claim",
+          "tags": "editorial retrieval metadata, not source claims",
+          "constraint_rules": "empty; no implicit environment labels invented"
+        },
+        "effectiveness": "not evaluated; documented source procedure only",
+        "graph_policy": "No relationship edges inferred merely because skills share a repository or category."
+      }
+    },
+    {
+      "public_id": "method_85a888496d03ceb3b01332c657b23889",
+      "sourceSpan": [
+        {
+          "package_id": "skill_5ed9591a3be82c9e63c6787f2256b588",
+          "path": "SKILL.md",
+          "sha256": "955c4cefa49106dd03b55cbd62603bab2d2fb678e627dd452ba62040c7128484",
+          "start_line": 12,
+          "end_line": 39,
+          "section": "Scope and non-negotiable boundary"
+        },
+        {
+          "package_id": "skill_5ed9591a3be82c9e63c6787f2256b588",
+          "path": "SKILL.md",
+          "sha256": "955c4cefa49106dd03b55cbd62603bab2d2fb678e627dd452ba62040c7128484",
+          "start_line": 123,
+          "end_line": 156,
+          "section": "Required EDA reasoning"
+        },
+        {
+          "package_id": "skill_5ed9591a3be82c9e63c6787f2256b588",
+          "path": "SKILL.md",
+          "sha256": "955c4cefa49106dd03b55cbd62603bab2d2fb678e627dd452ba62040c7128484",
+          "start_line": 251,
+          "end_line": 272,
+          "section": "Output interpretation"
+        },
+        {
+          "package_id": "skill_5ed9591a3be82c9e63c6787f2256b588",
+          "path": "SKILL.md",
+          "sha256": "955c4cefa49106dd03b55cbd62603bab2d2fb678e627dd452ba62040c7128484",
+          "start_line": 103,
+          "end_line": 122,
+          "section": "Safe local I/O contract"
+        },
+        {
+          "package_id": "skill_5ed9591a3be82c9e63c6787f2256b588",
+          "path": "SKILL.md",
+          "sha256": "955c4cefa49106dd03b55cbd62603bab2d2fb678e627dd452ba62040c7128484",
+          "start_line": 158,
+          "end_line": 249,
+          "section": "Workflow and report scaffold"
+        }
+      ],
+      "editorial_provenance": {
+        "slug": "bounded-local-eda-profile",
+        "source_id": "kdense-exploratory-data-analysis",
+        "public_id_role": "editorial fixture identity, not an existing/live API method UUID",
+        "field_attribution": {
+          "situation": "editorial scenario inferred from the source task scope",
+          "goal": "editorial restatement inferred from the source workflow",
+          "constraints": "explicit source preconditions paraphrased; see individual exceptions",
+          "steps": "explicit source procedure paraphrased",
+          "success_criteria": "inferred review criteria for the documented procedure, not measured success",
+          "limitations": "source cautions plus explicit editorial evidence boundary",
+          "tags": "editorial retrieval metadata, not source claims",
+          "constraint_rules": "empty; no implicit environment labels invented"
+        },
+        "effectiveness": "not evaluated; documented source procedure only",
+        "graph_policy": "No relationship edges inferred merely because skills share a repository or category."
+      }
+    },
+    {
+      "public_id": "method_bcf4f8db7776d44f98f17e14d42bcd5b",
+      "sourceSpan": [
+        {
+          "package_id": "skill_5ed9591a3be82c9e63c6787f2256b588",
+          "path": "SKILL.md",
+          "sha256": "955c4cefa49106dd03b55cbd62603bab2d2fb678e627dd452ba62040c7128484",
+          "start_line": 123,
+          "end_line": 156,
+          "section": "Required EDA reasoning"
+        },
+        {
+          "package_id": "skill_5ed9591a3be82c9e63c6787f2256b588",
+          "path": "SKILL.md",
+          "sha256": "955c4cefa49106dd03b55cbd62603bab2d2fb678e627dd452ba62040c7128484",
+          "start_line": 195,
+          "end_line": 204,
+          "section": "Missingness and common leakage screen"
+        },
+        {
+          "package_id": "skill_5ed9591a3be82c9e63c6787f2256b588",
+          "path": "SKILL.md",
+          "sha256": "955c4cefa49106dd03b55cbd62603bab2d2fb678e627dd452ba62040c7128484",
+          "start_line": 251,
+          "end_line": 265,
+          "section": "Output interpretation"
+        },
+        {
+          "package_id": "skill_5ed9591a3be82c9e63c6787f2256b588",
+          "path": "SKILL.md",
+          "sha256": "955c4cefa49106dd03b55cbd62603bab2d2fb678e627dd452ba62040c7128484",
+          "start_line": 103,
+          "end_line": 122,
+          "section": "Safe local I/O contract"
+        }
+      ],
+      "editorial_provenance": {
+        "slug": "missingness-split-leakage-audit",
+        "source_id": "kdense-exploratory-data-analysis",
+        "public_id_role": "editorial fixture identity, not an existing/live API method UUID",
+        "field_attribution": {
+          "situation": "editorial scenario inferred from the source task scope",
+          "goal": "editorial restatement inferred from the source workflow",
+          "constraints": "explicit source preconditions paraphrased; see individual exceptions",
+          "steps": "explicit source procedure paraphrased",
+          "success_criteria": "inferred review criteria for the documented procedure, not measured success",
+          "limitations": "source cautions plus explicit editorial evidence boundary",
+          "tags": "editorial retrieval metadata, not source claims",
+          "constraint_rules": "empty; no implicit environment labels invented"
+        },
+        "effectiveness": "not evaluated; documented source procedure only",
+        "graph_policy": "No relationship edges inferred merely because skills share a repository or category."
+      }
+    },
+    {
+      "public_id": "method_ab7046a105a3311169a4f6b4f5d0145b",
+      "sourceSpan": [
+        {
+          "package_id": "skill_81e45a6d4f9155319cf65043886bcba4",
+          "path": "SKILL.md",
+          "sha256": "e112848726b3713267cac65e4e2c15491a0a26ee1ed628db01195f7e43f97997",
+          "start_line": 54,
+          "end_line": 65,
+          "section": "Analysis Workflow"
+        },
+        {
+          "package_id": "skill_81e45a6d4f9155319cf65043886bcba4",
+          "path": "SKILL.md",
+          "sha256": "e112848726b3713267cac65e4e2c15491a0a26ee1ed628db01195f7e43f97997",
+          "start_line": 85,
+          "end_line": 131,
+          "section": "Assumption Checking"
+        },
+        {
+          "package_id": "skill_81e45a6d4f9155319cf65043886bcba4",
+          "path": "SKILL.md",
+          "sha256": "e112848726b3713267cac65e4e2c15491a0a26ee1ed628db01195f7e43f97997",
+          "start_line": 328,
+          "end_line": 391,
+          "section": "Reporting Results"
+        },
+        {
+          "package_id": "skill_81e45a6d4f9155319cf65043886bcba4",
+          "path": "SKILL.md",
+          "sha256": "e112848726b3713267cac65e4e2c15491a0a26ee1ed628db01195f7e43f97997",
+          "start_line": 426,
+          "end_line": 437,
+          "section": "Statistical Integrity"
+        }
+      ],
+      "editorial_provenance": {
+        "slug": "prespecified-inference-workflow",
+        "source_id": "kdense-statistical-analysis",
+        "public_id_role": "editorial fixture identity, not an existing/live API method UUID",
+        "field_attribution": {
+          "situation": "editorial scenario inferred from the source task scope",
+          "goal": "editorial restatement inferred from the source workflow",
+          "constraints": "explicit source preconditions paraphrased; see individual exceptions",
+          "steps": "explicit source procedure paraphrased",
+          "success_criteria": "inferred review criteria for the documented procedure, not measured success",
+          "limitations": "source cautions plus explicit editorial evidence boundary",
+          "tags": "editorial retrieval metadata, not source claims",
+          "constraint_rules": "empty; no implicit environment labels invented"
+        },
+        "effectiveness": "not evaluated; documented source procedure only",
+        "graph_policy": "No relationship edges inferred merely because skills share a repository or category."
+      }
+    },
+    {
+      "public_id": "method_3e2f11e3ffd2f78a78c5f3c2cf240262",
+      "sourceSpan": [
+        {
+          "package_id": "skill_81e45a6d4f9155319cf65043886bcba4",
+          "path": "SKILL.md",
+          "sha256": "e112848726b3713267cac65e4e2c15491a0a26ee1ed628db01195f7e43f97997",
+          "start_line": 270,
+          "end_line": 327,
+          "section": "Power Analysis"
+        }
+      ],
+      "editorial_provenance": {
+        "slug": "a-priori-power-and-sensitivity",
+        "source_id": "kdense-statistical-analysis",
+        "public_id_role": "editorial fixture identity, not an existing/live API method UUID",
+        "field_attribution": {
+          "situation": "editorial scenario inferred from the source task scope",
+          "goal": "editorial restatement inferred from the source workflow",
+          "constraints": "explicit planning-model limitations in source; Python environment requirements remain in source package dependency_notes",
+          "steps": "explicit source procedure paraphrased",
+          "success_criteria": "inferred review criteria for the documented procedure, not measured success",
+          "limitations": "source cautions plus explicit editorial evidence boundary",
+          "tags": "editorial retrieval metadata, not source claims",
+          "constraint_rules": "empty; no implicit environment labels invented"
+        },
+        "effectiveness": "not evaluated; documented source procedure only",
+        "graph_policy": "No relationship edges inferred merely because skills share a repository or category."
+      }
+    }
+  ]
+}

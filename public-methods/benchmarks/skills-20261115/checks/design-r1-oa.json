@@ -1,0 +1,37 @@
+{
+  "run_id": "design-r1-oa",
+  "exit_code": 1,
+  "seconds": 4.879606753005646,
+  "status": null,
+  "report": {
+    "task": "design",
+    "ok": false,
+    "groups": {
+      "delivery_and_selftest_record": {
+        "ok": true,
+        "errors": []
+      },
+      "directory_function_and_readability": {
+        "ok": false,
+        "errors": [
+          "Missing snapshot/unknown notice 2026-07-18"
+        ],
+        "evidence": {
+          "scenarios": [
+            "initial",
+            "East",
+            "East+Advice+stepfree",
+            "empty intersection",
+            "reset"
+          ],
+          "external_requests": [],
+          "mobile_overflow": false
+        }
+      }
+    },
+    "scope": "Artifact checks only; root independently verifies logged self-tests, normal final, source faithfulness and blind quality."
+  },
+  "original_checker_v2_sha256": "1f7ac3d4f9baca942953b797902286202cdd815c8ee1c992c3718dddd5c91c81",
+  "native_outcome_unchanged": true,
+  "reclassification": false
+}

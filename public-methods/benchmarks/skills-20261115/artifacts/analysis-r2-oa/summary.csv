@@ -1,0 +1,7 @@
+service,branch,n_total,n_known,n_missing,n_success,success_rate
+assisted,East,14,10,4,8,0.8
+assisted,West,56,50,6,30,0.6
+assisted,ALL,70,60,10,38,0.6333333333333333
+standard,East,51,50,1,36,0.72
+standard,West,19,10,9,4,0.4
+standard,ALL,70,60,10,40,0.6666666666666666

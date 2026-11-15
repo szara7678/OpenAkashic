@@ -1,0 +1,15 @@
+{
+  "schema": "external-postexecution-checker-control-amendment-v1",
+  "freeze_sha256": "a0cf39f09a6964c0afa600e3bad3c0fb54f8a33335eb11244fe0765eeec9c54c",
+  "amendment_sha256": "122fe3b378b6f82cf2e5ec174c720d0c6e40b622be8fda1af9dc18a7eb87307f",
+  "files": {
+    "controller.py": "71c8002a9a16f835ce318e0f95b7eb699a459e0631dfefcf4657a4a6b94f8d41",
+    "copy_artifacts.py": "424aed5f670908f4a201edf770db61952bc96e7e4314720783a35cbeabe15c50"
+  },
+  "reason": "Host checker copy could not read private-permission browser profile after candidate completion; UID-safe copy omits only nonartifact browser profile, source bytes unchanged",
+  "native_first_run_preserved": true,
+  "candidate_retries": 0,
+  "model_prompts_limits_sources_unchanged": true,
+  "scheduled_run_denominator": 12,
+  "checker_v2_used_for_all_rows": true
+}

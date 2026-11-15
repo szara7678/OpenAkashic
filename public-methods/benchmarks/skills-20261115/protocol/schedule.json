@@ -1,0 +1,74 @@
+[
+  {
+    "id": "design-r2-direct",
+    "task": "design",
+    "repeat": 2,
+    "arm": "direct"
+  },
+  {
+    "id": "design-r2-oa",
+    "task": "design",
+    "repeat": 2,
+    "arm": "oa"
+  },
+  {
+    "id": "analysis-r1-oa",
+    "task": "analysis",
+    "repeat": 1,
+    "arm": "oa"
+  },
+  {
+    "id": "analysis-r1-direct",
+    "task": "analysis",
+    "repeat": 1,
+    "arm": "direct"
+  },
+  {
+    "id": "analysis-r2-direct",
+    "task": "analysis",
+    "repeat": 2,
+    "arm": "direct"
+  },
+  {
+    "id": "analysis-r2-oa",
+    "task": "analysis",
+    "repeat": 2,
+    "arm": "oa"
+  },
+  {
+    "id": "documents-r2-oa",
+    "task": "documents",
+    "repeat": 2,
+    "arm": "oa"
+  },
+  {
+    "id": "documents-r2-direct",
+    "task": "documents",
+    "repeat": 2,
+    "arm": "direct"
+  },
+  {
+    "id": "design-r1-direct",
+    "task": "design",
+    "repeat": 1,
+    "arm": "direct"
+  },
+  {
+    "id": "design-r1-oa",
+    "task": "design",
+    "repeat": 1,
+    "arm": "oa"
+  },
+  {
+    "id": "documents-r1-oa",
+    "task": "documents",
+    "repeat": 1,
+    "arm": "oa"
+  },
+  {
+    "id": "documents-r1-direct",
+    "task": "documents",
+    "repeat": 1,
+    "arm": "direct"
+  }
+]

@@ -1,0 +1,32 @@
+{
+  "run_id": "analysis-r2-direct",
+  "exit_code": 0,
+  "seconds": 0.7528281899867579,
+  "status": null,
+  "report": {
+    "task": "analysis",
+    "ok": true,
+    "groups": {
+      "delivery_and_selftest_record": {
+        "ok": true,
+        "errors": []
+      },
+      "correct_csv_denominators_and_missingness": {
+        "ok": true,
+        "errors": []
+      },
+      "pooled_and_standardized_comparison": {
+        "ok": true,
+        "errors": []
+      },
+      "actual_report_and_reproducible_source": {
+        "ok": true,
+        "errors": []
+      }
+    },
+    "scope": "Artifact checks only; root independently verifies logged self-tests, normal final, source faithfulness and blind quality."
+  },
+  "original_checker_v2_sha256": "bf51eb15583d704338e53f8ebb31600127611d39788b0ad7520c4e9c8359b973",
+  "native_outcome_unchanged": true,
+  "reclassification": false
+}

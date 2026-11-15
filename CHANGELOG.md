@@ -6,6 +6,14 @@ All notable changes to OpenAkashic are documented here.
 
 ---
 
+## 2026-11-15 — Preserved public skills and controlled comparison
+
+- Added anonymous, bounded original-source reads, exact commit/hash/line-span method provenance, owner-only immutable imports, and source links in the existing atlas.
+- Selected six public design/document/data-analysis skill packages; preserve upstream licenses, notices and all121 original files. Public manifests and a verification-first fetcher reconstruct pinned originals without installing or executing them.
+- Added ten documented methods and refreshed the full71-method situation/goal index; previous methods, outcomes, opinions and revisions remain preserved.
+- Published a separate12-run direct-skill comparison including negative findings: no derived-method applications were verified, and all-run OA provider tokens/time increased. No general efficiency or quality claim follows. Original failures, corrections and independent reviews are retained.
+- Corrected the importer output-root check after the frozen comparison; this post-trial operational fix is distinct from the evaluated serving behavior. See the comparison and source-reconstruction guides for scope and dependency limits.
+
 ## [Unreleased]
 
 ### Changed — Role redefinition: Sagwan sole judge, Busagwan demoted to worker (2026-04-18)

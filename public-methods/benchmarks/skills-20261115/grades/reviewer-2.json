@@ -1,0 +1,190 @@
+{
+  "schema": "anonymous-artifact-quality-review-v1",
+  "reviewer_id": "independent-reviewer-B",
+  "independent": true,
+  "packet_set_sha256": "0b4bea8ee98d3108a47e267c833eb0a0b1d6fb1026ddfa60d0031edf5c8889c2",
+  "rubric_sha256": "ca69881ff70ae486674568c7ee06bb956e63328abcfda3fb9a1f0e49bbe338dd",
+  "rows": [
+    {
+      "anonymous_id": "A01",
+      "task": "design",
+      "quality_scores": [
+        4,
+        3,
+        2,
+        3
+      ],
+      "blocking_defect": false,
+      "strongest_feature": "Explicit fixed-snapshot/current-time distinction, complete service details and plainly labelled unknown access.",
+      "improvement": "Shorten the mobile preamble and repetitive filter hint so users see a matching location within the initial viewport.",
+      "notes": "Calm original Cedar identity, clear contrast and labelled native controls. All four screenshots and source inspected. Card badges visually say Open/Closed without a local snapshot qualifier. At 390px the first card starts about y932, after the 844px viewport; no overlap or horizontal cropping observed. Empty state is helpful but could explicitly suggest disabling Step-free only. Source has focus CSS and correct strict-true filtering. Separate objective evidence: QA.md absent; completed command record ends with a label-text assertion failure after harness connection/target corrections. The actual associated labels include select option text, so this is not evidence the controls lack labels. No completed final QA pass or candidate visual inspection is inferred; supplied render states remain reviewable.",
+      "blocking_evidence": ""
+    },
+    {
+      "anonymous_id": "A02",
+      "task": "documents",
+      "quality_scores": [
+        4,
+        3,
+        4,
+        3
+      ],
+      "blocking_defect": false,
+      "strongest_feature": "The urgent exception immediately connects unverified stock to the 10:30 and 11:00 actions and missed-update escalation.",
+      "improvement": "Regularize page 2 gaps between unresolved questions, authority limits and evidence, using the available whitespace.",
+      "notes": "Both A4 pages and selectable text inspected; readable 11pt body, no clipped operational content or factual distortion. Correct hours, 82 visits rather than unique residents, pending ramp decision and all four outstanding actions retained. Page 2 time-sorted rows work well, but section spacing below them is inconsistent and tight. Executed records preserve corrected font-path and unavailable-pdfplumber failures followed by successful pypdf/Poppler checks; recovered tool issues do not reduce artifact quality.",
+      "blocking_evidence": ""
+    },
+    {
+      "anonymous_id": "A03",
+      "task": "design",
+      "quality_scores": [
+        4,
+        4,
+        2,
+        4
+      ],
+      "blocking_defect": false,
+      "strongest_feature": "Snapshot-qualified card status and bold hours/access make support options and access uncertainty easy to compare.",
+      "improvement": "Compact the mobile notice and filter explanation to expose the results count and first match sooner.",
+      "notes": "All four screenshot states and source inspected. Clear original civic identity, strong card scan order, complete unknown access and actionable empty state. No visible overlap/cropping. First mobile card begins about y937, below the 844px initial viewport. Executed final QA output confirms 24 combinations, reset, tab/focus/checkbox checks and zero requests/errors after module-path and native-select-test corrections. Native popup arrow-key selection was removed from this test and is not treated as verified.",
+      "blocking_evidence": ""
+    },
+    {
+      "anonymous_id": "A04",
+      "task": "documents",
+      "quality_scores": [
+        4,
+        4,
+        4,
+        4
+      ],
+      "blocking_defect": false,
+      "strongest_feature": "Urgent-first hierarchy combines clear operational sections with compact B/C/D evidence mapping and faithful approval distinctions.",
+      "improvement": "Align deadline and owner in separate columns on page 2 to make rapid time scanning even easier.",
+      "notes": "Both pages and selectable text inspected. Two clean A4 pages, readable 10.5pt operational body and controlled whitespace. The water exception precedes routine facts; current hours/access and corrected attendance have helpful separate headings. All owners, deadlines, unknowns, escalation and medical boundary remain faithful to the notes. Page 2 makes outstanding status and source chronology clear. No blocking defect observed. Completed generation and structural/text/bounds checks are preserved in executed records; authored claims of visual attention are not independently certified by shell evidence.",
+      "blocking_evidence": ""
+    },
+    {
+      "anonymous_id": "A05",
+      "task": "analysis",
+      "quality_scores": [
+        4,
+        4,
+        3,
+        4
+      ],
+      "blocking_defect": false,
+      "strongest_feature": "Concrete branch counts and explicit weighted formulas connect the reversal to case mix while separating the equal-branch estimand from pooled performance.",
+      "improvement": "Provide a responsive mobile table or a visible horizontal-scroll cue so estimates remain easy to pair with denominators and missingness.",
+      "notes": "Desktop/mobile screenshots, report, CSV/JSON, analysis and verifier code in executed records inspected. Correct pooled -3.33 pp and equal-branch +14 pp; independent reviewer recount confirms every output count/rate. Known denominators and unknown/all percentages are explicit, including standard-West 47.4% missingness. Practical recovery/audit/prospective-pilot recommendation fits observational limits. Phone table hides success/missingness columns behind uncued horizontal scrolling, and long prose weakens quick scanning. Completed verifier output supports runtime deterministic reruns and malformed-input checks. Report narrative is fixture-specific, as README discloses.",
+      "blocking_evidence": ""
+    },
+    {
+      "anonymous_id": "A06",
+      "task": "analysis",
+      "quality_scores": [
+        4,
+        4,
+        3,
+        4
+      ],
+      "blocking_defect": false,
+      "strongest_feature": "Success/known ratios and missing/all percentages are explicit alongside a compact noncausal recommendation.",
+      "improvement": "Move the table caption outside its horizontal scroller and give mobile readers a responsive layout or visible scrolling cue.",
+      "notes": "All report/output artifacts plus analysis/verifier code in executed records inspected. Correct descriptive reversal, hypothetical 50/50 branch weighting and causal limits. Independent recount confirms all CSV and JSON values. Desktop hierarchy is clear. On phones the wide table clips both estimates and part of its caption to the right; surrounding prose recovers the meaning, but immediate denominator guidance is weaker. Completed verifier output supports exact fixture checks and byte-identical runtime rerun. The source uses some fixture-specific narrative; this does not affect the supplied-data conclusion.",
+      "blocking_evidence": ""
+    },
+    {
+      "anonymous_id": "A07",
+      "task": "design",
+      "quality_scores": [
+        4,
+        4,
+        2,
+        4
+      ],
+      "blocking_defect": false,
+      "strongest_feature": "Result count reports total and open/closed composition while individual badges retain snapshot qualification.",
+      "improvement": "Reduce repetitive mobile introduction, snapshot explanation and hint text to move matching locations into the first viewport.",
+      "notes": "Four screenshot states and source inspected. Calm legible original civic identity, complete hours/services/access and clearly recovered empty state. First mobile card starts about y946, beyond the 844px viewport; no visible overlap or horizontal crop. Completed QA output supports all 24 intersections, source fields, reset, focus/arrow selection and tested mobile widths/states. JavaScript is required to render the cards; the noscript notice states this limitation. No extra bonus or penalty for serif typography.",
+      "blocking_evidence": ""
+    },
+    {
+      "anonymous_id": "A08",
+      "task": "documents",
+      "quality_scores": [
+        4,
+        3,
+        4,
+        4
+      ],
+      "blocking_defect": false,
+      "strongest_feature": "Aligned time/owner/action/current-status rows and concise record-level references make follow-up responsibilities exceptionally easy to audit.",
+      "improvement": "Place the urgent water exception ahead of the large routine opening-hours and attendance blocks on page 1.",
+      "notes": "Both A4 pages, selectable text and source fixture inspected. Readable 11.5pt main text, faithful hours/82 visits/access-pending distinctions and all outstanding owners/deadlines. Traceability is compact and precise. Page 1 makes two routine metrics dominant before the urgent exception, so immediate shift triage is less direct despite the strong water callout. Completed execution preserves an initial line-break-sensitive text-test failure and successful whitespace-normalized rerun; no PDF content fault is inferred from that test correction.",
+      "blocking_evidence": ""
+    },
+    {
+      "anonymous_id": "A09",
+      "task": "analysis",
+      "quality_scores": [
+        4,
+        4,
+        3,
+        4
+      ],
+      "blocking_defect": false,
+      "strongest_feature": "Exact missing/all denominators and shaded pooled rows clarify both incompleteness and repeated aggregation.",
+      "improvement": "Adapt the phone table or visibly label horizontal scrolling so estimates, denominators and missingness can be inspected together.",
+      "notes": "Report/output artifacts, source and verifier code in executed records inspected. Correct branch-mix explanation, weighted formulas, descriptive limits and prioritized standard-West outcome recovery. Independent reviewer recount confirms every CSV/JSON value. Desktop concise and coherent; mobile table initially hides the success/missingness columns without a scroll cue. Completed execution supports deterministic runtime rerun, schema/count checks and unchanged input digest. Report prose is tailored to this fixture rather than a generic future-data narrative.",
+      "blocking_evidence": ""
+    },
+    {
+      "anonymous_id": "A10",
+      "task": "design",
+      "quality_scores": [
+        4,
+        3,
+        2,
+        4
+      ],
+      "blocking_defect": false,
+      "strongest_feature": "Compact service line and aligned bold hours/access make individual support options easy to scan.",
+      "improvement": "Reduce mobile space before the directory while keeping the dated snapshot warning prominent.",
+      "notes": "All four screenshots and HTML inspected. Calm original Cedar identity and explicit unknown access; clear counts/reset/empty-state recovery. Card badges themselves omit snapshot qualification, relying on the prominent notice. First mobile card starts about y948, beyond the initial 844px screen; no overlap or horizontal crop observed. Completed QA output supports seven source checks, 24 combinations, reset, labels, all five tab-stop focus outlines, four width checks and zero errors/requests. Native select values were changed programmatically; a complete native-popup keyboard interaction is not claimed.",
+      "blocking_evidence": ""
+    },
+    {
+      "anonymous_id": "A11",
+      "task": "analysis",
+      "quality_scores": [
+        4,
+        4,
+        3,
+        4
+      ],
+      "blocking_defect": false,
+      "strongest_feature": "Completeness is presented beside the six-row outcomes before interpretation, with an evidence-bounded operational recommendation.",
+      "improvement": "Use a responsive table or explicit swipe cue so mobile readers can find the offscreen success and missingness values.",
+      "notes": "Report/CSV/JSON, analysis and verifier code inspected. Correct descriptive reversal and known-outcome denominators, unknown-not-failure treatment and feasible recovery/prospective-pilot next step. Independent recount confirms all numeric outputs. Desktop hierarchy clear; mobile table requires uncued horizontal scrolling. Completed verifier records support runtime rerun and invalid-token rejection; its final correction excludes manually appended QA notes from reproducibility comparison. Narrative is fixture-specific and README says future input needs editorial review. Separate receipt caveat: released LF CSV hash differs from recorded runtime hash exactly by CRLF representation, not numeric content.",
+      "blocking_evidence": ""
+    },
+    {
+      "anonymous_id": "A12",
+      "task": "documents",
+      "quality_scores": [
+        4,
+        4,
+        4,
+        3
+      ],
+      "blocking_defect": false,
+      "strongest_feature": "Page 2 pairs every deadline and owner with a next action and current unknown status in a clear table.",
+      "improvement": "Regularize gaps before Authority limits and Evidence and corrections using the available lower-page whitespace.",
+      "notes": "Both A4 pages and selectable text inspected. Readable 11pt body and urgent-first water callout preserve actions, escalation and no-arrival/no-stockout distinctions. Correct opening, corrected visit count, access uncertainty and outstanding status. Page 2 action table is coherent; lower questions/authority/evidence sections are more tightly stacked than the spacious earlier layout. No clipping or factual invention found. Completed generator/bounds checks follow a corrected font-path failure; recovered environment issue does not reduce artifact quality.",
+      "blocking_evidence": ""
+    }
+  ],
+  "notes": "Independent artifact-quality review; no arms, source-selection, prior outcomes, provider traces, timing or cost inspected. Partial blinding acknowledged: style and technique may offer clues. All 32 screenshots viewed plus actual artifacts/source/fixtures. Source application is not scored and source counts receive no bonus. Objective evidence and gaps are noted separately from artifact judgments; a missing record is unknown, not proof no test occurred. Candidate code was read but never executed on reviewer host/network. Runtime rerun claims are supported by preserved completed command outputs, not authored prose; candidate visual attention is not inferred from authored statements. See inspection-receipt.json for byte crosscheck and line-ending caveat. Parent subsequently confirmed packet read_text/write_text normalization during masking; original UID-safe/runtime CSV bytes remain unchanged. The CSV hash difference is packet postprocessing representation, not a retrieval effect."
+}

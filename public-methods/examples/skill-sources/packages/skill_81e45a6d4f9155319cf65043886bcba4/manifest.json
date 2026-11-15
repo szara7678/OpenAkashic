@@ -1,0 +1,135 @@
+{
+  "schema": "public-skill-source-v1",
+  "source_id": "kdense-statistical-analysis",
+  "package_id": "skill_81e45a6d4f9155319cf65043886bcba4",
+  "repository": "https://github.com/K-Dense-AI/scientific-agent-skills",
+  "commit": "2d2065fb4520fa3f3f2bcf61cff26ec8b7eba4b5",
+  "original_directory": "skills/statistical-analysis",
+  "entrypoint": "SKILL.md",
+  "category": "data-analysis",
+  "license": {
+    "spdx": "MIT",
+    "url": "https://github.com/K-Dense-AI/scientific-agent-skills/blob/2d2065fb4520fa3f3f2bcf61cff26ec8b7eba4b5/LICENSE.md",
+    "reviewed_for_publication": true
+  },
+  "license_files": [
+    "_upstream/LICENSE.md"
+  ],
+  "dependency_notes": [
+    "Full bundled script and five references retained. Python scientific distributions and transitive dependencies are not bundled, installed, locked or executed. Upstream dependency manifest retained; unpinned pandas/matplotlib/seaborn/numpy remain unresolved. References to separate statsmodels and pymc skills are optional further guidance and are not included; no whole-repository dependency closure is claimed."
+  ],
+  "files": [
+    {
+      "path": "SKILL.md",
+      "sha256": "e112848726b3713267cac65e4e2c15491a0a26ee1ed628db01195f7e43f97997",
+      "size_bytes": 23585,
+      "git_blob": "4ea7453a12e63f0dbc31d7a47ed41fe3ff4c4c1a",
+      "original_path": "skills/statistical-analysis/SKILL.md",
+      "git_mode": "100644",
+      "url": "https://github.com/K-Dense-AI/scientific-agent-skills/blob/2d2065fb4520fa3f3f2bcf61cff26ec8b7eba4b5/skills/statistical-analysis/SKILL.md"
+    },
+    {
+      "path": "_upstream/LICENSE.md",
+      "sha256": "09b02a3c9df3053c55531d503357a9c7cde275970e6c3ceaa1ddf5f0e90b40c1",
+      "size_bytes": 1068,
+      "git_blob": "eb246475fd5a66b9bb56176f3a718984632dd98d",
+      "original_path": "LICENSE.md",
+      "git_mode": "100644",
+      "url": "https://github.com/K-Dense-AI/scientific-agent-skills/blob/2d2065fb4520fa3f3f2bcf61cff26ec8b7eba4b5/LICENSE.md"
+    },
+    {
+      "path": "_upstream/README.md",
+      "sha256": "2d4a9f2268c6ed70fc0d0d769921963da6b82966bd71c4b0225e35b0779b2447",
+      "size_bytes": 84156,
+      "git_blob": "3fcebf5c0e49e39dc87e5b577d0368d313124862",
+      "original_path": "README.md",
+      "git_mode": "100644",
+      "url": "https://github.com/K-Dense-AI/scientific-agent-skills/blob/2d2065fb4520fa3f3f2bcf61cff26ec8b7eba4b5/README.md"
+    },
+    {
+      "path": "_upstream/pyproject.toml",
+      "sha256": "f1389a7dcea847fab4bbd59d4d4b15a717e9eb7fbd28af46115cb1ad8d9fb876",
+      "size_bytes": 900,
+      "git_blob": "5f733044e8e8e35754275e19e6b9a39418f56f50",
+      "original_path": "pyproject.toml",
+      "git_mode": "100644",
+      "url": "https://github.com/K-Dense-AI/scientific-agent-skills/blob/2d2065fb4520fa3f3f2bcf61cff26ec8b7eba4b5/pyproject.toml"
+    },
+    {
+      "path": "_upstream/tests/skill-requirements.toml",
+      "sha256": "5a86b38c863b8dce6499769944641bf8b5cd4bb601e67690a066dbe2657933f9",
+      "size_bytes": 25191,
+      "git_blob": "508bf985d7e601841e0c0e25edc831b3f3cb4285",
+      "original_path": "tests/skill-requirements.toml",
+      "git_mode": "100644",
+      "url": "https://github.com/K-Dense-AI/scientific-agent-skills/blob/2d2065fb4520fa3f3f2bcf61cff26ec8b7eba4b5/tests/skill-requirements.toml"
+    },
+    {
+      "path": "references/assumptions_and_diagnostics.md",
+      "sha256": "6e1ebc110c092845b93e5c6d28f38c8a990780105ba1865f0bd47c007620b073",
+      "size_bytes": 14654,
+      "git_blob": "08fa85f9709297dcad84bfbb138b94df7692685c",
+      "original_path": "skills/statistical-analysis/references/assumptions_and_diagnostics.md",
+      "git_mode": "100644",
+      "url": "https://github.com/K-Dense-AI/scientific-agent-skills/blob/2d2065fb4520fa3f3f2bcf61cff26ec8b7eba4b5/skills/statistical-analysis/references/assumptions_and_diagnostics.md"
+    },
+    {
+      "path": "references/bayesian_statistics.md",
+      "sha256": "34d62e1b20dd82a11497be40e07c93e4fdb555d56e4944e200f881c1b7629cbf",
+      "size_bytes": 14557,
+      "git_blob": "e78e65e190fd3a68034f0e1b1706383eb0888022",
+      "original_path": "skills/statistical-analysis/references/bayesian_statistics.md",
+      "git_mode": "100644",
+      "url": "https://github.com/K-Dense-AI/scientific-agent-skills/blob/2d2065fb4520fa3f3f2bcf61cff26ec8b7eba4b5/skills/statistical-analysis/references/bayesian_statistics.md"
+    },
+    {
+      "path": "references/effect_sizes_and_power.md",
+      "sha256": "5e1321c9058b2931a1bd2a753c7a8f4295f58274412d62e99a34eabd478e42b2",
+      "size_bytes": 20907,
+      "git_blob": "44d0c74e9d9d416485b2d7a8f56010494d907bcc",
+      "original_path": "skills/statistical-analysis/references/effect_sizes_and_power.md",
+      "git_mode": "100644",
+      "url": "https://github.com/K-Dense-AI/scientific-agent-skills/blob/2d2065fb4520fa3f3f2bcf61cff26ec8b7eba4b5/skills/statistical-analysis/references/effect_sizes_and_power.md"
+    },
+    {
+      "path": "references/reporting_standards.md",
+      "sha256": "0a30a1bec63231c94c9c285977acaa4218c50a34c8385857d18f62c61ac817b7",
+      "size_bytes": 21469,
+      "git_blob": "38e0ccd4b1d835504f70a1cea3a6526667fe890a",
+      "original_path": "skills/statistical-analysis/references/reporting_standards.md",
+      "git_mode": "100644",
+      "url": "https://github.com/K-Dense-AI/scientific-agent-skills/blob/2d2065fb4520fa3f3f2bcf61cff26ec8b7eba4b5/skills/statistical-analysis/references/reporting_standards.md"
+    },
+    {
+      "path": "references/test_selection_guide.md",
+      "sha256": "e72e00b6ebe9450e5e84849503db223c4908a8d9a68c3b87cf0ab8ec3254fe83",
+      "size_bytes": 6950,
+      "git_blob": "c518d9e57aee5f8713d153cdc6fe154a9293a9e7",
+      "original_path": "skills/statistical-analysis/references/test_selection_guide.md",
+      "git_mode": "100644",
+      "url": "https://github.com/K-Dense-AI/scientific-agent-skills/blob/2d2065fb4520fa3f3f2bcf61cff26ec8b7eba4b5/skills/statistical-analysis/references/test_selection_guide.md"
+    },
+    {
+      "path": "scripts/assumption_checks.py",
+      "sha256": "3e37a4e04407b5f040f103962ed0e73935d114d3892ee45b5a06a1da42c10341",
+      "size_bytes": 18387,
+      "git_blob": "a55993050ec75027fc7e9b465b4c0b718548b198",
+      "original_path": "skills/statistical-analysis/scripts/assumption_checks.py",
+      "git_mode": "100644",
+      "url": "https://github.com/K-Dense-AI/scientific-agent-skills/blob/2d2065fb4520fa3f3f2bcf61cff26ec8b7eba4b5/skills/statistical-analysis/scripts/assumption_checks.py"
+    }
+  ],
+  "integrity": {
+    "full_skill_folder": true,
+    "upstream_file_count": 7,
+    "files_unmodified": true
+  },
+  "dependency_closure": {
+    "source_folder": "complete",
+    "runtime": "unresolved-not-installed-or-executed",
+    "unresolved_local_schema_references": []
+  },
+  "readme_url": "https://github.com/K-Dense-AI/scientific-agent-skills/blob/2d2065fb4520fa3f3f2bcf61cff26ec8b7eba4b5/README.md",
+  "retrieved_at": "2026-11-15T10:22:01.602654+00:00",
+  "source_policy": "Untrusted source data preserved verbatim; commands and installer instructions were not executed."
+}

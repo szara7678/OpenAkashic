@@ -1,0 +1,62 @@
+import json
+from html import escape
+from pathlib import Path
+source = json.loads(Path('/task/input/centers.json').read_text())
+cards = []
+for location in source['locations']:
+    access = 'Yes' if location['step_free'] is True else 'No' if location['step_free'] is False else 'Unknown — not confirmed'
+    status = 'Open' if location['open'] else 'Closed'
+    cards.append(f'''<article class="card{' closed' if not location['open'] else ''}" data-center-id="{escape(location['id'])}">
+      <div class="card-top"><p class="neighborhood">{escape(location['neighborhood'])} neighborhood</p><span class="status">{status} <span class="sr-only">in snapshot</span></span></div>
+      <h3>{escape(location['name'])}</h3>
+      <dl><div><dt>Services</dt><dd>{escape(', '.join(location['services']))}</dd></div><div><dt>Hours</dt><dd>{escape(location['hours'])}</dd></div><div><dt>Step-free</dt><dd>{access}</dd></div></dl>
+      <p class="note">{escape(location['note'])}</p>
+    </article>''')
+page = '''<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light"><title>Find local support | Cedar</title>
+<style>
+:root{--ink:#203b3a;--paper:#f5f2e9;--leaf:#46745a;--amber:#b77a21;--line:#cbd3ca;--white:#fff; font-family:Verdana, Geneva, sans-serif;color:var(--ink);background:var(--paper);font-size:16px}
+*{box-sizing:border-box}body{margin:0}button,select,input{font:inherit}button,select{min-height:46px}button,select,input{accent-color:var(--leaf)}button,select{border:1px solid #71867b;border-radius:5px;background:var(--white);color:var(--ink)}button{padding:10px 17px;cursor:pointer;font-weight:600}button:hover{background:#e7eee7}a{color:inherit} :focus-visible{outline:3px solid #203b3a;outline-offset:4px}.skip{position:absolute;left:12px;top:-80px;background:white;padding:12px;z-index:5}.skip:focus{top:12px}
+header{background:var(--ink);color:var(--paper);border-bottom:5px solid var(--leaf)}.masthead{max-width:1120px;margin:auto;padding:17px 28px;display:flex;gap:20px;align-items:center}.brand{font:bold 30px Georgia,serif;letter-spacing:-1px}.team{border-left:1px solid #9cae9f;padding-left:20px;font-size:14px}main{max-width:1120px;margin:auto;padding:30px 28px 40px}h1{font-size:clamp(28px,4vw,38px);letter-spacing:-1px;line-height:1.15;margin:0 0 10px}h2{font-size:21px;margin:0}h3{font-size:21px;line-height:1.3;margin:14px 0 18px}p{line-height:1.55}.intro{margin:0 0 23px;max-width:65ch}.snapshot{border-left:5px solid var(--amber);padding:13px 17px;background:#fff9eb;margin-bottom:25px;font-size:14px;line-height:1.6}.snapshot strong{display:block;font-size:16px}.filters{background:#e5ebe2;border:1px solid #c7d2c3;border-radius:8px;padding:20px;margin:0 0 27px}.filter-grid{display:grid;grid-template-columns:1fr 1fr auto auto;gap:20px;align-items:end;margin-top:16px}.field{display:flex;flex-direction:column;gap:8px;font-size:14px;font-weight:bold}select{width:100%;padding:9px 35px 9px 12px}.check{display:flex;align-items:center;gap:10px;min-height:46px;cursor:pointer;font-size:14px;font-weight:bold}.check input{width:21px;height:21px;margin:0;flex-shrink:0}.filter-help{font-size:13px;margin:13px 0 0}.results-heading{display:flex;justify-content:space-between;gap:12px;align-items:baseline;margin-bottom:16px}#result-count{margin:0;font-size:14px}#results{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.card{background:white;border:1px solid var(--line);border-radius:8px;padding:22px;min-width:0}.card-top{display:flex;align-items:center;justify-content:space-between;gap:10px}.neighborhood{font-size:13px;margin:0}.status{background:#e4eee4;color:#284f38;border-radius:4px;padding:5px 8px;font-size:13px;font-weight:bold}.closed .status{background:#eeece7;color:#4c4c47}.closed{background:#faf9f5}dl{margin:0}dl>div{display:grid;grid-template-columns:92px 1fr;gap:12px;margin:10px 0;font-size:14px;line-height:1.5}dt{font-weight:bold}dd{margin:0;overflow-wrap:anywhere}.note{border-top:1px solid #e1e5de;padding-top:13px;margin:17px 0 0;font-size:13px}footer{font-size:12px;margin-top:26px;line-height:1.6}#empty{background:white;border:1px solid var(--line);border-radius:8px;padding:24px}#empty h3{margin-top:0}#empty p{margin-bottom:0}[hidden]{display:none!important}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(max-width:740px){.filter-grid{grid-template-columns:1fr 1fr;gap:16px}.filter-grid button{justify-self:end}main{padding:25px 20px}.masthead{padding:16px 20px}}
+@media(max-width:520px){#results{grid-template-columns:1fr}.filter-grid{grid-template-columns:1fr}.filter-grid button{justify-self:stretch}.filters{padding:17px}.results-heading{align-items:start;flex-direction:column;gap:7px}.card{padding:19px}.team{font-size:12px}.snapshot{padding:12px 14px}h1{letter-spacing:-.6px}}
+</style></head>
+<body><a class="skip" href="#main">Skip to directory</a><header><div class="masthead"><span class="brand">Cedar</span><span class="team">Public help desk</span></div></header>
+<main id="main"><h1>Find local support</h1><p class="intro">Find a place for cooling or advice. Choose a neighborhood, service or step-free access to narrow your options.</p>
+<aside class="snapshot" aria-label="Snapshot notice"><strong>Fixed snapshot — not live availability</strong>Hours and open/closed status are from <time datetime="2026-07-18">18 July 2026</time>. They may have changed. “Open” refers only to this snapshot, not the current time.</aside>
+<section class="filters" aria-labelledby="filter-title"><h2 id="filter-title">Find a suitable location</h2><form id="filters"><div class="filter-grid"><label class="field" for="neighborhood">Neighborhood<select id="neighborhood"><option value="">All</option><option>East</option><option>West</option><option>North</option></select></label><label class="field" for="service">Service<select id="service"><option value="">All</option><option>Cooling</option><option>Advice</option></select></label><label class="check" for="step-free"><input type="checkbox" id="step-free">Step-free only</label><button type="reset">Reset filters</button></div></form><p class="filter-help">With any filter set, only locations marked open in the snapshot are shown.</p></section>
+<section aria-labelledby="locations-title"><div class="results-heading"><h2 id="locations-title">Support locations</h2><p id="result-count" role="status" aria-live="polite" aria-atomic="true">7 locations displayed</p></div><div id="results">CARDS</div><div id="empty" hidden><h3>No open locations match these filters</h3><p>Try another neighborhood or service, or use Reset filters to see every location. Step-free only includes confirmed step-free access.</p></div></section>
+<noscript><p>Filters need JavaScript. All seven locations are listed with their snapshot status.</p></noscript><footer>Source: Cedar help-desk location snapshot, 18 July 2026. Unknown step-free access is not a confirmation of accessibility.</footer></main>
+<script id="source-data" type="application/json">DATA</script>
+<script>
+const source = JSON.parse(document.getElementById('source-data').textContent);
+const neighborhood = document.getElementById('neighborhood');
+const service = document.getElementById('service');
+const stepFree = document.getElementById('step-free');
+const cards = [...document.querySelectorAll('#results [data-center-id]')];
+function updateResults() {
+  const filtering = Boolean(neighborhood.value || service.value || stepFree.checked);
+  let count = 0;
+  for (const location of source.locations) {
+    const matches = (!filtering || location.open === true) &&
+      (!neighborhood.value || location.neighborhood === neighborhood.value) &&
+      (!service.value || location.services.includes(service.value)) &&
+      (!stepFree.checked || location.step_free === true);
+    cards.find(card => card.dataset.centerId === location.id).hidden = !matches;
+    if (matches) count += 1;
+  }
+  document.getElementById('result-count').textContent = `${count} ${count === 1 ? 'location' : 'locations'} displayed`;
+  document.getElementById('empty').hidden = count !== 0;
+}
+document.getElementById('filters').addEventListener('change', updateResults);
+document.getElementById('filters').addEventListener('submit', event => event.preventDefault());
+document.getElementById('filters').addEventListener('reset', () => {
+  neighborhood.value = '';
+  service.value = '';
+  stepFree.checked = false;
+  updateResults();
+});
+updateResults();
+</script></body></html>'''
+Path('/work/index.html').write_text(page.replace('CARDS', '\n'.join(cards)).replace('DATA', json.dumps(source).replace('<', '\\u003c')))

@@ -1,0 +1,9 @@
+{
+  "root_freeze_sha256": "a0cf39f09a6964c0afa600e3bad3c0fb54f8a33335eb11244fe0765eeec9c54c",
+  "author_freeze_sha256": "a82f414d81338f6ae1bd7e2d578a1dfbcf968cff6b63945de29d9794dc6a92b9",
+  "protocol_original_sha256": "1dcf616c5edee4b70388df18d58d447f073522ca723b1717dbd1ed142f4f2a0c",
+  "final_approved_data_sha256": "73fd474b240a44ce78083d0ba9358499f94a10be7a6fe553bb3741d09e7aaff3",
+  "source_application_review_original_sha256": "437945f7fbcb2d9cb696146ab208fa80b089512cc86330d7e48a21cb0b9a407c",
+  "packet_set_sha256": "0b4bea8ee98d3108a47e267c833eb0a0b1d6fb1026ddfa60d0031edf5c8889c2",
+  "raw_private_artifacts_not_included": true
+}

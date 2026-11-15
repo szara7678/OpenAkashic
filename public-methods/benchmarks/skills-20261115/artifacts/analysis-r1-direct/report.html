@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cedar pilot | Handling comparison</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#edf2f5;color:#182e3d;font:16px/1.5 system-ui,sans-serif}
+main{max-width:1050px;margin:28px auto;background:white;padding:34px 40px;border-radius:12px}
+h1{font-size:32px;line-height:1.15;margin:6px 0 16px}h2{font-size:20px;margin:22px 0 8px}
+p{margin:8px 0}.eyebrow{font-size:13px;text-transform:uppercase;letter-spacing:2px;color:#426573}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0}
+.card{background:#edf4f6;border-left:5px solid #216477;padding:16px}
+.metric{font-size:29px;font-weight:750}.label{font-weight:650}
+table{border-collapse:collapse;width:100%;font-size:14px}th,td{padding:9px 8px;border-bottom:1px solid #d6e0e5;text-align:right}
+th:first-child,td:nth-child(2){text-align:left}thead{background:#edf4f6}.note{font-size:14px;color:#405764}
+.action{padding:14px 18px;background:#f7f1df;border-radius:6px}footer{border-top:1px solid #d6e0e5;margin-top:22px;padding-top:12px}
+@media(max-width:650px){main{padding:20px;margin:0}.cards{grid-template-columns:1fr}.table-wrap{overflow-x:auto}}
+@media print{body{background:white}main{margin:0;padding:14px;max-width:none}}
+</style></head><body><main>
+<div class="eyebrow">Cedar pilot · Operations brief</div>
+<h1>Assisted leads within each branch,<br>but trails in the pooled log</h1>
+<p><strong>Bottom line:</strong> Branch mix changes the direction of the comparison. The log supports a descriptive association, not a claim that assisted handling causes better outcomes.</p>
+<div class="cards">
+<section class="card"><div class="label">Pooled · actual known-case mix</div>
+<div class="metric">-3.33 pp</div>
+<p>Assisted 63.3% vs standard 66.7%</p>
+<div class="note">Successes ÷ known outcomes, pooled across branches.</div></section>
+<section class="card"><div class="label">Equal branch · 50/50 East–West</div>
+<div class="metric">+14.00 pp</div>
+<p>Assisted 70.0% vs standard 56.0%</p>
+<div class="note">Mean of the two branch known-outcome success rates; not a pooled case rate.</div></section></div>
+<h2>Case counts and outcome completeness</h2>
+<p class="note">Success rate = successes ÷ known outcomes. Missing % = unknown outcomes ÷ all cases in that row. ALL rows combine East and West; do not add them to branch rows.</p>
+<div class="table-wrap"><table><thead><tr><th scope="col">Service</th><th scope="col">Branch</th><th scope="col">All cases</th><th scope="col">Known</th><th scope="col">Missing (% all)</th><th scope="col">Successes</th><th scope="col">Success rate</th></tr></thead>
+<tbody><tr><th scope='row'>Assisted</th><td>East</td><td>14</td><td>10</td><td>4 (28.6%)</td><td>8</td><td>80.0%</td></tr>
+<tr><th scope='row'>Assisted</th><td>West</td><td>56</td><td>50</td><td>6 (10.7%)</td><td>30</td><td>60.0%</td></tr>
+<tr><th scope='row'>Assisted</th><td>ALL</td><td>70</td><td>60</td><td>10 (14.3%)</td><td>38</td><td>63.3%</td></tr>
+<tr><th scope='row'>Standard</th><td>East</td><td>51</td><td>50</td><td>1 (2.0%)</td><td>36</td><td>72.0%</td></tr>
+<tr><th scope='row'>Standard</th><td>West</td><td>19</td><td>10</td><td>9 (47.4%)</td><td>4</td><td>40.0%</td></tr>
+<tr><th scope='row'>Standard</th><td>ALL</td><td>70</td><td>60</td><td>10 (14.3%)</td><td>40</td><td>66.7%</td></tr></tbody></table></div>
+<h2>Why the direction changes</h2>
+<p>East has higher known-outcome success rates for both services. Assisted exceeds standard in East (80.0% vs 72.0%, +8.0 pp) and West (60.0% vs 40.0%, +20.0 pp). Yet only 16.7% of assisted known cases are in East, versus 83.3% of standard known cases (denominator: each service’s known cases). Assisted is concentrated in the lower-success branch, producing a Simpson’s-paradox reversal.</p>
+<p>The equal-branch result averages East and West rates with weight 0.5 each within each service. It answers a hypothetical equal-branch-mix question, not the result for the observed case mix or a causal effect.</p>
+<h2>Unknown outcomes and evidence limits</h2>
+<p>20 of 140 cases have unknown outcomes (14.3% of all cases). Each service has 10 unknowns out of 70 cases (14.3% of all cases per service), but missingness varies sharply by branch: standard West has 9/19 unknown (47.4% of its cases). Blank outcomes are excluded only from success-rate denominators, never counted as failures or imputed. If missingness relates to success, even the within-branch comparisons can be biased.</p>
+<p>This observational log does not establish causation: service assignment was not randomized, branch adjustment does not control severity or other unrecorded differences, and follow-up may differ. These are descriptive estimates for this pilot; no confidence intervals, significance tests, or population-level claims are made.</p>
+<section class="action"><h2 style="margin-top:0">Practical next step</h2><p>Recover unknown outcomes, especially standard West, and audit assignment, severity and follow-up consistency. Before scaling, run a prospectively planned pilot with random assignment within branch where feasible, a common outcome window and complete follow-up. Use these results to justify further evaluation, not an immediate causal performance claim.</p></section>
+<footer class="note">Source: cases.csv · one row per case · differences are assisted minus standard in percentage points (pp). Rounded display only; CSV/JSON retain numerical precision. Reproduce with analysis.py using Python’s standard library; no network or external assets.</footer>
+</main></body></html>

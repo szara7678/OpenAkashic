@@ -1,0 +1,12 @@
+{
+  "status": "PASS",
+  "combinations": 24,
+  "initialLocations": 7,
+  "reset": "PASS",
+  "sourceFields": "PASS",
+  "snapshotDate": "PASS",
+  "keyboard": "Tab reaches skip link and Neighborhood; visible solid focus; arrow selection updates results",
+  "mobileOverflow": "none at 390px, default, filtered and empty states",
+  "externalRequests": 0,
+  "pageErrors": 0
+}

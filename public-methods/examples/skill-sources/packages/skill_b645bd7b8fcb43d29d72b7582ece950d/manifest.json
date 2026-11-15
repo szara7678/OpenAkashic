@@ -1,0 +1,163 @@
+{
+  "schema": "public-skill-source-v1",
+  "source_id": "anthropics-pdf",
+  "package_id": "skill_b645bd7b8fcb43d29d72b7582ece950d",
+  "repository": "https://github.com/anthropics/skills",
+  "commit": "1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064",
+  "original_directory": "skills/pdf",
+  "entrypoint": "SKILL.md",
+  "category": "documents",
+  "license": {
+    "spdx": "Apache-2.0",
+    "url": "https://github.com/anthropics/skills/blob/1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064/skills/pdf/LICENSE.txt",
+    "reviewed_for_publication": true
+  },
+  "license_files": [
+    "LICENSE.txt",
+    "_upstream/THIRD_PARTY_NOTICES.md"
+  ],
+  "dependency_notes": [
+    "All bundled scripts and FORMS.md/REFERENCE.md retained. Python PDF libraries and system tools listed by upstream (including pypdf, pdfplumber, reportlab, pdf2image, Pillow, pytesseract, Poppler, qpdf, OCR and optional JavaScript packages) are not vendored, installed, transitively locked or executed. Package is source-complete, not a self-contained runtime."
+  ],
+  "files": [
+    {
+      "path": "FORMS.md",
+      "sha256": "d5df5757e23634cd8a1a37e092af6c3b3b63afb3fd3ce86337fce9017cc3ee9f",
+      "size_bytes": 11857,
+      "git_blob": "13493857340a31c41970faf407327b57b0aac8e1",
+      "original_path": "skills/pdf/FORMS.md",
+      "git_mode": "100644",
+      "url": "https://github.com/anthropics/skills/blob/1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064/skills/pdf/FORMS.md"
+    },
+    {
+      "path": "LICENSE.txt",
+      "sha256": "58d1e17ffe5109a7ae296caafcadfdbe6a7d176f0bc4ab01e12a689b0499d8bd",
+      "size_bytes": 11357,
+      "git_blob": "7a4a3ea2424c09fbe48d455aed1eaa94d9124835",
+      "original_path": "skills/pdf/LICENSE.txt",
+      "git_mode": "100644",
+      "url": "https://github.com/anthropics/skills/blob/1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064/skills/pdf/LICENSE.txt"
+    },
+    {
+      "path": "REFERENCE.md",
+      "sha256": "07af9a8f59e77e88fe9b238a403348244f38a4771c54911c412716d8f88f0ea9",
+      "size_bytes": 16724,
+      "git_blob": "7748e376a0f174cb36738599268c30227ebe1f3c",
+      "original_path": "skills/pdf/REFERENCE.md",
+      "git_mode": "100644",
+      "url": "https://github.com/anthropics/skills/blob/1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064/skills/pdf/REFERENCE.md"
+    },
+    {
+      "path": "SKILL.md",
+      "sha256": "d1c7caf5f35eb7d37877dd7fc33a095037be2b34fb5d2f7f4d43bde3165bb4ee",
+      "size_bytes": 8058,
+      "git_blob": "9f606f1cd68dcab9dabb75b548e90c1de028b8a2",
+      "original_path": "skills/pdf/SKILL.md",
+      "git_mode": "100644",
+      "url": "https://github.com/anthropics/skills/blob/1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064/skills/pdf/SKILL.md"
+    },
+    {
+      "path": "_upstream/README.md",
+      "sha256": "1fca448ca17ccf901bd068c661209b15300bc5be3f039ba1a616c3a13a374ccb",
+      "size_bytes": 5547,
+      "git_blob": "4171c2c9eba15bf2bdefb496d941ba559368438b",
+      "original_path": "README.md",
+      "git_mode": "100644",
+      "url": "https://github.com/anthropics/skills/blob/1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064/README.md"
+    },
+    {
+      "path": "_upstream/THIRD_PARTY_NOTICES.md",
+      "sha256": "a8ff7a84dee9dfb42ab448de281784387ceafdf63881b7c070ee2de7f6ed865c",
+      "size_bytes": 46162,
+      "git_blob": "ffef92c48b351a3ed036556ed32dda934e8cf41a",
+      "original_path": "THIRD_PARTY_NOTICES.md",
+      "git_mode": "100644",
+      "url": "https://github.com/anthropics/skills/blob/1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064/THIRD_PARTY_NOTICES.md"
+    },
+    {
+      "path": "scripts/check_bounding_boxes.py",
+      "sha256": "0ced522402dd7b3c82a0be9518cf4e485fa9cc0467d7beab6ddb04cb36fcc3e1",
+      "size_bytes": 2774,
+      "git_blob": "2cc5e348f359b7aa7179e6a26772dacfdbbeba53",
+      "original_path": "skills/pdf/scripts/check_bounding_boxes.py",
+      "git_mode": "100644",
+      "url": "https://github.com/anthropics/skills/blob/1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064/skills/pdf/scripts/check_bounding_boxes.py"
+    },
+    {
+      "path": "scripts/check_fillable_fields.py",
+      "sha256": "1fe10b9980a5493c9bbec8c20630c603eaa475b45403751c08f26738736647b8",
+      "size_bytes": 268,
+      "git_blob": "36dfb9513e2f54e051820b58c3cdd1f09bc6ff37",
+      "original_path": "skills/pdf/scripts/check_fillable_fields.py",
+      "git_mode": "100644",
+      "url": "https://github.com/anthropics/skills/blob/1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064/skills/pdf/scripts/check_fillable_fields.py"
+    },
+    {
+      "path": "scripts/convert_pdf_to_images.py",
+      "sha256": "7f58e292a67e18a8ff000d30bad2469389546731f7e8a698cc1d0aed001ea15d",
+      "size_bytes": 1008,
+      "git_blob": "7939cef56c1220dd9dd0d04ec9594b2fe089ee74",
+      "original_path": "skills/pdf/scripts/convert_pdf_to_images.py",
+      "git_mode": "100644",
+      "url": "https://github.com/anthropics/skills/blob/1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064/skills/pdf/scripts/convert_pdf_to_images.py"
+    },
+    {
+      "path": "scripts/create_validation_image.py",
+      "sha256": "8fa9fd7962c9f940045b81cf6b991e7c1057c1838e3f9cc6d305007a222ffebf",
+      "size_bytes": 1258,
+      "git_blob": "10eadd8124b1f94f9b1a78708c2d947a3f6773e7",
+      "original_path": "skills/pdf/scripts/create_validation_image.py",
+      "git_mode": "100644",
+      "url": "https://github.com/anthropics/skills/blob/1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064/skills/pdf/scripts/create_validation_image.py"
+    },
+    {
+      "path": "scripts/extract_form_field_info.py",
+      "sha256": "bb235b36f497bbb1c7c6821cecf527bbba7213520de11219da99f7b13a38c109",
+      "size_bytes": 4300,
+      "git_blob": "64cd4703a4af80bf6abe16f4c3065d8abd55d173",
+      "original_path": "skills/pdf/scripts/extract_form_field_info.py",
+      "git_mode": "100644",
+      "url": "https://github.com/anthropics/skills/blob/1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064/skills/pdf/scripts/extract_form_field_info.py"
+    },
+    {
+      "path": "scripts/extract_form_structure.py",
+      "sha256": "6814e3fe8f78c2b16d766c132b5a727ff7a31b71d76a7d46bd6e40fe50bc97c5",
+      "size_bytes": 3945,
+      "git_blob": "f219e7d5b5e30616b2259abb924253afd0240aee",
+      "original_path": "skills/pdf/scripts/extract_form_structure.py",
+      "git_mode": "100755",
+      "url": "https://github.com/anthropics/skills/blob/1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064/skills/pdf/scripts/extract_form_structure.py"
+    },
+    {
+      "path": "scripts/fill_fillable_fields.py",
+      "sha256": "d140872c2e92e41b1e05370ae8d270c5b7f5ebdf55d9905f03bc974a9c708ff5",
+      "size_bytes": 3819,
+      "git_blob": "51c2600f3895723cac15ec3ffcd8a482e42f95d7",
+      "original_path": "skills/pdf/scripts/fill_fillable_fields.py",
+      "git_mode": "100644",
+      "url": "https://github.com/anthropics/skills/blob/1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064/skills/pdf/scripts/fill_fillable_fields.py"
+    },
+    {
+      "path": "scripts/fill_pdf_form_with_annotations.py",
+      "sha256": "8a56e063a49ed53c0b0e1d312ecf8023af76816ed139486ec3b539873de202fd",
+      "size_bytes": 3235,
+      "git_blob": "b430069fd016cff11560d0f2b95c63074736e5e4",
+      "original_path": "skills/pdf/scripts/fill_pdf_form_with_annotations.py",
+      "git_mode": "100644",
+      "url": "https://github.com/anthropics/skills/blob/1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064/skills/pdf/scripts/fill_pdf_form_with_annotations.py"
+    }
+  ],
+  "integrity": {
+    "full_skill_folder": true,
+    "upstream_file_count": 12,
+    "files_unmodified": true
+  },
+  "dependency_closure": {
+    "source_folder": "complete",
+    "runtime": "unresolved-not-installed-or-executed",
+    "unresolved_local_schema_references": []
+  },
+  "readme_url": "https://github.com/anthropics/skills/blob/1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064/README.md",
+  "retrieved_at": "2026-11-15T10:20:09.623225+00:00",
+  "source_policy": "Untrusted source data preserved verbatim; commands and installer instructions were not executed."
+}

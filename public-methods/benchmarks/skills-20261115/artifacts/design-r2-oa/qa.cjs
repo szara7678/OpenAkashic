@@ -1,0 +1,63 @@
+const { chromium } = require('/opt/eval-browser/node_modules/playwright-core');
+const fs = require('fs');
+const assert = require('assert/strict');
+(async () => {
+ const browser = await chromium.launch({executablePath:'/usr/bin/chromium',headless:true,args:['--no-sandbox']});
+ const page = await browser.newPage({viewport:{width:1280,height:1000}});
+ const errors = [], external = [];
+ page.on('pageerror',error=>errors.push(String(error)));
+ page.on('request',request=>{if (!request.url().startsWith('file:')) external.push(request.url());});
+ await page.goto('file:///work/index.html');
+ const source = JSON.parse(fs.readFileSync('/task/input/centers.json','utf8'));
+ const visibleIds = () => page.locator('#results [data-center-id]:visible').evaluateAll(cards=>cards.map(card=>card.dataset.centerId));
+ assert.deepEqual(await visibleIds(),source.locations.map(center=>center.id));
+ for (const center of source.locations) {
+   const card = page.locator(`[data-center-id="${center.id}"]`);
+   const text = await card.innerText();
+   for (const value of [center.name,center.neighborhood,center.hours,center.note,...center.services]) assert.ok(text.includes(value));
+   assert.ok(text.includes(center.open ? 'Open' : 'Closed'));
+   assert.ok(text.includes(center.step_free === null ? 'Unknown — not confirmed' : center.step_free ? 'Yes' : 'No'));
+ }
+ let combinations = 0;
+ for (const neighborhood of ['', 'East','West','North']) for (const service of ['', 'Cooling','Advice']) for (const stepFree of [false,true]) {
+   await page.getByLabel('Neighborhood',{exact:true}).selectOption(neighborhood);
+   await page.getByLabel('Service',{exact:true}).selectOption(service);
+   await page.getByLabel('Step-free only',{exact:true}).setChecked(stepFree);
+   const active = Boolean(neighborhood || service || stepFree);
+   const expected = source.locations.filter(center=>(!active || center.open) && (!neighborhood || center.neighborhood===neighborhood) && (!service || center.services.includes(service)) && (!stepFree || center.step_free===true)).map(center=>center.id);
+   assert.deepEqual(await visibleIds(),expected);
+   assert.equal(await page.locator('#result-count').innerText(),`${expected.length} ${expected.length===1?'location':'locations'} shown`);
+   assert.equal(await page.locator('#empty').isVisible(),expected.length===0);
+   combinations++;
+ }
+ await page.getByRole('button',{name:'Reset filters',exact:true}).click();
+ assert.equal((await visibleIds()).length,7);
+ assert.equal(await page.locator('#neighborhood').inputValue(),'');
+ assert.equal(await page.locator('#service').inputValue(),'');
+ assert.equal(await page.locator('#step-free').isChecked(),false);
+ await page.screenshot({path:'/work/desktop.png',fullPage:true});
+ await page.setViewportSize({width:390,height:844});
+ assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth <= innerWidth));
+ await page.screenshot({path:'/work/mobile.png',fullPage:true});
+ await page.reload();
+ await page.keyboard.press('Tab');
+ assert.equal(await page.locator(':focus').innerText(),'Skip to directory');
+ await page.keyboard.press('Tab');
+ assert.equal(await page.locator(':focus').getAttribute('id'),'neighborhood');
+ const focus = await page.locator(':focus').evaluate(element=>({style:getComputedStyle(element).outlineStyle,width:getComputedStyle(element).outlineWidth}));
+ assert.equal(focus.style,'solid'); assert.equal(focus.width,'3px');
+ await page.keyboard.press('Tab'); assert.equal(await page.locator(':focus').getAttribute('id'),'service');
+ await page.keyboard.press('Tab'); assert.equal(await page.locator(':focus').getAttribute('id'),'step-free');
+ await page.keyboard.press('Space'); assert.equal(await page.locator('#step-free').isChecked(),true);
+ await page.keyboard.press('Tab'); assert.equal(await page.locator(':focus').getAttribute('id'),'reset');
+ await page.keyboard.press('Enter'); assert.equal((await visibleIds()).length,7);
+ assert.deepEqual(errors,[]); assert.deepEqual(external,[]);
+ const noJS = await browser.newContext({javaScriptEnabled:false,viewport:{width:390,height:844}});
+ const fallback = await noJS.newPage(); await fallback.goto('file:///work/index.html');
+ assert.equal(await fallback.locator('#results [data-center-id]:visible').count(),7);
+ assert.equal(await fallback.locator('noscript').isVisible(),true);
+ const result = {combinations,initialLocations:7,reset:'pass',sourceFidelity:'pass',emptyState:'pass',mobileOverflow:'none at 390px',keyboard:'tab order, focus outline, checkbox toggle and reset pass',externalRequests:external,jsErrors:errors,noJS:'all 7 readable with notice',screenshots:['desktop.png','mobile.png']};
+ fs.writeFileSync('/work/qa-results.json',JSON.stringify(result,null,2)+'\n');
+ console.log(JSON.stringify(result,null,2));
+ await browser.close();
+})().catch(error=>{console.error(error);process.exit(1)});

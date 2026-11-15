@@ -1,0 +1,11 @@
+{
+  "schema": "public-skill-source-catalog-v1",
+  "packages": [
+    "skill_07c728f6e8cc12349e73623954a260c7",
+    "skill_77687da51641a2447bceaa15d462a9f4",
+    "skill_b645bd7b8fcb43d29d72b7582ece950d",
+    "skill_030e604af66e47e565b6efa0efa1d7b9",
+    "skill_5ed9591a3be82c9e63c6787f2256b588",
+    "skill_81e45a6d4f9155319cf65043886bcba4"
+  ]
+}

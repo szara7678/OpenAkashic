@@ -1,0 +1,190 @@
+{
+  "schema": "anonymous-artifact-quality-review-v1",
+  "reviewer_id": "independent-reviewer-A",
+  "independent": true,
+  "packet_set_sha256": "0b4bea8ee98d3108a47e267c833eb0a0b1d6fb1026ddfa60d0031edf5c8889c2",
+  "rubric_sha256": "ca69881ff70ae486674568c7ee06bb956e63328abcfda3fb9a1f0e49bbe338dd",
+  "rows": [
+    {
+      "anonymous_id": "A01",
+      "task": "design",
+      "quality_scores": [
+        4,
+        4,
+        2,
+        3
+      ],
+      "blocking_defect": false,
+      "strongest_feature": "Exceptionally readable field/value cards retain hours, closed warnings and explicit unknown access; the dated notice clearly bounds availability.",
+      "improvement": "Condense the mobile introduction, notice and filter panel, and bring the live match count beside the controls so a resident can see feedback before scrolling.",
+      "notes": "Actual HTML and all four screenshots inspected. At 390 px the first card starts around y930, below the 844 px initial viewport. The East/Advice/step-free image shows Cedar Library only; North/Advice/step-free has a helpful empty state. Source predicates intersect filters, exclude closed sites whenever filtering and require strict true access. Native labels, focus CSS and polite live count are present; feedback remains separated below the tall panel. Execution gap, separately from artifact quality: QA.md absent; executed-commands.json items 6/7/10 failed during browser targeting/label assertion, with no final successful native QA record. The last label failure compares concatenated nested-label text with an overly strict string; this alone is not an artifact accessibility failure. No blocking artifact defect observed.",
+      "blocking_evidence": ""
+    },
+    {
+      "anonymous_id": "A02",
+      "task": "documents",
+      "quality_scores": [
+        4,
+        4,
+        4,
+        3
+      ],
+      "blocking_defect": false,
+      "strongest_feature": "The urgent water issue comes first, with stock uncertainty, named timed actions and missed-update escalation; chronological deadline/owner rows make the handover actionable.",
+      "improvement": "Increase the gap between the page-two title and subtitle and put each unresolved question on a separate line for faster scanning.",
+      "notes": "Both rendered pages and selectable text inspected; two A4 pages. Correct 82 visits, 09:00–18:00 hours, received-versus-pending ramp, four outstanding owners/deadlines and source chronology are preserved. Page-two title/subtitle spacing is noticeably tight, although no text is clipped. Neutral command evidence item 6 records successful structural/bounds/text checks after corrected font and dependency failures. No claim of executed visual attention is inferred from README/QA prose. No blocking defect observed.",
+      "blocking_evidence": ""
+    },
+    {
+      "anonymous_id": "A03",
+      "task": "design",
+      "quality_scores": [
+        4,
+        4,
+        2,
+        3
+      ],
+      "blocking_defect": false,
+      "strongest_feature": "Bold hours/access values and locally qualified Open at snapshot badges make the eligibility information easy to compare without depending on color.",
+      "improvement": "Shorten the mobile preamble and stacked filter section, and place the current match count next to the controls.",
+      "notes": "Actual HTML and all four screenshots inspected. No overlap or horizontal clipping observed; explicit unknown access and closed warnings retained. The first card starts around y938 on the 390 px page, leaving the entire first viewport above results. Filtered and empty images show the expected one and zero matches. Native labelled controls, focus CSS, polite count and recovery copy are clear, but count/empty feedback sits below the tall form. Neutral executed-command item 7 records the 24-combination test and focus/reset checks passing; an earlier unsupported native-popup test was removed, explicitly disclosed. No blocking defect observed.",
+      "blocking_evidence": ""
+    },
+    {
+      "anonymous_id": "A04",
+      "task": "documents",
+      "quality_scores": [
+        4,
+        4,
+        4,
+        4
+      ],
+      "blocking_defect": false,
+      "strongest_feature": "A prominent urgent panel and clearly separated action register, individually labelled unknowns and compact source mapping support immediate shift decisions.",
+      "improvement": "For still faster scanning, align deadlines in a dedicated column beside owners in the action register.",
+      "notes": "Both rendered pages and selectable text inspected; two A4 pages, no clipped text or table. The latest dated opening/attendance/ramp corrections, four outstanding actions and all unresolved questions match the sole source. The 11:00 supplier update is distinguished from an arrival time. Source note maps current facts and actions to records B/C/D without asserting completion. Neutral executed commands record successful creation and final bounds/text checks. The suggested column layout is an incremental usability improvement, not a substantive deficiency. No blocking defect observed.",
+      "blocking_evidence": ""
+    },
+    {
+      "anonymous_id": "A05",
+      "task": "analysis",
+      "quality_scores": [
+        4,
+        4,
+        3,
+        4
+      ],
+      "blocking_defect": false,
+      "strongest_feature": "Worked branch fractions and numeric pooled denominators make the reversal transparent, and every branch missingness percentage is repeated in readable prose.",
+      "improvement": "Provide a mobile summary layout or an explicit horizontal-scroll cue so success and missingness columns are discoverable on a phone.",
+      "notes": "Actual report, both screenshots, CSV/JSON, fixture and preserved calculation code inspected. Reviewer independently recounted all 140 fixture rows; six CSV rows and both differences are correct (-3.3333 pp pooled, +14 pp equal branch). Known-outcome and all-case denominators are explicit; unknown outcomes are not failures. Correctly describes hypothetical equal branch mix and observational limits. Desktop hierarchy is clear, while the mobile table initially hides right-side estimates without a scroll cue; CSS allows recovery by scrolling, so not blocking. Neutral command item 5 records exact-output checks and byte-identical reproduction; source code uses standard-library calculations and README gives exact invocation. Fixture-specific narrative limitation is disclosed. No blocking defect observed.",
+      "blocking_evidence": ""
+    },
+    {
+      "anonymous_id": "A06",
+      "task": "analysis",
+      "quality_scores": [
+        4,
+        3,
+        2,
+        4
+      ],
+      "blocking_defect": false,
+      "strongest_feature": "The paired observed-mix/equal-mix estimates and plain-language weighting explanation clearly communicate the direction reversal without causal overclaim.",
+      "improvement": "Move the denominator caption outside the horizontal-scroll container and use mobile rows/cards or a clear scroll cue for the full summary.",
+      "notes": "Actual report, both screenshots, CSV/JSON, fixture and preserved calculation code inspected. All six rows and both numeric differences match the reviewer recount. Unknown outcomes remain excluded only from success denominators, and recommendation fits observational evidence. At 390 px, right-hand success columns are offscreen and the table caption itself extends into the horizontal-scroll area: its denominator/missingness sentence is truncated at the initial position. These are recoverable presentation weaknesses, not absent data or a blocking factual defect. Neutral command item 5 records successful fixture/schema/difference/reproduction checks. Exact reproduction command and assumptions are documented; no candidate code was run by reviewer.",
+      "blocking_evidence": ""
+    },
+    {
+      "anonymous_id": "A07",
+      "task": "design",
+      "quality_scores": [
+        4,
+        4,
+        2,
+        3
+      ],
+      "blocking_defect": false,
+      "strongest_feature": "The initial count distinguishes five open and two closed sites, and every card visibly qualifies its status as a snapshot; unknown access remains explicit.",
+      "improvement": "Compress the mobile notice and filter section, and keep the changing match count close to the selected controls.",
+      "notes": "Actual HTML and all four screenshots inspected. Clear type, calm civic identity, aligned field/value cards and intact unknown/closed warnings. At 390 px, the first result begins around y945, below the initial screen. East/Advice/step-free shows Cedar Library alone and North/Advice/step-free shows a helpful zero-match state. The source uses immediate conjunctive filters with strict true access and closed exclusion, native labels, visible-focus CSS and polite status. Feedback is clear once scrolled into view. Neutral command evidence records 24 combinations, reset, source fields and tested keyboard/overflow checks passing. No blocking defect observed.",
+      "blocking_evidence": ""
+    },
+    {
+      "anonymous_id": "A08",
+      "task": "documents",
+      "quality_scores": [
+        4,
+        3,
+        4,
+        4
+      ],
+      "blocking_defect": false,
+      "strongest_feature": "The deadline column and concise owner/action/status rows on page two pair operational work with uncertainty, while inline record labels support traceability.",
+      "improvement": "Move the urgent delayed-water exception above the routine opening-hours and attendance statistics on page one.",
+      "notes": "Both rendered pages and selectable text inspected; two A4 pages with legible intact text and no clipping. All source corrections, the four action owners/deadlines, ramp uncertainty, stock/ETA unknowns and authority/medical boundaries are retained. Hours and attendance are the first large page-one items, pushing the urgent exception to the middle; this slightly weakens quick response hierarchy. Neutral command item 6 records successful final checks after whitespace-normalization correction to a text assertion; the PDF did not need a content correction. No blocking defect observed.",
+      "blocking_evidence": ""
+    },
+    {
+      "anonymous_id": "A09",
+      "task": "analysis",
+      "quality_scores": [
+        4,
+        3,
+        3,
+        4
+      ],
+      "blocking_defect": false,
+      "strongest_feature": "The report leads with the operational decision, explains the changed branch weighting and makes standard-West missingness a concrete priority before wider rollout.",
+      "improvement": "Adapt the summary table for phones or add an obvious scroll cue, keeping success rates and missingness visible with their group labels.",
+      "notes": "Actual report, both screenshots, CSV/JSON, fixture and preserved calculation code inspected. Reviewer recount confirms every six-row count/rate and both differences. The report distinguishes observed pooled mix, hypothetical equal mix, unknown outcomes and noncausal evidence. Desktop table is coherent, including distinguished pooled rows. At 390 px the outcome and missingness columns are initially offscreen without a cue; surrounding prose retains the critical figures and scrolling can recover the table. Neutral command item 4 records exact numerical/schema checks, unchanged input and byte-identical rerun; exact invocation is documented. Candidate prose says mobile was not inspected, which is consistent with treating the released mobile screenshots as separate review evidence. No blocking defect observed.",
+      "blocking_evidence": ""
+    },
+    {
+      "anonymous_id": "A10",
+      "task": "design",
+      "quality_scores": [
+        4,
+        4,
+        2,
+        3
+      ],
+      "blocking_defect": false,
+      "strongest_feature": "Hours and step-free values are prominent beneath compact service labels, with a clear dated notice and explicit unknown accessibility.",
+      "improvement": "Reduce mobile vertical space before results and move the changing result count into or immediately beside the filter panel.",
+      "notes": "Actual HTML and all four screenshots inspected. No clipping/overlap observed; every supplied location fact retained. At 390 px the first card starts around y948, leaving the initial viewport occupied by intro/notice/filters. Filtered and empty images show one Cedar Library match and zero North matches with useful recovery. Source includes immediate conjunctive filtering, strict true step-free, closed exclusion, native labels, visible-focus CSS and polite count. Feedback is clear but visually separated below the tall form. Neutral command item 5 records successful 24-combination, source-field, focus, reset and width checks. No blocking defect observed.",
+      "blocking_evidence": ""
+    },
+    {
+      "anonymous_id": "A11",
+      "task": "analysis",
+      "quality_scores": [
+        4,
+        3,
+        3,
+        4
+      ],
+      "blocking_defect": false,
+      "strongest_feature": "The 50/50 card states precisely that it is a mean of branch known-outcome rates, and the recommendation connects missing-data recovery to a prospective evaluation.",
+      "improvement": "Use a mobile summary layout or explicit scroll cue so the right-side success/missingness columns can be found and compared easily.",
+      "notes": "Actual report, both screenshots, CSV/JSON, fixture and preserved calculation code inspected. Reviewer recount confirms every six-row count/rate and both signed differences. Clear denominator definitions, correct weighting reversal and explicit missingness/noncausal limitations. The readable desktop table becomes a horizontally scrolling table at 390 px, with key outcome columns initially hidden and no cue; prose preserves major results. Neutral commands items 5/6 record passed fixture/schema/reproduction checks; the final verifier correctly excludes manually appended QA notes from byte comparison. Exact invocation is in README and code is standard-library only. No blocking defect observed.",
+      "blocking_evidence": ""
+    },
+    {
+      "anonymous_id": "A12",
+      "task": "documents",
+      "quality_scores": [
+        4,
+        4,
+        4,
+        4
+      ],
+      "blocking_defect": false,
+      "strongest_feature": "The urgent exception leads page one and the compact striped owner/deadline/action table on page two clearly separates outstanding work from unresolved facts.",
+      "improvement": "List the four open questions individually rather than pairing them across two lines, improving scan speed during handover.",
+      "notes": "Both rendered pages and selectable text inspected; two A4 pages with unclipped text/table. Corrected visits, staffed hours, pending west-ramp request and stock/arrival unknowns are preserved. Four named actions/deadlines, escalation and source chronology are clear; no completed action or approval is invented. Neutral command item 4 records successful two-page A4/selectable-text/bounds checks after a corrected local font path. The open-question formatting suggestion is incremental; this is exceptionally coherent for the small brief. No blocking defect observed.",
+      "blocking_evidence": ""
+    }
+  ],
+  "notes": "Independent artifact quality review under partial blinding. Reviewed only the permitted provisional mirror and released public packet, plus PDF tool guidance; no arm/source-selection/provider/cost materials sought and no contact with another reviewer. All 32 screenshots, actual HTML/PDF/CSV/JSON and fixtures inspected. Read all 12 READMEs and all 11 extant QAs, and inspected preserved actual calculation/test evidence. Self-authored claims of visual attention are not treated as execution proof. Artifact scores do not reward source counts or particular visual styles. Candidate code was not executed by reviewer; own read-only fixture recount and PDF extraction were performed. No blocking artifact defect found; A01 missing QA/final native QA pass is a separately reported evidence/delivery gap."
+}

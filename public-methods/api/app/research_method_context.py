@@ -49,6 +49,8 @@ def pack_context(result, max_tokens=1024):
             "constraint_match": row["match"].get("constraint_rules", {"status": "unknown"}),
             "reported_feedback": row["match"].get("feedback", []),
         }
+        if method.get("skill_sources"):
+            item["skill_sources"] = method["skill_sources"]
         pack["items"].append(item)
         pack["omitted_candidates"] -= 1
         if counted(pack) > max_tokens - 8:

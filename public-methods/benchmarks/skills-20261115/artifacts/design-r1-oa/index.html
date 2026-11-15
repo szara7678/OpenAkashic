@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Find support | Cedar help desk</title>
+<style>
+:root { --ink:#203b3a; --paper:#f5f2e9; --leaf:#46745a; --amber:#b77a21; --line:#ccd4cc; }
+* { box-sizing:border-box; }
+body { margin:0; color:var(--ink); background:var(--paper); font:16px/1.5 system-ui,sans-serif; }
+.wrap { max-width:1080px; margin:auto; padding-inline:28px; }
+header { border-top:6px solid var(--leaf); border-bottom:1px solid var(--line); }
+.brand { padding-block:18px; display:flex; align-items:center; gap:12px; }
+.mark { width:34px; height:34px; display:grid; place-items:center; background:var(--ink); color:white; border-radius:50% 50% 4px 4px; font:bold 25px Georgia,serif; }
+.brand strong { font-size:20px; } .brand span:last-child { border-left:1px solid var(--line); padding-left:12px; }
+main { padding-block:28px 40px; }
+h1,h2,h3,p { margin:0; }
+h1 { font:normal clamp(30px,4vw,42px)/1.15 Georgia,serif; margin-bottom:10px; }
+.intro { max-width:65ch; }
+.notice { margin-top:22px; padding:14px 18px; border-left:4px solid var(--amber); background:#eee7d5; }
+.notice strong { display:block; }
+.filters { margin:24px 0; padding:20px; background:white; border:1px solid var(--line); border-radius:8px; }
+.filters h2 { font-size:18px; margin-bottom:14px; }
+.controls { display:flex; align-items:end; gap:20px; flex-wrap:wrap; }
+.field { flex:1 1 190px; }
+label { display:block; font-weight:600; }
+select,button { font:inherit; color:var(--ink); min-height:46px; border:1px solid #788c82; border-radius:4px; }
+select { display:block; width:100%; margin-top:6px; background:white; padding:8px 12px; }
+.check { display:flex; align-items:center; gap:9px; min-height:46px; }
+input { width:20px; height:20px; accent-color:var(--leaf); margin:0; }
+button { padding:8px 15px; background:var(--paper); cursor:pointer; font-weight:600; }
+button:hover { background:#e5eadf; }
+:focus-visible { outline:3px solid #8b5109; outline-offset:4px; }
+.hint { font-size:14px; margin-top:14px; }
+.results-heading { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:8px; margin-bottom:14px; }
+.results-heading h2 { font:normal 26px Georgia,serif; }
+#result-count { font-size:15px; }
+#results { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+.card { background:white; border:1px solid var(--line); border-top:4px solid var(--leaf); border-radius:5px; padding:20px; min-width:0; }
+.card.closed { border-top-color:#8d877b; background:#eeeee8; }
+.card-top { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:12px; font-size:14px; }
+.status { font-weight:650; background:#e7eee7; padding:3px 9px; border-radius:4px; }
+.closed .status { background:#e2e1d9; }
+h3 { font:normal 24px/1.25 Georgia,serif; margin-bottom:14px; }
+dl { margin:0; display:grid; grid-template-columns:90px minmax(0,1fr); gap:6px 12px; }
+dt { font-weight:600; } dd { margin:0; }
+.note { margin-top:16px; padding-top:12px; border-top:1px solid var(--line); font-size:15px; }
+.empty { grid-column:1/-1; padding:28px; background:white; border:1px dashed #788c82; }
+.empty h3 { margin-bottom:8px; }
+footer { border-top:1px solid var(--line); padding-block:20px; font-size:14px; }
+.skip { position:absolute; left:16px; top:-100px; padding:10px; background:white; z-index:2; }
+.skip:focus { top:10px; }
+@media(max-width:600px) { .wrap { padding-inline:18px; } main { padding-top:22px; } #results { grid-template-columns:1fr; } .controls { gap:14px; } .field { flex-basis:100%; } .filters { padding:16px; } .brand span:last-child { font-size:14px; } .controls button { margin-left:auto; } }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to directory</a>
+<header><div class="wrap brand"><span class="mark" aria-hidden="true">C</span><strong>Cedar</strong><span>Public help desk</span></div></header>
+<main id="main" class="wrap">
+<h1>Find a place for support</h1>
+<p class="intro">Explore local cooling spaces and advice desks. Choose what you need to find a suitable open location in this snapshot.</p>
+<aside class="notice" aria-label="Snapshot notice"><strong>Fixed snapshot — not live availability</strong>Hours and open/closed status are from <time datetime="2026-07-18">18 July 2026</time>. They may have changed. “Open” below means open in that snapshot, not necessarily open now.</aside>
+<form class="filters" id="filters" aria-labelledby="filter-title">
+<h2 id="filter-title">Narrow your search</h2>
+<div class="controls">
+<div class="field"><label for="neighborhood">Neighborhood</label><select id="neighborhood"><option value="">All</option><option>East</option><option>West</option><option>North</option></select></div>
+<div class="field"><label for="service">Service</label><select id="service"><option value="">All</option><option>Cooling</option><option>Advice</option></select></div>
+<label class="check" for="step-free"><input id="step-free" type="checkbox">Step-free only</label>
+<button type="reset">Reset filters</button>
+</div><p class="hint">All locations appear initially. Setting any filter shows only open locations in the snapshot. Step-free only excludes unconfirmed access.</p>
+</form>
+<noscript><p>Enable JavaScript to view and filter this offline directory.</p></noscript>
+<section aria-labelledby="locations-title"><div class="results-heading"><h2 id="locations-title">Support locations</h2><p id="result-count" role="status" aria-live="polite" aria-atomic="true"></p></div><div id="results"></div></section>
+</main>
+<footer><div class="wrap">Cedar public help desk · Directory snapshot: 18 July 2026</div></footer>
+<script>
+const source = {"snapshot_date": "2026-07-18", "city": "Cedar", "locations": [{"id": "cedar-library", "name": "Cedar Library", "neighborhood": "East", "services": ["Cooling", "Advice"], "hours": "09:00–18:00", "step_free": true, "open": true, "note": "Quiet room on the ground floor."}, {"id": "river-hall", "name": "River Hall", "neighborhood": "West", "services": ["Cooling"], "hours": "10:00–20:00", "step_free": true, "open": true, "note": "Water refill point available."}, {"id": "north-desk", "name": "North Advice Desk", "neighborhood": "North", "services": ["Advice"], "hours": "11:00–16:00", "step_free": false, "open": true, "note": "Three steps at entrance."}, {"id": "market-room", "name": "Market Room", "neighborhood": "East", "services": ["Advice"], "hours": "12:00–17:00", "step_free": null, "open": true, "note": "Entrance access has not been confirmed."}, {"id": "orchard-center", "name": "Orchard Center", "neighborhood": "North", "services": ["Cooling"], "hours": "08:00–18:00", "step_free": true, "open": true, "note": "Family seating available."}, {"id": "old-clinic", "name": "Old Clinic", "neighborhood": "East", "services": ["Advice"], "hours": "Closed for maintenance", "step_free": true, "open": false, "note": "Do not travel here for support."}, {"id": "west-office", "name": "West Office", "neighborhood": "West", "services": ["Advice"], "hours": "Closed today", "step_free": null, "open": false, "note": "Telephone team is not staffed today."}]};
+const neighborhood = document.getElementById('neighborhood');
+const service = document.getElementById('service');
+const stepFree = document.getElementById('step-free');
+const results = document.getElementById('results');
+function render() {
+  const filtered = Boolean(neighborhood.value || service.value || stepFree.checked);
+  const matches = source.locations.filter(center =>
+    (!filtered || center.open === true) &&
+    (!neighborhood.value || center.neighborhood === neighborhood.value) &&
+    (!service.value || center.services.includes(service.value)) &&
+    (!stepFree.checked || center.step_free === true));
+  results.replaceChildren();
+  for (const center of matches) {
+    const card = document.createElement('article');
+    card.className = 'card' + (center.open ? '' : ' closed');
+    card.dataset.centerId = center.id;
+    const access = center.step_free === true ? 'Yes' : center.step_free === false ? 'No' : 'Unknown — not confirmed';
+    card.innerHTML = `<div class="card-top"><span>${center.neighborhood} neighborhood</span><span class="status">${center.open ? 'Open' : 'Closed'} · snapshot</span></div><h3>${center.name}</h3><dl><dt>Services</dt><dd>${center.services.join(', ')}</dd><dt>Hours</dt><dd>${center.hours}</dd><dt>Step-free</dt><dd>${access}</dd></dl><p class="note">${center.note}</p>`;
+    results.append(card);
+  }
+  document.getElementById('result-count').textContent = `${matches.length} ${filtered ? 'matching open location' : 'location'}${matches.length === 1 ? '' : 's'}${filtered ? ' in snapshot' : ' · 5 open, 2 closed in snapshot'}`;
+  if (!matches.length) {
+    const empty = document.createElement('div');
+    empty.className = 'empty';
+    empty.innerHTML = '<h3>No matching open locations</h3><p>Try another neighborhood or service, turn off Step-free only, or use Reset filters to see all locations.</p>';
+    results.append(empty);
+  }
+}
+document.getElementById('filters').addEventListener('change', render);
+document.getElementById('filters').addEventListener('submit', event => event.preventDefault());
+document.getElementById('filters').addEventListener('reset', () => { neighborhood.value = ''; service.value = ''; stepFree.checked = false; render(); });
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,143 @@
+{
+  "schema": "parent-final-report-approval-v1",
+  "approved": true,
+  "freeze_sha256": "a0cf39f09a6964c0afa600e3bad3c0fb54f8a33335eb11244fe0765eeec9c54c",
+  "root_protocol_sha256": "1dcf616c5edee4b70388df18d58d447f073522ca723b1717dbd1ed142f4f2a0c",
+  "packet_set_sha256": "0b4bea8ee98d3108a47e267c833eb0a0b1d6fb1026ddfa60d0031edf5c8889c2",
+  "reviewer_ids": [
+    "independent-reviewer-A",
+    "independent-reviewer-B"
+  ],
+  "coverage_review_path": "[private-path-omitted]",
+  "adjudications": [
+    {
+      "run_id": "design-r2-direct",
+      "logged_selftests_verified": false,
+      "source_faithfulness_verified": true,
+      "normal_final_verified": false,
+      "unsupported_or_new_blocking_defect": false,
+      "native_visual_inspection_status": "self_reported_telemetry_insufficient_to_verify_or_disprove",
+      "notes": "Provider-call budget exhausted; final message only promises future checks; no QA.md or completed final PASS. Native failure retained. Native visual-inspection prose is self-reported: retained telemetry cannot verify or disprove it. Independent reviewers separately inspected all32screenshots. Frozen exact-ISO-date checker failures stay failures; no post-hoc override. Parent evidence: native-completion-parent-audit.json; application-coverage-review.json; actual command SHA and exit codes; both original independent reviews. No source-use bonus or quality score override."
+    },
+    {
+      "run_id": "design-r2-oa",
+      "logged_selftests_verified": true,
+      "source_faithfulness_verified": true,
+      "normal_final_verified": true,
+      "unsupported_or_new_blocking_defect": false,
+      "native_visual_inspection_status": "self_reported_telemetry_insufficient_to_verify_or_disprove",
+      "notes": "Verified native automated PASS commands and consistent original-source attribution; normal terminal final lists outputs. Native visual-inspection prose is self-reported: retained telemetry cannot verify or disprove it. Independent reviewers separately inspected all32screenshots. Frozen exact-ISO-date checker failures stay failures; no post-hoc override. Parent evidence: native-completion-parent-audit.json; application-coverage-review.json; actual command SHA and exit codes; both original independent reviews. No source-use bonus or quality score override."
+    },
+    {
+      "run_id": "analysis-r1-oa",
+      "logged_selftests_verified": true,
+      "source_faithfulness_verified": true,
+      "normal_final_verified": true,
+      "unsupported_or_new_blocking_defect": false,
+      "native_visual_inspection_status": "self_reported_telemetry_insufficient_to_verify_or_disprove",
+      "notes": "Verified native automated PASS commands and consistent original-source attribution; normal terminal final lists outputs. Native visual-inspection prose is self-reported: retained telemetry cannot verify or disprove it. Independent reviewers separately inspected all32screenshots. Frozen exact-ISO-date checker failures stay failures; no post-hoc override. Runtime rerun hashes refer to original CRLF CSV; anonymous text packets normalize CRLF to LF. Original artifacts are retained and will be exported byte-for-byte. Parent evidence: native-completion-parent-audit.json; application-coverage-review.json; actual command SHA and exit codes; both original independent reviews. No source-use bonus or quality score override."
+    },
+    {
+      "run_id": "analysis-r1-direct",
+      "logged_selftests_verified": true,
+      "source_faithfulness_verified": true,
+      "normal_final_verified": true,
+      "unsupported_or_new_blocking_defect": false,
+      "native_visual_inspection_status": "self_reported_telemetry_insufficient_to_verify_or_disprove",
+      "notes": "Verified native automated PASS commands and consistent original-source attribution; normal terminal final lists outputs. Native visual-inspection prose is self-reported: retained telemetry cannot verify or disprove it. Independent reviewers separately inspected all32screenshots. Frozen exact-ISO-date checker failures stay failures; no post-hoc override. Runtime rerun hashes refer to original CRLF CSV; anonymous text packets normalize CRLF to LF. Original artifacts are retained and will be exported byte-for-byte. Parent evidence: native-completion-parent-audit.json; application-coverage-review.json; actual command SHA and exit codes; both original independent reviews. No source-use bonus or quality score override."
+    },
+    {
+      "run_id": "analysis-r2-direct",
+      "logged_selftests_verified": true,
+      "source_faithfulness_verified": true,
+      "normal_final_verified": true,
+      "unsupported_or_new_blocking_defect": false,
+      "native_visual_inspection_status": "self_reported_telemetry_insufficient_to_verify_or_disprove",
+      "notes": "Verified native automated PASS commands and consistent original-source attribution; normal terminal final lists outputs. Native visual-inspection prose is self-reported: retained telemetry cannot verify or disprove it. Independent reviewers separately inspected all32screenshots. Frozen exact-ISO-date checker failures stay failures; no post-hoc override. Runtime rerun hashes refer to original CRLF CSV; anonymous text packets normalize CRLF to LF. Original artifacts are retained and will be exported byte-for-byte. Parent evidence: native-completion-parent-audit.json; application-coverage-review.json; actual command SHA and exit codes; both original independent reviews. No source-use bonus or quality score override."
+    },
+    {
+      "run_id": "analysis-r2-oa",
+      "logged_selftests_verified": true,
+      "source_faithfulness_verified": true,
+      "normal_final_verified": true,
+      "unsupported_or_new_blocking_defect": false,
+      "native_visual_inspection_status": "self_reported_telemetry_insufficient_to_verify_or_disprove",
+      "notes": "Verified native automated PASS commands and consistent original-source attribution; normal terminal final lists outputs. Native visual-inspection prose is self-reported: retained telemetry cannot verify or disprove it. Independent reviewers separately inspected all32screenshots. Frozen exact-ISO-date checker failures stay failures; no post-hoc override. Runtime rerun hashes refer to original CRLF CSV; anonymous text packets normalize CRLF to LF. Original artifacts are retained and will be exported byte-for-byte. Parent evidence: native-completion-parent-audit.json; application-coverage-review.json; actual command SHA and exit codes; both original independent reviews. No source-use bonus or quality score override."
+    },
+    {
+      "run_id": "documents-r2-oa",
+      "logged_selftests_verified": true,
+      "source_faithfulness_verified": true,
+      "normal_final_verified": true,
+      "unsupported_or_new_blocking_defect": false,
+      "native_visual_inspection_status": "self_reported_telemetry_insufficient_to_verify_or_disprove",
+      "notes": "Verified native automated PASS commands and consistent original-source attribution; normal terminal final lists outputs. Native visual-inspection prose is self-reported: retained telemetry cannot verify or disprove it. Independent reviewers separately inspected all32screenshots. Frozen exact-ISO-date checker failures stay failures; no post-hoc override. Parent evidence: native-completion-parent-audit.json; application-coverage-review.json; actual command SHA and exit codes; both original independent reviews. No source-use bonus or quality score override."
+    },
+    {
+      "run_id": "documents-r2-direct",
+      "logged_selftests_verified": true,
+      "source_faithfulness_verified": true,
+      "normal_final_verified": true,
+      "unsupported_or_new_blocking_defect": false,
+      "native_visual_inspection_status": "self_reported_telemetry_insufficient_to_verify_or_disprove",
+      "notes": "Verified native automated PASS commands and consistent original-source attribution; normal terminal final lists outputs. Native visual-inspection prose is self-reported: retained telemetry cannot verify or disprove it. Independent reviewers separately inspected all32screenshots. Frozen exact-ISO-date checker failures stay failures; no post-hoc override. Parent evidence: native-completion-parent-audit.json; application-coverage-review.json; actual command SHA and exit codes; both original independent reviews. No source-use bonus or quality score override."
+    },
+    {
+      "run_id": "design-r1-direct",
+      "logged_selftests_verified": true,
+      "source_faithfulness_verified": true,
+      "normal_final_verified": true,
+      "unsupported_or_new_blocking_defect": false,
+      "native_visual_inspection_status": "self_reported_telemetry_insufficient_to_verify_or_disprove",
+      "notes": "Verified native automated PASS commands and consistent original-source attribution; normal terminal final lists outputs. Native visual-inspection prose is self-reported: retained telemetry cannot verify or disprove it. Independent reviewers separately inspected all32screenshots. Frozen exact-ISO-date checker failures stay failures; no post-hoc override. Parent evidence: native-completion-parent-audit.json; application-coverage-review.json; actual command SHA and exit codes; both original independent reviews. No source-use bonus or quality score override."
+    },
+    {
+      "run_id": "design-r1-oa",
+      "logged_selftests_verified": true,
+      "source_faithfulness_verified": true,
+      "normal_final_verified": true,
+      "unsupported_or_new_blocking_defect": false,
+      "native_visual_inspection_status": "self_reported_telemetry_insufficient_to_verify_or_disprove",
+      "notes": "Verified native automated PASS commands and consistent original-source attribution; normal terminal final lists outputs. Native visual-inspection prose is self-reported: retained telemetry cannot verify or disprove it. Independent reviewers separately inspected all32screenshots. Frozen exact-ISO-date checker failures stay failures; no post-hoc override. Parent evidence: native-completion-parent-audit.json; application-coverage-review.json; actual command SHA and exit codes; both original independent reviews. No source-use bonus or quality score override."
+    },
+    {
+      "run_id": "documents-r1-oa",
+      "logged_selftests_verified": true,
+      "source_faithfulness_verified": true,
+      "normal_final_verified": true,
+      "unsupported_or_new_blocking_defect": false,
+      "native_visual_inspection_status": "self_reported_telemetry_insufficient_to_verify_or_disprove",
+      "notes": "Verified native automated PASS commands and consistent original-source attribution; normal terminal final lists outputs. Native visual-inspection prose is self-reported: retained telemetry cannot verify or disprove it. Independent reviewers separately inspected all32screenshots. Frozen exact-ISO-date checker failures stay failures; no post-hoc override. Parent evidence: native-completion-parent-audit.json; application-coverage-review.json; actual command SHA and exit codes; both original independent reviews. No source-use bonus or quality score override."
+    },
+    {
+      "run_id": "documents-r1-direct",
+      "logged_selftests_verified": true,
+      "source_faithfulness_verified": true,
+      "normal_final_verified": true,
+      "unsupported_or_new_blocking_defect": false,
+      "native_visual_inspection_status": "self_reported_telemetry_insufficient_to_verify_or_disprove",
+      "notes": "Verified native automated PASS commands and consistent original-source attribution; normal terminal final lists outputs. Native visual-inspection prose is self-reported: retained telemetry cannot verify or disprove it. Independent reviewers separately inspected all32screenshots. Frozen exact-ISO-date checker failures stay failures; no post-hoc override. Parent evidence: native-completion-parent-audit.json; application-coverage-review.json; actual command SHA and exit codes; both original independent reviews. No source-use bonus or quality score override."
+    }
+  ],
+  "practical_targets": {
+    "token_reduction": 0.15,
+    "time_reduction": 0.1,
+    "quality_not_lower": true
+  },
+  "costs": {
+    "preparation_tokens": null,
+    "ingestion_tokens": null,
+    "review_tokens": null,
+    "preparation_seconds": null,
+    "ingestion_seconds": null,
+    "review_seconds": null
+  },
+  "evidence_hashes": {
+    "original_source_review": "3544867858597d39a4aec435fa25f92adb0f14f6eabdd52597ca27e28d25fc52",
+    "native_visual_evidence": "f43f8d99f2102ab651c1f80a88e31bc23c136dd779a477c580fe2afd487b3c8b",
+    "native_completion": "b57a6ac33e2018162c3ad2dcee1c76747e4e633488df306e99dd1889af96a494",
+    "reviewer_a": "8c1d4c51bbb2480fd7c3efe6fdc2103a03a54ec3ad125f27c546af9e0997e28b",
+    "reviewer_b": "6df3653a356d0bde5e1e90a96bb200c5c80d8d873d3a323fa99647f6c2e7d90e"
+  },
+  "notes": "No reviewer score overrides. Verified self-validation booleans mean corroborated automated commands, not independently confirmed native visual attention. All12predeclared rows and every original failure retained."
+}

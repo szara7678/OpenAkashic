@@ -88,6 +88,9 @@ class MethodSource(BaseModel):
         return value
 
 
+from app.research_skill_sources import SkillSourceLink
+
+
 class MethodRequest(PublicSubmission):
     title: Annotated[str, Field(min_length=2, max_length=200)]
     situation: Annotated[str, Field(min_length=2, max_length=1000)]
@@ -100,6 +103,7 @@ class MethodRequest(PublicSubmission):
     evidence_kind: Literal["documented_method", "executed_example", "contributor_method"] = "contributor_method"
     sources: list[MethodSource] = Field(default_factory=list, max_length=8)
     constraint_rules: ConstraintRules = Field(default_factory=ConstraintRules)
+    skill_sources: list[SkillSourceLink] = Field(default_factory=list, max_length=8)
 
     @model_validator(mode="after")
     def documented_source_required(self):
@@ -157,10 +161,14 @@ def write(operation):
 def create_method(payload: MethodRequest, key: str = Depends(idempotency_key)):
     data = payload.model_dump(mode="json")
     # Preserve fingerprints for pre-extension clients retrying an existing key.
-    for name in ("evidence_kind", "sources", "constraint_rules"):
+    for name in ("evidence_kind", "sources", "constraint_rules", "skill_sources"):
         if name not in payload.model_fields_set:
             data.pop(name, None)
-    return write(lambda: method_store().create_method(data, key))
+    def operation():
+        from app.research_skill_sources import validate_links
+        validate_links(data.get("skill_sources", []))
+        return method_store().create_method(data, key)
+    return write(operation)
 
 
 @router.get("/search")

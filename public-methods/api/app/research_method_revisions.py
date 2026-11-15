@@ -72,6 +72,10 @@ def revise(store, method_id, payload, key):
     if store.read_only:
         raise ValueError("This public research process is read-only")
     data = payload.model_dump(mode="json")
+    if "skill_sources" not in payload.method.model_fields_set:
+        data["method"].pop("skill_sources", None)
+    from app.research_skill_sources import validate_links
+    validate_links(data["method"].get("skill_sources", []))
     fingerprint = digest({"kind": "method_revision", "method_id": method_id, "payload": data})
     with store.archive._connect() as db:
         db.execute("BEGIN IMMEDIATE")

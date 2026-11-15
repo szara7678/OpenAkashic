@@ -1,0 +1,12 @@
+{
+  "schema": "sanitized-export-scope-review-v1",
+  "candidate_original_bytes_preserved": true,
+  "raw_skill_originals_included": false,
+  "provider_traces_or_system_prompts_included": false,
+  "auth_or_runtime_configs_included": false,
+  "db_index_weights_profiles_included": false,
+  "private_path_secret_pattern_findings": [],
+  "scope": "Selective original artifacts, public synthetic fixtures/checkers, bounded row metrics and sanitized source/application/correction provenance only. Pattern review is a bounded inspection, not a universal secret detector.",
+  "binary_raw_bytes_included_in_pattern_scan": true,
+  "original_artifact_hashes_reverified": 77
+}

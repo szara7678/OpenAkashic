@@ -1,0 +1,1150 @@
+{
+  "schema": "public-skill-method-import-v1",
+  "origin": "Source-grounded editorial proposals; no live API writes, no executed skill procedures, no evaluation outcome claims.",
+  "methods": [
+    {
+      "public_id": "method_5e7068b00a05851048d12b4df2843163",
+      "payload": {
+        "public_source_only": true,
+        "agent_name": "OpenAkashic skill-source curator",
+        "title": "주제에 맞는 시각 계획을 세우고 구현 전에 검토하기",
+        "situation": "새 웹 화면이나 기존 화면을 만들 때 주제와 관계없는 기본 템플릿이 반복된다.",
+        "goal": "사용자와 주제에 맞는 색, 글꼴, 배치를 정하고 구현할 선택 이유를 남긴다.",
+        "constraints": [
+          "대상 제품이나 주제, 독자와 화면의 주된 일을 먼저 확인한다.",
+          "의뢰서에 명시된 시각 방향을 우선한다."
+        ],
+        "steps": [
+          "주제의 소재와 실제 내용을 바탕으로 시각 방향을 정한다.",
+          "색 4~6개와 역할, 글꼴 역할, 배치와 정렬, 디자인 원칙을 짧게 기록한다.",
+          "배치 대안을 문장과 간단한 와이어프레임으로 비교한다.",
+          "계획을 의뢰서와 대조하고 다른 프로젝트에도 그대로 쓰일 선택을 수정한 뒤 구현한다."
+        ],
+        "success_criteria": [
+          "색, 글꼴, 배치의 선택을 주제와 연결해 설명할 수 있다.",
+          "의뢰서 검토에서 바꾼 선택과 이유가 기록되어 있다."
+        ],
+        "limitations": [
+          "독창성에 대한 편집 기준이며 사용자 선호나 전환율을 검증한 결과는 아니다.",
+          "실제 브리프가 특정한 스타일을 요구하면 이 절차로 그 요구를 무시하지 않는다."
+        ],
+        "tags": [
+          "design",
+          "frontend",
+          "art-direction",
+          "planning"
+        ],
+        "evidence_kind": "documented_method",
+        "sources": [
+          {
+            "url": "https://github.com/anthropics/skills/blob/1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064/skills/frontend-design/SKILL.md#L11-L13",
+            "title": "anthropics-frontend-design / Ground your designs in the subject matter",
+            "accessed_at": "2026-11-15T10:24:46.875375+00:00",
+            "quote": ""
+          },
+          {
+            "url": "https://github.com/anthropics/skills/blob/1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064/skills/frontend-design/SKILL.md#L36-L55",
+            "title": "anthropics-frontend-design / Process: plan, review against the brief, build, critique",
+            "accessed_at": "2026-11-15T10:24:46.875375+00:00",
+            "quote": ""
+          }
+        ],
+        "constraint_rules": {
+          "requires": [],
+          "forbids": []
+        },
+        "skill_sources": [
+          {
+            "package_id": "skill_07c728f6e8cc12349e73623954a260c7",
+            "path": "SKILL.md",
+            "sha256": "d91970639e9f5c37682ac7ab60094d35f1c7c1f38d731bd56396563aee10c1d3",
+            "start_line": 11,
+            "end_line": 13,
+            "section": "Ground your designs in the subject matter"
+          },
+          {
+            "package_id": "skill_07c728f6e8cc12349e73623954a260c7",
+            "path": "SKILL.md",
+            "sha256": "d91970639e9f5c37682ac7ab60094d35f1c7c1f38d731bd56396563aee10c1d3",
+            "start_line": 36,
+            "end_line": 55,
+            "section": "Process: plan, review against the brief, build, critique"
+          }
+        ]
+      },
+      "sourceSpan": [
+        {
+          "package_id": "skill_07c728f6e8cc12349e73623954a260c7",
+          "path": "SKILL.md",
+          "sha256": "d91970639e9f5c37682ac7ab60094d35f1c7c1f38d731bd56396563aee10c1d3",
+          "start_line": 11,
+          "end_line": 13,
+          "section": "Ground your designs in the subject matter"
+        },
+        {
+          "package_id": "skill_07c728f6e8cc12349e73623954a260c7",
+          "path": "SKILL.md",
+          "sha256": "d91970639e9f5c37682ac7ab60094d35f1c7c1f38d731bd56396563aee10c1d3",
+          "start_line": 36,
+          "end_line": 55,
+          "section": "Process: plan, review against the brief, build, critique"
+        }
+      ],
+      "editorial_provenance": {
+        "slug": "subject-grounded-design-plan",
+        "source_id": "anthropics-frontend-design",
+        "public_id_role": "editorial fixture identity, not an existing/live API method UUID",
+        "field_attribution": {
+          "situation": "editorial scenario inferred from the source task scope",
+          "goal": "editorial restatement inferred from the source workflow",
+          "constraints": "explicit source preconditions paraphrased; see individual exceptions",
+          "steps": "explicit source procedure paraphrased",
+          "success_criteria": "inferred review criteria for the documented procedure, not measured success",
+          "limitations": "source cautions plus explicit editorial evidence boundary",
+          "tags": "editorial retrieval metadata, not source claims",
+          "constraint_rules": "empty; no implicit environment labels invented"
+        },
+        "effectiveness": "not evaluated; documented source procedure only",
+        "graph_policy": "No relationship edges inferred merely because skills share a repository or category."
+      }
+    },
+    {
+      "public_id": "method_a9b1e1082dd0d301cd30be768842ae72",
+      "payload": {
+        "public_source_only": true,
+        "agent_name": "OpenAkashic skill-source curator",
+        "title": "사용자 행동과 상태가 분명한 화면 문구 쓰기",
+        "situation": "화면의 버튼, 오류, 빈 상태 문구가 추상적이어서 다음 행동을 알기 어렵다.",
+        "goal": "사용자가 이해하는 말로 행동을 설명하고 흐름 전체에서 같은 이름을 쓴다.",
+        "constraints": [
+          "문구가 사용자가 화면을 이해하고 쓰는 데 해야 할 일을 먼저 정한다.",
+          "사용자의 관점과 브랜드, 독자의 말투에 맞춘다."
+        ],
+        "steps": [
+          "시스템 내부 용어를 사용자가 이해하는 이름으로 바꾼다.",
+          "버튼에는 실행할 행동을 구체적으로 쓴다.",
+          "같은 행동은 버튼과 완료 상태에서 같은 이름으로 유지한다.",
+          "오류에는 무엇이 잘못되었고 어떻게 고칠지 쓰고, 빈 상태에는 시작할 행동을 제시한다.",
+          "한 문구가 한 가지 일을 하도록 불필요한 수식을 덜어낸다."
+        ],
+        "success_criteria": [
+          "버튼을 읽고 누른 뒤 일어날 행동을 설명할 수 있다.",
+          "같은 행동의 이름이 화면 흐름에서 일치하고 오류에 해결 방향이 있다."
+        ],
+        "limitations": [
+          "문구 검토 기준이며 실제 사용자 이해도와 과제 성공률은 별도 확인이 필요하다."
+        ],
+        "tags": [
+          "design",
+          "frontend",
+          "microcopy",
+          "usability"
+        ],
+        "evidence_kind": "documented_method",
+        "sources": [
+          {
+            "url": "https://github.com/anthropics/skills/blob/1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064/skills/frontend-design/SKILL.md#L61-L71",
+            "title": "anthropics-frontend-design / More on writing in design",
+            "accessed_at": "2026-11-15T10:24:46.875645+00:00",
+            "quote": ""
+          }
+        ],
+        "constraint_rules": {
+          "requires": [],
+          "forbids": []
+        },
+        "skill_sources": [
+          {
+            "package_id": "skill_07c728f6e8cc12349e73623954a260c7",
+            "path": "SKILL.md",
+            "sha256": "d91970639e9f5c37682ac7ab60094d35f1c7c1f38d731bd56396563aee10c1d3",
+            "start_line": 61,
+            "end_line": 71,
+            "section": "More on writing in design"
+          }
+        ]
+      },
+      "sourceSpan": [
+        {
+          "package_id": "skill_07c728f6e8cc12349e73623954a260c7",
+          "path": "SKILL.md",
+          "sha256": "d91970639e9f5c37682ac7ab60094d35f1c7c1f38d731bd56396563aee10c1d3",
+          "start_line": 61,
+          "end_line": 71,
+          "section": "More on writing in design"
+        }
+      ],
+      "editorial_provenance": {
+        "slug": "action-clear-ui-copy",
+        "source_id": "anthropics-frontend-design",
+        "public_id_role": "editorial fixture identity, not an existing/live API method UUID",
+        "field_attribution": {
+          "situation": "editorial scenario inferred from the source task scope",
+          "goal": "editorial restatement inferred from the source workflow",
+          "constraints": "explicit source preconditions paraphrased; see individual exceptions",
+          "steps": "explicit source procedure paraphrased",
+          "success_criteria": "inferred review criteria for the documented procedure, not measured success",
+          "limitations": "source cautions plus explicit editorial evidence boundary",
+          "tags": "editorial retrieval metadata, not source claims",
+          "constraint_rules": "empty; no implicit environment labels invented"
+        },
+        "effectiveness": "not evaluated; documented source procedure only",
+        "graph_policy": "No relationship edges inferred merely because skills share a repository or category."
+      }
+    },
+    {
+      "public_id": "method_0160125e1d72ba173df2279a950c55c2",
+      "payload": {
+        "public_source_only": true,
+        "agent_name": "OpenAkashic skill-source curator",
+        "title": "Anthropic 브랜드 요청에 색과 글꼴 규칙 적용하기",
+        "situation": "Anthropic의 공식 색과 글꼴을 적용해야 하는 산출물을 만든다.",
+        "goal": "Anthropic 브랜드 지침에 맞춰 텍스트 계층과 도형 색을 일관되게 적용한다.",
+        "constraints": [
+          "Anthropic의 브랜드 정체성을 적용하는 산출물에 한해 사용한다.",
+          "제목과 본문 글꼴은 시스템에 있는 글꼴을 사용하고 없으면 정해진 대체 글꼴을 쓴다."
+        ],
+        "steps": [
+          "기본 배경과 본문에는 지정된 Dark, Light, Mid Gray, Light Gray 색을 역할에 맞게 고른다.",
+          "24pt 이상 제목에는 Poppins, 본문에는 Lora를 적용한다.",
+          "해당 글꼴이 없으면 제목은 Arial, 본문은 Georgia로 대체한다.",
+          "텍스트가 아닌 도형에는 Orange, Blue, Green 강조색을 사용하고 텍스트 계층과 가독성을 유지한다."
+        ],
+        "success_criteria": [
+          "제목과 본문 글꼴의 역할이 구분되고 대체 글꼴 사용 여부를 확인할 수 있다.",
+          "주요 색이 원문의 RGB 값과 일치한다."
+        ],
+        "limitations": [
+          "Anthropic 전용 규칙이므로 다른 브랜드의 기본 디자인으로 일반화하지 않는다.",
+          "소프트웨어 라이선스는 상표 사용 허가나 Anthropic의 보증을 뜻하지 않는다.",
+          "실제 글꼴 파일은 포함되어 있지 않으며 설치 상태를 검증하지 않았다."
+        ],
+        "tags": [
+          "design",
+          "brand",
+          "anthropic",
+          "typography"
+        ],
+        "evidence_kind": "documented_method",
+        "sources": [
+          {
+            "url": "https://github.com/anthropics/skills/blob/1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064/skills/brand-guidelines/SKILL.md#L1-L13",
+            "title": "anthropics-brand-guidelines / Anthropic brand scope",
+            "accessed_at": "2026-11-15T10:24:46.875909+00:00",
+            "quote": ""
+          },
+          {
+            "url": "https://github.com/anthropics/skills/blob/1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064/skills/brand-guidelines/SKILL.md#L15-L59",
+            "title": "anthropics-brand-guidelines / Brand Guidelines and Features",
+            "accessed_at": "2026-11-15T10:24:46.875909+00:00",
+            "quote": ""
+          }
+        ],
+        "constraint_rules": {
+          "requires": [],
+          "forbids": []
+        },
+        "skill_sources": [
+          {
+            "package_id": "skill_77687da51641a2447bceaa15d462a9f4",
+            "path": "SKILL.md",
+            "sha256": "1120b3769e2985cefb3d25be981b1f914abeba57ae079b83c20c666c164fa9fe",
+            "start_line": 1,
+            "end_line": 13,
+            "section": "Anthropic brand scope"
+          },
+          {
+            "package_id": "skill_77687da51641a2447bceaa15d462a9f4",
+            "path": "SKILL.md",
+            "sha256": "1120b3769e2985cefb3d25be981b1f914abeba57ae079b83c20c666c164fa9fe",
+            "start_line": 15,
+            "end_line": 59,
+            "section": "Brand Guidelines and Features"
+          }
+        ]
+      },
+      "sourceSpan": [
+        {
+          "package_id": "skill_77687da51641a2447bceaa15d462a9f4",
+          "path": "SKILL.md",
+          "sha256": "1120b3769e2985cefb3d25be981b1f914abeba57ae079b83c20c666c164fa9fe",
+          "start_line": 1,
+          "end_line": 13,
+          "section": "Anthropic brand scope"
+        },
+        {
+          "package_id": "skill_77687da51641a2447bceaa15d462a9f4",
+          "path": "SKILL.md",
+          "sha256": "1120b3769e2985cefb3d25be981b1f914abeba57ae079b83c20c666c164fa9fe",
+          "start_line": 15,
+          "end_line": 59,
+          "section": "Brand Guidelines and Features"
+        }
+      ],
+      "editorial_provenance": {
+        "slug": "anthropic-brand-styling",
+        "source_id": "anthropics-brand-guidelines",
+        "public_id_role": "editorial fixture identity, not an existing/live API method UUID",
+        "field_attribution": {
+          "situation": "editorial scenario inferred from the source task scope",
+          "goal": "editorial restatement inferred from the source workflow",
+          "constraints": "source scope explicitly requires Anthropic look-and-feel; no authorization or trademark permission is inferred",
+          "steps": "explicit source procedure paraphrased",
+          "success_criteria": "inferred review criteria for the documented procedure, not measured success",
+          "limitations": "editorial scope/trademark boundary and unresolved font availability, not an upstream effectiveness claim",
+          "tags": "editorial retrieval metadata, not source claims",
+          "constraint_rules": "empty; no implicit environment labels invented"
+        },
+        "effectiveness": "not evaluated; documented source procedure only",
+        "graph_policy": "No relationship edges inferred merely because skills share a repository or category."
+      }
+    },
+    {
+      "public_id": "method_665152c5bd7922c4392e9238cfbea31b",
+      "payload": {
+        "public_source_only": true,
+        "agent_name": "OpenAkashic skill-source curator",
+        "title": "PDF의 배치와 표 구조를 나눠 추출하기",
+        "situation": "PDF에서 텍스트와 표를 꺼내 문서나 표 데이터로 다시 사용해야 한다.",
+        "goal": "페이지별 텍스트와 표를 분리해 추출하고 표를 결합할 수 있는 형태로 만든다.",
+        "constraints": [
+          "텍스트와 표 추출에는 pdfplumber가 필요하다.",
+          "추출된 표를 결합해 저장하는 예시는 pandas를 함께 사용한다."
+        ],
+        "steps": [
+          "PDF를 열고 페이지마다 텍스트를 추출한다.",
+          "페이지별로 표를 추출해 각 표와 행을 확인한다.",
+          "비어 있지 않은 표에서 첫 행을 열 이름으로 사용해 데이터프레임으로 만든다.",
+          "필요한 표들을 결합해 별도 파일로 저장한다."
+        ],
+        "success_criteria": [
+          "텍스트와 표가 페이지별로 구분되어 있다.",
+          "결합할 표의 열 이름과 행이 추출 결과에 포함되어 있다."
+        ],
+        "limitations": [
+          "첫 행이 머리글인 표를 가정한 예시이므로 다른 표 구조에는 조정이 필요하다.",
+          "원문 예시에는 추출 정확도나 표 의미에 대한 독립 검증이 없다.",
+          "라이브러리는 패키지에 포함하거나 실행하지 않았다."
+        ],
+        "tags": [
+          "documents",
+          "pdf",
+          "table-extraction",
+          "pdfplumber"
+        ],
+        "evidence_kind": "documented_method",
+        "sources": [
+          {
+            "url": "https://github.com/anthropics/skills/blob/1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064/skills/pdf/SKILL.md#L79-L119",
+            "title": "anthropics-pdf / pdfplumber - Text and Table Extraction",
+            "accessed_at": "2026-11-15T10:24:46.876198+00:00",
+            "quote": ""
+          }
+        ],
+        "constraint_rules": {
+          "requires": [],
+          "forbids": []
+        },
+        "skill_sources": [
+          {
+            "package_id": "skill_b645bd7b8fcb43d29d72b7582ece950d",
+            "path": "SKILL.md",
+            "sha256": "d1c7caf5f35eb7d37877dd7fc33a095037be2b34fb5d2f7f4d43bde3165bb4ee",
+            "start_line": 79,
+            "end_line": 119,
+            "section": "pdfplumber - Text and Table Extraction"
+          }
+        ]
+      },
+      "sourceSpan": [
+        {
+          "package_id": "skill_b645bd7b8fcb43d29d72b7582ece950d",
+          "path": "SKILL.md",
+          "sha256": "d1c7caf5f35eb7d37877dd7fc33a095037be2b34fb5d2f7f4d43bde3165bb4ee",
+          "start_line": 79,
+          "end_line": 119,
+          "section": "pdfplumber - Text and Table Extraction"
+        }
+      ],
+      "editorial_provenance": {
+        "slug": "pdf-layout-table-extraction",
+        "source_id": "anthropics-pdf",
+        "public_id_role": "editorial fixture identity, not an existing/live API method UUID",
+        "field_attribution": {
+          "situation": "editorial scenario inferred from the source task scope",
+          "goal": "editorial restatement inferred from the source workflow",
+          "constraints": "library preconditions from imports; first-row header assumption is explicit in code, not a universal PDF property",
+          "steps": "explicit source procedure paraphrased",
+          "success_criteria": "inferred review criteria for the documented procedure, not measured success",
+          "limitations": "source cautions plus explicit editorial evidence boundary",
+          "tags": "editorial retrieval metadata, not source claims",
+          "constraint_rules": "empty; no implicit environment labels invented"
+        },
+        "effectiveness": "not evaluated; documented source procedure only",
+        "graph_policy": "No relationship edges inferred merely because skills share a repository or category."
+      }
+    },
+    {
+      "public_id": "method_a31588be14038e31ec1e4a30e4f8f24d",
+      "payload": {
+        "public_source_only": true,
+        "agent_name": "OpenAkashic skill-source curator",
+        "title": "ReportLab으로 여러 쪽 PDF를 만들고 첨자를 처리하기",
+        "situation": "제목과 본문이 있는 여러 쪽 PDF 보고서를 코드로 생성해야 한다.",
+        "goal": "문단과 페이지 나눔을 사용해 PDF를 만들고 첨자가 검은 상자로 보이는 문제를 피한다.",
+        "constraints": [
+          "ReportLab을 사용할 수 있어야 한다.",
+          "기본 글꼴에는 유니코드 위첨자와 아래첨자 글리프가 없어 검은 상자로 보일 수 있다."
+        ],
+        "steps": [
+          "페이지 크기와 문서 템플릿, 스타일을 정한다.",
+          "제목, 본문 문단과 간격을 순서대로 추가하고 필요한 곳에 페이지 나눔을 넣는다.",
+          "문단의 첨자는 sub와 super 마크업으로 표시한다.",
+          "캔버스에 직접 쓰는 첨자는 글꼴 크기와 위치를 조정한다.",
+          "문서 빌드로 PDF를 저장한다."
+        ],
+        "success_criteria": [
+          "제목과 본문이 지정한 순서와 페이지 구분에 따라 생성된다.",
+          "첨자 표시에 원문이 경고한 유니코드 문자 대신 문단 마크업이나 위치 조정을 사용한다."
+        ],
+        "limitations": [
+          "기본 생성 예시이며 내용의 사실성이나 최종 렌더링 품질을 보증하지 않는다.",
+          "다른 언어와 글꼴의 지원 여부는 실제 환경에서 확인해야 한다."
+        ],
+        "tags": [
+          "documents",
+          "pdf",
+          "reportlab",
+          "report-generation"
+        ],
+        "evidence_kind": "documented_method",
+        "sources": [
+          {
+            "url": "https://github.com/anthropics/skills/blob/1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064/skills/pdf/SKILL.md#L121-L187",
+            "title": "anthropics-pdf / reportlab - Create PDFs",
+            "accessed_at": "2026-11-15T10:24:46.876385+00:00",
+            "quote": ""
+          }
+        ],
+        "constraint_rules": {
+          "requires": [],
+          "forbids": []
+        },
+        "skill_sources": [
+          {
+            "package_id": "skill_b645bd7b8fcb43d29d72b7582ece950d",
+            "path": "SKILL.md",
+            "sha256": "d1c7caf5f35eb7d37877dd7fc33a095037be2b34fb5d2f7f4d43bde3165bb4ee",
+            "start_line": 121,
+            "end_line": 187,
+            "section": "reportlab - Create PDFs"
+          }
+        ]
+      },
+      "sourceSpan": [
+        {
+          "package_id": "skill_b645bd7b8fcb43d29d72b7582ece950d",
+          "path": "SKILL.md",
+          "sha256": "d1c7caf5f35eb7d37877dd7fc33a095037be2b34fb5d2f7f4d43bde3165bb4ee",
+          "start_line": 121,
+          "end_line": 187,
+          "section": "reportlab - Create PDFs"
+        }
+      ],
+      "editorial_provenance": {
+        "slug": "reportlab-pdf-report",
+        "source_id": "anthropics-pdf",
+        "public_id_role": "editorial fixture identity, not an existing/live API method UUID",
+        "field_attribution": {
+          "situation": "editorial scenario inferred from the source task scope",
+          "goal": "editorial restatement inferred from the source workflow",
+          "constraints": "explicit source preconditions paraphrased; see individual exceptions",
+          "steps": "explicit source procedure paraphrased",
+          "success_criteria": "inferred review criteria for the documented procedure, not measured success",
+          "limitations": "source cautions plus explicit editorial evidence boundary",
+          "tags": "editorial retrieval metadata, not source claims",
+          "constraint_rules": "empty; no implicit environment labels invented"
+        },
+        "effectiveness": "not evaluated; documented source procedure only",
+        "graph_policy": "No relationship edges inferred merely because skills share a repository or category."
+      }
+    },
+    {
+      "public_id": "method_954dc1a8e8c8102a62043ae84b378f9c",
+      "payload": {
+        "public_source_only": true,
+        "agent_name": "OpenAkashic skill-source curator",
+        "title": "기존 DOCX를 XML로 수정하고 렌더링과 변경 추적 확인하기",
+        "situation": "기존 Word 문서를 수정하거나 변경 추적을 보존해야 한다.",
+        "goal": "문서 내용을 수정한 뒤 원본 대조 검증과 실제 렌더링으로 누락을 확인한다.",
+        "constraints": [
+          "기존 문서는 docx-js로 열 수 없으므로 압축을 풀어 XML을 수정한다.",
+          "스크립트 경로는 해당 스킬 폴더 기준이다.",
+          "이전 DOC 파일은 DOCX로 먼저 변환한다."
+        ],
+        "steps": [
+          "문서 압축을 풀고 외부 문서에 포함된 심볼릭 링크 항목을 제거한다.",
+          "같은 서식으로 나뉜 텍스트 run을 병합한 뒤 document.xml을 수정한다.",
+          "XML 전체를 재서식화하지 않고 다시 DOCX로 묶는다.",
+          "원본을 지정해 XSD 검증을 하고 변경 추적 문서라면 작성자를 지정해 추적되지 않은 수정을 찾는다.",
+          "PDF로 렌더링하고 페이지 이미지를 열어 본다.",
+          "삭제된 문단에 빈 글머리표가 남으면 보기 결과만으로 판단하지 말고 XML의 문단 삭제를 확인한다."
+        ],
+        "success_criteria": [
+          "원본을 대조한 검증 결과와 렌더링한 페이지를 확인했다.",
+          "변경 추적이 필요한 수정이 ins 또는 del로 표시되어 있다."
+        ],
+        "limitations": [
+          "원문 폴더의 XSD 참조 3개가 누락되어 있어 완전한 검증기 실행 환경으로 보지 않는다.",
+          "변경 내용 수락 도구와 pandoc은 삭제된 문단을 처리하는 방식에 제한이 있다.",
+          "라이브러리와 LibreOffice, Poppler 실행 환경은 이 보관 패키지에 포함되지 않는다."
+        ],
+        "tags": [
+          "documents",
+          "docx",
+          "tracked-changes",
+          "validation"
+        ],
+        "evidence_kind": "documented_method",
+        "sources": [
+          {
+            "url": "https://github.com/anthropics/skills/blob/1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064/skills/docx/SKILL.md#L9-L17",
+            "title": "anthropics-docx / Task routing",
+            "accessed_at": "2026-11-15T10:24:46.876596+00:00",
+            "quote": ""
+          },
+          {
+            "url": "https://github.com/anthropics/skills/blob/1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064/skills/docx/SKILL.md#L36-L74",
+            "title": "anthropics-docx / Verify output and edit existing documents",
+            "accessed_at": "2026-11-15T10:24:46.876596+00:00",
+            "quote": ""
+          }
+        ],
+        "constraint_rules": {
+          "requires": [],
+          "forbids": []
+        },
+        "skill_sources": [
+          {
+            "package_id": "skill_030e604af66e47e565b6efa0efa1d7b9",
+            "path": "SKILL.md",
+            "sha256": "e094096faf2861e4dbed2dd4ba1960dbc1a137f8a71403b22bf1e4df41b31051",
+            "start_line": 9,
+            "end_line": 17,
+            "section": "Task routing"
+          },
+          {
+            "package_id": "skill_030e604af66e47e565b6efa0efa1d7b9",
+            "path": "SKILL.md",
+            "sha256": "e094096faf2861e4dbed2dd4ba1960dbc1a137f8a71403b22bf1e4df41b31051",
+            "start_line": 36,
+            "end_line": 74,
+            "section": "Verify output and edit existing documents"
+          }
+        ]
+      },
+      "sourceSpan": [
+        {
+          "package_id": "skill_030e604af66e47e565b6efa0efa1d7b9",
+          "path": "SKILL.md",
+          "sha256": "e094096faf2861e4dbed2dd4ba1960dbc1a137f8a71403b22bf1e4df41b31051",
+          "start_line": 9,
+          "end_line": 17,
+          "section": "Task routing"
+        },
+        {
+          "package_id": "skill_030e604af66e47e565b6efa0efa1d7b9",
+          "path": "SKILL.md",
+          "sha256": "e094096faf2861e4dbed2dd4ba1960dbc1a137f8a71403b22bf1e4df41b31051",
+          "start_line": 36,
+          "end_line": 74,
+          "section": "Verify output and edit existing documents"
+        }
+      ],
+      "editorial_provenance": {
+        "slug": "docx-existing-edit-validate",
+        "source_id": "anthropics-docx",
+        "public_id_role": "editorial fixture identity, not an existing/live API method UUID",
+        "field_attribution": {
+          "situation": "editorial scenario inferred from the source task scope",
+          "goal": "editorial restatement inferred from the source workflow",
+          "constraints": "explicit source preconditions paraphrased; see individual exceptions",
+          "steps": "explicit source procedure paraphrased",
+          "success_criteria": "inferred review criteria for the documented procedure, not measured success",
+          "limitations": "source warnings plus separately observed static missing-schema dependency audit; no helper execution or document effectiveness claim",
+          "tags": "editorial retrieval metadata, not source claims",
+          "constraint_rules": "empty; no implicit environment labels invented"
+        },
+        "effectiveness": "not evaluated; documented source procedure only",
+        "graph_policy": "No relationship edges inferred merely because skills share a repository or category."
+      }
+    },
+    {
+      "public_id": "method_85a888496d03ceb3b01332c657b23889",
+      "payload": {
+        "public_source_only": true,
+        "agent_name": "OpenAkashic skill-source curator",
+        "title": "지원 형식과 읽기 범위를 확인한 뒤 로컬 데이터를 요약하기",
+        "situation": "모델링이나 확증 분석 전에 로컬 데이터의 형식과 기본 상태를 살펴봐야 한다.",
+        "goal": "원본을 바꾸지 않고 지원 범위 안에서 데이터 프로필과 분석 한계를 기록한다.",
+        "constraints": [
+          "접근이 허가된 로컬 데이터만 다룬다.",
+          "지원 형식을 먼저 확인하고 미지원 형식은 읽지 않는다.",
+          "명시한 루트 안의 일반 파일만 읽고 원본은 읽기 전용으로 보존한다."
+        ],
+        "steps": [
+          "변수 뜻, 단위, 허용 범위와 관측 단위 및 반복 측정 구조를 확인한다.",
+          "형식을 확인해 자동 지원, 선택 지원, 참고 전용 중 어느 범위인지 구분한다.",
+          "등록된 검사 도구로 크기와 행 수 등 자원 한도를 적용해 요약한다.",
+          "원본과 분리한 보고서에 집계 근거, 가정, 민감도와 한계를 기록한다.",
+          "검사한 범위와 잘린 범위, 행의 정렬 순서와 포함된 집단을 명시한다."
+        ],
+        "success_criteria": [
+          "데이터 원본을 덮어쓰지 않았고 요약에 검사 범위가 표시되어 있다.",
+          "참고 전용 형식이나 일부 접두 구간 검사를 완전한 검증으로 표현하지 않는다."
+        ],
+        "limitations": [
+          "유한한 접두 구간은 무작위 표본이 아니며 보이지 않은 집단을 대표하지 않는다.",
+          "집계 보고서는 파일의 의미나 과학적 타당성을 인증하지 않는다.",
+          "관측 자료 탐색에서 확증, 임상, 기전 또는 인과 주장을 만들지 않는다."
+        ],
+        "tags": [
+          "data-analysis",
+          "eda",
+          "data-quality",
+          "bounded-io"
+        ],
+        "evidence_kind": "documented_method",
+        "sources": [
+          {
+            "url": "https://github.com/K-Dense-AI/scientific-agent-skills/blob/2d2065fb4520fa3f3f2bcf61cff26ec8b7eba4b5/skills/exploratory-data-analysis/SKILL.md#L12-L39",
+            "title": "kdense-exploratory-data-analysis / Scope and non-negotiable boundary",
+            "accessed_at": "2026-11-15T10:24:46.877303+00:00",
+            "quote": ""
+          },
+          {
+            "url": "https://github.com/K-Dense-AI/scientific-agent-skills/blob/2d2065fb4520fa3f3f2bcf61cff26ec8b7eba4b5/skills/exploratory-data-analysis/SKILL.md#L123-L156",
+            "title": "kdense-exploratory-data-analysis / Required EDA reasoning",
+            "accessed_at": "2026-11-15T10:24:46.877303+00:00",
+            "quote": ""
+          },
+          {
+            "url": "https://github.com/K-Dense-AI/scientific-agent-skills/blob/2d2065fb4520fa3f3f2bcf61cff26ec8b7eba4b5/skills/exploratory-data-analysis/SKILL.md#L251-L272",
+            "title": "kdense-exploratory-data-analysis / Output interpretation",
+            "accessed_at": "2026-11-15T10:24:46.877303+00:00",
+            "quote": ""
+          },
+          {
+            "url": "https://github.com/K-Dense-AI/scientific-agent-skills/blob/2d2065fb4520fa3f3f2bcf61cff26ec8b7eba4b5/skills/exploratory-data-analysis/SKILL.md#L103-L122",
+            "title": "kdense-exploratory-data-analysis / Safe local I/O contract",
+            "accessed_at": "2026-11-15T10:24:46.877303+00:00",
+            "quote": ""
+          },
+          {
+            "url": "https://github.com/K-Dense-AI/scientific-agent-skills/blob/2d2065fb4520fa3f3f2bcf61cff26ec8b7eba4b5/skills/exploratory-data-analysis/SKILL.md#L158-L249",
+            "title": "kdense-exploratory-data-analysis / Workflow and report scaffold",
+            "accessed_at": "2026-11-15T10:24:46.877303+00:00",
+            "quote": ""
+          }
+        ],
+        "constraint_rules": {
+          "requires": [],
+          "forbids": []
+        },
+        "skill_sources": [
+          {
+            "package_id": "skill_5ed9591a3be82c9e63c6787f2256b588",
+            "path": "SKILL.md",
+            "sha256": "955c4cefa49106dd03b55cbd62603bab2d2fb678e627dd452ba62040c7128484",
+            "start_line": 12,
+            "end_line": 39,
+            "section": "Scope and non-negotiable boundary"
+          },
+          {
+            "package_id": "skill_5ed9591a3be82c9e63c6787f2256b588",
+            "path": "SKILL.md",
+            "sha256": "955c4cefa49106dd03b55cbd62603bab2d2fb678e627dd452ba62040c7128484",
+            "start_line": 123,
+            "end_line": 156,
+            "section": "Required EDA reasoning"
+          },
+          {
+            "package_id": "skill_5ed9591a3be82c9e63c6787f2256b588",
+            "path": "SKILL.md",
+            "sha256": "955c4cefa49106dd03b55cbd62603bab2d2fb678e627dd452ba62040c7128484",
+            "start_line": 251,
+            "end_line": 272,
+            "section": "Output interpretation"
+          },
+          {
+            "package_id": "skill_5ed9591a3be82c9e63c6787f2256b588",
+            "path": "SKILL.md",
+            "sha256": "955c4cefa49106dd03b55cbd62603bab2d2fb678e627dd452ba62040c7128484",
+            "start_line": 103,
+            "end_line": 122,
+            "section": "Safe local I/O contract"
+          },
+          {
+            "package_id": "skill_5ed9591a3be82c9e63c6787f2256b588",
+            "path": "SKILL.md",
+            "sha256": "955c4cefa49106dd03b55cbd62603bab2d2fb678e627dd452ba62040c7128484",
+            "start_line": 158,
+            "end_line": 249,
+            "section": "Workflow and report scaffold"
+          }
+        ]
+      },
+      "sourceSpan": [
+        {
+          "package_id": "skill_5ed9591a3be82c9e63c6787f2256b588",
+          "path": "SKILL.md",
+          "sha256": "955c4cefa49106dd03b55cbd62603bab2d2fb678e627dd452ba62040c7128484",
+          "start_line": 12,
+          "end_line": 39,
+          "section": "Scope and non-negotiable boundary"
+        },
+        {
+          "package_id": "skill_5ed9591a3be82c9e63c6787f2256b588",
+          "path": "SKILL.md",
+          "sha256": "955c4cefa49106dd03b55cbd62603bab2d2fb678e627dd452ba62040c7128484",
+          "start_line": 123,
+          "end_line": 156,
+          "section": "Required EDA reasoning"
+        },
+        {
+          "package_id": "skill_5ed9591a3be82c9e63c6787f2256b588",
+          "path": "SKILL.md",
+          "sha256": "955c4cefa49106dd03b55cbd62603bab2d2fb678e627dd452ba62040c7128484",
+          "start_line": 251,
+          "end_line": 272,
+          "section": "Output interpretation"
+        },
+        {
+          "package_id": "skill_5ed9591a3be82c9e63c6787f2256b588",
+          "path": "SKILL.md",
+          "sha256": "955c4cefa49106dd03b55cbd62603bab2d2fb678e627dd452ba62040c7128484",
+          "start_line": 103,
+          "end_line": 122,
+          "section": "Safe local I/O contract"
+        },
+        {
+          "package_id": "skill_5ed9591a3be82c9e63c6787f2256b588",
+          "path": "SKILL.md",
+          "sha256": "955c4cefa49106dd03b55cbd62603bab2d2fb678e627dd452ba62040c7128484",
+          "start_line": 158,
+          "end_line": 249,
+          "section": "Workflow and report scaffold"
+        }
+      ],
+      "editorial_provenance": {
+        "slug": "bounded-local-eda-profile",
+        "source_id": "kdense-exploratory-data-analysis",
+        "public_id_role": "editorial fixture identity, not an existing/live API method UUID",
+        "field_attribution": {
+          "situation": "editorial scenario inferred from the source task scope",
+          "goal": "editorial restatement inferred from the source workflow",
+          "constraints": "explicit source preconditions paraphrased; see individual exceptions",
+          "steps": "explicit source procedure paraphrased",
+          "success_criteria": "inferred review criteria for the documented procedure, not measured success",
+          "limitations": "source cautions plus explicit editorial evidence boundary",
+          "tags": "editorial retrieval metadata, not source claims",
+          "constraint_rules": "empty; no implicit environment labels invented"
+        },
+        "effectiveness": "not evaluated; documented source procedure only",
+        "graph_policy": "No relationship edges inferred merely because skills share a repository or category."
+      }
+    },
+    {
+      "public_id": "method_bcf4f8db7776d44f98f17e14d42bcd5b",
+      "payload": {
+        "public_source_only": true,
+        "agent_name": "OpenAkashic skill-source curator",
+        "title": "결측과 집단 분할을 확인하고 학습 전 누출을 점검하기",
+        "situation": "집단이나 시간으로 나뉜 데이터에서 결측과 반복 관측 때문에 분석이나 모델 평가가 왜곡될 수 있다.",
+        "goal": "결측의 의미와 관측 단위를 보존하면서 분할 중복과 전처리 누출의 징후를 기록한다.",
+        "constraints": [
+          "결측 코드와 가능한 결측 원인, 관측 단위와 대상 계층을 확인한다.",
+          "학습, 검증, 테스트의 경계와 분할에 사용한 단위, 집단 또는 시간을 확인한다.",
+          "원본을 자동으로 삭제하거나 대체하거나 변환하지 않는다."
+        ],
+        "steps": [
+          "결측, 구조적 부재, 비검출, 정량한계 미만, 포화, 실패와 실제 0을 구분한다.",
+          "반복 측정과 짝, 군집 관계를 확인하고 행을 독립 대상으로 취급하지 않는다.",
+          "대상, 집단, 시간에 따라 먼저 데이터를 분할한다.",
+          "대체, 스케일링, 인코딩, 변수 선택 등 학습되는 전처리는 학습 데이터에만 맞춘다.",
+          "결측과 분할 중복 검사를 실행할 경우 집단, 개체, 분할, 시간 열을 지정하고 검사 범위를 함께 보고한다."
+        ],
+        "success_criteria": [
+          "분할 단위와 결측 의미가 기록되어 있다.",
+          "전처리 학습에 검증 또는 테스트 데이터를 사용하지 않았는지 확인할 항목이 있다.",
+          "겹침이나 결측 차이를 진단 신호로 표현하고 원인으로 단정하지 않는다."
+        ],
+        "limitations": [
+          "누출 징후가 없다는 결과는 검사한 범위 안의 미검출을 뜻한다.",
+          "결측 차이 또는 집단 중복만으로 편향이나 누출이 증명되지는 않는다."
+        ],
+        "tags": [
+          "data-analysis",
+          "missingness",
+          "data-leakage",
+          "split-validation"
+        ],
+        "evidence_kind": "documented_method",
+        "sources": [
+          {
+            "url": "https://github.com/K-Dense-AI/scientific-agent-skills/blob/2d2065fb4520fa3f3f2bcf61cff26ec8b7eba4b5/skills/exploratory-data-analysis/SKILL.md#L123-L156",
+            "title": "kdense-exploratory-data-analysis / Required EDA reasoning",
+            "accessed_at": "2026-11-15T10:24:46.877806+00:00",
+            "quote": ""
+          },
+          {
+            "url": "https://github.com/K-Dense-AI/scientific-agent-skills/blob/2d2065fb4520fa3f3f2bcf61cff26ec8b7eba4b5/skills/exploratory-data-analysis/SKILL.md#L195-L204",
+            "title": "kdense-exploratory-data-analysis / Missingness and common leakage screen",
+            "accessed_at": "2026-11-15T10:24:46.877806+00:00",
+            "quote": ""
+          },
+          {
+            "url": "https://github.com/K-Dense-AI/scientific-agent-skills/blob/2d2065fb4520fa3f3f2bcf61cff26ec8b7eba4b5/skills/exploratory-data-analysis/SKILL.md#L251-L265",
+            "title": "kdense-exploratory-data-analysis / Output interpretation",
+            "accessed_at": "2026-11-15T10:24:46.877806+00:00",
+            "quote": ""
+          },
+          {
+            "url": "https://github.com/K-Dense-AI/scientific-agent-skills/blob/2d2065fb4520fa3f3f2bcf61cff26ec8b7eba4b5/skills/exploratory-data-analysis/SKILL.md#L103-L122",
+            "title": "kdense-exploratory-data-analysis / Safe local I/O contract",
+            "accessed_at": "2026-11-15T10:24:46.877806+00:00",
+            "quote": ""
+          }
+        ],
+        "constraint_rules": {
+          "requires": [],
+          "forbids": []
+        },
+        "skill_sources": [
+          {
+            "package_id": "skill_5ed9591a3be82c9e63c6787f2256b588",
+            "path": "SKILL.md",
+            "sha256": "955c4cefa49106dd03b55cbd62603bab2d2fb678e627dd452ba62040c7128484",
+            "start_line": 123,
+            "end_line": 156,
+            "section": "Required EDA reasoning"
+          },
+          {
+            "package_id": "skill_5ed9591a3be82c9e63c6787f2256b588",
+            "path": "SKILL.md",
+            "sha256": "955c4cefa49106dd03b55cbd62603bab2d2fb678e627dd452ba62040c7128484",
+            "start_line": 195,
+            "end_line": 204,
+            "section": "Missingness and common leakage screen"
+          },
+          {
+            "package_id": "skill_5ed9591a3be82c9e63c6787f2256b588",
+            "path": "SKILL.md",
+            "sha256": "955c4cefa49106dd03b55cbd62603bab2d2fb678e627dd452ba62040c7128484",
+            "start_line": 251,
+            "end_line": 265,
+            "section": "Output interpretation"
+          },
+          {
+            "package_id": "skill_5ed9591a3be82c9e63c6787f2256b588",
+            "path": "SKILL.md",
+            "sha256": "955c4cefa49106dd03b55cbd62603bab2d2fb678e627dd452ba62040c7128484",
+            "start_line": 103,
+            "end_line": 122,
+            "section": "Safe local I/O contract"
+          }
+        ]
+      },
+      "sourceSpan": [
+        {
+          "package_id": "skill_5ed9591a3be82c9e63c6787f2256b588",
+          "path": "SKILL.md",
+          "sha256": "955c4cefa49106dd03b55cbd62603bab2d2fb678e627dd452ba62040c7128484",
+          "start_line": 123,
+          "end_line": 156,
+          "section": "Required EDA reasoning"
+        },
+        {
+          "package_id": "skill_5ed9591a3be82c9e63c6787f2256b588",
+          "path": "SKILL.md",
+          "sha256": "955c4cefa49106dd03b55cbd62603bab2d2fb678e627dd452ba62040c7128484",
+          "start_line": 195,
+          "end_line": 204,
+          "section": "Missingness and common leakage screen"
+        },
+        {
+          "package_id": "skill_5ed9591a3be82c9e63c6787f2256b588",
+          "path": "SKILL.md",
+          "sha256": "955c4cefa49106dd03b55cbd62603bab2d2fb678e627dd452ba62040c7128484",
+          "start_line": 251,
+          "end_line": 265,
+          "section": "Output interpretation"
+        },
+        {
+          "package_id": "skill_5ed9591a3be82c9e63c6787f2256b588",
+          "path": "SKILL.md",
+          "sha256": "955c4cefa49106dd03b55cbd62603bab2d2fb678e627dd452ba62040c7128484",
+          "start_line": 103,
+          "end_line": 122,
+          "section": "Safe local I/O contract"
+        }
+      ],
+      "editorial_provenance": {
+        "slug": "missingness-split-leakage-audit",
+        "source_id": "kdense-exploratory-data-analysis",
+        "public_id_role": "editorial fixture identity, not an existing/live API method UUID",
+        "field_attribution": {
+          "situation": "editorial scenario inferred from the source task scope",
+          "goal": "editorial restatement inferred from the source workflow",
+          "constraints": "explicit source preconditions paraphrased; see individual exceptions",
+          "steps": "explicit source procedure paraphrased",
+          "success_criteria": "inferred review criteria for the documented procedure, not measured success",
+          "limitations": "source cautions plus explicit editorial evidence boundary",
+          "tags": "editorial retrieval metadata, not source claims",
+          "constraint_rules": "empty; no implicit environment labels invented"
+        },
+        "effectiveness": "not evaluated; documented source procedure only",
+        "graph_policy": "No relationship edges inferred merely because skills share a repository or category."
+      }
+    },
+    {
+      "public_id": "method_ab7046a105a3311169a4f6b4f5d0145b",
+      "payload": {
+        "public_source_only": true,
+        "agent_name": "OpenAkashic skill-source curator",
+        "title": "분석 질문과 설계를 정한 뒤 효과 크기와 불확실성 보고하기",
+        "situation": "실험이나 관측 자료에서 집단 차이나 변수 관계를 검정하려 한다.",
+        "goal": "분석 설계와 가정을 보존하고 검정 통계량뿐 아니라 효과와 불확실성을 보고한다.",
+        "constraints": [
+          "결과를 보고 방법을 고르기 전에 가설, 결과와 설명 변수, 목표 효과와 표본 단위를 정한다.",
+          "독립, 대응, 반복 또는 군집 관계와 비교의 다중성 범위를 확인한다.",
+          "통계 진단의 비유의 결과를 가정 검증으로 해석하지 않는다."
+        ],
+        "steps": [
+          "계획한 분석과 탐색적으로 바꾼 분석을 구분해 기록한다.",
+          "집단별 표본 수, 평균, 표준편차, 중앙값과 결측을 보고 원자료 분포를 그린다.",
+          "과학적 질문과 설계에 맞는 검정을 선택한다.",
+          "가정과 진단 그림을 설계 및 목표 효과와 함께 검토하고 진단 p값만으로 검정을 자동 변경하지 않는다.",
+          "효과 크기를 검정과 함께 계산한다.",
+          "기술통계, 정확한 검정 결과, 효과와 신뢰구간, 가정 검사와 계획에서 벗어난 사항을 보고한다."
+        ],
+        "success_criteria": [
+          "표본 단위와 대응 또는 군집 구조가 분석 설명에 남아 있다.",
+          "효과 추정치와 불확실성, 가정 검토와 분석 변경 이유를 제시한다."
+        ],
+        "limitations": [
+          "수치 진단은 독립성이나 과학적 타당성을 인증하지 않는다.",
+          "통계적 유의성은 실무적 중요성과 같지 않다.",
+          "문서에 있는 예시 숫자는 계산 결과가 아니므로 실제 결과로 재사용하지 않는다."
+        ],
+        "tags": [
+          "data-analysis",
+          "statistics",
+          "effect-size",
+          "uncertainty"
+        ],
+        "evidence_kind": "documented_method",
+        "sources": [
+          {
+            "url": "https://github.com/K-Dense-AI/scientific-agent-skills/blob/2d2065fb4520fa3f3f2bcf61cff26ec8b7eba4b5/skills/statistical-analysis/SKILL.md#L54-L65",
+            "title": "kdense-statistical-analysis / Analysis Workflow",
+            "accessed_at": "2026-11-15T10:24:46.878783+00:00",
+            "quote": ""
+          },
+          {
+            "url": "https://github.com/K-Dense-AI/scientific-agent-skills/blob/2d2065fb4520fa3f3f2bcf61cff26ec8b7eba4b5/skills/statistical-analysis/SKILL.md#L85-L131",
+            "title": "kdense-statistical-analysis / Assumption Checking",
+            "accessed_at": "2026-11-15T10:24:46.878783+00:00",
+            "quote": ""
+          },
+          {
+            "url": "https://github.com/K-Dense-AI/scientific-agent-skills/blob/2d2065fb4520fa3f3f2bcf61cff26ec8b7eba4b5/skills/statistical-analysis/SKILL.md#L328-L391",
+            "title": "kdense-statistical-analysis / Reporting Results",
+            "accessed_at": "2026-11-15T10:24:46.878783+00:00",
+            "quote": ""
+          },
+          {
+            "url": "https://github.com/K-Dense-AI/scientific-agent-skills/blob/2d2065fb4520fa3f3f2bcf61cff26ec8b7eba4b5/skills/statistical-analysis/SKILL.md#L426-L437",
+            "title": "kdense-statistical-analysis / Statistical Integrity",
+            "accessed_at": "2026-11-15T10:24:46.878783+00:00",
+            "quote": ""
+          }
+        ],
+        "constraint_rules": {
+          "requires": [],
+          "forbids": []
+        },
+        "skill_sources": [
+          {
+            "package_id": "skill_81e45a6d4f9155319cf65043886bcba4",
+            "path": "SKILL.md",
+            "sha256": "e112848726b3713267cac65e4e2c15491a0a26ee1ed628db01195f7e43f97997",
+            "start_line": 54,
+            "end_line": 65,
+            "section": "Analysis Workflow"
+          },
+          {
+            "package_id": "skill_81e45a6d4f9155319cf65043886bcba4",
+            "path": "SKILL.md",
+            "sha256": "e112848726b3713267cac65e4e2c15491a0a26ee1ed628db01195f7e43f97997",
+            "start_line": 85,
+            "end_line": 131,
+            "section": "Assumption Checking"
+          },
+          {
+            "package_id": "skill_81e45a6d4f9155319cf65043886bcba4",
+            "path": "SKILL.md",
+            "sha256": "e112848726b3713267cac65e4e2c15491a0a26ee1ed628db01195f7e43f97997",
+            "start_line": 328,
+            "end_line": 391,
+            "section": "Reporting Results"
+          },
+          {
+            "package_id": "skill_81e45a6d4f9155319cf65043886bcba4",
+            "path": "SKILL.md",
+            "sha256": "e112848726b3713267cac65e4e2c15491a0a26ee1ed628db01195f7e43f97997",
+            "start_line": 426,
+            "end_line": 437,
+            "section": "Statistical Integrity"
+          }
+        ]
+      },
+      "sourceSpan": [
+        {
+          "package_id": "skill_81e45a6d4f9155319cf65043886bcba4",
+          "path": "SKILL.md",
+          "sha256": "e112848726b3713267cac65e4e2c15491a0a26ee1ed628db01195f7e43f97997",
+          "start_line": 54,
+          "end_line": 65,
+          "section": "Analysis Workflow"
+        },
+        {
+          "package_id": "skill_81e45a6d4f9155319cf65043886bcba4",
+          "path": "SKILL.md",
+          "sha256": "e112848726b3713267cac65e4e2c15491a0a26ee1ed628db01195f7e43f97997",
+          "start_line": 85,
+          "end_line": 131,
+          "section": "Assumption Checking"
+        },
+        {
+          "package_id": "skill_81e45a6d4f9155319cf65043886bcba4",
+          "path": "SKILL.md",
+          "sha256": "e112848726b3713267cac65e4e2c15491a0a26ee1ed628db01195f7e43f97997",
+          "start_line": 328,
+          "end_line": 391,
+          "section": "Reporting Results"
+        },
+        {
+          "package_id": "skill_81e45a6d4f9155319cf65043886bcba4",
+          "path": "SKILL.md",
+          "sha256": "e112848726b3713267cac65e4e2c15491a0a26ee1ed628db01195f7e43f97997",
+          "start_line": 426,
+          "end_line": 437,
+          "section": "Statistical Integrity"
+        }
+      ],
+      "editorial_provenance": {
+        "slug": "prespecified-inference-workflow",
+        "source_id": "kdense-statistical-analysis",
+        "public_id_role": "editorial fixture identity, not an existing/live API method UUID",
+        "field_attribution": {
+          "situation": "editorial scenario inferred from the source task scope",
+          "goal": "editorial restatement inferred from the source workflow",
+          "constraints": "explicit source preconditions paraphrased; see individual exceptions",
+          "steps": "explicit source procedure paraphrased",
+          "success_criteria": "inferred review criteria for the documented procedure, not measured success",
+          "limitations": "source cautions plus explicit editorial evidence boundary",
+          "tags": "editorial retrieval metadata, not source claims",
+          "constraint_rules": "empty; no implicit environment labels invented"
+        },
+        "effectiveness": "not evaluated; documented source procedure only",
+        "graph_policy": "No relationship edges inferred merely because skills share a repository or category."
+      }
+    },
+    {
+      "public_id": "method_3e2f11e3ffd2f78a78c5f3c2cf240262",
+      "payload": {
+        "public_source_only": true,
+        "agent_name": "OpenAkashic skill-source curator",
+        "title": "연구 전 표본 수와 연구 후 탐지 가능한 효과를 구분하기",
+        "situation": "연구 설계에서 필요한 표본 수를 정하거나 완료된 연구의 검정력을 묻는다.",
+        "goal": "설계 가정에 맞는 사전 검정력 분석 또는 연구 후 민감도 분석을 선택한다.",
+        "constraints": [
+          "사전 예시는 독립 표본과 등분산 계획 모형을 가정한다.",
+          "분산 불균형, 군집, 탈락 또는 다른 목표 효과는 설계에 맞는 계산이나 시뮬레이션이 필요하다."
+        ],
+        "steps": [
+          "자료 수집 전에는 효과 크기, 유의수준, 목표 검정력과 집단 비율을 정해 필요한 표본 수를 구한다.",
+          "일원분산분석 예시에서 효과 크기 f와 전체 표본 수를 구분한다.",
+          "균형 집단 설계의 경우 집단별 수를 올림하고 전체 수를 다시 계산한다.",
+          "연구 완료 후에는 관측된 효과로 관측 검정력을 계산하지 않고, 정한 표본 수에서 탐지할 수 있는 효과 크기를 구한다."
+        ],
+        "success_criteria": [
+          "집단별 수와 전체 표본 수가 혼동되지 않게 기록되어 있다.",
+          "연구 후 결과가 관측 검정력 대신 명시한 조건의 민감도 분석으로 제시된다."
+        ],
+        "limitations": [
+          "관측된 효과로 계산하는 사후 관측 검정력은 p값의 결정적 함수여서 해석에 사용하지 않는다.",
+          "예시의 효과 크기와 80% 검정력은 고정된 보편 기준이 아니다.",
+          "계획 모형이 실제 설계와 다르면 예시 계산을 그대로 적용할 수 없다."
+        ],
+        "tags": [
+          "data-analysis",
+          "statistics",
+          "power-analysis",
+          "study-planning"
+        ],
+        "evidence_kind": "documented_method",
+        "sources": [
+          {
+            "url": "https://github.com/K-Dense-AI/scientific-agent-skills/blob/2d2065fb4520fa3f3f2bcf61cff26ec8b7eba4b5/skills/statistical-analysis/SKILL.md#L270-L327",
+            "title": "kdense-statistical-analysis / Power Analysis",
+            "accessed_at": "2026-11-15T10:24:46.879107+00:00",
+            "quote": ""
+          }
+        ],
+        "constraint_rules": {
+          "requires": [],
+          "forbids": []
+        },
+        "skill_sources": [
+          {
+            "package_id": "skill_81e45a6d4f9155319cf65043886bcba4",
+            "path": "SKILL.md",
+            "sha256": "e112848726b3713267cac65e4e2c15491a0a26ee1ed628db01195f7e43f97997",
+            "start_line": 270,
+            "end_line": 327,
+            "section": "Power Analysis"
+          }
+        ]
+      },
+      "sourceSpan": [
+        {
+          "package_id": "skill_81e45a6d4f9155319cf65043886bcba4",
+          "path": "SKILL.md",
+          "sha256": "e112848726b3713267cac65e4e2c15491a0a26ee1ed628db01195f7e43f97997",
+          "start_line": 270,
+          "end_line": 327,
+          "section": "Power Analysis"
+        }
+      ],
+      "editorial_provenance": {
+        "slug": "a-priori-power-and-sensitivity",
+        "source_id": "kdense-statistical-analysis",
+        "public_id_role": "editorial fixture identity, not an existing/live API method UUID",
+        "field_attribution": {
+          "situation": "editorial scenario inferred from the source task scope",
+          "goal": "editorial restatement inferred from the source workflow",
+          "constraints": "explicit planning-model limitations in source; Python environment requirements remain in source package dependency_notes",
+          "steps": "explicit source procedure paraphrased",
+          "success_criteria": "inferred review criteria for the documented procedure, not measured success",
+          "limitations": "source cautions plus explicit editorial evidence boundary",
+          "tags": "editorial retrieval metadata, not source claims",
+          "constraint_rules": "empty; no implicit environment labels invented"
+        },
+        "effectiveness": "not evaluated; documented source procedure only",
+        "graph_policy": "No relationship edges inferred merely because skills share a repository or category."
+      }
+    }
+  ]
+}

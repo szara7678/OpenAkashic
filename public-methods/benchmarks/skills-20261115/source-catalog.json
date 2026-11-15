@@ -1,0 +1,75 @@
+{
+  "schema": "public-skill-benchmark-catalog-reference-v1",
+  "reviewed_catalog": "../../examples/skill-sources/catalog.json",
+  "reviewed_catalog_sha256": "4feca5fa8dc5a61d6231eb15e1ba37ea5dc03f8e3b86f5b2d2f3e34e6e59aaf4",
+  "manifest_base": "../../examples/skill-sources/packages",
+  "skills": [
+    {
+      "package_id": "skill_030e604af66e47e565b6efa0efa1d7b9",
+      "name": "docx",
+      "description": "Use this skill whenever the user wants to create, read, edit, or manipulate Word documents (.docx files) or Word templates (.dotx files). Triggers include: any mention of 'Word doc', 'word document', '.docx', '.dotx', or requests to produce professional documents with formatting like tables of contents, headings, page numbers, or letterheads. Also use when extracting or reorganizing content from .docx or .dotx files, inserting or replacing images in documents, performing find-and-replace in Word files, working with tracked changes or comments, or converting content into a polished Word document. If the user asks for a 'report', 'memo', 'letter', 'template', or similar deliverable as a Word or .docx file, use this skill. Do NOT use for PDFs, spreadsheets, Google Docs, or general coding tasks unrelated to document generation.",
+      "commit": "1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064",
+      "entrypoint": "SKILL.md",
+      "sha256": "e094096faf2861e4dbed2dd4ba1960dbc1a137f8a71403b22bf1e4df41b31051",
+      "local_path": "/skills/docx/SKILL.md"
+    },
+    {
+      "package_id": "skill_07c728f6e8cc12349e73623954a260c7",
+      "name": "frontend-design",
+      "description": "Guidance for distinctive, intentional visual design when building new UI or reshaping an existing one. Helps with aesthetic direction, typography, and making choices that don't read as templated defaults.",
+      "commit": "1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064",
+      "entrypoint": "SKILL.md",
+      "sha256": "d91970639e9f5c37682ac7ab60094d35f1c7c1f38d731bd56396563aee10c1d3",
+      "local_path": "/skills/frontend-design/SKILL.md"
+    },
+    {
+      "package_id": "skill_5ed9591a3be82c9e63c6787f2256b588",
+      "name": "exploratory-data-analysis",
+      "description": "Performs bounded, local exploratory analysis of explicitly supported scientific files. Supports redacted CSV/TSV/JSON profiles; optional NumPy, HDF5, FASTA/FASTQ, and basic image metadata inspection; missingness/leakage audits; outlier and transformation sensitivity; and rigorous EDA report scaffolds. Other domain formats are reference-only and unknown formats fail closed.",
+      "commit": "2d2065fb4520fa3f3f2bcf61cff26ec8b7eba4b5",
+      "entrypoint": "SKILL.md",
+      "sha256": "955c4cefa49106dd03b55cbd62603bab2d2fb678e627dd452ba62040c7128484",
+      "local_path": "/skills/exploratory-data-analysis/SKILL.md"
+    },
+    {
+      "package_id": "skill_77687da51641a2447bceaa15d462a9f4",
+      "name": "brand-guidelines",
+      "description": "Applies Anthropic's official brand colors and typography to any sort of artifact that may benefit from having Anthropic's look-and-feel. Use it when brand colors or style guidelines, visual formatting, or company design standards apply.",
+      "commit": "1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064",
+      "entrypoint": "SKILL.md",
+      "sha256": "1120b3769e2985cefb3d25be981b1f914abeba57ae079b83c20c666c164fa9fe",
+      "local_path": "/skills/brand-guidelines/SKILL.md"
+    },
+    {
+      "package_id": "skill_81e45a6d4f9155319cf65043886bcba4",
+      "name": "statistical-analysis",
+      "description": "Guided statistical analysis for research data - test selection, assumption checking, effect sizes, power analysis, Bayesian alternatives, and APA-formatted reporting. Use whenever a user wants to compare groups, test a hypothesis, analyze experimental or survey data, check statistical assumptions, compute required sample sizes, or write up results - even if they never name a specific test. Covers t-tests, ANOVA, chi-square, correlation, regression, non-parametric and Bayesian methods. For low-level model APIs, see the statsmodels and pymc skills.",
+      "commit": "2d2065fb4520fa3f3f2bcf61cff26ec8b7eba4b5",
+      "entrypoint": "SKILL.md",
+      "sha256": "e112848726b3713267cac65e4e2c15491a0a26ee1ed628db01195f7e43f97997",
+      "local_path": "/skills/statistical-analysis/SKILL.md"
+    },
+    {
+      "package_id": "skill_b645bd7b8fcb43d29d72b7582ece950d",
+      "name": "pdf",
+      "description": "Use this skill whenever the user wants to do anything with PDF files. This includes reading or extracting text/tables from PDFs, combining or merging multiple PDFs into one, splitting PDFs apart, rotating pages, adding watermarks, creating new PDFs, filling PDF forms, encrypting/decrypting PDFs, extracting images, and OCR on scanned PDFs to make them searchable. If the user mentions a .pdf file or asks to produce one, use this skill.",
+      "commit": "1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064",
+      "entrypoint": "SKILL.md",
+      "sha256": "d1c7caf5f35eb7d37877dd7fc33a095037be2b34fb5d2f7f4d43bde3165bb4ee",
+      "local_path": "/skills/pdf/SKILL.md"
+    }
+  ],
+  "commits": [
+    "1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064",
+    "2d2065fb4520fa3f3f2bcf61cff26ec8b7eba4b5"
+  ],
+  "licenses": [
+    "Apache-2.0",
+    "MIT"
+  ],
+  "original_files": 121,
+  "original_bytes": 2025414,
+  "raw_originals_in_this_benchmark": false,
+  "external_dependency_closure_verified": false,
+  "reconstruction_instructions": "../../docs/reconstruct-public-skills.md"
+}

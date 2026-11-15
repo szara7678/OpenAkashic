@@ -1,0 +1,22 @@
+{
+  "schema": "packet-only-combobox-render-amendment-v1",
+  "reason": "Label prefix matched the actual Service select and Services containers. Exact combobox role/name selectors supplement only the two frozen mobile filter states.",
+  "anonymous_id": "A03",
+  "original_packet_set_sha256": "dd61973276ce5513604fbcd502d5705a3f5a9511c2c225cbf3b91a8b0e10d7a7",
+  "original_renderer_sha256": "a3de12f997c7d03a4142786a5fab9ee27e03d1fca1a6846e129133671276b0f6",
+  "supplemental_renderer_sha256": "c314a005b288e19b3f72f62d04fc48a07561930a1a6f228dfcf5d5cd31d9e68b",
+  "original_render_status_sha256": "ed95cefb46dce5a82dcdb5570b59692763fa32ad01e7ead55cfce9bf7aa67701",
+  "original_render_failure_preserved": true,
+  "candidate_unchanged": true,
+  "checker_results_and_metrics_unchanged": true,
+  "network": "none",
+  "read_only_artifact_source": true,
+  "render_exit_code": 0,
+  "root_freeze_sha256": "a0cf39f09a6964c0afa600e3bad3c0fb54f8a33335eb11244fe0765eeec9c54c",
+  "files": {
+    "east-advice-stepfree-390.png": "b3ec87aa082af4586f1114978aa4dc4204e7d87d441d20e4825627013f10d546",
+    "empty-north-advice-stepfree-390.png": "e014efcfecb10f407d8efd0ecc0979ec608dbe371858f4e52fa9558a80e80f9a",
+    "view-1280.png": "4e0524f41f1d1ef5cc75b2804f5e4ee49ed10ec25a4431de38cf83787db78ccf",
+    "view-390.png": "c5be3ae03d046cfaefc88263dacfd0a90603f150040021a00cc4c4f6b036f354"
+  }
+}

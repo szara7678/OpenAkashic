@@ -1,0 +1,16 @@
+{
+  "combinations": 24,
+  "initialLocations": 7,
+  "reset": "pass",
+  "sourceFidelity": "pass",
+  "emptyState": "pass",
+  "mobileOverflow": "none at 390px",
+  "keyboard": "tab order, focus outline, checkbox toggle and reset pass",
+  "externalRequests": [],
+  "jsErrors": [],
+  "noJS": "all 7 readable with notice",
+  "screenshots": [
+    "desktop.png",
+    "mobile.png"
+  ]
+}

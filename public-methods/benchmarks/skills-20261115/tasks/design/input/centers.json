@@ -1,0 +1,91 @@
+{
+  "snapshot_date": "2026-07-18",
+  "city": "Cedar",
+  "locations": [
+    {
+      "id": "cedar-library",
+      "name": "Cedar Library",
+      "neighborhood": "East",
+      "services": [
+        "Cooling",
+        "Advice"
+      ],
+      "hours": "09:00–18:00",
+      "step_free": true,
+      "open": true,
+      "note": "Quiet room on the ground floor."
+    },
+    {
+      "id": "river-hall",
+      "name": "River Hall",
+      "neighborhood": "West",
+      "services": [
+        "Cooling"
+      ],
+      "hours": "10:00–20:00",
+      "step_free": true,
+      "open": true,
+      "note": "Water refill point available."
+    },
+    {
+      "id": "north-desk",
+      "name": "North Advice Desk",
+      "neighborhood": "North",
+      "services": [
+        "Advice"
+      ],
+      "hours": "11:00–16:00",
+      "step_free": false,
+      "open": true,
+      "note": "Three steps at entrance."
+    },
+    {
+      "id": "market-room",
+      "name": "Market Room",
+      "neighborhood": "East",
+      "services": [
+        "Advice"
+      ],
+      "hours": "12:00–17:00",
+      "step_free": null,
+      "open": true,
+      "note": "Entrance access has not been confirmed."
+    },
+    {
+      "id": "orchard-center",
+      "name": "Orchard Center",
+      "neighborhood": "North",
+      "services": [
+        "Cooling"
+      ],
+      "hours": "08:00–18:00",
+      "step_free": true,
+      "open": true,
+      "note": "Family seating available."
+    },
+    {
+      "id": "old-clinic",
+      "name": "Old Clinic",
+      "neighborhood": "East",
+      "services": [
+        "Advice"
+      ],
+      "hours": "Closed for maintenance",
+      "step_free": true,
+      "open": false,
+      "note": "Do not travel here for support."
+    },
+    {
+      "id": "west-office",
+      "name": "West Office",
+      "neighborhood": "West",
+      "services": [
+        "Advice"
+      ],
+      "hours": "Closed today",
+      "step_free": null,
+      "open": false,
+      "note": "Telephone team is not staffed today."
+    }
+  ]
+}

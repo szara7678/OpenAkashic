@@ -1,0 +1,73 @@
+{
+  "schema": "public-skill-source-v1",
+  "source_id": "anthropics-brand-guidelines",
+  "package_id": "skill_77687da51641a2447bceaa15d462a9f4",
+  "repository": "https://github.com/anthropics/skills",
+  "commit": "1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064",
+  "original_directory": "skills/brand-guidelines",
+  "entrypoint": "SKILL.md",
+  "category": "design",
+  "license": {
+    "spdx": "Apache-2.0",
+    "url": "https://github.com/anthropics/skills/blob/1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064/skills/brand-guidelines/LICENSE.txt",
+    "reviewed_for_publication": true
+  },
+  "license_files": [
+    "LICENSE.txt",
+    "_upstream/THIRD_PARTY_NOTICES.md"
+  ],
+  "dependency_notes": [
+    "Anthropic-specific identity instructions; not a general permission to imply Anthropic endorsement. Poppins/Lora, Arial/Georgia fonts are referenced but not bundled; their runtime availability/licensing is unresolved. python-pptx is referenced, not bundled or installed."
+  ],
+  "files": [
+    {
+      "path": "LICENSE.txt",
+      "sha256": "bc6b3af2f331cbc7fb0da1344efb2cbe5877a31498b4d70dbc7000f3405a1362",
+      "size_bytes": 11345,
+      "git_blob": "4f881c52d1f72f4cfb720e339e2d35c3058d01a9",
+      "original_path": "skills/brand-guidelines/LICENSE.txt",
+      "git_mode": "100644",
+      "url": "https://github.com/anthropics/skills/blob/1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064/skills/brand-guidelines/LICENSE.txt"
+    },
+    {
+      "path": "SKILL.md",
+      "sha256": "1120b3769e2985cefb3d25be981b1f914abeba57ae079b83c20c666c164fa9fe",
+      "size_bytes": 2235,
+      "git_blob": "47c72c607bdb5dd81bdea5de2b5e4f3992a5fd59",
+      "original_path": "skills/brand-guidelines/SKILL.md",
+      "git_mode": "100644",
+      "url": "https://github.com/anthropics/skills/blob/1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064/skills/brand-guidelines/SKILL.md"
+    },
+    {
+      "path": "_upstream/README.md",
+      "sha256": "1fca448ca17ccf901bd068c661209b15300bc5be3f039ba1a616c3a13a374ccb",
+      "size_bytes": 5547,
+      "git_blob": "4171c2c9eba15bf2bdefb496d941ba559368438b",
+      "original_path": "README.md",
+      "git_mode": "100644",
+      "url": "https://github.com/anthropics/skills/blob/1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064/README.md"
+    },
+    {
+      "path": "_upstream/THIRD_PARTY_NOTICES.md",
+      "sha256": "a8ff7a84dee9dfb42ab448de281784387ceafdf63881b7c070ee2de7f6ed865c",
+      "size_bytes": 46162,
+      "git_blob": "ffef92c48b351a3ed036556ed32dda934e8cf41a",
+      "original_path": "THIRD_PARTY_NOTICES.md",
+      "git_mode": "100644",
+      "url": "https://github.com/anthropics/skills/blob/1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064/THIRD_PARTY_NOTICES.md"
+    }
+  ],
+  "integrity": {
+    "full_skill_folder": true,
+    "upstream_file_count": 2,
+    "files_unmodified": true
+  },
+  "dependency_closure": {
+    "source_folder": "complete",
+    "runtime": "unresolved-not-installed-or-executed",
+    "unresolved_local_schema_references": []
+  },
+  "readme_url": "https://github.com/anthropics/skills/blob/1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064/README.md",
+  "retrieved_at": "2026-11-15T10:19:58.278667+00:00",
+  "source_policy": "Untrusted source data preserved verbatim; commands and installer instructions were not executed."
+}

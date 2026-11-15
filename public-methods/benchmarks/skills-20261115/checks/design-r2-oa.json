@@ -1,0 +1,28 @@
+{
+  "run_id": "design-r2-oa",
+  "exit_code": 1,
+  "seconds": 4.095165169041138,
+  "status": null,
+  "report": {
+    "task": "design",
+    "ok": false,
+    "groups": {
+      "delivery_and_selftest_record": {
+        "ok": true,
+        "errors": []
+      },
+      "directory_function_and_readability": {
+        "ok": false,
+        "errors": [
+          "Missing snapshot/unknown notice 2026-07-18",
+          "Error: locator.selectOption: Error: strict mode violation: getByLabel(/^Service/) resolved to 8 elements:\n    1) <select id=\"service\">…</select> aka getByLabel('Service', { exact: true })\n    2) <div class=\"services\" aria-label=\"Services\">…</div> aka getByText('CoolingAdvice', { exact: true })\n    3) <div class=\"services\" aria-label=\"Services\">…</div> aka locator('article').filter({ hasText: 'West neighborhoodOpen at' }).getByLabel('Services')\n    4) <div class=\"services\" aria-label=\"Services\">…</div> aka locator('article').filter({ hasText: 'North neighborhoodOpen at snapshot North Advice DeskAdvice Hours11:00–16:00Step' }).getByLabel('Services')\n    5) <div class=\"services\" aria-label=\"Services\">…</div> aka getByRole('article').filter({ hasText: 'East neighborhoodOpen at snapshot Market RoomAdvice Hours12:00–17:00Step-' }).getByLabel('Services')\n    6) <div class=\"services\" aria-label=\"Services\">…</div> aka locator('article').filter({ hasText: 'North neighborhoodOpen at snapshot Orchard CenterCooling Hours08:00–18:00Step-' }).getByLabel('Services')\n    7) <div class=\"services\" aria-label=\"Services\">…</div> aka locator('article').filter({ hasText: 'East neighborhoodClosed at' }).getByLabel('Services')\n    8) <div class=\"services\" aria-label=\"Services\">…</div> aka locator('div').filter({ hasText: /^Advice$/ }).nth(3)\n\nCall log:\n  - waiting for getByLabel(/^Service/)\n"
+        ],
+        "evidence": {}
+      }
+    },
+    "scope": "Artifact checks only; root independently verifies logged self-tests, normal final, source faithfulness and blind quality."
+  },
+  "original_checker_v2_sha256": "75dd36c93631277fbd06719f889e0e4e30098dedfd1922ede98e29ad4df69328",
+  "native_outcome_unchanged": true,
+  "reclassification": false
+}

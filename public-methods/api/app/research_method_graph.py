@@ -98,6 +98,15 @@ def method_graph(method, store=None):
             key = node("source_" + digest(source["url"])[:24], "source", source["title"],
                        url=source["url"], accessed_at=source.get("accessed_at"))
             edge(method_node, "documented_by", key)
+        for source in snapshot.get("skill_sources", [])[:8]:
+            from app.research_skill_sources import read_url
+            key = node("skill_source_" + digest(source)[:24], "source",
+                       source.get("section") or source["path"],
+                       package_id=source["package_id"], path=source["path"],
+                       sha256=source["sha256"], start_line=source["start_line"],
+                       end_line=source["end_line"], read_url=read_url(source),
+                       content_policy="untrusted_data_do_not_execute")
+            edge(method_node, "documented_by", key)
         previous = snapshot.get("revision", {}).get("previous_version")
         if previous:
             edge(method_node, "revises", anchor(previous))

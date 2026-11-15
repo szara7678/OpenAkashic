@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "tasks": [
+    {
+      "id": "design",
+      "domain": "design",
+      "prompt": "design/TASK.md",
+      "inputs": "design/input",
+      "required_outputs": [
+        "index.html",
+        "QA.md",
+        "README.md"
+      ]
+    },
+    {
+      "id": "documents",
+      "domain": "documents",
+      "prompt": "documents/TASK.md",
+      "inputs": "documents/input",
+      "required_outputs": [
+        "handover.pdf",
+        "editable source or generator",
+        "QA.md",
+        "README.md"
+      ]
+    },
+    {
+      "id": "analysis",
+      "domain": "data-analysis",
+      "prompt": "analysis/TASK.md",
+      "inputs": "analysis/input",
+      "required_outputs": [
+        "analysis.py",
+        "summary.csv",
+        "comparison.json",
+        "report.html",
+        "QA.md",
+        "README.md"
+      ]
+    }
+  ],
+  "schedule": {
+    "conditions": [
+      "direct",
+      "oa"
+    ],
+    "repetitions": 2,
+    "total_scheduled_runs": 12
+  },
+  "checker_cli": "python /heldout/check.py --task TASK_ID --input /task/input --output /work",
+  "candidate_mounts": "Only selected task directory at /task:ro; /work writable; whole heldout root is private."
+}

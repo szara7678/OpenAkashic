@@ -1,0 +1,38 @@
+{
+  "run_id": "documents-r2-oa",
+  "exit_code": 1,
+  "seconds": 0.9357956260209903,
+  "status": null,
+  "report": {
+    "task": "documents",
+    "ok": false,
+    "groups": {
+      "delivery_and_selftest_record": {
+        "ok": true,
+        "errors": []
+      },
+      "actual_two_page_a4_pdf": {
+        "ok": true,
+        "errors": []
+      },
+      "latest_source_facts_and_uncertainty": {
+        "ok": false,
+        "errors": [
+          "Missing required factual token: 2026-07-18"
+        ]
+      },
+      "action_handover": {
+        "ok": true,
+        "errors": []
+      },
+      "text_bounds": {
+        "ok": true,
+        "errors": []
+      }
+    },
+    "scope": "Artifact checks only; root independently verifies logged self-tests, normal final, source faithfulness and blind quality."
+  },
+  "original_checker_v2_sha256": "2587eb7097dea65da7d68c8900f4e020a9f7b82d3ff8d39e828545380b64e12d",
+  "native_outcome_unchanged": true,
+  "reclassification": false
+}

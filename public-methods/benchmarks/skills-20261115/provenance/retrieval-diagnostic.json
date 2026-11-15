@@ -1,0 +1,3734 @@
+{
+  "schema": "frozen-ten-method-readonly-retrieval-diagnostic-v1",
+  "created_at_utc": "2026-11-15T14:03:35.735155+00:00",
+  "source": "same frozen ten-method archive/index and exact six logged OA queries",
+  "configuration": {
+    "model": "Qwen/Qwen3-Embedding-0.6B",
+    "revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+    "embedding_spec": "openakashic-methods-qwen3-v1-lasttoken-l2-f32-max512",
+    "floors": {
+      "situation": 0.35,
+      "goal": 0.35
+    }
+  },
+  "method_count": 10,
+  "embedding_requests": 6,
+  "generation_calls": 0,
+  "production_changes": false,
+  "scope_or_default_threshold_changes": false,
+  "records": [
+    {
+      "run": "analysis-r1-oa",
+      "query": {
+        "situation": "Observational Cedar service log in /task/input/cases.csv, assisted versus standard across East and West with differing case mix and unknown outcomes",
+        "goal": "Reproducible analysis with six-row known-outcome summary, pooled and equally weighted branch differences, and readable offline HTML report with missingness, noncausal interpretation and verified artifacts",
+        "explicit_scope": {
+          "domain": "",
+          "product": ""
+        },
+        "requires": [],
+        "forbids": [],
+        "constraints": "",
+        "character_lengths": {
+          "situation": 148,
+          "goal": 204
+        }
+      },
+      "logged_bundle": {
+        "items": [
+          {
+            "id": "method_c308cd0b8ee945fdbb32109d6bccedae",
+            "complete": true,
+            "needs_fetch": false
+          }
+        ],
+        "omitted_candidates": 0,
+        "tokens": 956
+      },
+      "exact_reproduction": {
+        "search_metadata": {
+          "available": true,
+          "status": "ready",
+          "eligible_methods": 1,
+          "stale_or_missing_methods": 0,
+          "weak_axis_methods": 9,
+          "constraint_conflicts": 0,
+          "relevance_status": "candidates",
+          "floors": {
+            "situation": 0.35,
+            "goal": 0.35
+          },
+          "floor_policy": "operator_frozen_before_evaluation",
+          "ranking": "reciprocal_rank_fusion",
+          "subject_policy": "declared_subject_and_topic_v1",
+          "subject_unknown_policy": "undeclared_subject_or_topic_excluded_not_proven_incompatible",
+          "subject_unknown_methods": 0,
+          "lexical_recall_methods": 0,
+          "query_subjects": [],
+          "model": "Qwen/Qwen3-Embedding-0.6B",
+          "revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+          "embedding_spec": "openakashic-methods-qwen3-v1-lasttoken-l2-f32-max512",
+          "source_methods": 10
+        },
+        "eligible_total": 1,
+        "returned_ids": [
+          "method_c308cd0b8ee945fdbb32109d6bccedae"
+        ],
+        "bundle_matches_logged": true,
+        "bundle_items": [
+          {
+            "id": "method_c308cd0b8ee945fdbb32109d6bccedae",
+            "complete": true,
+            "needs_fetch": false
+          }
+        ],
+        "bundle_omitted_candidates": 0
+      },
+      "in_memory_sentinel": {
+        "situation_floor": -1,
+        "goal_floor": -1,
+        "ranking_only_not_policy_proposal": true,
+        "subject_scope_constraints_unchanged": true,
+        "returned_ids": [
+          "method_c308cd0b8ee945fdbb32109d6bccedae",
+          "method_c35af4d9d760423caafb1e649c75d2f7",
+          "method_a7880a9ad3c1403e9b4d9b02bbbef244",
+          "method_64858feefd444ddcbd439bf77e9f10fa",
+          "method_2ecc633d287c4c18a18ba94aae0a7744",
+          "method_a97a22e80aa54d9a863bf2e788550705",
+          "method_f965d6a617dc46c18843b5c8286f29cd",
+          "method_a55c69897c4243f0924cea57e5fd7dc4",
+          "method_3a5cd7fa50934e24b594b9cc6d4db08d",
+          "method_8de99a09e49f40e4b891e4bfc04af3d8"
+        ]
+      },
+      "methods": [
+        {
+          "id": "method_c308cd0b8ee945fdbb32109d6bccedae",
+          "version": 1,
+          "title": "ReportLab으로 여러 쪽 PDF를 만들고 첨자를 처리하기",
+          "situation": "제목과 본문이 있는 여러 쪽 PDF 보고서를 코드로 생성해야 한다.",
+          "goal": "문단과 페이지 나눔을 사용해 PDF를 만들고 첨자가 검은 상자로 보이는 문제를 피한다.",
+          "axis_cosines": {
+            "situation": 0.354163,
+            "goal": 0.370629
+          },
+          "axis_floor_pass": {
+            "situation": true,
+            "goal": true
+          },
+          "mean_axis_cosine": 0.362396,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [],
+            "method_subjects": [
+              "pdf",
+              "reportlab"
+            ],
+            "covered": [],
+            "undeclared": [],
+            "unmentioned_title_subjects": [
+              "pdf",
+              "reportlab"
+            ],
+            "topic_terms": {
+              "situation": [],
+              "goal": [
+                "report"
+              ]
+            },
+            "status": "not_selected",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": true,
+          "semantic_pass": true,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [],
+          "all_corpus_mean_axis_rank": 1,
+          "all_corpus_axis_ranks": {
+            "situation": 1,
+            "goal": 4
+          },
+          "actual_ranks": {
+            "semantic": 1,
+            "lexical": null
+          }
+        },
+        {
+          "id": "method_c35af4d9d760423caafb1e649c75d2f7",
+          "version": 1,
+          "title": "결측과 집단 분할을 확인하고 학습 전 누출을 점검하기",
+          "situation": "집단이나 시간으로 나뉜 데이터에서 결측과 반복 관측 때문에 분석이나 모델 평가가 왜곡될 수 있다.",
+          "goal": "결측의 의미와 관측 단위를 보존하면서 분할 중복과 전처리 누출의 징후를 기록한다.",
+          "axis_cosines": {
+            "situation": 0.295187,
+            "goal": 0.383247
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": true
+          },
+          "mean_axis_cosine": 0.339217,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [],
+            "method_subjects": [],
+            "covered": [],
+            "undeclared": [],
+            "unmentioned_title_subjects": [],
+            "topic_terms": {
+              "situation": [],
+              "goal": [
+                "analysi",
+                "analysis",
+                "interpretation",
+                "missingness"
+              ]
+            },
+            "status": "not_selected",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": true,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 2,
+          "all_corpus_axis_ranks": {
+            "situation": 3,
+            "goal": 2
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_a7880a9ad3c1403e9b4d9b02bbbef244",
+          "version": 1,
+          "title": "PDF의 배치와 표 구조를 나눠 추출하기",
+          "situation": "PDF에서 텍스트와 표를 꺼내 문서나 표 데이터로 다시 사용해야 한다.",
+          "goal": "페이지별 텍스트와 표를 분리해 추출하고 표를 결합할 수 있는 형태로 만든다.",
+          "axis_cosines": {
+            "situation": 0.243845,
+            "goal": 0.433648
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": true
+          },
+          "mean_axis_cosine": 0.338747,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [],
+            "method_subjects": [
+              "pdf",
+              "pdfplumber"
+            ],
+            "covered": [],
+            "undeclared": [],
+            "unmentioned_title_subjects": [
+              "pdf"
+            ],
+            "topic_terms": {
+              "situation": [],
+              "goal": []
+            },
+            "status": "not_selected",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": true,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 3,
+          "all_corpus_axis_ranks": {
+            "situation": 6,
+            "goal": 1
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_64858feefd444ddcbd439bf77e9f10fa",
+          "version": 1,
+          "title": "분석 질문과 설계를 정한 뒤 효과 크기와 불확실성 보고하기",
+          "situation": "실험이나 관측 자료에서 집단 차이나 변수 관계를 검정하려 한다.",
+          "goal": "분석 설계와 가정을 보존하고 검정 통계량뿐 아니라 효과와 불확실성을 보고한다.",
+          "axis_cosines": {
+            "situation": 0.306294,
+            "goal": 0.370389
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": true
+          },
+          "mean_axis_cosine": 0.338342,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [],
+            "method_subjects": [],
+            "covered": [],
+            "undeclared": [],
+            "unmentioned_title_subjects": [],
+            "topic_terms": {
+              "situation": [],
+              "goal": [
+                "analysi",
+                "analysis"
+              ]
+            },
+            "status": "not_selected",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": true,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 4,
+          "all_corpus_axis_ranks": {
+            "situation": 2,
+            "goal": 5
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_2ecc633d287c4c18a18ba94aae0a7744",
+          "version": 1,
+          "title": "기존 DOCX를 XML로 수정하고 렌더링과 변경 추적 확인하기",
+          "situation": "기존 Word 문서를 수정하거나 변경 추적을 보존해야 한다.",
+          "goal": "문서 내용을 수정한 뒤 원본 대조 검증과 실제 렌더링으로 누락을 확인한다.",
+          "axis_cosines": {
+            "situation": 0.268211,
+            "goal": 0.37267
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": true
+          },
+          "mean_axis_cosine": 0.32044,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [],
+            "method_subjects": [
+              "docx"
+            ],
+            "covered": [],
+            "undeclared": [],
+            "unmentioned_title_subjects": [
+              "docx"
+            ],
+            "topic_terms": {
+              "situation": [
+                "task"
+              ],
+              "goal": []
+            },
+            "status": "not_selected",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": true,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 5,
+          "all_corpus_axis_ranks": {
+            "situation": 4,
+            "goal": 3
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_a97a22e80aa54d9a863bf2e788550705",
+          "version": 1,
+          "title": "지원 형식과 읽기 범위를 확인한 뒤 로컬 데이터를 요약하기",
+          "situation": "모델링이나 확증 분석 전에 로컬 데이터의 형식과 기본 상태를 살펴봐야 한다.",
+          "goal": "원본을 바꾸지 않고 지원 범위 안에서 데이터 프로필과 분석 한계를 기록한다.",
+          "axis_cosines": {
+            "situation": 0.255431,
+            "goal": 0.347042
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": false
+          },
+          "mean_axis_cosine": 0.301236,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [],
+            "method_subjects": [],
+            "covered": [],
+            "undeclared": [],
+            "unmentioned_title_subjects": [],
+            "topic_terms": {
+              "situation": [],
+              "goal": [
+                "analysi",
+                "analysis",
+                "interpretation",
+                "report"
+              ]
+            },
+            "status": "not_selected",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": true,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 6,
+          "all_corpus_axis_ranks": {
+            "situation": 5,
+            "goal": 6
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_f965d6a617dc46c18843b5c8286f29cd",
+          "version": 1,
+          "title": "연구 전 표본 수와 연구 후 탐지 가능한 효과를 구분하기",
+          "situation": "연구 설계에서 필요한 표본 수를 정하거나 완료된 연구의 검정력을 묻는다.",
+          "goal": "설계 가정에 맞는 사전 검정력 분석 또는 연구 후 민감도 분석을 선택한다.",
+          "axis_cosines": {
+            "situation": 0.193122,
+            "goal": 0.29521
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": false
+          },
+          "mean_axis_cosine": 0.244166,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [],
+            "method_subjects": [],
+            "covered": [],
+            "undeclared": [],
+            "unmentioned_title_subjects": [],
+            "topic_terms": {
+              "situation": [],
+              "goal": [
+                "analysi",
+                "analysis"
+              ]
+            },
+            "status": "not_selected",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": true,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 7,
+          "all_corpus_axis_ranks": {
+            "situation": 8,
+            "goal": 7
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_a55c69897c4243f0924cea57e5fd7dc4",
+          "version": 1,
+          "title": "사용자 행동과 상태가 분명한 화면 문구 쓰기",
+          "situation": "화면의 버튼, 오류, 빈 상태 문구가 추상적이어서 다음 행동을 알기 어렵다.",
+          "goal": "사용자가 이해하는 말로 행동을 설명하고 흐름 전체에서 같은 이름을 쓴다.",
+          "axis_cosines": {
+            "situation": 0.2026,
+            "goal": 0.203202
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": false
+          },
+          "mean_axis_cosine": 0.202901,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [],
+            "method_subjects": [],
+            "covered": [],
+            "undeclared": [],
+            "unmentioned_title_subjects": [],
+            "topic_terms": {
+              "situation": [],
+              "goal": []
+            },
+            "status": "not_selected",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": true,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 8,
+          "all_corpus_axis_ranks": {
+            "situation": 7,
+            "goal": 9
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_3a5cd7fa50934e24b594b9cc6d4db08d",
+          "version": 1,
+          "title": "주제에 맞는 시각 계획을 세우고 구현 전에 검토하기",
+          "situation": "새 웹 화면이나 기존 화면을 만들 때 주제와 관계없는 기본 템플릿이 반복된다.",
+          "goal": "사용자와 주제에 맞는 색, 글꼴, 배치를 정하고 구현할 선택 이유를 남긴다.",
+          "axis_cosines": {
+            "situation": 0.14964,
+            "goal": 0.216718
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": false
+          },
+          "mean_axis_cosine": 0.183179,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [],
+            "method_subjects": [],
+            "covered": [],
+            "undeclared": [],
+            "unmentioned_title_subjects": [],
+            "topic_terms": {
+              "situation": [],
+              "goal": []
+            },
+            "status": "not_selected",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": true,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 9,
+          "all_corpus_axis_ranks": {
+            "situation": 10,
+            "goal": 8
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_8de99a09e49f40e4b891e4bfc04af3d8",
+          "version": 1,
+          "title": "Anthropic 브랜드 요청에 색과 글꼴 규칙 적용하기",
+          "situation": "Anthropic의 공식 색과 글꼴을 적용해야 하는 산출물을 만든다.",
+          "goal": "Anthropic 브랜드 지침에 맞춰 텍스트 계층과 도형 색을 일관되게 적용한다.",
+          "axis_cosines": {
+            "situation": 0.157896,
+            "goal": 0.190716
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": false
+          },
+          "mean_axis_cosine": 0.174306,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [],
+            "method_subjects": [
+              "anthropic"
+            ],
+            "covered": [],
+            "undeclared": [],
+            "unmentioned_title_subjects": [
+              "anthropic"
+            ],
+            "topic_terms": {
+              "situation": [],
+              "goal": []
+            },
+            "status": "not_selected",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": true,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 10,
+          "all_corpus_axis_ranks": {
+            "situation": 9,
+            "goal": 10
+          },
+          "actual_ranks": null
+        }
+      ]
+    },
+    {
+      "run": "analysis-r2-oa",
+      "query": {
+        "situation": "Analyze observational Cedar service case log with assisted and standard services, East/West case mix differences and missing resolved outcomes; create reproducible CSV JSON and offline HTML report",
+        "goal": "Compute pooled and equal-branch known-outcome success comparisons without imputing unknown outcomes, explain confounding and missingness, and verify runnable report artifacts",
+        "explicit_scope": {
+          "domain": "",
+          "product": ""
+        },
+        "requires": [],
+        "forbids": [],
+        "constraints": "",
+        "character_lengths": {
+          "situation": 196,
+          "goal": 174
+        }
+      },
+      "logged_bundle": {
+        "items": [],
+        "omitted_candidates": 0,
+        "tokens": 111
+      },
+      "exact_reproduction": {
+        "search_metadata": {
+          "available": true,
+          "status": "ready",
+          "eligible_methods": 0,
+          "stale_or_missing_methods": 0,
+          "weak_axis_methods": 10,
+          "constraint_conflicts": 0,
+          "relevance_status": "unknown",
+          "floors": {
+            "situation": 0.35,
+            "goal": 0.35
+          },
+          "floor_policy": "operator_frozen_before_evaluation",
+          "ranking": "reciprocal_rank_fusion",
+          "subject_policy": "declared_subject_and_topic_v1",
+          "subject_unknown_policy": "undeclared_subject_or_topic_excluded_not_proven_incompatible",
+          "subject_unknown_methods": 0,
+          "lexical_recall_methods": 0,
+          "query_subjects": [],
+          "model": "Qwen/Qwen3-Embedding-0.6B",
+          "revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+          "embedding_spec": "openakashic-methods-qwen3-v1-lasttoken-l2-f32-max512",
+          "source_methods": 10
+        },
+        "eligible_total": 0,
+        "returned_ids": [],
+        "bundle_matches_logged": true,
+        "bundle_items": [],
+        "bundle_omitted_candidates": 0
+      },
+      "in_memory_sentinel": {
+        "situation_floor": -1,
+        "goal_floor": -1,
+        "ranking_only_not_policy_proposal": true,
+        "subject_scope_constraints_unchanged": true,
+        "returned_ids": [
+          "method_c308cd0b8ee945fdbb32109d6bccedae",
+          "method_c35af4d9d760423caafb1e649c75d2f7",
+          "method_a7880a9ad3c1403e9b4d9b02bbbef244",
+          "method_64858feefd444ddcbd439bf77e9f10fa",
+          "method_2ecc633d287c4c18a18ba94aae0a7744",
+          "method_a97a22e80aa54d9a863bf2e788550705",
+          "method_f965d6a617dc46c18843b5c8286f29cd",
+          "method_a55c69897c4243f0924cea57e5fd7dc4",
+          "method_3a5cd7fa50934e24b594b9cc6d4db08d",
+          "method_8de99a09e49f40e4b891e4bfc04af3d8"
+        ]
+      },
+      "methods": [
+        {
+          "id": "method_c308cd0b8ee945fdbb32109d6bccedae",
+          "version": 1,
+          "title": "ReportLab으로 여러 쪽 PDF를 만들고 첨자를 처리하기",
+          "situation": "제목과 본문이 있는 여러 쪽 PDF 보고서를 코드로 생성해야 한다.",
+          "goal": "문단과 페이지 나눔을 사용해 PDF를 만들고 첨자가 검은 상자로 보이는 문제를 피한다.",
+          "axis_cosines": {
+            "situation": 0.48047,
+            "goal": 0.293134
+          },
+          "axis_floor_pass": {
+            "situation": true,
+            "goal": false
+          },
+          "mean_axis_cosine": 0.386802,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [],
+            "method_subjects": [
+              "pdf",
+              "reportlab"
+            ],
+            "covered": [],
+            "undeclared": [],
+            "unmentioned_title_subjects": [
+              "pdf",
+              "reportlab"
+            ],
+            "topic_terms": {
+              "situation": [
+                "create",
+                "report"
+              ],
+              "goal": [
+                "report"
+              ]
+            },
+            "status": "not_selected",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": true,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 1,
+          "all_corpus_axis_ranks": {
+            "situation": 1,
+            "goal": 6
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_c35af4d9d760423caafb1e649c75d2f7",
+          "version": 1,
+          "title": "결측과 집단 분할을 확인하고 학습 전 누출을 점검하기",
+          "situation": "집단이나 시간으로 나뉜 데이터에서 결측과 반복 관측 때문에 분석이나 모델 평가가 왜곡될 수 있다.",
+          "goal": "결측의 의미와 관측 단위를 보존하면서 분할 중복과 전처리 누출의 징후를 기록한다.",
+          "axis_cosines": {
+            "situation": 0.346746,
+            "goal": 0.381996
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": true
+          },
+          "mean_axis_cosine": 0.364371,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [],
+            "method_subjects": [],
+            "covered": [],
+            "undeclared": [],
+            "unmentioned_title_subjects": [],
+            "topic_terms": {
+              "situation": [],
+              "goal": [
+                "missingness"
+              ]
+            },
+            "status": "not_selected",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": true,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 2,
+          "all_corpus_axis_ranks": {
+            "situation": 3,
+            "goal": 2
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_a7880a9ad3c1403e9b4d9b02bbbef244",
+          "version": 1,
+          "title": "PDF의 배치와 표 구조를 나눠 추출하기",
+          "situation": "PDF에서 텍스트와 표를 꺼내 문서나 표 데이터로 다시 사용해야 한다.",
+          "goal": "페이지별 텍스트와 표를 분리해 추출하고 표를 결합할 수 있는 형태로 만든다.",
+          "axis_cosines": {
+            "situation": 0.367508,
+            "goal": 0.339354
+          },
+          "axis_floor_pass": {
+            "situation": true,
+            "goal": false
+          },
+          "mean_axis_cosine": 0.353431,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [],
+            "method_subjects": [
+              "pdf",
+              "pdfplumber"
+            ],
+            "covered": [],
+            "undeclared": [],
+            "unmentioned_title_subjects": [
+              "pdf"
+            ],
+            "topic_terms": {
+              "situation": [],
+              "goal": []
+            },
+            "status": "not_selected",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": true,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 3,
+          "all_corpus_axis_ranks": {
+            "situation": 2,
+            "goal": 3
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_64858feefd444ddcbd439bf77e9f10fa",
+          "version": 1,
+          "title": "분석 질문과 설계를 정한 뒤 효과 크기와 불확실성 보고하기",
+          "situation": "실험이나 관측 자료에서 집단 차이나 변수 관계를 검정하려 한다.",
+          "goal": "분석 설계와 가정을 보존하고 검정 통계량뿐 아니라 효과와 불확실성을 보고한다.",
+          "axis_cosines": {
+            "situation": 0.290977,
+            "goal": 0.398631
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": true
+          },
+          "mean_axis_cosine": 0.344804,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [],
+            "method_subjects": [],
+            "covered": [],
+            "undeclared": [],
+            "unmentioned_title_subjects": [],
+            "topic_terms": {
+              "situation": [],
+              "goal": []
+            },
+            "status": "not_selected",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": true,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 4,
+          "all_corpus_axis_ranks": {
+            "situation": 5,
+            "goal": 1
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_2ecc633d287c4c18a18ba94aae0a7744",
+          "version": 1,
+          "title": "기존 DOCX를 XML로 수정하고 렌더링과 변경 추적 확인하기",
+          "situation": "기존 Word 문서를 수정하거나 변경 추적을 보존해야 한다.",
+          "goal": "문서 내용을 수정한 뒤 원본 대조 검증과 실제 렌더링으로 누락을 확인한다.",
+          "axis_cosines": {
+            "situation": 0.319093,
+            "goal": 0.315416
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": false
+          },
+          "mean_axis_cosine": 0.317255,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [],
+            "method_subjects": [
+              "docx"
+            ],
+            "covered": [],
+            "undeclared": [],
+            "unmentioned_title_subjects": [
+              "docx"
+            ],
+            "topic_terms": {
+              "situation": [],
+              "goal": [
+                "verify"
+              ]
+            },
+            "status": "not_selected",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": true,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 5,
+          "all_corpus_axis_ranks": {
+            "situation": 4,
+            "goal": 5
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_a97a22e80aa54d9a863bf2e788550705",
+          "version": 1,
+          "title": "지원 형식과 읽기 범위를 확인한 뒤 로컬 데이터를 요약하기",
+          "situation": "모델링이나 확증 분석 전에 로컬 데이터의 형식과 기본 상태를 살펴봐야 한다.",
+          "goal": "원본을 바꾸지 않고 지원 범위 안에서 데이터 프로필과 분석 한계를 기록한다.",
+          "axis_cosines": {
+            "situation": 0.247188,
+            "goal": 0.322777
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": false
+          },
+          "mean_axis_cosine": 0.284983,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [],
+            "method_subjects": [],
+            "covered": [],
+            "undeclared": [],
+            "unmentioned_title_subjects": [],
+            "topic_terms": {
+              "situation": [
+                "report"
+              ],
+              "goal": [
+                "report"
+              ]
+            },
+            "status": "not_selected",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": true,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 6,
+          "all_corpus_axis_ranks": {
+            "situation": 6,
+            "goal": 4
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_f965d6a617dc46c18843b5c8286f29cd",
+          "version": 1,
+          "title": "연구 전 표본 수와 연구 후 탐지 가능한 효과를 구분하기",
+          "situation": "연구 설계에서 필요한 표본 수를 정하거나 완료된 연구의 검정력을 묻는다.",
+          "goal": "설계 가정에 맞는 사전 검정력 분석 또는 연구 후 민감도 분석을 선택한다.",
+          "axis_cosines": {
+            "situation": 0.217922,
+            "goal": 0.288069
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": false
+          },
+          "mean_axis_cosine": 0.252996,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [],
+            "method_subjects": [],
+            "covered": [],
+            "undeclared": [],
+            "unmentioned_title_subjects": [],
+            "topic_terms": {
+              "situation": [],
+              "goal": []
+            },
+            "status": "not_selected",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": true,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 7,
+          "all_corpus_axis_ranks": {
+            "situation": 7,
+            "goal": 7
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_a55c69897c4243f0924cea57e5fd7dc4",
+          "version": 1,
+          "title": "사용자 행동과 상태가 분명한 화면 문구 쓰기",
+          "situation": "화면의 버튼, 오류, 빈 상태 문구가 추상적이어서 다음 행동을 알기 어렵다.",
+          "goal": "사용자가 이해하는 말로 행동을 설명하고 흐름 전체에서 같은 이름을 쓴다.",
+          "axis_cosines": {
+            "situation": 0.216623,
+            "goal": 0.223652
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": false
+          },
+          "mean_axis_cosine": 0.220138,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [],
+            "method_subjects": [],
+            "covered": [],
+            "undeclared": [],
+            "unmentioned_title_subjects": [],
+            "topic_terms": {
+              "situation": [],
+              "goal": []
+            },
+            "status": "not_selected",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": true,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 8,
+          "all_corpus_axis_ranks": {
+            "situation": 8,
+            "goal": 8
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_3a5cd7fa50934e24b594b9cc6d4db08d",
+          "version": 1,
+          "title": "주제에 맞는 시각 계획을 세우고 구현 전에 검토하기",
+          "situation": "새 웹 화면이나 기존 화면을 만들 때 주제와 관계없는 기본 템플릿이 반복된다.",
+          "goal": "사용자와 주제에 맞는 색, 글꼴, 배치를 정하고 구현할 선택 이유를 남긴다.",
+          "axis_cosines": {
+            "situation": 0.184565,
+            "goal": 0.169297
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": false
+          },
+          "mean_axis_cosine": 0.176931,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [],
+            "method_subjects": [],
+            "covered": [],
+            "undeclared": [],
+            "unmentioned_title_subjects": [],
+            "topic_terms": {
+              "situation": [],
+              "goal": []
+            },
+            "status": "not_selected",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": true,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 9,
+          "all_corpus_axis_ranks": {
+            "situation": 9,
+            "goal": 9
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_8de99a09e49f40e4b891e4bfc04af3d8",
+          "version": 1,
+          "title": "Anthropic 브랜드 요청에 색과 글꼴 규칙 적용하기",
+          "situation": "Anthropic의 공식 색과 글꼴을 적용해야 하는 산출물을 만든다.",
+          "goal": "Anthropic 브랜드 지침에 맞춰 텍스트 계층과 도형 색을 일관되게 적용한다.",
+          "axis_cosines": {
+            "situation": 0.150568,
+            "goal": 0.16382
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": false
+          },
+          "mean_axis_cosine": 0.157194,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [],
+            "method_subjects": [
+              "anthropic"
+            ],
+            "covered": [],
+            "undeclared": [],
+            "unmentioned_title_subjects": [
+              "anthropic"
+            ],
+            "topic_terms": {
+              "situation": [],
+              "goal": []
+            },
+            "status": "not_selected",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": true,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 10,
+          "all_corpus_axis_ranks": {
+            "situation": 10,
+            "goal": 10
+          },
+          "actual_ranks": null
+        }
+      ]
+    },
+    {
+      "run": "design-r1-oa",
+      "query": {
+        "situation": "Build a self-contained offline civic help-desk directory from centers.json with accessible intersecting filters, fixed snapshot availability, responsive layout and browser QA",
+        "goal": "Deliver runnable index.html, README.md and QA.md; verify filters, accessibility basics and no horizontal overflow at 390px; render and inspect",
+        "explicit_scope": {
+          "domain": "",
+          "product": ""
+        },
+        "requires": [],
+        "forbids": [],
+        "constraints": "",
+        "character_lengths": {
+          "situation": 174,
+          "goal": 142
+        }
+      },
+      "logged_bundle": {
+        "items": [],
+        "omitted_candidates": 0,
+        "tokens": 111
+      },
+      "exact_reproduction": {
+        "search_metadata": {
+          "available": true,
+          "status": "ready",
+          "eligible_methods": 0,
+          "stale_or_missing_methods": 0,
+          "weak_axis_methods": 10,
+          "constraint_conflicts": 0,
+          "relevance_status": "unknown",
+          "floors": {
+            "situation": 0.35,
+            "goal": 0.35
+          },
+          "floor_policy": "operator_frozen_before_evaluation",
+          "ranking": "reciprocal_rank_fusion",
+          "subject_policy": "declared_subject_and_topic_v1",
+          "subject_unknown_policy": "undeclared_subject_or_topic_excluded_not_proven_incompatible",
+          "subject_unknown_methods": 0,
+          "lexical_recall_methods": 0,
+          "query_subjects": [],
+          "model": "Qwen/Qwen3-Embedding-0.6B",
+          "revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+          "embedding_spec": "openakashic-methods-qwen3-v1-lasttoken-l2-f32-max512",
+          "source_methods": 10
+        },
+        "eligible_total": 0,
+        "returned_ids": [],
+        "bundle_matches_logged": true,
+        "bundle_items": [],
+        "bundle_omitted_candidates": 0
+      },
+      "in_memory_sentinel": {
+        "situation_floor": -1,
+        "goal_floor": -1,
+        "ranking_only_not_policy_proposal": true,
+        "subject_scope_constraints_unchanged": true,
+        "returned_ids": [
+          "method_c308cd0b8ee945fdbb32109d6bccedae",
+          "method_a7880a9ad3c1403e9b4d9b02bbbef244",
+          "method_2ecc633d287c4c18a18ba94aae0a7744",
+          "method_3a5cd7fa50934e24b594b9cc6d4db08d",
+          "method_64858feefd444ddcbd439bf77e9f10fa",
+          "method_a97a22e80aa54d9a863bf2e788550705",
+          "method_c35af4d9d760423caafb1e649c75d2f7",
+          "method_f965d6a617dc46c18843b5c8286f29cd",
+          "method_a55c69897c4243f0924cea57e5fd7dc4",
+          "method_8de99a09e49f40e4b891e4bfc04af3d8"
+        ]
+      },
+      "methods": [
+        {
+          "id": "method_c308cd0b8ee945fdbb32109d6bccedae",
+          "version": 1,
+          "title": "ReportLab으로 여러 쪽 PDF를 만들고 첨자를 처리하기",
+          "situation": "제목과 본문이 있는 여러 쪽 PDF 보고서를 코드로 생성해야 한다.",
+          "goal": "문단과 페이지 나눔을 사용해 PDF를 만들고 첨자가 검은 상자로 보이는 문제를 피한다.",
+          "axis_cosines": {
+            "situation": 0.349435,
+            "goal": 0.375811
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": true
+          },
+          "mean_axis_cosine": 0.362623,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [],
+            "method_subjects": [
+              "pdf",
+              "reportlab"
+            ],
+            "covered": [],
+            "undeclared": [],
+            "unmentioned_title_subjects": [
+              "pdf",
+              "reportlab"
+            ],
+            "topic_terms": {
+              "situation": [],
+              "goal": []
+            },
+            "status": "not_selected",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": true,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 1,
+          "all_corpus_axis_ranks": {
+            "situation": 1,
+            "goal": 2
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_a7880a9ad3c1403e9b4d9b02bbbef244",
+          "version": 1,
+          "title": "PDF의 배치와 표 구조를 나눠 추출하기",
+          "situation": "PDF에서 텍스트와 표를 꺼내 문서나 표 데이터로 다시 사용해야 한다.",
+          "goal": "페이지별 텍스트와 표를 분리해 추출하고 표를 결합할 수 있는 형태로 만든다.",
+          "axis_cosines": {
+            "situation": 0.251158,
+            "goal": 0.345331
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": false
+          },
+          "mean_axis_cosine": 0.298244,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [],
+            "method_subjects": [
+              "pdf",
+              "pdfplumber"
+            ],
+            "covered": [],
+            "undeclared": [],
+            "unmentioned_title_subjects": [
+              "pdf"
+            ],
+            "topic_terms": {
+              "situation": [],
+              "goal": []
+            },
+            "status": "not_selected",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": true,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 2,
+          "all_corpus_axis_ranks": {
+            "situation": 2,
+            "goal": 3
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_2ecc633d287c4c18a18ba94aae0a7744",
+          "version": 1,
+          "title": "기존 DOCX를 XML로 수정하고 렌더링과 변경 추적 확인하기",
+          "situation": "기존 Word 문서를 수정하거나 변경 추적을 보존해야 한다.",
+          "goal": "문서 내용을 수정한 뒤 원본 대조 검증과 실제 렌더링으로 누락을 확인한다.",
+          "axis_cosines": {
+            "situation": 0.195909,
+            "goal": 0.388238
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": true
+          },
+          "mean_axis_cosine": 0.292074,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [],
+            "method_subjects": [
+              "docx"
+            ],
+            "covered": [],
+            "undeclared": [],
+            "unmentioned_title_subjects": [
+              "docx"
+            ],
+            "topic_terms": {
+              "situation": [],
+              "goal": [
+                "verify"
+              ]
+            },
+            "status": "not_selected",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": true,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 3,
+          "all_corpus_axis_ranks": {
+            "situation": 7,
+            "goal": 1
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_3a5cd7fa50934e24b594b9cc6d4db08d",
+          "version": 1,
+          "title": "주제에 맞는 시각 계획을 세우고 구현 전에 검토하기",
+          "situation": "새 웹 화면이나 기존 화면을 만들 때 주제와 관계없는 기본 템플릿이 반복된다.",
+          "goal": "사용자와 주제에 맞는 색, 글꼴, 배치를 정하고 구현할 선택 이유를 남긴다.",
+          "axis_cosines": {
+            "situation": 0.205141,
+            "goal": 0.328962
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": false
+          },
+          "mean_axis_cosine": 0.267052,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [],
+            "method_subjects": [],
+            "covered": [],
+            "undeclared": [],
+            "unmentioned_title_subjects": [],
+            "topic_terms": {
+              "situation": [
+                "build"
+              ],
+              "goal": []
+            },
+            "status": "not_selected",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": true,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 4,
+          "all_corpus_axis_ranks": {
+            "situation": 5,
+            "goal": 4
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_64858feefd444ddcbd439bf77e9f10fa",
+          "version": 1,
+          "title": "분석 질문과 설계를 정한 뒤 효과 크기와 불확실성 보고하기",
+          "situation": "실험이나 관측 자료에서 집단 차이나 변수 관계를 검정하려 한다.",
+          "goal": "분석 설계와 가정을 보존하고 검정 통계량뿐 아니라 효과와 불확실성을 보고한다.",
+          "axis_cosines": {
+            "situation": 0.214643,
+            "goal": 0.283929
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": false
+          },
+          "mean_axis_cosine": 0.249286,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [],
+            "method_subjects": [],
+            "covered": [],
+            "undeclared": [],
+            "unmentioned_title_subjects": [],
+            "topic_terms": {
+              "situation": [],
+              "goal": []
+            },
+            "status": "not_selected",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": true,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 5,
+          "all_corpus_axis_ranks": {
+            "situation": 3,
+            "goal": 5
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_a97a22e80aa54d9a863bf2e788550705",
+          "version": 1,
+          "title": "지원 형식과 읽기 범위를 확인한 뒤 로컬 데이터를 요약하기",
+          "situation": "모델링이나 확증 분석 전에 로컬 데이터의 형식과 기본 상태를 살펴봐야 한다.",
+          "goal": "원본을 바꾸지 않고 지원 범위 안에서 데이터 프로필과 분석 한계를 기록한다.",
+          "axis_cosines": {
+            "situation": 0.206581,
+            "goal": 0.260103
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": false
+          },
+          "mean_axis_cosine": 0.233342,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [],
+            "method_subjects": [],
+            "covered": [],
+            "undeclared": [],
+            "unmentioned_title_subjects": [],
+            "topic_terms": {
+              "situation": [],
+              "goal": []
+            },
+            "status": "not_selected",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": true,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 6,
+          "all_corpus_axis_ranks": {
+            "situation": 4,
+            "goal": 7
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_c35af4d9d760423caafb1e649c75d2f7",
+          "version": 1,
+          "title": "결측과 집단 분할을 확인하고 학습 전 누출을 점검하기",
+          "situation": "집단이나 시간으로 나뉜 데이터에서 결측과 반복 관측 때문에 분석이나 모델 평가가 왜곡될 수 있다.",
+          "goal": "결측의 의미와 관측 단위를 보존하면서 분할 중복과 전처리 누출의 징후를 기록한다.",
+          "axis_cosines": {
+            "situation": 0.183387,
+            "goal": 0.276059
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": false
+          },
+          "mean_axis_cosine": 0.229723,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [],
+            "method_subjects": [],
+            "covered": [],
+            "undeclared": [],
+            "unmentioned_title_subjects": [],
+            "topic_terms": {
+              "situation": [],
+              "goal": []
+            },
+            "status": "not_selected",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": true,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 7,
+          "all_corpus_axis_ranks": {
+            "situation": 8,
+            "goal": 6
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_f965d6a617dc46c18843b5c8286f29cd",
+          "version": 1,
+          "title": "연구 전 표본 수와 연구 후 탐지 가능한 효과를 구분하기",
+          "situation": "연구 설계에서 필요한 표본 수를 정하거나 완료된 연구의 검정력을 묻는다.",
+          "goal": "설계 가정에 맞는 사전 검정력 분석 또는 연구 후 민감도 분석을 선택한다.",
+          "axis_cosines": {
+            "situation": 0.165025,
+            "goal": 0.25225
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": false
+          },
+          "mean_axis_cosine": 0.208638,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [],
+            "method_subjects": [],
+            "covered": [],
+            "undeclared": [],
+            "unmentioned_title_subjects": [],
+            "topic_terms": {
+              "situation": [],
+              "goal": []
+            },
+            "status": "not_selected",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": true,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 8,
+          "all_corpus_axis_ranks": {
+            "situation": 9,
+            "goal": 8
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_a55c69897c4243f0924cea57e5fd7dc4",
+          "version": 1,
+          "title": "사용자 행동과 상태가 분명한 화면 문구 쓰기",
+          "situation": "화면의 버튼, 오류, 빈 상태 문구가 추상적이어서 다음 행동을 알기 어렵다.",
+          "goal": "사용자가 이해하는 말로 행동을 설명하고 흐름 전체에서 같은 이름을 쓴다.",
+          "axis_cosines": {
+            "situation": 0.201134,
+            "goal": 0.214373
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": false
+          },
+          "mean_axis_cosine": 0.207753,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [],
+            "method_subjects": [],
+            "covered": [],
+            "undeclared": [],
+            "unmentioned_title_subjects": [],
+            "topic_terms": {
+              "situation": [],
+              "goal": []
+            },
+            "status": "not_selected",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": true,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 9,
+          "all_corpus_axis_ranks": {
+            "situation": 6,
+            "goal": 9
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_8de99a09e49f40e4b891e4bfc04af3d8",
+          "version": 1,
+          "title": "Anthropic 브랜드 요청에 색과 글꼴 규칙 적용하기",
+          "situation": "Anthropic의 공식 색과 글꼴을 적용해야 하는 산출물을 만든다.",
+          "goal": "Anthropic 브랜드 지침에 맞춰 텍스트 계층과 도형 색을 일관되게 적용한다.",
+          "axis_cosines": {
+            "situation": 0.10731,
+            "goal": 0.199433
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": false
+          },
+          "mean_axis_cosine": 0.153371,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [],
+            "method_subjects": [
+              "anthropic"
+            ],
+            "covered": [],
+            "undeclared": [],
+            "unmentioned_title_subjects": [
+              "anthropic"
+            ],
+            "topic_terms": {
+              "situation": [],
+              "goal": []
+            },
+            "status": "not_selected",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": true,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 10,
+          "all_corpus_axis_ranks": {
+            "situation": 10,
+            "goal": 10
+          },
+          "actual_ranks": null
+        }
+      ]
+    },
+    {
+      "run": "design-r2-oa",
+      "query": {
+        "situation": "Build an offline self-contained civic help-desk directory from centers.json with accessible intersecting filters, snapshot-only availability, responsive cards and actual browser QA",
+        "goal": "Deliver runnable index.html, README.md and QA.md with correct closed-location filtering, source-derived information, mobile visual inspection and documented checks",
+        "explicit_scope": {
+          "domain": "",
+          "product": ""
+        },
+        "requires": [],
+        "forbids": [],
+        "constraints": "",
+        "character_lengths": {
+          "situation": 180,
+          "goal": 163
+        }
+      },
+      "logged_bundle": {
+        "items": [
+          {
+            "id": "method_c308cd0b8ee945fdbb32109d6bccedae",
+            "complete": true,
+            "needs_fetch": false
+          }
+        ],
+        "omitted_candidates": 0,
+        "tokens": 956
+      },
+      "exact_reproduction": {
+        "search_metadata": {
+          "available": true,
+          "status": "ready",
+          "eligible_methods": 1,
+          "stale_or_missing_methods": 0,
+          "weak_axis_methods": 9,
+          "constraint_conflicts": 0,
+          "relevance_status": "candidates",
+          "floors": {
+            "situation": 0.35,
+            "goal": 0.35
+          },
+          "floor_policy": "operator_frozen_before_evaluation",
+          "ranking": "reciprocal_rank_fusion",
+          "subject_policy": "declared_subject_and_topic_v1",
+          "subject_unknown_policy": "undeclared_subject_or_topic_excluded_not_proven_incompatible",
+          "subject_unknown_methods": 0,
+          "lexical_recall_methods": 0,
+          "query_subjects": [],
+          "model": "Qwen/Qwen3-Embedding-0.6B",
+          "revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+          "embedding_spec": "openakashic-methods-qwen3-v1-lasttoken-l2-f32-max512",
+          "source_methods": 10
+        },
+        "eligible_total": 1,
+        "returned_ids": [
+          "method_c308cd0b8ee945fdbb32109d6bccedae"
+        ],
+        "bundle_matches_logged": true,
+        "bundle_items": [
+          {
+            "id": "method_c308cd0b8ee945fdbb32109d6bccedae",
+            "complete": true,
+            "needs_fetch": false
+          }
+        ],
+        "bundle_omitted_candidates": 0
+      },
+      "in_memory_sentinel": {
+        "situation_floor": -1,
+        "goal_floor": -1,
+        "ranking_only_not_policy_proposal": true,
+        "subject_scope_constraints_unchanged": true,
+        "returned_ids": [
+          "method_c308cd0b8ee945fdbb32109d6bccedae",
+          "method_a7880a9ad3c1403e9b4d9b02bbbef244",
+          "method_2ecc633d287c4c18a18ba94aae0a7744",
+          "method_64858feefd444ddcbd439bf77e9f10fa",
+          "method_c35af4d9d760423caafb1e649c75d2f7",
+          "method_3a5cd7fa50934e24b594b9cc6d4db08d",
+          "method_a97a22e80aa54d9a863bf2e788550705",
+          "method_f965d6a617dc46c18843b5c8286f29cd",
+          "method_a55c69897c4243f0924cea57e5fd7dc4",
+          "method_8de99a09e49f40e4b891e4bfc04af3d8"
+        ]
+      },
+      "methods": [
+        {
+          "id": "method_c308cd0b8ee945fdbb32109d6bccedae",
+          "version": 1,
+          "title": "ReportLab으로 여러 쪽 PDF를 만들고 첨자를 처리하기",
+          "situation": "제목과 본문이 있는 여러 쪽 PDF 보고서를 코드로 생성해야 한다.",
+          "goal": "문단과 페이지 나눔을 사용해 PDF를 만들고 첨자가 검은 상자로 보이는 문제를 피한다.",
+          "axis_cosines": {
+            "situation": 0.360885,
+            "goal": 0.366632
+          },
+          "axis_floor_pass": {
+            "situation": true,
+            "goal": true
+          },
+          "mean_axis_cosine": 0.363758,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [],
+            "method_subjects": [
+              "pdf",
+              "reportlab"
+            ],
+            "covered": [],
+            "undeclared": [],
+            "unmentioned_title_subjects": [
+              "pdf",
+              "reportlab"
+            ],
+            "topic_terms": {
+              "situation": [],
+              "goal": []
+            },
+            "status": "not_selected",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": true,
+          "semantic_pass": true,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [],
+          "all_corpus_mean_axis_rank": 1,
+          "all_corpus_axis_ranks": {
+            "situation": 1,
+            "goal": 1
+          },
+          "actual_ranks": {
+            "semantic": 1,
+            "lexical": null
+          }
+        },
+        {
+          "id": "method_a7880a9ad3c1403e9b4d9b02bbbef244",
+          "version": 1,
+          "title": "PDF의 배치와 표 구조를 나눠 추출하기",
+          "situation": "PDF에서 텍스트와 표를 꺼내 문서나 표 데이터로 다시 사용해야 한다.",
+          "goal": "페이지별 텍스트와 표를 분리해 추출하고 표를 결합할 수 있는 형태로 만든다.",
+          "axis_cosines": {
+            "situation": 0.273731,
+            "goal": 0.349873
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": false
+          },
+          "mean_axis_cosine": 0.311802,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [],
+            "method_subjects": [
+              "pdf",
+              "pdfplumber"
+            ],
+            "covered": [],
+            "undeclared": [],
+            "unmentioned_title_subjects": [
+              "pdf"
+            ],
+            "topic_terms": {
+              "situation": [],
+              "goal": []
+            },
+            "status": "not_selected",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": true,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 2,
+          "all_corpus_axis_ranks": {
+            "situation": 2,
+            "goal": 3
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_2ecc633d287c4c18a18ba94aae0a7744",
+          "version": 1,
+          "title": "기존 DOCX를 XML로 수정하고 렌더링과 변경 추적 확인하기",
+          "situation": "기존 Word 문서를 수정하거나 변경 추적을 보존해야 한다.",
+          "goal": "문서 내용을 수정한 뒤 원본 대조 검증과 실제 렌더링으로 누락을 확인한다.",
+          "axis_cosines": {
+            "situation": 0.210364,
+            "goal": 0.36637
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": true
+          },
+          "mean_axis_cosine": 0.288367,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [],
+            "method_subjects": [
+              "docx"
+            ],
+            "covered": [],
+            "undeclared": [],
+            "unmentioned_title_subjects": [
+              "docx"
+            ],
+            "topic_terms": {
+              "situation": [],
+              "goal": []
+            },
+            "status": "not_selected",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": true,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 3,
+          "all_corpus_axis_ranks": {
+            "situation": 5,
+            "goal": 2
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_64858feefd444ddcbd439bf77e9f10fa",
+          "version": 1,
+          "title": "분석 질문과 설계를 정한 뒤 효과 크기와 불확실성 보고하기",
+          "situation": "실험이나 관측 자료에서 집단 차이나 변수 관계를 검정하려 한다.",
+          "goal": "분석 설계와 가정을 보존하고 검정 통계량뿐 아니라 효과와 불확실성을 보고한다.",
+          "axis_cosines": {
+            "situation": 0.226307,
+            "goal": 0.293066
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": false
+          },
+          "mean_axis_cosine": 0.259687,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [],
+            "method_subjects": [],
+            "covered": [],
+            "undeclared": [],
+            "unmentioned_title_subjects": [],
+            "topic_terms": {
+              "situation": [],
+              "goal": []
+            },
+            "status": "not_selected",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": true,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 4,
+          "all_corpus_axis_ranks": {
+            "situation": 4,
+            "goal": 4
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_c35af4d9d760423caafb1e649c75d2f7",
+          "version": 1,
+          "title": "결측과 집단 분할을 확인하고 학습 전 누출을 점검하기",
+          "situation": "집단이나 시간으로 나뉜 데이터에서 결측과 반복 관측 때문에 분석이나 모델 평가가 왜곡될 수 있다.",
+          "goal": "결측의 의미와 관측 단위를 보존하면서 분할 중복과 전처리 누출의 징후를 기록한다.",
+          "axis_cosines": {
+            "situation": 0.184885,
+            "goal": 0.285363
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": false
+          },
+          "mean_axis_cosine": 0.235124,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [],
+            "method_subjects": [],
+            "covered": [],
+            "undeclared": [],
+            "unmentioned_title_subjects": [],
+            "topic_terms": {
+              "situation": [],
+              "goal": []
+            },
+            "status": "not_selected",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": true,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 5,
+          "all_corpus_axis_ranks": {
+            "situation": 8,
+            "goal": 5
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_3a5cd7fa50934e24b594b9cc6d4db08d",
+          "version": 1,
+          "title": "주제에 맞는 시각 계획을 세우고 구현 전에 검토하기",
+          "situation": "새 웹 화면이나 기존 화면을 만들 때 주제와 관계없는 기본 템플릿이 반복된다.",
+          "goal": "사용자와 주제에 맞는 색, 글꼴, 배치를 정하고 구현할 선택 이유를 남긴다.",
+          "axis_cosines": {
+            "situation": 0.200401,
+            "goal": 0.258677
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": false
+          },
+          "mean_axis_cosine": 0.229539,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [],
+            "method_subjects": [],
+            "covered": [],
+            "undeclared": [],
+            "unmentioned_title_subjects": [],
+            "topic_terms": {
+              "situation": [
+                "build"
+              ],
+              "goal": []
+            },
+            "status": "not_selected",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": true,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 6,
+          "all_corpus_axis_ranks": {
+            "situation": 7,
+            "goal": 7
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_a97a22e80aa54d9a863bf2e788550705",
+          "version": 1,
+          "title": "지원 형식과 읽기 범위를 확인한 뒤 로컬 데이터를 요약하기",
+          "situation": "모델링이나 확증 분석 전에 로컬 데이터의 형식과 기본 상태를 살펴봐야 한다.",
+          "goal": "원본을 바꾸지 않고 지원 범위 안에서 데이터 프로필과 분석 한계를 기록한다.",
+          "axis_cosines": {
+            "situation": 0.204843,
+            "goal": 0.240044
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": false
+          },
+          "mean_axis_cosine": 0.222443,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [],
+            "method_subjects": [],
+            "covered": [],
+            "undeclared": [],
+            "unmentioned_title_subjects": [],
+            "topic_terms": {
+              "situation": [],
+              "goal": []
+            },
+            "status": "not_selected",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": true,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 7,
+          "all_corpus_axis_ranks": {
+            "situation": 6,
+            "goal": 8
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_f965d6a617dc46c18843b5c8286f29cd",
+          "version": 1,
+          "title": "연구 전 표본 수와 연구 후 탐지 가능한 효과를 구분하기",
+          "situation": "연구 설계에서 필요한 표본 수를 정하거나 완료된 연구의 검정력을 묻는다.",
+          "goal": "설계 가정에 맞는 사전 검정력 분석 또는 연구 후 민감도 분석을 선택한다.",
+          "axis_cosines": {
+            "situation": 0.177246,
+            "goal": 0.263047
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": false
+          },
+          "mean_axis_cosine": 0.220146,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [],
+            "method_subjects": [],
+            "covered": [],
+            "undeclared": [],
+            "unmentioned_title_subjects": [],
+            "topic_terms": {
+              "situation": [],
+              "goal": []
+            },
+            "status": "not_selected",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": true,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 8,
+          "all_corpus_axis_ranks": {
+            "situation": 9,
+            "goal": 6
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_a55c69897c4243f0924cea57e5fd7dc4",
+          "version": 1,
+          "title": "사용자 행동과 상태가 분명한 화면 문구 쓰기",
+          "situation": "화면의 버튼, 오류, 빈 상태 문구가 추상적이어서 다음 행동을 알기 어렵다.",
+          "goal": "사용자가 이해하는 말로 행동을 설명하고 흐름 전체에서 같은 이름을 쓴다.",
+          "axis_cosines": {
+            "situation": 0.23596,
+            "goal": 0.202172
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": false
+          },
+          "mean_axis_cosine": 0.219066,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [],
+            "method_subjects": [],
+            "covered": [],
+            "undeclared": [],
+            "unmentioned_title_subjects": [],
+            "topic_terms": {
+              "situation": [],
+              "goal": []
+            },
+            "status": "not_selected",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": true,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 9,
+          "all_corpus_axis_ranks": {
+            "situation": 3,
+            "goal": 9
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_8de99a09e49f40e4b891e4bfc04af3d8",
+          "version": 1,
+          "title": "Anthropic 브랜드 요청에 색과 글꼴 규칙 적용하기",
+          "situation": "Anthropic의 공식 색과 글꼴을 적용해야 하는 산출물을 만든다.",
+          "goal": "Anthropic 브랜드 지침에 맞춰 텍스트 계층과 도형 색을 일관되게 적용한다.",
+          "axis_cosines": {
+            "situation": 0.123891,
+            "goal": 0.149598
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": false
+          },
+          "mean_axis_cosine": 0.136744,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [],
+            "method_subjects": [
+              "anthropic"
+            ],
+            "covered": [],
+            "undeclared": [],
+            "unmentioned_title_subjects": [
+              "anthropic"
+            ],
+            "topic_terms": {
+              "situation": [],
+              "goal": []
+            },
+            "status": "not_selected",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": true,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 10,
+          "all_corpus_axis_ranks": {
+            "situation": 10,
+            "goal": 10
+          },
+          "actual_ranks": null
+        }
+      ]
+    },
+    {
+      "run": "documents-r1-oa",
+      "query": {
+        "situation": "Create a two-page A4 operational support-desk handover PDF from dated source notes, respecting corrections, pending requests versus approvals, urgent accessibility exception, owners and deadlines",
+        "goal": "Produce selectable, readable, print-ready exactly two-page PDF plus editable generator, source evidence note and honest rendered visual QA",
+        "explicit_scope": {
+          "domain": "",
+          "product": ""
+        },
+        "requires": [],
+        "forbids": [],
+        "constraints": "",
+        "character_lengths": {
+          "situation": 195,
+          "goal": 138
+        }
+      },
+      "logged_bundle": {
+        "items": [],
+        "omitted_candidates": 0,
+        "tokens": 111
+      },
+      "exact_reproduction": {
+        "search_metadata": {
+          "available": true,
+          "status": "ready",
+          "eligible_methods": 0,
+          "stale_or_missing_methods": 0,
+          "weak_axis_methods": 0,
+          "constraint_conflicts": 0,
+          "relevance_status": "unknown",
+          "floors": {
+            "situation": 0.35,
+            "goal": 0.35
+          },
+          "floor_policy": "operator_frozen_before_evaluation",
+          "ranking": "reciprocal_rank_fusion",
+          "subject_policy": "declared_subject_and_topic_v1",
+          "subject_unknown_policy": "undeclared_subject_or_topic_excluded_not_proven_incompatible",
+          "subject_unknown_methods": 10,
+          "lexical_recall_methods": 0,
+          "query_subjects": [
+            "pdf"
+          ],
+          "model": "Qwen/Qwen3-Embedding-0.6B",
+          "revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+          "embedding_spec": "openakashic-methods-qwen3-v1-lasttoken-l2-f32-max512",
+          "source_methods": 10
+        },
+        "eligible_total": 0,
+        "returned_ids": [],
+        "bundle_matches_logged": true,
+        "bundle_items": [],
+        "bundle_omitted_candidates": 0
+      },
+      "in_memory_sentinel": {
+        "situation_floor": -1,
+        "goal_floor": -1,
+        "ranking_only_not_policy_proposal": true,
+        "subject_scope_constraints_unchanged": true,
+        "returned_ids": []
+      },
+      "methods": [
+        {
+          "id": "method_c308cd0b8ee945fdbb32109d6bccedae",
+          "version": 1,
+          "title": "ReportLab으로 여러 쪽 PDF를 만들고 첨자를 처리하기",
+          "situation": "제목과 본문이 있는 여러 쪽 PDF 보고서를 코드로 생성해야 한다.",
+          "goal": "문단과 페이지 나눔을 사용해 PDF를 만들고 첨자가 검은 상자로 보이는 문제를 피한다.",
+          "axis_cosines": {
+            "situation": 0.566393,
+            "goal": 0.562239
+          },
+          "axis_floor_pass": {
+            "situation": true,
+            "goal": true
+          },
+          "mean_axis_cosine": 0.564316,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [
+              "pdf"
+            ],
+            "method_subjects": [
+              "pdf",
+              "reportlab"
+            ],
+            "covered": [
+              "pdf"
+            ],
+            "undeclared": [],
+            "unmentioned_title_subjects": [
+              "reportlab"
+            ],
+            "topic_terms": {
+              "situation": [
+                "create"
+              ],
+              "goal": []
+            },
+            "status": "declared_overlap",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": false,
+          "semantic_pass": true,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "subject_topic_guard"
+          ],
+          "all_corpus_mean_axis_rank": 1,
+          "all_corpus_axis_ranks": {
+            "situation": 1,
+            "goal": 1
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_a7880a9ad3c1403e9b4d9b02bbbef244",
+          "version": 1,
+          "title": "PDF의 배치와 표 구조를 나눠 추출하기",
+          "situation": "PDF에서 텍스트와 표를 꺼내 문서나 표 데이터로 다시 사용해야 한다.",
+          "goal": "페이지별 텍스트와 표를 분리해 추출하고 표를 결합할 수 있는 형태로 만든다.",
+          "axis_cosines": {
+            "situation": 0.480093,
+            "goal": 0.429507
+          },
+          "axis_floor_pass": {
+            "situation": true,
+            "goal": true
+          },
+          "mean_axis_cosine": 0.4548,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [
+              "pdf"
+            ],
+            "method_subjects": [
+              "pdf",
+              "pdfplumber"
+            ],
+            "covered": [
+              "pdf"
+            ],
+            "undeclared": [],
+            "unmentioned_title_subjects": [],
+            "topic_terms": {
+              "situation": [],
+              "goal": []
+            },
+            "status": "declared_overlap",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": false,
+          "semantic_pass": true,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "subject_topic_guard"
+          ],
+          "all_corpus_mean_axis_rank": 2,
+          "all_corpus_axis_ranks": {
+            "situation": 2,
+            "goal": 2
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_2ecc633d287c4c18a18ba94aae0a7744",
+          "version": 1,
+          "title": "기존 DOCX를 XML로 수정하고 렌더링과 변경 추적 확인하기",
+          "situation": "기존 Word 문서를 수정하거나 변경 추적을 보존해야 한다.",
+          "goal": "문서 내용을 수정한 뒤 원본 대조 검증과 실제 렌더링으로 누락을 확인한다.",
+          "axis_cosines": {
+            "situation": 0.406798,
+            "goal": 0.323847
+          },
+          "axis_floor_pass": {
+            "situation": true,
+            "goal": false
+          },
+          "mean_axis_cosine": 0.365322,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [
+              "pdf"
+            ],
+            "method_subjects": [
+              "docx"
+            ],
+            "covered": [],
+            "undeclared": [
+              "pdf"
+            ],
+            "unmentioned_title_subjects": [
+              "docx"
+            ],
+            "topic_terms": {
+              "situation": [],
+              "goal": []
+            },
+            "status": "unknown",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": false,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "subject_topic_guard",
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 3,
+          "all_corpus_axis_ranks": {
+            "situation": 3,
+            "goal": 3
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_3a5cd7fa50934e24b594b9cc6d4db08d",
+          "version": 1,
+          "title": "주제에 맞는 시각 계획을 세우고 구현 전에 검토하기",
+          "situation": "새 웹 화면이나 기존 화면을 만들 때 주제와 관계없는 기본 템플릿이 반복된다.",
+          "goal": "사용자와 주제에 맞는 색, 글꼴, 배치를 정하고 구현할 선택 이유를 남긴다.",
+          "axis_cosines": {
+            "situation": 0.227043,
+            "goal": 0.301952
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": false
+          },
+          "mean_axis_cosine": 0.264497,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [
+              "pdf"
+            ],
+            "method_subjects": [],
+            "covered": [],
+            "undeclared": [
+              "pdf"
+            ],
+            "unmentioned_title_subjects": [],
+            "topic_terms": {
+              "situation": [],
+              "goal": []
+            },
+            "status": "unknown",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": false,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "subject_topic_guard",
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 4,
+          "all_corpus_axis_ranks": {
+            "situation": 4,
+            "goal": 4
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_c35af4d9d760423caafb1e649c75d2f7",
+          "version": 1,
+          "title": "결측과 집단 분할을 확인하고 학습 전 누출을 점검하기",
+          "situation": "집단이나 시간으로 나뉜 데이터에서 결측과 반복 관측 때문에 분석이나 모델 평가가 왜곡될 수 있다.",
+          "goal": "결측의 의미와 관측 단위를 보존하면서 분할 중복과 전처리 누출의 징후를 기록한다.",
+          "axis_cosines": {
+            "situation": 0.157771,
+            "goal": 0.276542
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": false
+          },
+          "mean_axis_cosine": 0.217156,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [
+              "pdf"
+            ],
+            "method_subjects": [],
+            "covered": [],
+            "undeclared": [
+              "pdf"
+            ],
+            "unmentioned_title_subjects": [],
+            "topic_terms": {
+              "situation": [],
+              "goal": []
+            },
+            "status": "unknown",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": false,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "subject_topic_guard",
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 5,
+          "all_corpus_axis_ranks": {
+            "situation": 8,
+            "goal": 5
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_a97a22e80aa54d9a863bf2e788550705",
+          "version": 1,
+          "title": "지원 형식과 읽기 범위를 확인한 뒤 로컬 데이터를 요약하기",
+          "situation": "모델링이나 확증 분석 전에 로컬 데이터의 형식과 기본 상태를 살펴봐야 한다.",
+          "goal": "원본을 바꾸지 않고 지원 범위 안에서 데이터 프로필과 분석 한계를 기록한다.",
+          "axis_cosines": {
+            "situation": 0.197381,
+            "goal": 0.230138
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": false
+          },
+          "mean_axis_cosine": 0.213759,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [
+              "pdf"
+            ],
+            "method_subjects": [],
+            "covered": [],
+            "undeclared": [
+              "pdf"
+            ],
+            "unmentioned_title_subjects": [],
+            "topic_terms": {
+              "situation": [],
+              "goal": []
+            },
+            "status": "unknown",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": false,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "subject_topic_guard",
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 6,
+          "all_corpus_axis_ranks": {
+            "situation": 7,
+            "goal": 7
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_a55c69897c4243f0924cea57e5fd7dc4",
+          "version": 1,
+          "title": "사용자 행동과 상태가 분명한 화면 문구 쓰기",
+          "situation": "화면의 버튼, 오류, 빈 상태 문구가 추상적이어서 다음 행동을 알기 어렵다.",
+          "goal": "사용자가 이해하는 말로 행동을 설명하고 흐름 전체에서 같은 이름을 쓴다.",
+          "axis_cosines": {
+            "situation": 0.219039,
+            "goal": 0.191883
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": false
+          },
+          "mean_axis_cosine": 0.205461,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [
+              "pdf"
+            ],
+            "method_subjects": [],
+            "covered": [],
+            "undeclared": [
+              "pdf"
+            ],
+            "unmentioned_title_subjects": [],
+            "topic_terms": {
+              "situation": [],
+              "goal": []
+            },
+            "status": "unknown",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": false,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "subject_topic_guard",
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 7,
+          "all_corpus_axis_ranks": {
+            "situation": 5,
+            "goal": 9
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_64858feefd444ddcbd439bf77e9f10fa",
+          "version": 1,
+          "title": "분석 질문과 설계를 정한 뒤 효과 크기와 불확실성 보고하기",
+          "situation": "실험이나 관측 자료에서 집단 차이나 변수 관계를 검정하려 한다.",
+          "goal": "분석 설계와 가정을 보존하고 검정 통계량뿐 아니라 효과와 불확실성을 보고한다.",
+          "axis_cosines": {
+            "situation": 0.132997,
+            "goal": 0.260055
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": false
+          },
+          "mean_axis_cosine": 0.196526,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [
+              "pdf"
+            ],
+            "method_subjects": [],
+            "covered": [],
+            "undeclared": [
+              "pdf"
+            ],
+            "unmentioned_title_subjects": [],
+            "topic_terms": {
+              "situation": [],
+              "goal": []
+            },
+            "status": "unknown",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": false,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "subject_topic_guard",
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 8,
+          "all_corpus_axis_ranks": {
+            "situation": 9,
+            "goal": 6
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_8de99a09e49f40e4b891e4bfc04af3d8",
+          "version": 1,
+          "title": "Anthropic 브랜드 요청에 색과 글꼴 규칙 적용하기",
+          "situation": "Anthropic의 공식 색과 글꼴을 적용해야 하는 산출물을 만든다.",
+          "goal": "Anthropic 브랜드 지침에 맞춰 텍스트 계층과 도형 색을 일관되게 적용한다.",
+          "axis_cosines": {
+            "situation": 0.200336,
+            "goal": 0.154949
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": false
+          },
+          "mean_axis_cosine": 0.177642,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [
+              "pdf"
+            ],
+            "method_subjects": [
+              "anthropic"
+            ],
+            "covered": [],
+            "undeclared": [
+              "pdf"
+            ],
+            "unmentioned_title_subjects": [
+              "anthropic"
+            ],
+            "topic_terms": {
+              "situation": [],
+              "goal": []
+            },
+            "status": "unknown",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": false,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "subject_topic_guard",
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 9,
+          "all_corpus_axis_ranks": {
+            "situation": 6,
+            "goal": 10
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_f965d6a617dc46c18843b5c8286f29cd",
+          "version": 1,
+          "title": "연구 전 표본 수와 연구 후 탐지 가능한 효과를 구분하기",
+          "situation": "연구 설계에서 필요한 표본 수를 정하거나 완료된 연구의 검정력을 묻는다.",
+          "goal": "설계 가정에 맞는 사전 검정력 분석 또는 연구 후 민감도 분석을 선택한다.",
+          "axis_cosines": {
+            "situation": 0.116622,
+            "goal": 0.207523
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": false
+          },
+          "mean_axis_cosine": 0.162072,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [
+              "pdf"
+            ],
+            "method_subjects": [],
+            "covered": [],
+            "undeclared": [
+              "pdf"
+            ],
+            "unmentioned_title_subjects": [],
+            "topic_terms": {
+              "situation": [],
+              "goal": []
+            },
+            "status": "unknown",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": false,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "subject_topic_guard",
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 10,
+          "all_corpus_axis_ranks": {
+            "situation": 10,
+            "goal": 8
+          },
+          "actual_ranks": null
+        }
+      ]
+    },
+    {
+      "run": "documents-r2-oa",
+      "query": {
+        "situation": "Prepare a two-page A4 operational support-desk handover PDF from dated source notes, preserving latest corrections, request versus approval distinctions, urgent accessibility exception and action ownership.",
+        "goal": "Create runnable editable PDF generator, readable selectable two-page handover, render and visually inspect both pages, document actual source and QA checks.",
+        "explicit_scope": {
+          "domain": "",
+          "product": ""
+        },
+        "requires": [],
+        "forbids": [],
+        "constraints": "",
+        "character_lengths": {
+          "situation": 206,
+          "goal": 156
+        }
+      },
+      "logged_bundle": {
+        "items": [],
+        "omitted_candidates": 0,
+        "tokens": 111
+      },
+      "exact_reproduction": {
+        "search_metadata": {
+          "available": true,
+          "status": "ready",
+          "eligible_methods": 0,
+          "stale_or_missing_methods": 0,
+          "weak_axis_methods": 0,
+          "constraint_conflicts": 0,
+          "relevance_status": "unknown",
+          "floors": {
+            "situation": 0.35,
+            "goal": 0.35
+          },
+          "floor_policy": "operator_frozen_before_evaluation",
+          "ranking": "reciprocal_rank_fusion",
+          "subject_policy": "declared_subject_and_topic_v1",
+          "subject_unknown_policy": "undeclared_subject_or_topic_excluded_not_proven_incompatible",
+          "subject_unknown_methods": 10,
+          "lexical_recall_methods": 0,
+          "query_subjects": [
+            "pdf"
+          ],
+          "model": "Qwen/Qwen3-Embedding-0.6B",
+          "revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+          "embedding_spec": "openakashic-methods-qwen3-v1-lasttoken-l2-f32-max512",
+          "source_methods": 10
+        },
+        "eligible_total": 0,
+        "returned_ids": [],
+        "bundle_matches_logged": true,
+        "bundle_items": [],
+        "bundle_omitted_candidates": 0
+      },
+      "in_memory_sentinel": {
+        "situation_floor": -1,
+        "goal_floor": -1,
+        "ranking_only_not_policy_proposal": true,
+        "subject_scope_constraints_unchanged": true,
+        "returned_ids": []
+      },
+      "methods": [
+        {
+          "id": "method_c308cd0b8ee945fdbb32109d6bccedae",
+          "version": 1,
+          "title": "ReportLab으로 여러 쪽 PDF를 만들고 첨자를 처리하기",
+          "situation": "제목과 본문이 있는 여러 쪽 PDF 보고서를 코드로 생성해야 한다.",
+          "goal": "문단과 페이지 나눔을 사용해 PDF를 만들고 첨자가 검은 상자로 보이는 문제를 피한다.",
+          "axis_cosines": {
+            "situation": 0.535412,
+            "goal": 0.5858
+          },
+          "axis_floor_pass": {
+            "situation": true,
+            "goal": true
+          },
+          "mean_axis_cosine": 0.560606,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [
+              "pdf"
+            ],
+            "method_subjects": [
+              "pdf",
+              "reportlab"
+            ],
+            "covered": [
+              "pdf"
+            ],
+            "undeclared": [],
+            "unmentioned_title_subjects": [
+              "reportlab"
+            ],
+            "topic_terms": {
+              "situation": [],
+              "goal": [
+                "create"
+              ]
+            },
+            "status": "declared_overlap",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": false,
+          "semantic_pass": true,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "subject_topic_guard"
+          ],
+          "all_corpus_mean_axis_rank": 1,
+          "all_corpus_axis_ranks": {
+            "situation": 1,
+            "goal": 1
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_a7880a9ad3c1403e9b4d9b02bbbef244",
+          "version": 1,
+          "title": "PDF의 배치와 표 구조를 나눠 추출하기",
+          "situation": "PDF에서 텍스트와 표를 꺼내 문서나 표 데이터로 다시 사용해야 한다.",
+          "goal": "페이지별 텍스트와 표를 분리해 추출하고 표를 결합할 수 있는 형태로 만든다.",
+          "axis_cosines": {
+            "situation": 0.46284,
+            "goal": 0.455639
+          },
+          "axis_floor_pass": {
+            "situation": true,
+            "goal": true
+          },
+          "mean_axis_cosine": 0.459239,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [
+              "pdf"
+            ],
+            "method_subjects": [
+              "pdf",
+              "pdfplumber"
+            ],
+            "covered": [
+              "pdf"
+            ],
+            "undeclared": [],
+            "unmentioned_title_subjects": [],
+            "topic_terms": {
+              "situation": [],
+              "goal": []
+            },
+            "status": "declared_overlap",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": false,
+          "semantic_pass": true,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "subject_topic_guard"
+          ],
+          "all_corpus_mean_axis_rank": 2,
+          "all_corpus_axis_ranks": {
+            "situation": 2,
+            "goal": 2
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_2ecc633d287c4c18a18ba94aae0a7744",
+          "version": 1,
+          "title": "기존 DOCX를 XML로 수정하고 렌더링과 변경 추적 확인하기",
+          "situation": "기존 Word 문서를 수정하거나 변경 추적을 보존해야 한다.",
+          "goal": "문서 내용을 수정한 뒤 원본 대조 검증과 실제 렌더링으로 누락을 확인한다.",
+          "axis_cosines": {
+            "situation": 0.432343,
+            "goal": 0.392971
+          },
+          "axis_floor_pass": {
+            "situation": true,
+            "goal": true
+          },
+          "mean_axis_cosine": 0.412657,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [
+              "pdf"
+            ],
+            "method_subjects": [
+              "docx"
+            ],
+            "covered": [],
+            "undeclared": [
+              "pdf"
+            ],
+            "unmentioned_title_subjects": [
+              "docx"
+            ],
+            "topic_terms": {
+              "situation": [],
+              "goal": [
+                "document"
+              ]
+            },
+            "status": "unknown",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": false,
+          "semantic_pass": true,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "subject_topic_guard"
+          ],
+          "all_corpus_mean_axis_rank": 3,
+          "all_corpus_axis_ranks": {
+            "situation": 3,
+            "goal": 3
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_3a5cd7fa50934e24b594b9cc6d4db08d",
+          "version": 1,
+          "title": "주제에 맞는 시각 계획을 세우고 구현 전에 검토하기",
+          "situation": "새 웹 화면이나 기존 화면을 만들 때 주제와 관계없는 기본 템플릿이 반복된다.",
+          "goal": "사용자와 주제에 맞는 색, 글꼴, 배치를 정하고 구현할 선택 이유를 남긴다.",
+          "axis_cosines": {
+            "situation": 0.204281,
+            "goal": 0.264367
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": false
+          },
+          "mean_axis_cosine": 0.234324,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [
+              "pdf"
+            ],
+            "method_subjects": [],
+            "covered": [],
+            "undeclared": [
+              "pdf"
+            ],
+            "unmentioned_title_subjects": [],
+            "topic_terms": {
+              "situation": [],
+              "goal": []
+            },
+            "status": "unknown",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": false,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "subject_topic_guard",
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 4,
+          "all_corpus_axis_ranks": {
+            "situation": 6,
+            "goal": 4
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_a97a22e80aa54d9a863bf2e788550705",
+          "version": 1,
+          "title": "지원 형식과 읽기 범위를 확인한 뒤 로컬 데이터를 요약하기",
+          "situation": "모델링이나 확증 분석 전에 로컬 데이터의 형식과 기본 상태를 살펴봐야 한다.",
+          "goal": "원본을 바꾸지 않고 지원 범위 안에서 데이터 프로필과 분석 한계를 기록한다.",
+          "axis_cosines": {
+            "situation": 0.231728,
+            "goal": 0.208315
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": false
+          },
+          "mean_axis_cosine": 0.220022,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [
+              "pdf"
+            ],
+            "method_subjects": [],
+            "covered": [],
+            "undeclared": [
+              "pdf"
+            ],
+            "unmentioned_title_subjects": [],
+            "topic_terms": {
+              "situation": [],
+              "goal": []
+            },
+            "status": "unknown",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": false,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "subject_topic_guard",
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 5,
+          "all_corpus_axis_ranks": {
+            "situation": 5,
+            "goal": 7
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_a55c69897c4243f0924cea57e5fd7dc4",
+          "version": 1,
+          "title": "사용자 행동과 상태가 분명한 화면 문구 쓰기",
+          "situation": "화면의 버튼, 오류, 빈 상태 문구가 추상적이어서 다음 행동을 알기 어렵다.",
+          "goal": "사용자가 이해하는 말로 행동을 설명하고 흐름 전체에서 같은 이름을 쓴다.",
+          "axis_cosines": {
+            "situation": 0.235822,
+            "goal": 0.197264
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": false
+          },
+          "mean_axis_cosine": 0.216543,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [
+              "pdf"
+            ],
+            "method_subjects": [],
+            "covered": [],
+            "undeclared": [
+              "pdf"
+            ],
+            "unmentioned_title_subjects": [],
+            "topic_terms": {
+              "situation": [],
+              "goal": []
+            },
+            "status": "unknown",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": false,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "subject_topic_guard",
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 6,
+          "all_corpus_axis_ranks": {
+            "situation": 4,
+            "goal": 9
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_c35af4d9d760423caafb1e649c75d2f7",
+          "version": 1,
+          "title": "결측과 집단 분할을 확인하고 학습 전 누출을 점검하기",
+          "situation": "집단이나 시간으로 나뉜 데이터에서 결측과 반복 관측 때문에 분석이나 모델 평가가 왜곡될 수 있다.",
+          "goal": "결측의 의미와 관측 단위를 보존하면서 분할 중복과 전처리 누출의 징후를 기록한다.",
+          "axis_cosines": {
+            "situation": 0.136605,
+            "goal": 0.240548
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": false
+          },
+          "mean_axis_cosine": 0.188576,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [
+              "pdf"
+            ],
+            "method_subjects": [],
+            "covered": [],
+            "undeclared": [
+              "pdf"
+            ],
+            "unmentioned_title_subjects": [],
+            "topic_terms": {
+              "situation": [],
+              "goal": []
+            },
+            "status": "unknown",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": false,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "subject_topic_guard",
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 7,
+          "all_corpus_axis_ranks": {
+            "situation": 10,
+            "goal": 5
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_64858feefd444ddcbd439bf77e9f10fa",
+          "version": 1,
+          "title": "분석 질문과 설계를 정한 뒤 효과 크기와 불확실성 보고하기",
+          "situation": "실험이나 관측 자료에서 집단 차이나 변수 관계를 검정하려 한다.",
+          "goal": "분석 설계와 가정을 보존하고 검정 통계량뿐 아니라 효과와 불확실성을 보고한다.",
+          "axis_cosines": {
+            "situation": 0.149846,
+            "goal": 0.22301
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": false
+          },
+          "mean_axis_cosine": 0.186428,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [
+              "pdf"
+            ],
+            "method_subjects": [],
+            "covered": [],
+            "undeclared": [
+              "pdf"
+            ],
+            "unmentioned_title_subjects": [],
+            "topic_terms": {
+              "situation": [],
+              "goal": []
+            },
+            "status": "unknown",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": false,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "subject_topic_guard",
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 8,
+          "all_corpus_axis_ranks": {
+            "situation": 9,
+            "goal": 6
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_f965d6a617dc46c18843b5c8286f29cd",
+          "version": 1,
+          "title": "연구 전 표본 수와 연구 후 탐지 가능한 효과를 구분하기",
+          "situation": "연구 설계에서 필요한 표본 수를 정하거나 완료된 연구의 검정력을 묻는다.",
+          "goal": "설계 가정에 맞는 사전 검정력 분석 또는 연구 후 민감도 분석을 선택한다.",
+          "axis_cosines": {
+            "situation": 0.161946,
+            "goal": 0.20443
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": false
+          },
+          "mean_axis_cosine": 0.183188,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [
+              "pdf"
+            ],
+            "method_subjects": [],
+            "covered": [],
+            "undeclared": [
+              "pdf"
+            ],
+            "unmentioned_title_subjects": [],
+            "topic_terms": {
+              "situation": [],
+              "goal": []
+            },
+            "status": "unknown",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": false,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "subject_topic_guard",
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 9,
+          "all_corpus_axis_ranks": {
+            "situation": 8,
+            "goal": 8
+          },
+          "actual_ranks": null
+        },
+        {
+          "id": "method_8de99a09e49f40e4b891e4bfc04af3d8",
+          "version": 1,
+          "title": "Anthropic 브랜드 요청에 색과 글꼴 규칙 적용하기",
+          "situation": "Anthropic의 공식 색과 글꼴을 적용해야 하는 산출물을 만든다.",
+          "goal": "Anthropic 브랜드 지침에 맞춰 텍스트 계층과 도형 색을 일관되게 적용한다.",
+          "axis_cosines": {
+            "situation": 0.200163,
+            "goal": 0.126613
+          },
+          "axis_floor_pass": {
+            "situation": false,
+            "goal": false
+          },
+          "mean_axis_cosine": 0.163388,
+          "fresh_index": true,
+          "structured_constraint": {
+            "status": "satisfied",
+            "conflicts": [],
+            "unknown": [],
+            "basis": "declared_tags_not_environment_verification",
+            "interpretation": "compatible_declared"
+          },
+          "subject_match": {
+            "policy": "declared_subject_and_topic_v1",
+            "query_subjects": [
+              "pdf"
+            ],
+            "method_subjects": [
+              "anthropic"
+            ],
+            "covered": [],
+            "undeclared": [
+              "pdf"
+            ],
+            "unmentioned_title_subjects": [
+              "anthropic"
+            ],
+            "topic_terms": {
+              "situation": [],
+              "goal": []
+            },
+            "status": "unknown",
+            "interpretation": "retrieval_relevance_only_not_verified_applicability"
+          },
+          "subject_guard_pass": false,
+          "semantic_pass": false,
+          "lexical_recall_possible": false,
+          "exclusion_stages": [
+            "subject_topic_guard",
+            "both_axis_floor_policy"
+          ],
+          "all_corpus_mean_axis_rank": 10,
+          "all_corpus_axis_ranks": {
+            "situation": 7,
+            "goal": 10
+          },
+          "actual_ranks": null
+        }
+      ]
+    }
+  ],
+  "conclusions": {
+    "packing": "All six exact reproductions matched logged bundle JSON. Four queries had zero eligible candidates before packing; their omitted_candidates were zero. Both returned ReportLab records were complete at 956 tokens within the 2048 budget.",
+    "document_queries": "Both ReportLab axes pass .35 (.566393/.562239 and .535412/.585800), but the subject guard rejects: reportlab is an unmentioned title subject AND one query axis has no non-subject lexical topic term. Both conditions independently block. Lowering floors alone admits no documents candidates.",
+    "analysis_queries": "No recognized subjects, no explicit scope, no structured conflicts. Missingness and statistical-design methods fail the situation cosine floor; an unrelated ReportLab candidate passes both floors in analysis-r1.",
+    "design_queries": "No recognized subjects; planning/microcopy candidates fail the frozen axis floors. ReportLab is just below the situation floor in r1 (.349435) and just above both in r2 (.360885/.366632).",
+    "other_gates": "All ten index entries are fresh; no embedding/index unavailability, explicit domain/product filter, or structured constraint conflict caused the six outcomes.",
+    "causal_limits": "English compound queries versus Korean axis summaries are observed. No shorter-query, translation or tokenization control was run; low scores cannot be attributed to query length or cross-language embedding quality alone. Semantic signals do not establish applicability or answer quality.",
+    "policy": "No floor/guard/model/default or production change was made. The sentinel is an in-memory ranking diagnostic only. Any next policy change requires fresh held-out evaluation, not gains retuned on this cohort."
+  }
+}

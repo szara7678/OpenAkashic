@@ -1,0 +1,38 @@
+{
+  "run_id": "design-r1-direct",
+  "exit_code": 1,
+  "seconds": 5.167437000025529,
+  "status": null,
+  "report": {
+    "task": "design",
+    "ok": false,
+    "groups": {
+      "delivery_and_selftest_record": {
+        "ok": true,
+        "errors": []
+      },
+      "directory_function_and_readability": {
+        "ok": false,
+        "errors": [
+          "Missing snapshot/unknown notice 2026-07-18",
+          "No helpful empty state"
+        ],
+        "evidence": {
+          "scenarios": [
+            "initial",
+            "East",
+            "East+Advice+stepfree",
+            "empty intersection",
+            "reset"
+          ],
+          "external_requests": [],
+          "mobile_overflow": false
+        }
+      }
+    },
+    "scope": "Artifact checks only; root independently verifies logged self-tests, normal final, source faithfulness and blind quality."
+  },
+  "original_checker_v2_sha256": "eba90d31f2cc7b0a282f80d4c15b2d26e8a9135a7f274c8f7778975bd81a129f",
+  "native_outcome_unchanged": true,
+  "reclassification": false
+}

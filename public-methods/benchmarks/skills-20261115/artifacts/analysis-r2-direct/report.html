@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cedar pilot | Assisted vs standard handling</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#edf2f4;color:#172e3b;font:16px/1.5 system-ui,sans-serif}
+main{max-width:1050px;margin:30px auto;background:white;padding:32px 40px;border-top:7px solid #16776c;border-radius:8px}
+.eyebrow{text-transform:uppercase;letter-spacing:.13em;font-size:12px;font-weight:700;color:#16776c}
+h1{font-size:31px;line-height:1.2;margin:8px 0 16px}h2{font-size:20px;margin:25px 0 8px}p{margin:8px 0}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:22px 0}.card{padding:16px 20px;background:#f0f6f6;border-radius:6px}
+.card strong{display:block;font-size:30px;line-height:1.3}.card span{font-weight:650}.muted,footer{color:#49616e;font-size:13px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}th,td{padding:9px 8px;text-align:right;border-bottom:1px solid #d9e3e7}
+th:first-child,td:nth-child(2){text-align:left}thead{background:#eaf1f4}.pooled{background:#f3f7f8}.note{border-left:4px solid #d3a044;padding:10px 15px;background:#fff8eb}
+footer{margin-top:24px;border-top:1px solid #d9e3e7;padding-top:12px;overflow-wrap:anywhere}
+@media(max-width:720px){main{padding:20px;margin:10px}.cards{grid-template-columns:1fr}.table-wrap{overflow-x:auto}}
+@media print{body{background:white}main{margin:0;padding:10px;border:0}.card,table{break-inside:avoid}}
+</style></head><body><main>
+<div class="eyebrow">Cedar pilot · Operations evidence brief</div>
+<h1>Assisted handling looks better within branches,<br>but worse in the pooled log</h1>
+<p><b>Decision:</b> Do not use the pooled ranking alone to choose a service. Assisted handling has higher observed success in both branches; this is an association, not evidence that assistance caused improvement.</p>
+<div class="cards"><section class="card"><span>Pooled difference</span><strong>-3.3 pp</strong>
+<p>Assisted 63.3% vs standard 66.7%</p><div class="muted">Successes ÷ known outcomes for each service, across both branches.</div></section>
+<section class="card"><span>Equal-branch difference</span><strong>+14.0 pp</strong>
+<p>Assisted 70.0% vs standard 56.0%</p><div class="muted">Mean of East and West success rates within each service; each branch gets 50% weight.</div></section></div>
+<h2>What changes the direction?</h2>
+<p>Among known outcomes, assisted exceeds standard in East by 8.0 percentage points (80.0% vs 72.0%) and in West by 20.0 points (60.0% vs 40.0%). Yet assisted has 50 of its 60 known outcomes in West, where success is lower for both services; standard has 50 of its 60 in East. This mix produces a Simpson’s-paradox reversal in the pooled comparison.</p>
+<p>Equal-branch rates are (80.0% + 60.0%) / 2 = 70.0% for assisted and (72.0% + 40.0%) / 2 = 56.0% for standard. This is a hypothetical 50/50 branch mix, not the actual case-weighted performance or full case-mix adjustment.</p>
+<h2>Outcome counts and denominators</h2>
+<p class="muted">Success rate = successes / known outcomes. Missing percentage = unknown outcomes / all cases in that row. ALL rows pool branches and repeat the same cases; do not add them to branch rows. Displayed percentages are rounded to one decimal.</p>
+<div class="table-wrap"><table><thead><tr><th scope="col">Service</th><th scope="col">Branch</th><th scope="col">All cases</th><th scope="col">Known</th><th scope="col">Successes</th><th scope="col">Success rate</th><th scope="col">Missing / all</th></tr></thead><tbody><tr><th scope="row">Assisted</th><td>East</td><td>14</td><td>10</td><td>8</td><td>80.0%</td><td>4 / 14 (28.6%)</td></tr><tr><th scope="row">Assisted</th><td>West</td><td>56</td><td>50</td><td>30</td><td>60.0%</td><td>6 / 56 (10.7%)</td></tr><tr class="pooled"><th scope="row">Assisted</th><td>ALL</td><td>70</td><td>60</td><td>38</td><td>63.3%</td><td>10 / 70 (14.3%)</td></tr><tr><th scope="row">Standard</th><td>East</td><td>51</td><td>50</td><td>36</td><td>72.0%</td><td>1 / 51 (2.0%)</td></tr><tr><th scope="row">Standard</th><td>West</td><td>19</td><td>10</td><td>4</td><td>40.0%</td><td>9 / 19 (47.4%)</td></tr><tr class="pooled"><th scope="row">Standard</th><td>ALL</td><td>70</td><td>60</td><td>40</td><td>66.7%</td><td>10 / 70 (14.3%)</td></tr></tbody></table></div>
+<h2>Unknown is not failure</h2>
+<p>All 140 cases are included in the counts. There are 20 unknown outcomes (20/140 = 14.3% of all cases): 10/70 = 14.3% in each service. Equal overall missingness hides different branch patterns, notably standard West with 9/19 = 47.4% unknown. If outcome recording is related to success, both the pooled and equal-branch estimates may be biased. Blank outcomes are excluded only from success-rate denominators; none are imputed.</p>
+<h2>What the log can—and cannot—support</h2>
+<p>This observational log is not randomized. Branch weighting addresses only branch mix, not severity, routing, staff, timing, or other unrecorded differences. Outcome definitions and follow-up windows are not supplied beyond the resolved flag (1 = success, 0 = failure, blank = unknown). Small known-outcome cells and missing data limit stability and generalization; these descriptive differences do not establish causation or statistical significance.</p>
+<p class="note"><b>Practical next step:</b> Audit and recover unknown outcomes, prioritizing standard West, using a consistent outcome definition and follow-up window. Track success and missingness by branch. Before wider rollout, run a prospective, branch-stratified randomized pilot if feasible, with consistent case eligibility and severity capture.</p>
+<footer>Method: complete local log, one row per case; no row sampling, no imputation, no external resources. Differences are assisted minus standard; pp = percentage points. Source: cases.csv · SHA-256: 7102332b96bc80fc775aa9339b5fa13b437299ff6c9a3631a30cc79ea4a47430. Reproduce with analysis.py; see README.md and QA.md for checks and limitations.</footer>
+</main></body></html>

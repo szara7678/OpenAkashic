@@ -1,0 +1,12 @@
+# Independent anonymous quality review
+Frozen before candidate runs. Give reviewers task prompt, fixtures, anonymous artifacts and screenshots; withhold arm, source selection, token/time data and model transcript. Two independent reviewers score each task on four dimensions, 0–4 each (16 total); report per-reviewer scores and disagreements without silently averaging away a failure. A reference is a correctness probe, not a visual ideal. Do not reward brand imitation or gradients. Strong task output can differ visually.
+
+Anchors: 0 unusable/misleading; 1 major work required; 2 usable with noticeable weaknesses; 3 clear and polished with minor weaknesses; 4 exceptionally clear, coherent and fit for this small practical brief. Review actual artifact, not screenshot alone when functionality or text is relevant.
+
+Design dimensions: (1) readable type/contrast and calm public-service visual character at desktop/mobile; (2) hierarchy makes eligibility, hours and uncertainty easy to compare; (3) responsive spacing/alignment/density with no overlap/cropping or needless scrolling; (4) interaction feedback, keyboard focus and empty-state clarity. Check original brand request: Cedar civic identity, supplied palette only as guidance; no permission to adopt any other organization's branding. Screenshots: default 1280x900; default 390x844; filters East + advice + step-free at 390x844; deliberate empty North + advice + step-free at 390x844.
+
+Documents dimensions: (1) legibility at normal PDF reading size and unclipped text/tables; (2) two-page hierarchy and sensible page breaks make shift decisions quick; (3) action/owner/deadline/unknown distinctions support actual handover; (4) coherent restraint, alignment, whitespace and factual traceability. Inspect both pages rendered 130–150 dpi and selectable/extracted text.
+
+Analysis dimensions: (1) correct understandable pooled-vs-adjusted explanation without causal overclaim; (2) denominators and missingness visible beside estimates; (3) report hierarchy/chart-or-table clarity and honest uncertainty; (4) reproducible outputs with clear assumptions and concise action recommendation. Inspect report at 1280x900 and 390x844 plus CSV/JSON. Charts are optional; reward communication, not chart count.
+
+Record independent notes: blocking defect, strongest feature, one improvement. Objective failures are reported separately. Reviewer must not infer arm or claim that a self-test happened from prose alone.

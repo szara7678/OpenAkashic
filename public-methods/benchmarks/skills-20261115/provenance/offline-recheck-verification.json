@@ -1,0 +1,15 @@
+{
+  "schema": "public-export-offline-recheck-v1",
+  "image": "sha256:02c4645a0abbbaf6f8074e0f76d6d789f0cae2d8493abce93877fe1f0966b9b3",
+  "scheduled_rows_rechecked": 12,
+  "all_archived_bounded_outcomes_preserved": true,
+  "replayed_checker_successes": 4,
+  "replayed_checker_failures": 8,
+  "candidate_code_executed_on_host": false,
+  "network": "none",
+  "source_mounts": "read_only",
+  "writes": "ephemeral tmpfs copy only",
+  "quality_regraded": false,
+  "original_candidates_or_checker_reports_modified": false,
+  "scope": "Observed verify_export.py --replay-checks execution; compares archived checker ok booleans only, not independent quality or service usefulness."
+}

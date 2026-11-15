@@ -1,0 +1,1866 @@
+{
+  "schema": "manual-application-coverage-review-v1",
+  "freeze_sha256": "a0cf39f09a6964c0afa600e3bad3c0fb54f8a33335eb11244fe0765eeec9c54c",
+  "parser_review_sha256": "dd5ab8cee01b32ba15f1621c5d1e63ec55083c08288e3c7c3555cea8e7552965",
+  "method_mapping_sha256": "b7b7da26c24357a83212339ff982cc3738e558969b02aa3d16883b97591ed530",
+  "scope": "Source delivery, static original-step application evidence, native self-validation and preserved corrections only. No independent quality grading, causal effectiveness inference, retry or tuning.",
+  "summary": {
+    "scheduled_runs": 12,
+    "OA_candidates": 6,
+    "direct_controls": 6,
+    "OA_candidates_with_complete_derived_method_delivery": 2,
+    "OA_candidates_with_empty_bundle": 4,
+    "derived_method_applications_verified": 0,
+    "original_guidance_adaptations_documented": 6,
+    "native_visual_attention_independently_confirmed": false
+  },
+  "runs": [
+    {
+      "run_id": "design-r2-direct",
+      "arm": "direct",
+      "role": "benchmark control; never an outcome of unread OA methods",
+      "native_evidence": {
+        "trace_sha256": "f98d51fd1ef45b25f567369fa459603b044c7c09132a06ff468defe3072cf173",
+        "timing_sha256": "96e067d6667a6646b46e9051ab4bed80c8b1ea1ecdbb6b9d4c8957c05110f523",
+        "retrieval_sha256": "db4bb5c8f6e994724e50b5463b8e2f680ddffdc55d1cf32d3915a4ca6e920d56"
+      },
+      "original_source_delivery": [
+        {
+          "package_id": "skill_07c728f6e8cc12349e73623954a260c7",
+          "name": "frontend-design",
+          "commit": "1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064",
+          "path": "SKILL.md",
+          "sha256": "d91970639e9f5c37682ac7ab60094d35f1c7c1f38d731bd56396563aee10c1d3",
+          "start_line": 1,
+          "end_line": 71,
+          "literal_span_sha256": "d91970639e9f5c37682ac7ab60094d35f1c7c1f38d731bd56396563aee10c1d3",
+          "native_trace": {
+            "path": "trace.jsonl",
+            "sha256": "f98d51fd1ef45b25f567369fa459603b044c7c09132a06ff468defe3072cf173",
+            "line": 8,
+            "event_sha256": "94522903321e910e826b572f61dc459e37d98a7b6dd8d2eed08ebc4d09756288",
+            "exit_code": 0,
+            "stdout_sha256": "c4cdf248392fddf9858d29a71f7840bab1c051aba4dbeb97e3b28ae9eca0f8ef"
+          },
+          "corroboration": "Exact full original is native stdout prefix before any subsequent output.",
+          "attention_boundary": "Captured stdout proves literal delivery, not attention or that all bytes survived any model-side tool-output clipping."
+        },
+        {
+          "package_id": "skill_07c728f6e8cc12349e73623954a260c7",
+          "name": "frontend-design",
+          "commit": "1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064",
+          "path": "SKILL.md",
+          "sha256": "d91970639e9f5c37682ac7ab60094d35f1c7c1f38d731bd56396563aee10c1d3",
+          "start_line": 45,
+          "end_line": 71,
+          "literal_span_sha256": "7a352c385e5a21b482dab54d83a838da40f2d7eb153126da0d98c60be7b1b3fe",
+          "native_trace": {
+            "path": "trace.jsonl",
+            "sha256": "f98d51fd1ef45b25f567369fa459603b044c7c09132a06ff468defe3072cf173",
+            "line": 12,
+            "event_sha256": "1c0cd7e7a5e424cb00f745832fb5628cbd51f7903af3ff744e35ee4dcb544afd",
+            "exit_code": 0,
+            "stdout_sha256": "3f95f954c0d78722507968c1209effd5115223a620272884e1e4338ec31f99c0"
+          },
+          "corroboration": "Exact requested line span is native stdout prefix before any subsequent output.",
+          "attention_boundary": "Captured stdout proves literal delivery, not attention or that all bytes survived any model-side tool-output clipping."
+        }
+      ],
+      "automatic_delivery_review": {
+        "schema": "corroborated-source-delivery-v1",
+        "metadata_hits": [],
+        "complete_method_deliveries": [],
+        "original_span_reads": [],
+        "manual_review_needed": [
+          {
+            "trace_line": 8,
+            "stdout_sha256": "c4cdf248392fddf9858d29a71f7840bab1c051aba4dbeb97e3b28ae9eca0f8ef",
+            "event_sha256": "94522903321e910e826b572f61dc459e37d98a7b6dd8d2eed08ebc4d09756288",
+            "reason": "Filesystem command is complex, ambiguous or stdout differs from exact frozen source span"
+          },
+          {
+            "trace_line": 12,
+            "stdout_sha256": "3f95f954c0d78722507968c1209effd5115223a620272884e1e4338ec31f99c0",
+            "event_sha256": "1c0cd7e7a5e424cb00f745832fb5628cbd51f7903af3ff744e35ee4dcb544afd",
+            "reason": "Filesystem command is complex, ambiguous or stdout differs from exact frozen source span"
+          },
+          {
+            "trace_line": 15,
+            "stdout_sha256": "920b7b0ec25008cc846028f07a7132a9b820ed7e337b4d2939306f7ac92c418f",
+            "event_sha256": "46e4f7bdaa1d2c900d000fc208856fff5e73461dd6b2c702b3e3c22c5a74e805",
+            "reason": "Filesystem command is complex, ambiguous or stdout differs from exact frozen source span"
+          }
+        ],
+        "application_claims": [],
+        "boundary": "Delivery evidence only; no inference of attention, applicability, applied steps, task quality or effectiveness."
+      },
+      "derived_method_applications": [],
+      "quality_grade": null,
+      "application_scope": "Control source delivery recorded only. Do not attach control successes/failures as OA method executions.",
+      "parent_adjudication": {
+        "review_complete": true,
+        "delivery_findings_accepted": true,
+        "original_guidance_application_findings_accepted": null,
+        "derived_method_application_confirmed": false,
+        "self_validation_findings_accepted": true,
+        "scope": "Original-source adaptation is separate from derived-method use. Automated command evidence only; native visual inspection remains self-reported and neither verified nor disproved."
+      }
+    },
+    {
+      "run_id": "design-r2-oa",
+      "arm": "oa",
+      "role": "OA retrieval condition",
+      "native_evidence": {
+        "trace_sha256": "4b01052c1814625cb57adf906ca81c2f86284db86ce3335a097e6c88404c1a50",
+        "timing_sha256": "fbb75f31a23682b0f2f056290d288bd5c61ce84b997c280d59df4fdf04329450",
+        "retrieval_sha256": "154cfaf61967f1ae5d5f35a01f7a748251b92133518e8491463ed0182afd5054"
+      },
+      "original_source_delivery": [
+        {
+          "package_id": "skill_07c728f6e8cc12349e73623954a260c7",
+          "name": "frontend-design",
+          "commit": "1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064",
+          "path": "SKILL.md",
+          "sha256": "d91970639e9f5c37682ac7ab60094d35f1c7c1f38d731bd56396563aee10c1d3",
+          "start_line": 1,
+          "end_line": 71,
+          "literal_span_sha256": "d91970639e9f5c37682ac7ab60094d35f1c7c1f38d731bd56396563aee10c1d3",
+          "native_trace": {
+            "path": "trace.jsonl",
+            "sha256": "4b01052c1814625cb57adf906ca81c2f86284db86ce3335a097e6c88404c1a50",
+            "line": 10,
+            "event_sha256": "803f4c473c0e0b79f3ea678d33e0d90ae7d87d53bf71ea3fbce91052dd5a003f",
+            "exit_code": 0,
+            "stdout_sha256": "6a29f61d5e568c64feeb5e26e3597c4e8d5ebaea2af226a3b991c5a2c98a4b54"
+          },
+          "corroboration": "Exact full original is native stdout prefix before any subsequent output.",
+          "attention_boundary": "Captured stdout proves literal delivery, not attention or that all bytes survived any model-side tool-output clipping."
+        }
+      ],
+      "automatic_delivery_review": {
+        "schema": "corroborated-source-delivery-v1",
+        "metadata_hits": [
+          {
+            "trace_line": 6,
+            "stdout_sha256": "bfc4cdf6f84cdb3da0de4e209130240083dc96a0f28179c761f2429dbb0ff138",
+            "event_sha256": "5b279a835d7cc12f577316e176a86459e1ec1bbe1663721bea97fc9d44e852b6",
+            "family": "oa",
+            "schema": "method-bundle-v1",
+            "read_event_sha256": "ccdfa18d3b14fc9ec8780e170b286d8add15a934195ec530b4e82446c75cc9e4",
+            "retrieval_sha256": "1fba369c95a84493037ea567915ae81a46493c05268dababc41e0c82a98d11ad"
+          }
+        ],
+        "complete_method_deliveries": [
+          {
+            "trace_line": 6,
+            "stdout_sha256": "bfc4cdf6f84cdb3da0de4e209130240083dc96a0f28179c761f2429dbb0ff138",
+            "event_sha256": "5b279a835d7cc12f577316e176a86459e1ec1bbe1663721bea97fc9d44e852b6",
+            "id": "method_c308cd0b8ee945fdbb32109d6bccedae",
+            "version": 1,
+            "source_hash": "23d2d90faf19d5aed3d1654667dd2ac25a27ecc931f1e78080aa1e46498e4335",
+            "editorial_public_id": "method_a31588be14038e31ec1e4a30e4f8f24d",
+            "all_core_fields_equal": true,
+            "read_event_sha256": "ccdfa18d3b14fc9ec8780e170b286d8add15a934195ec530b4e82446c75cc9e4",
+            "retrieval_sha256": "1fba369c95a84493037ea567915ae81a46493c05268dababc41e0c82a98d11ad"
+          }
+        ],
+        "original_span_reads": [],
+        "manual_review_needed": [
+          {
+            "trace_line": 8,
+            "stdout_sha256": "32d8119ee7be2aed657beaaf3b191e73ca155bc055869193192f83f69a245833",
+            "event_sha256": "4c8173b911adf51da88b4e94f8b1ff3cd387ea0abac24b169c801137c65da1cd",
+            "reason": "Filesystem command is complex, ambiguous or stdout differs from exact frozen source span"
+          },
+          {
+            "trace_line": 10,
+            "stdout_sha256": "6a29f61d5e568c64feeb5e26e3597c4e8d5ebaea2af226a3b991c5a2c98a4b54",
+            "event_sha256": "803f4c473c0e0b79f3ea678d33e0d90ae7d87d53bf71ea3fbce91052dd5a003f",
+            "reason": "Filesystem command is complex, ambiguous or stdout differs from exact frozen source span"
+          }
+        ],
+        "application_claims": [],
+        "boundary": "Delivery evidence only; no inference of attention, applicability, applied steps, task quality or effectiveness."
+      },
+      "derived_method_applications": [],
+      "quality_grade": null,
+      "README_evidence": [
+        {
+          "path": "README.md",
+          "sha256": "1b652ff2f3d23a2a1f49ed90b8043126642d1560cf5931018eec62cdadc33041",
+          "start_line": 8,
+          "end_line": 13,
+          "span_sha256": "1463f5204a4c914cfcbba81b170500ab99dba8d353cf626b33d3d99b4aa731c2",
+          "verified_against_UID_copy_receipt": true
+        },
+        {
+          "path": "README.md",
+          "sha256": "1b652ff2f3d23a2a1f49ed90b8043126642d1560cf5931018eec62cdadc33041",
+          "start_line": 25,
+          "end_line": 30,
+          "span_sha256": "0af3639d381102734ce93bb4026660ace1507507afd7046a19254fc0dca87f97",
+          "verified_against_UID_copy_receipt": true
+        }
+      ],
+      "derived_method_delivery": [
+        {
+          "trace_line": 6,
+          "stdout_sha256": "bfc4cdf6f84cdb3da0de4e209130240083dc96a0f28179c761f2429dbb0ff138",
+          "event_sha256": "5b279a835d7cc12f577316e176a86459e1ec1bbe1663721bea97fc9d44e852b6",
+          "id": "method_c308cd0b8ee945fdbb32109d6bccedae",
+          "version": 1,
+          "source_hash": "23d2d90faf19d5aed3d1654667dd2ac25a27ecc931f1e78080aa1e46498e4335",
+          "editorial_public_id": "method_a31588be14038e31ec1e4a30e4f8f24d",
+          "all_core_fields_equal": true,
+          "read_event_sha256": "ccdfa18d3b14fc9ec8780e170b286d8add15a934195ec530b4e82446c75cc9e4",
+          "retrieval_sha256": "1fba369c95a84493037ea567915ae81a46493c05268dababc41e0c82a98d11ad",
+          "target_editorial_public_id": "method_a31588be14038e31ec1e4a30e4f8f24d",
+          "payload_sha256": "55eb18bebff104699dfa82ff5358fc70d4744fc250b28604fd28bb552adfdb73",
+          "application_status": "explicitly_not_applied_irrelevant",
+          "rationale": "README rejects PDF method for this non-PDF task; no method-specific step application claimed."
+        }
+      ],
+      "oa_bundle_result": "complete irrelevant PDF method delivered",
+      "original_guidance_applications": [
+        {
+          "claim": "Compact subject-specific token/layout plan",
+          "attribution": "original skill partial/adapted guidance, not derived OA method application",
+          "source": {
+            "package_id": "skill_07c728f6e8cc12349e73623954a260c7",
+            "name": "frontend-design",
+            "commit": "1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064",
+            "path": "SKILL.md",
+            "sha256": "d91970639e9f5c37682ac7ab60094d35f1c7c1f38d731bd56396563aee10c1d3",
+            "start_line": 47,
+            "end_line": 53,
+            "literal_span_sha256": "78db48da5e6ef1946a819fa7fe247f6a87071fddc9a23a9f4be86c70f5583a77"
+          },
+          "README": {
+            "path": "README.md",
+            "sha256": "1b652ff2f3d23a2a1f49ed90b8043126642d1560cf5931018eec62cdadc33041",
+            "start_line": 12,
+            "end_line": 13,
+            "span_sha256": "2cba2c3752120661a79899156b38ea13139ba308c172f08575b8dabe45be9687",
+            "verified_against_UID_copy_receipt": true
+          },
+          "implementation": {
+            "path": "build.py",
+            "sha256": "6568e683c264f56fcaff6dea77e495bf2672b038f11e3d5131669f7210d4cfd6",
+            "start_line": 19,
+            "end_line": 21,
+            "span_sha256": "65a7a3b04f7b4a4e33d33b843e851e684a51a3eeaf8a216e5975d76f496f63bd",
+            "verified_against_UID_copy_receipt": true
+          },
+          "evidence_limit": "Self-report plus matching static implementation; no causal or quality-effect attribution."
+        },
+        {
+          "claim": "Visible focus, responsive layout and actionable empty state",
+          "attribution": "original skill partial/adapted guidance, not derived OA method application",
+          "source": {
+            "package_id": "skill_07c728f6e8cc12349e73623954a260c7",
+            "name": "frontend-design",
+            "commit": "1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064",
+            "path": "SKILL.md",
+            "sha256": "d91970639e9f5c37682ac7ab60094d35f1c7c1f38d731bd56396563aee10c1d3",
+            "start_line": 57,
+            "end_line": 69,
+            "literal_span_sha256": "5d5e37c0b80c7876c9a8f3b7dab474dea7054b825a05abff0eea2fa856c1b755"
+          },
+          "README": {
+            "path": "README.md",
+            "sha256": "1b652ff2f3d23a2a1f49ed90b8043126642d1560cf5931018eec62cdadc33041",
+            "start_line": 9,
+            "end_line": 10,
+            "span_sha256": "2f1e82e11f1c56b92cf5b5de366314b476c374427acdc1e8b86e4506f5fc8039",
+            "verified_against_UID_copy_receipt": true
+          },
+          "implementation": {
+            "path": "build.py",
+            "sha256": "6568e683c264f56fcaff6dea77e495bf2672b038f11e3d5131669f7210d4cfd6",
+            "start_line": 20,
+            "end_line": 34,
+            "span_sha256": "fe4a7cfdf83debd18f1260478d8e6f6ec4e535bda257074449dbe14f656b7c35",
+            "verified_against_UID_copy_receipt": true
+          },
+          "evidence_limit": "Self-report plus matching static implementation; no causal or quality-effect attribution."
+        }
+      ],
+      "native_self_validation": [
+        {
+          "observed": "qa.cjs rerun exited0 and printed final24-combination/filter/focus assertions; candidate self-test only.",
+          "evidence": {
+            "path": "trace.jsonl",
+            "sha256": "4b01052c1814625cb57adf906ca81c2f86284db86ce3335a097e6c88404c1a50",
+            "line": 23,
+            "event_sha256": "fd1096576d2228d44b3193bec34ebb1c196eda549a975763650d61e00b2c1218",
+            "exit_code": 0,
+            "stdout_sha256": "3ab352dd12c846762d6b9ccbd3de49727d3b35e41071176197999e1fe4fd2d5a"
+          },
+          "scope": "candidate self-validation only; independent grading separate"
+        }
+      ],
+      "observed_failures_and_corrections": [
+        {
+          "observed": "Self-test initially failed importing playwright.",
+          "evidence": {
+            "path": "trace.jsonl",
+            "sha256": "4b01052c1814625cb57adf906ca81c2f86284db86ce3335a097e6c88404c1a50",
+            "line": 17,
+            "event_sha256": "da861ad2fdf5465f6914bd0863179445c68e1e741800c73f87eabc9b620c8324",
+            "exit_code": 1,
+            "stdout_sha256": "a077023c318d419e8a4c2fc38f07c8f2463be46d3fb06d904b85a03765eaed73"
+          }
+        },
+        {
+          "observed": "After import correction, native-select keyboard popup assertion failed.",
+          "evidence": {
+            "path": "trace.jsonl",
+            "sha256": "4b01052c1814625cb57adf906ca81c2f86284db86ce3335a097e6c88404c1a50",
+            "line": 19,
+            "event_sha256": "a26a56478de4bdd7ba55ae942f183739b3bb82185da8a298f8a28d714996f0ee",
+            "exit_code": 1,
+            "stdout_sha256": "32b22cc433aaf6a660add37726870baf179a8245fee1cb86138dae43d63f94c4"
+          }
+        },
+        {
+          "observed": "Removed ArrowDown/Enter popup sequence from the test and reran successfully. Keyboard coverage narrowed; not a page-content fix.",
+          "evidence": {
+            "path": "trace.jsonl",
+            "sha256": "4b01052c1814625cb57adf906ca81c2f86284db86ce3335a097e6c88404c1a50",
+            "line": 23,
+            "event_sha256": "fd1096576d2228d44b3193bec34ebb1c196eda549a975763650d61e00b2c1218",
+            "exit_code": 0,
+            "stdout_sha256": "3ab352dd12c846762d6b9ccbd3de49727d3b35e41071176197999e1fe4fd2d5a"
+          }
+        }
+      ],
+      "visual_inspection_claim": {
+        "status": "self_reported_not_independently_corrobated_in_native_trace",
+        "README": {
+          "path": "README.md",
+          "sha256": "1b652ff2f3d23a2a1f49ed90b8043126642d1560cf5931018eec62cdadc33041",
+          "start_line": 30,
+          "end_line": 30,
+          "span_sha256": "d4161ab92963319c6a97751711364049b2d01c65591225519b91374197e19903",
+          "verified_against_UID_copy_receipt": true
+        },
+        "boundary": "Rendered images exist and render/test commands are captured; no distinct view_image completion events appear in trace. No visual attention claim."
+      },
+      "notes": "README explicitly rejects delivered ReportLab method as irrelevant; no derived steps applied.",
+      "no_candidate_rerun": true,
+      "parent_adjudication": {
+        "review_complete": true,
+        "delivery_findings_accepted": true,
+        "original_guidance_application_findings_accepted": true,
+        "derived_method_application_confirmed": false,
+        "self_validation_findings_accepted": true,
+        "scope": "Original-source adaptation is separate from derived-method use. Automated command evidence only; native visual inspection remains self-reported and neither verified nor disproved."
+      }
+    },
+    {
+      "run_id": "analysis-r1-oa",
+      "arm": "oa",
+      "role": "OA retrieval condition",
+      "native_evidence": {
+        "trace_sha256": "88037d5184d8a71ee8b994263d19128938aa7759c069467e48f3e96b403dcf0e",
+        "timing_sha256": "ecc978670c5a85823dab4bdb157def8e3657018a2d6912d305ff46929a1e0f81",
+        "retrieval_sha256": "7b47ebeb8cdf8d341606d3d0d6c218fa03e11d28e64ddf12a0b5f85b8a9b7600"
+      },
+      "original_source_delivery": [
+        {
+          "package_id": "skill_81e45a6d4f9155319cf65043886bcba4",
+          "name": "statistical-analysis",
+          "commit": "2d2065fb4520fa3f3f2bcf61cff26ec8b7eba4b5",
+          "path": "SKILL.md",
+          "sha256": "e112848726b3713267cac65e4e2c15491a0a26ee1ed628db01195f7e43f97997",
+          "start_line": 1,
+          "end_line": 200,
+          "literal_span_sha256": "e6fa0b0b38bdf835b47a57a6b3a18a68ecae5e0ccd83304fda392b8134209d85",
+          "native_trace": {
+            "path": "trace.jsonl",
+            "sha256": "88037d5184d8a71ee8b994263d19128938aa7759c069467e48f3e96b403dcf0e",
+            "line": 10,
+            "event_sha256": "2177e02748101aade2b60856f1e59fcee589e6de14603c3d6239278aa3d27315",
+            "exit_code": 0,
+            "stdout_sha256": "d8a4229683f057acf654d968fd170234377e0c6b3a4d54ac95464ca229ffae92"
+          },
+          "corroboration": "Exact requested line span is native stdout prefix before any subsequent output.",
+          "attention_boundary": "Captured stdout proves literal delivery, not attention or that all bytes survived any model-side tool-output clipping."
+        }
+      ],
+      "automatic_delivery_review": {
+        "schema": "corroborated-source-delivery-v1",
+        "metadata_hits": [
+          {
+            "trace_line": 6,
+            "stdout_sha256": "bfc4cdf6f84cdb3da0de4e209130240083dc96a0f28179c761f2429dbb0ff138",
+            "event_sha256": "df6b622f2af3fbe85dfd3c54b9f913343e81685c7fdc7c562145d858bc40eda1",
+            "family": "oa",
+            "schema": "method-bundle-v1",
+            "read_event_sha256": "1907140b9c2da1f1a2f8854bc9553ebf867c4b3c1d80dbb10039a8360cd582d3",
+            "retrieval_sha256": "1fba369c95a84493037ea567915ae81a46493c05268dababc41e0c82a98d11ad"
+          }
+        ],
+        "complete_method_deliveries": [
+          {
+            "trace_line": 6,
+            "stdout_sha256": "bfc4cdf6f84cdb3da0de4e209130240083dc96a0f28179c761f2429dbb0ff138",
+            "event_sha256": "df6b622f2af3fbe85dfd3c54b9f913343e81685c7fdc7c562145d858bc40eda1",
+            "id": "method_c308cd0b8ee945fdbb32109d6bccedae",
+            "version": 1,
+            "source_hash": "23d2d90faf19d5aed3d1654667dd2ac25a27ecc931f1e78080aa1e46498e4335",
+            "editorial_public_id": "method_a31588be14038e31ec1e4a30e4f8f24d",
+            "all_core_fields_equal": true,
+            "read_event_sha256": "1907140b9c2da1f1a2f8854bc9553ebf867c4b3c1d80dbb10039a8360cd582d3",
+            "retrieval_sha256": "1fba369c95a84493037ea567915ae81a46493c05268dababc41e0c82a98d11ad"
+          }
+        ],
+        "original_span_reads": [],
+        "manual_review_needed": [
+          {
+            "trace_line": 8,
+            "stdout_sha256": "7d4326ba4299d50e3147d82fa90f46a12bfbf9d347d3d3ad984a4c3b3e13cb4a",
+            "event_sha256": "3271904017cd291d388167ad4818f69f222522c1873bc1cbf3fb4d79d676260c",
+            "reason": "Filesystem command is complex, ambiguous or stdout differs from exact frozen source span"
+          },
+          {
+            "trace_line": 10,
+            "stdout_sha256": "d8a4229683f057acf654d968fd170234377e0c6b3a4d54ac95464ca229ffae92",
+            "event_sha256": "2177e02748101aade2b60856f1e59fcee589e6de14603c3d6239278aa3d27315",
+            "reason": "Filesystem command is complex, ambiguous or stdout differs from exact frozen source span"
+          }
+        ],
+        "application_claims": [],
+        "boundary": "Delivery evidence only; no inference of attention, applicability, applied steps, task quality or effectiveness."
+      },
+      "derived_method_applications": [],
+      "quality_grade": null,
+      "README_evidence": [
+        {
+          "path": "README.md",
+          "sha256": "4ab54efb62b8ae592dca0e979c3bb2800913ae3f5f9aa5dd3a171c81fd16b7b1",
+          "start_line": 17,
+          "end_line": 21,
+          "span_sha256": "54694eb51562b9c0bc55f63ef28f27d9d4eda259a00ee697302358844ea3b3ee",
+          "verified_against_UID_copy_receipt": true
+        },
+        {
+          "path": "README.md",
+          "sha256": "4ab54efb62b8ae592dca0e979c3bb2800913ae3f5f9aa5dd3a171c81fd16b7b1",
+          "start_line": 28,
+          "end_line": 32,
+          "span_sha256": "7ff0d01802208433ceb349ce2b40121bb98c5cbfbce6c512152a90e470f22f65",
+          "verified_against_UID_copy_receipt": true
+        }
+      ],
+      "derived_method_delivery": [
+        {
+          "trace_line": 6,
+          "stdout_sha256": "bfc4cdf6f84cdb3da0de4e209130240083dc96a0f28179c761f2429dbb0ff138",
+          "event_sha256": "df6b622f2af3fbe85dfd3c54b9f913343e81685c7fdc7c562145d858bc40eda1",
+          "id": "method_c308cd0b8ee945fdbb32109d6bccedae",
+          "version": 1,
+          "source_hash": "23d2d90faf19d5aed3d1654667dd2ac25a27ecc931f1e78080aa1e46498e4335",
+          "editorial_public_id": "method_a31588be14038e31ec1e4a30e4f8f24d",
+          "all_core_fields_equal": true,
+          "read_event_sha256": "1907140b9c2da1f1a2f8854bc9553ebf867c4b3c1d80dbb10039a8360cd582d3",
+          "retrieval_sha256": "1fba369c95a84493037ea567915ae81a46493c05268dababc41e0c82a98d11ad",
+          "target_editorial_public_id": "method_a31588be14038e31ec1e4a30e4f8f24d",
+          "payload_sha256": "55eb18bebff104699dfa82ff5358fc70d4744fc250b28604fd28bb552adfdb73",
+          "application_status": "explicitly_not_applied_irrelevant",
+          "rationale": "README rejects PDF method for this non-PDF task; no method-specific step application claimed."
+        }
+      ],
+      "oa_bundle_result": "complete irrelevant PDF method delivered",
+      "original_guidance_applications": [
+        {
+          "claim": "Preserve known/missing denominators and signed descriptive effects",
+          "attribution": "original skill partial/adapted guidance, not derived OA method application",
+          "source": {
+            "package_id": "skill_81e45a6d4f9155319cf65043886bcba4",
+            "name": "statistical-analysis",
+            "commit": "2d2065fb4520fa3f3f2bcf61cff26ec8b7eba4b5",
+            "path": "SKILL.md",
+            "sha256": "e112848726b3713267cac65e4e2c15491a0a26ee1ed628db01195f7e43f97997",
+            "start_line": 54,
+            "end_line": 65,
+            "literal_span_sha256": "2e8b3743a34d2e8a93b0d3bc0968b2a17207119db82ee591954014f17de0f6b2"
+          },
+          "README": {
+            "path": "README.md",
+            "sha256": "4ab54efb62b8ae592dca0e979c3bb2800913ae3f5f9aa5dd3a171c81fd16b7b1",
+            "start_line": 13,
+            "end_line": 15,
+            "span_sha256": "ff9ef1029d1b566f202488439a59db5ebc8c8146502f80469e5e06e6185a5c84",
+            "verified_against_UID_copy_receipt": true
+          },
+          "implementation": {
+            "path": "analysis.py",
+            "sha256": "2bba29d5c8f29e510cb39a2494c06514470c659ee27afae5cc0bb88eb44b36b9",
+            "start_line": 32,
+            "end_line": 46,
+            "span_sha256": "46b7d988a87a721e596658354ee0333824800ba91ff4c0b42b197fa283b3ba57",
+            "verified_against_UID_copy_receipt": true
+          },
+          "evidence_limit": "Self-report plus matching static implementation; no causal or quality-effect attribution."
+        },
+        {
+          "claim": "Describe missingness and noncausal design limits",
+          "attribution": "original skill partial/adapted guidance, not derived OA method application",
+          "source": {
+            "package_id": "skill_81e45a6d4f9155319cf65043886bcba4",
+            "name": "statistical-analysis",
+            "commit": "2d2065fb4520fa3f3f2bcf61cff26ec8b7eba4b5",
+            "path": "SKILL.md",
+            "sha256": "e112848726b3713267cac65e4e2c15491a0a26ee1ed628db01195f7e43f97997",
+            "start_line": 14,
+            "end_line": 16,
+            "literal_span_sha256": "a7f1354cf895074efb5cb41f54c5a6edb4238259e19be122b0b2e01200833db8"
+          },
+          "README": {
+            "path": "README.md",
+            "sha256": "4ab54efb62b8ae592dca0e979c3bb2800913ae3f5f9aa5dd3a171c81fd16b7b1",
+            "start_line": 28,
+            "end_line": 29,
+            "span_sha256": "e8e0f8bd76bf8407280240fc7e711baed964c9ed86eb03ec1fd1fe2e81f47f30",
+            "verified_against_UID_copy_receipt": true
+          },
+          "implementation": {
+            "path": "analysis.py",
+            "sha256": "2bba29d5c8f29e510cb39a2494c06514470c659ee27afae5cc0bb88eb44b36b9",
+            "start_line": 89,
+            "end_line": 95,
+            "span_sha256": "e297208b855451e1e6f30d30485524424248573c4d96cb3a9fa3a26e7fd15dcd",
+            "verified_against_UID_copy_receipt": true
+          },
+          "evidence_limit": "Self-report plus matching static implementation; no causal or quality-effect attribution."
+        }
+      ],
+      "native_self_validation": [
+        {
+          "observed": "verify.py executed in combined command and printed self-validation PASS; no fresh audit execution.",
+          "evidence": {
+            "path": "trace.jsonl",
+            "sha256": "88037d5184d8a71ee8b994263d19128938aa7759c069467e48f3e96b403dcf0e",
+            "line": 17,
+            "event_sha256": "445b2355314e769b8dd23c880f9dac6483525280b120618f3d8d4a234ded652d",
+            "exit_code": 0,
+            "stdout_sha256": "0d1781c74935e032244ab3102515d9e16278f58a93bc1be25cb828993a81d41a"
+          },
+          "scope": "candidate self-validation only; independent grading separate"
+        }
+      ],
+      "observed_failures_and_corrections": [],
+      "visual_inspection_claim": {
+        "status": "self_reported_not_independently_corrobated_in_native_trace",
+        "README": {
+          "path": "README.md",
+          "sha256": "4ab54efb62b8ae592dca0e979c3bb2800913ae3f5f9aa5dd3a171c81fd16b7b1",
+          "start_line": 31,
+          "end_line": 32,
+          "span_sha256": "f464c1ff3dea658c64fefa51715499c5630ae11ab4db2cc5d5e9c0a82dad8aa2",
+          "verified_against_UID_copy_receipt": true
+        },
+        "boundary": "Rendered images exist and render/test commands are captured; no distinct view_image completion events appear in trace. No visual attention claim."
+      },
+      "notes": "README says no retrieved OA method applied. Original statistical workflow adapted for binary descriptive counts, without hypothesis tests or CIs.",
+      "no_candidate_rerun": true,
+      "parent_adjudication": {
+        "review_complete": true,
+        "delivery_findings_accepted": true,
+        "original_guidance_application_findings_accepted": true,
+        "derived_method_application_confirmed": false,
+        "self_validation_findings_accepted": true,
+        "scope": "Original-source adaptation is separate from derived-method use. Automated command evidence only; native visual inspection remains self-reported and neither verified nor disproved."
+      }
+    },
+    {
+      "run_id": "analysis-r1-direct",
+      "arm": "direct",
+      "role": "benchmark control; never an outcome of unread OA methods",
+      "native_evidence": {
+        "trace_sha256": "057ec40e0631953ef07b7841e6e1089a827160e19c1943b2660a6d1bdec02df2",
+        "timing_sha256": "e8572befdecb624c3429a9b83b1bd3aed9b4e9260bf2bda9b9e1584bb34f3b5e",
+        "retrieval_sha256": "c60cd476d91693dc3ddd94cfb687b4cbab68a3f8d69993be6ebef947279f253a"
+      },
+      "original_source_delivery": [
+        {
+          "package_id": "skill_81e45a6d4f9155319cf65043886bcba4",
+          "name": "statistical-analysis",
+          "commit": "2d2065fb4520fa3f3f2bcf61cff26ec8b7eba4b5",
+          "path": "SKILL.md",
+          "sha256": "e112848726b3713267cac65e4e2c15491a0a26ee1ed628db01195f7e43f97997",
+          "start_line": 62,
+          "end_line": 102,
+          "literal_span_sha256": "1350bfada38b130a0b9df851418ab435d2c01d1faadcbff2c34d36bb879f8dc5",
+          "native_trace": {
+            "path": "trace.jsonl",
+            "sha256": "057ec40e0631953ef07b7841e6e1089a827160e19c1943b2660a6d1bdec02df2",
+            "line": 11,
+            "event_sha256": "ebd2d4ac38602ea5bf1f2b58a851b6623dcbf254a123afede6960081dae2b897",
+            "exit_code": 0,
+            "stdout_sha256": "540ff60e8e5c5223bb1cfb04bd0a77bdd7a91baac412e85fab967ce84c7e824c"
+          },
+          "corroboration": "Exact requested line span is native stdout prefix before any subsequent output.",
+          "attention_boundary": "Captured stdout proves literal delivery, not attention or that all bytes survived any model-side tool-output clipping."
+        }
+      ],
+      "automatic_delivery_review": {
+        "schema": "corroborated-source-delivery-v1",
+        "metadata_hits": [
+          {
+            "trace_line": 6,
+            "stdout_sha256": "6f6e40b4cfd64c50a79cdddb73fa8d0fda88798ec9f0ad0705e81a6b55f38268",
+            "event_sha256": "ed67481fe43b5dabc6059e5ccf0d8835dd1a4de468ffc210048786f00ceae910",
+            "family": "skills",
+            "schema": "frozen-direct-skill-search-v1",
+            "read_event_sha256": "a793aa9209587d16b23a9fb3a09ff9d5ecf4d2d076b3722bb701c0fc5302ed5c",
+            "retrieval_sha256": "639f17c5ffaf6d9bfbedc16eac7a4082579ef78f2968d5908147d2f2603ac678"
+          }
+        ],
+        "complete_method_deliveries": [],
+        "original_span_reads": [],
+        "manual_review_needed": [
+          {
+            "trace_line": 11,
+            "stdout_sha256": "540ff60e8e5c5223bb1cfb04bd0a77bdd7a91baac412e85fab967ce84c7e824c",
+            "event_sha256": "ebd2d4ac38602ea5bf1f2b58a851b6623dcbf254a123afede6960081dae2b897",
+            "reason": "Filesystem command is complex, ambiguous or stdout differs from exact frozen source span"
+          }
+        ],
+        "application_claims": [],
+        "boundary": "Delivery evidence only; no inference of attention, applicability, applied steps, task quality or effectiveness."
+      },
+      "derived_method_applications": [],
+      "quality_grade": null,
+      "application_scope": "Control source delivery recorded only. Do not attach control successes/failures as OA method executions.",
+      "parent_adjudication": {
+        "review_complete": true,
+        "delivery_findings_accepted": true,
+        "original_guidance_application_findings_accepted": null,
+        "derived_method_application_confirmed": false,
+        "self_validation_findings_accepted": true,
+        "scope": "Original-source adaptation is separate from derived-method use. Automated command evidence only; native visual inspection remains self-reported and neither verified nor disproved."
+      }
+    },
+    {
+      "run_id": "analysis-r2-direct",
+      "arm": "direct",
+      "role": "benchmark control; never an outcome of unread OA methods",
+      "native_evidence": {
+        "trace_sha256": "e074b25d351d28766c58e07cd320da107f7be10c094bf7c85f5e1941ea342bca",
+        "timing_sha256": "efebf960c5169ee46c5507238192b6d1af0457f7e70a2ece33a59875c3c7f362",
+        "retrieval_sha256": "878d5352c86af740e368b733ed1ba85af15d67d6b8a1c1a524a985480812d501"
+      },
+      "original_source_delivery": [
+        {
+          "package_id": "skill_5ed9591a3be82c9e63c6787f2256b588",
+          "name": "exploratory-data-analysis",
+          "commit": "2d2065fb4520fa3f3f2bcf61cff26ec8b7eba4b5",
+          "path": "SKILL.md",
+          "sha256": "955c4cefa49106dd03b55cbd62603bab2d2fb678e627dd452ba62040c7128484",
+          "start_line": 1,
+          "end_line": 311,
+          "literal_span_sha256": "955c4cefa49106dd03b55cbd62603bab2d2fb678e627dd452ba62040c7128484",
+          "native_trace": {
+            "path": "trace.jsonl",
+            "sha256": "e074b25d351d28766c58e07cd320da107f7be10c094bf7c85f5e1941ea342bca",
+            "line": 8,
+            "event_sha256": "f31d965f1beb1c0877a70725dc663720bec0614f6d22d4e35e7a84c6fcf02027",
+            "exit_code": 0,
+            "stdout_sha256": "55382af4fcc851a825dad24dbc381495cceb9d27b9c726829c090f5fe88ab88d"
+          },
+          "corroboration": "Exact full original is native stdout prefix before any subsequent output.",
+          "attention_boundary": "Captured stdout proves literal delivery, not attention or that all bytes survived any model-side tool-output clipping."
+        },
+        {
+          "package_id": "skill_5ed9591a3be82c9e63c6787f2256b588",
+          "name": "exploratory-data-analysis",
+          "commit": "2d2065fb4520fa3f3f2bcf61cff26ec8b7eba4b5",
+          "path": "SKILL.md",
+          "sha256": "955c4cefa49106dd03b55cbd62603bab2d2fb678e627dd452ba62040c7128484",
+          "start_line": 105,
+          "end_line": 235,
+          "literal_span_sha256": "9ed7529e2e9cfa59e21587a45d3635b246c750b392f72e80c96c1e956f71caed",
+          "native_trace": {
+            "path": "trace.jsonl",
+            "sha256": "e074b25d351d28766c58e07cd320da107f7be10c094bf7c85f5e1941ea342bca",
+            "line": 11,
+            "event_sha256": "67fe2aeeee372406ed26b63416a4c1a1d13418594bd655b79ec3853a65365c89",
+            "exit_code": 0,
+            "stdout_sha256": "c013ce238e0506a402bc9aa40d80d1e0cf0408e7188e05279b95dff51f40a6e7"
+          },
+          "corroboration": "Exact requested line span is native stdout prefix before any subsequent output.",
+          "attention_boundary": "Captured stdout proves literal delivery, not attention or that all bytes survived any model-side tool-output clipping."
+        }
+      ],
+      "automatic_delivery_review": {
+        "schema": "corroborated-source-delivery-v1",
+        "metadata_hits": [
+          {
+            "trace_line": 6,
+            "stdout_sha256": "d56b9438bc2cbd4a2bb0bbc132e22dfbd08b8ab86c30d5722aa5c3e8974fbaf3",
+            "event_sha256": "594443d46a2af7c79dfc716a084b0d034b70f953894a725f1a35fb2bd922e2d4",
+            "family": "skills",
+            "schema": "frozen-direct-skill-search-v1",
+            "read_event_sha256": "eeaf7b5ded0d89fa36b53284e21a29059c1278a6597609990f8130996556a745",
+            "retrieval_sha256": "66466515ab3150dbc9f7bf6edfde5d722dab430a2d01c05f8db48d4928dd80ff"
+          }
+        ],
+        "complete_method_deliveries": [],
+        "original_span_reads": [],
+        "manual_review_needed": [
+          {
+            "trace_line": 8,
+            "stdout_sha256": "55382af4fcc851a825dad24dbc381495cceb9d27b9c726829c090f5fe88ab88d",
+            "event_sha256": "f31d965f1beb1c0877a70725dc663720bec0614f6d22d4e35e7a84c6fcf02027",
+            "reason": "Filesystem command is complex, ambiguous or stdout differs from exact frozen source span"
+          },
+          {
+            "trace_line": 11,
+            "stdout_sha256": "c013ce238e0506a402bc9aa40d80d1e0cf0408e7188e05279b95dff51f40a6e7",
+            "event_sha256": "67fe2aeeee372406ed26b63416a4c1a1d13418594bd655b79ec3853a65365c89",
+            "reason": "Filesystem command is complex, ambiguous or stdout differs from exact frozen source span"
+          }
+        ],
+        "application_claims": [],
+        "boundary": "Delivery evidence only; no inference of attention, applicability, applied steps, task quality or effectiveness."
+      },
+      "derived_method_applications": [],
+      "quality_grade": null,
+      "application_scope": "Control source delivery recorded only. Do not attach control successes/failures as OA method executions.",
+      "parent_adjudication": {
+        "review_complete": true,
+        "delivery_findings_accepted": true,
+        "original_guidance_application_findings_accepted": null,
+        "derived_method_application_confirmed": false,
+        "self_validation_findings_accepted": true,
+        "scope": "Original-source adaptation is separate from derived-method use. Automated command evidence only; native visual inspection remains self-reported and neither verified nor disproved."
+      }
+    },
+    {
+      "run_id": "analysis-r2-oa",
+      "arm": "oa",
+      "role": "OA retrieval condition",
+      "native_evidence": {
+        "trace_sha256": "3dbaae89671e9e836fb307e2dec72ba5ba0ecdddb7f2fef315e3198294e97a61",
+        "timing_sha256": "4bd0a4750fcf765d282ac70e9303f85c41a0ecc2e4aeb3d459cabeef115d7f80",
+        "retrieval_sha256": "c0758e31ed054860508bcda00b1989e430714b21555d8e38aa1365bdce263212"
+      },
+      "original_source_delivery": [
+        {
+          "package_id": "skill_81e45a6d4f9155319cf65043886bcba4",
+          "name": "statistical-analysis",
+          "commit": "2d2065fb4520fa3f3f2bcf61cff26ec8b7eba4b5",
+          "path": "SKILL.md",
+          "sha256": "e112848726b3713267cac65e4e2c15491a0a26ee1ed628db01195f7e43f97997",
+          "start_line": 1,
+          "end_line": 453,
+          "literal_span_sha256": "e112848726b3713267cac65e4e2c15491a0a26ee1ed628db01195f7e43f97997",
+          "native_trace": {
+            "path": "trace.jsonl",
+            "sha256": "3dbaae89671e9e836fb307e2dec72ba5ba0ecdddb7f2fef315e3198294e97a61",
+            "line": 11,
+            "event_sha256": "2487ee9a84d8b38fb38a1ac760f4791be135987e8fc5fafdd8da17b7520beff4",
+            "exit_code": 0,
+            "stdout_sha256": "e112848726b3713267cac65e4e2c15491a0a26ee1ed628db01195f7e43f97997"
+          },
+          "corroboration": "Exact full original is native stdout prefix before any subsequent output.",
+          "attention_boundary": "Captured stdout proves literal delivery, not attention or that all bytes survived any model-side tool-output clipping."
+        },
+        {
+          "package_id": "skill_81e45a6d4f9155319cf65043886bcba4",
+          "name": "statistical-analysis",
+          "commit": "2d2065fb4520fa3f3f2bcf61cff26ec8b7eba4b5",
+          "path": "SKILL.md",
+          "sha256": "e112848726b3713267cac65e4e2c15491a0a26ee1ed628db01195f7e43f97997",
+          "start_line": 48,
+          "end_line": 76,
+          "literal_span_sha256": "7ade1b0c2188dd259280d3a816a19276e4c6ac5325a148eb050682472c093f6c",
+          "native_trace": {
+            "path": "trace.jsonl",
+            "sha256": "3dbaae89671e9e836fb307e2dec72ba5ba0ecdddb7f2fef315e3198294e97a61",
+            "line": 14,
+            "event_sha256": "3d8ee535b31defe3c650cb7b56972c50be965fbf4a4d57d87a2d6a81fef4645d",
+            "exit_code": 0,
+            "stdout_sha256": "9f3e752d6696c507719f631398bcbe9425ae2cef97c9d407f13bc3e4b4624122"
+          },
+          "corroboration": "Exact requested line span is native stdout prefix before any subsequent output.",
+          "attention_boundary": "Captured stdout proves literal delivery, not attention or that all bytes survived any model-side tool-output clipping."
+        }
+      ],
+      "automatic_delivery_review": {
+        "schema": "corroborated-source-delivery-v1",
+        "metadata_hits": [
+          {
+            "trace_line": 5,
+            "stdout_sha256": "22023e336a2d3f2476ef5708be331d882d9f40ad2054531f92ca8bcab0172e98",
+            "event_sha256": "e43e45fb3387971d1e5ed750bc2203c4bc4d67f87294735a371ccaa8f44379b4",
+            "family": "oa",
+            "schema": "method-bundle-v1",
+            "read_event_sha256": "ff0490a009033d2b86ea96dcfa0769622f3bfb356417ba6bda72a6c4185ec1f0",
+            "retrieval_sha256": "a38f740ddafa4b1c599ec175271c1c697fbf2b41a5b093e0ac328395d4594c56"
+          }
+        ],
+        "complete_method_deliveries": [],
+        "original_span_reads": [
+          {
+            "trace_line": 11,
+            "stdout_sha256": "e112848726b3713267cac65e4e2c15491a0a26ee1ed628db01195f7e43f97997",
+            "event_sha256": "2487ee9a84d8b38fb38a1ac760f4791be135987e8fc5fafdd8da17b7520beff4",
+            "package_id": "skill_81e45a6d4f9155319cf65043886bcba4",
+            "name": "statistical-analysis",
+            "commit": "2d2065fb4520fa3f3f2bcf61cff26ec8b7eba4b5",
+            "path": "SKILL.md",
+            "sha256": "e112848726b3713267cac65e4e2c15491a0a26ee1ed628db01195f7e43f97997",
+            "start_line": 1,
+            "end_line": 453,
+            "returned_text_sha256": "e112848726b3713267cac65e4e2c15491a0a26ee1ed628db01195f7e43f97997",
+            "returned_bytes": 23585,
+            "delivery": "native_filesystem_literal",
+            "read_command": "cat"
+          }
+        ],
+        "manual_review_needed": [
+          {
+            "trace_line": 9,
+            "stdout_sha256": "de9d933312e4c172491fbe64cec84f134732e695276174e7525e2d628e503d0b",
+            "event_sha256": "e7274f825c87eedcf3c4ae256aa0efbc53f6289f79ae6796bfaf60e5717d7103",
+            "reason": "Filesystem command is complex, ambiguous or stdout differs from exact frozen source span"
+          },
+          {
+            "trace_line": 14,
+            "stdout_sha256": "9f3e752d6696c507719f631398bcbe9425ae2cef97c9d407f13bc3e4b4624122",
+            "event_sha256": "3d8ee535b31defe3c650cb7b56972c50be965fbf4a4d57d87a2d6a81fef4645d",
+            "reason": "Filesystem command is complex, ambiguous or stdout differs from exact frozen source span"
+          }
+        ],
+        "application_claims": [],
+        "boundary": "Delivery evidence only; no inference of attention, applicability, applied steps, task quality or effectiveness."
+      },
+      "derived_method_applications": [],
+      "quality_grade": null,
+      "README_evidence": [
+        {
+          "path": "README.md",
+          "sha256": "b2256178ebe782e5b1c6f2299e789fc6612b2bcd30d75318701c05ea3723df14",
+          "start_line": 21,
+          "end_line": 28,
+          "span_sha256": "5d3be2a752214b236701145fe009895fd0ca1641be1c2f8126439cf8fd7d7809",
+          "verified_against_UID_copy_receipt": true
+        },
+        {
+          "path": "README.md",
+          "sha256": "b2256178ebe782e5b1c6f2299e789fc6612b2bcd30d75318701c05ea3723df14",
+          "start_line": 35,
+          "end_line": 36,
+          "span_sha256": "3c8df5f15c59365f894c5cf1e4ec362a4bfa205002b4edc79eba8ef600810ec5",
+          "verified_against_UID_copy_receipt": true
+        }
+      ],
+      "derived_method_delivery": [],
+      "oa_bundle_result": "empty bundle; no OA method delivered",
+      "original_guidance_applications": [
+        {
+          "claim": "Inspect counts/missingness and signed descriptive contrasts",
+          "attribution": "original skill partial/adapted guidance, not derived OA method application",
+          "source": {
+            "package_id": "skill_81e45a6d4f9155319cf65043886bcba4",
+            "name": "statistical-analysis",
+            "commit": "2d2065fb4520fa3f3f2bcf61cff26ec8b7eba4b5",
+            "path": "SKILL.md",
+            "sha256": "e112848726b3713267cac65e4e2c15491a0a26ee1ed628db01195f7e43f97997",
+            "start_line": 54,
+            "end_line": 65,
+            "literal_span_sha256": "2e8b3743a34d2e8a93b0d3bc0968b2a17207119db82ee591954014f17de0f6b2"
+          },
+          "README": {
+            "path": "README.md",
+            "sha256": "b2256178ebe782e5b1c6f2299e789fc6612b2bcd30d75318701c05ea3723df14",
+            "start_line": 26,
+            "end_line": 28,
+            "span_sha256": "98c29ad2568f760c10fce104f75f2c2a8e5844e0843eb7228f3442227560df58",
+            "verified_against_UID_copy_receipt": true
+          },
+          "implementation": {
+            "path": "analysis.py",
+            "sha256": "511f88a87bc15790135f97cd5ea2f897597bbd5ac611119034b7e5ac58a23a74",
+            "start_line": 27,
+            "end_line": 44,
+            "span_sha256": "457d18ed1381352d20ae2ce479552ecb2390c25fa0c157c7e56520ac4a940e8b",
+            "verified_against_UID_copy_receipt": true
+          },
+          "evidence_limit": "Self-report plus matching static implementation; no causal or quality-effect attribution."
+        },
+        {
+          "claim": "Separate descriptive comparisons from causal effect",
+          "attribution": "original skill partial/adapted guidance, not derived OA method application",
+          "source": {
+            "package_id": "skill_81e45a6d4f9155319cf65043886bcba4",
+            "name": "statistical-analysis",
+            "commit": "2d2065fb4520fa3f3f2bcf61cff26ec8b7eba4b5",
+            "path": "SKILL.md",
+            "sha256": "e112848726b3713267cac65e4e2c15491a0a26ee1ed628db01195f7e43f97997",
+            "start_line": 14,
+            "end_line": 16,
+            "literal_span_sha256": "a7f1354cf895074efb5cb41f54c5a6edb4238259e19be122b0b2e01200833db8"
+          },
+          "README": {
+            "path": "README.md",
+            "sha256": "b2256178ebe782e5b1c6f2299e789fc6612b2bcd30d75318701c05ea3723df14",
+            "start_line": 35,
+            "end_line": 36,
+            "span_sha256": "3c8df5f15c59365f894c5cf1e4ec362a4bfa205002b4edc79eba8ef600810ec5",
+            "verified_against_UID_copy_receipt": true
+          },
+          "implementation": {
+            "path": "analysis.py",
+            "sha256": "511f88a87bc15790135f97cd5ea2f897597bbd5ac611119034b7e5ac58a23a74",
+            "start_line": 85,
+            "end_line": 103,
+            "span_sha256": "2f78619c1b0622584e27898fdbdd594e91084d02e4f5f1bc88ee0dfbef027fc3",
+            "verified_against_UID_copy_receipt": true
+          },
+          "evidence_limit": "Self-report plus matching static implementation; no causal or quality-effect attribution."
+        }
+      ],
+      "native_self_validation": [
+        {
+          "observed": "analysis.py and verify.py ran in native combined command, printed PASS and generated render.",
+          "evidence": {
+            "path": "trace.jsonl",
+            "sha256": "3dbaae89671e9e836fb307e2dec72ba5ba0ecdddb7f2fef315e3198294e97a61",
+            "line": 18,
+            "event_sha256": "8aeb548e5aaeb1acaf5131303528765c3f64f708db432c64772aa2ee6e977b6a",
+            "exit_code": 0,
+            "stdout_sha256": "16f2a259ba8ff006c343cb6eba7a133a654942eba76810f60620a2b67e869f8d"
+          },
+          "scope": "candidate self-validation only; independent grading separate"
+        }
+      ],
+      "observed_failures_and_corrections": [
+        {
+          "observed": "After describing initial long read as truncated, used targeted48-76 source read; exact span is captured as stdout prefix.",
+          "evidence": {
+            "path": "trace.jsonl",
+            "sha256": "3dbaae89671e9e836fb307e2dec72ba5ba0ecdddb7f2fef315e3198294e97a61",
+            "line": 14,
+            "event_sha256": "3d8ee535b31defe3c650cb7b56972c50be965fbf4a4d57d87a2d6a81fef4645d",
+            "exit_code": 0,
+            "stdout_sha256": "9f3e752d6696c507719f631398bcbe9425ae2cef97c9d407f13bc3e4b4624122"
+          }
+        }
+      ],
+      "visual_inspection_claim": {
+        "status": "self_reported_not_independently_corrobated_in_native_trace",
+        "README": {
+          "path": "README.md",
+          "sha256": "b2256178ebe782e5b1c6f2299e789fc6612b2bcd30d75318701c05ea3723df14",
+          "start_line": 38,
+          "end_line": 49,
+          "span_sha256": "1f365630d298423564b3168033279b4b4c80933f561a324d1951ad0d58ed29c2",
+          "verified_against_UID_copy_receipt": true
+        },
+        "boundary": "Rendered images exist and render/test commands are captured; no distinct view_image completion events appear in trace. No visual attention claim."
+      },
+      "notes": "Empty OA bundle. Full source cat exists in native capture, but candidate acknowledges model-visible truncation; targeted workflow read supports narrower attribution.",
+      "no_candidate_rerun": true,
+      "parent_adjudication": {
+        "review_complete": true,
+        "delivery_findings_accepted": true,
+        "original_guidance_application_findings_accepted": true,
+        "derived_method_application_confirmed": false,
+        "self_validation_findings_accepted": true,
+        "scope": "Original-source adaptation is separate from derived-method use. Automated command evidence only; native visual inspection remains self-reported and neither verified nor disproved."
+      }
+    },
+    {
+      "run_id": "documents-r2-oa",
+      "arm": "oa",
+      "role": "OA retrieval condition",
+      "native_evidence": {
+        "trace_sha256": "23715de6fe08b73f5ee6e89c824dfc6b903a2b0d1971c0f9a894e88d29e03c17",
+        "timing_sha256": "841303aab7bf43220418a1b492480620aa23d8b1879cfb7de69f955a4bfeffb2",
+        "retrieval_sha256": "5d387fd04ecf30d7be2b4cbebf0f8c3a307a49a71b6d6942ca7c4e4b2e3c9115"
+      },
+      "original_source_delivery": [
+        {
+          "package_id": "skill_b645bd7b8fcb43d29d72b7582ece950d",
+          "name": "pdf",
+          "commit": "1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064",
+          "path": "SKILL.md",
+          "sha256": "d1c7caf5f35eb7d37877dd7fc33a095037be2b34fb5d2f7f4d43bde3165bb4ee",
+          "start_line": 1,
+          "end_line": 314,
+          "literal_span_sha256": "d1c7caf5f35eb7d37877dd7fc33a095037be2b34fb5d2f7f4d43bde3165bb4ee",
+          "native_trace": {
+            "path": "trace.jsonl",
+            "sha256": "23715de6fe08b73f5ee6e89c824dfc6b903a2b0d1971c0f9a894e88d29e03c17",
+            "line": 10,
+            "event_sha256": "dd1b5256cfbd49ecdc97183e306551b4dedccd25fc14eacfb526d34521a46961",
+            "exit_code": 0,
+            "stdout_sha256": "d1c7caf5f35eb7d37877dd7fc33a095037be2b34fb5d2f7f4d43bde3165bb4ee"
+          },
+          "corroboration": "Exact full original is native stdout prefix before any subsequent output.",
+          "attention_boundary": "Captured stdout proves literal delivery, not attention or that all bytes survived any model-side tool-output clipping."
+        }
+      ],
+      "automatic_delivery_review": {
+        "schema": "corroborated-source-delivery-v1",
+        "metadata_hits": [
+          {
+            "trace_line": 6,
+            "stdout_sha256": "22023e336a2d3f2476ef5708be331d882d9f40ad2054531f92ca8bcab0172e98",
+            "event_sha256": "01e64e4e492ecc1734c815ec2600693000e53edf43313bb0a2d7877f4e5ad183",
+            "family": "oa",
+            "schema": "method-bundle-v1",
+            "read_event_sha256": "45d6dbcc8b2d7366b1a9171649482ffd6fa88d32d78a12488434ef50aee41393",
+            "retrieval_sha256": "a38f740ddafa4b1c599ec175271c1c697fbf2b41a5b093e0ac328395d4594c56"
+          }
+        ],
+        "complete_method_deliveries": [],
+        "original_span_reads": [
+          {
+            "trace_line": 10,
+            "stdout_sha256": "d1c7caf5f35eb7d37877dd7fc33a095037be2b34fb5d2f7f4d43bde3165bb4ee",
+            "event_sha256": "dd1b5256cfbd49ecdc97183e306551b4dedccd25fc14eacfb526d34521a46961",
+            "package_id": "skill_b645bd7b8fcb43d29d72b7582ece950d",
+            "name": "pdf",
+            "commit": "1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064",
+            "path": "SKILL.md",
+            "sha256": "d1c7caf5f35eb7d37877dd7fc33a095037be2b34fb5d2f7f4d43bde3165bb4ee",
+            "start_line": 1,
+            "end_line": 314,
+            "returned_text_sha256": "d1c7caf5f35eb7d37877dd7fc33a095037be2b34fb5d2f7f4d43bde3165bb4ee",
+            "returned_bytes": 8058,
+            "delivery": "native_filesystem_literal",
+            "read_command": "cat"
+          }
+        ],
+        "manual_review_needed": [
+          {
+            "trace_line": 8,
+            "stdout_sha256": "6de4187c3f02a94287c01ac127bc7006111cbb5b00688b3c0ce46fce66c96367",
+            "event_sha256": "0a031e297ff9a328e027f8ea63d32dc15c9a36bf571e27fefa8ca6a3c387be16",
+            "reason": "Filesystem command is complex, ambiguous or stdout differs from exact frozen source span"
+          }
+        ],
+        "application_claims": [],
+        "boundary": "Delivery evidence only; no inference of attention, applicability, applied steps, task quality or effectiveness."
+      },
+      "derived_method_applications": [],
+      "quality_grade": null,
+      "README_evidence": [
+        {
+          "path": "README.md",
+          "sha256": "919deff0356a4c1fe48226eb6e3b78c50cf878a6ed8067399c4fc2c0e67c5fcd",
+          "start_line": 25,
+          "end_line": 26,
+          "span_sha256": "cde66afffeb551e199b4fcad987afc0f1b5f8d4d9aa85fe5b810dcb15cc31455",
+          "verified_against_UID_copy_receipt": true
+        },
+        {
+          "path": "README.md",
+          "sha256": "919deff0356a4c1fe48226eb6e3b78c50cf878a6ed8067399c4fc2c0e67c5fcd",
+          "start_line": 37,
+          "end_line": 38,
+          "span_sha256": "af2a8cd01a7579e600e38b2651ea7c10e0525a03474d092b52c0166f8a9603f4",
+          "verified_against_UID_copy_receipt": true
+        }
+      ],
+      "derived_method_delivery": [],
+      "oa_bundle_result": "empty bundle; no OA method delivered",
+      "original_guidance_applications": [
+        {
+          "claim": "Use ReportLab Canvas PDF creation",
+          "attribution": "original skill partial/adapted guidance, not derived OA method application",
+          "source": {
+            "package_id": "skill_b645bd7b8fcb43d29d72b7582ece950d",
+            "name": "pdf",
+            "commit": "1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064",
+            "path": "SKILL.md",
+            "sha256": "d1c7caf5f35eb7d37877dd7fc33a095037be2b34fb5d2f7f4d43bde3165bb4ee",
+            "start_line": 121,
+            "end_line": 139,
+            "literal_span_sha256": "447deac29fe2e938ee8a19a0cbe929303475e599506919573bcc07270afb1b02"
+          },
+          "README": {
+            "path": "README.md",
+            "sha256": "919deff0356a4c1fe48226eb6e3b78c50cf878a6ed8067399c4fc2c0e67c5fcd",
+            "start_line": 25,
+            "end_line": 26,
+            "span_sha256": "cde66afffeb551e199b4fcad987afc0f1b5f8d4d9aa85fe5b810dcb15cc31455",
+            "verified_against_UID_copy_receipt": true
+          },
+          "implementation": {
+            "path": "generate_handover.py",
+            "sha256": "e38e7f34daf1df00e93dae11f312bb422cbe43848d7246d2f8bd5aa1b762cb4e",
+            "start_line": 1,
+            "end_line": 27,
+            "span_sha256": "47df915da617548eda1da11e2488100ec5cb5963976962e99ad4617dc9caabe0",
+            "verified_against_UID_copy_receipt": true
+          },
+          "evidence_limit": "Self-report plus matching static implementation; no causal or quality-effect attribution."
+        },
+        {
+          "claim": "Inspect pages and text using pypdf/Poppler",
+          "attribution": "original skill partial/adapted guidance, not derived OA method application",
+          "source": {
+            "package_id": "skill_b645bd7b8fcb43d29d72b7582ece950d",
+            "name": "pdf",
+            "commit": "1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064",
+            "path": "SKILL.md",
+            "sha256": "d1c7caf5f35eb7d37877dd7fc33a095037be2b34fb5d2f7f4d43bde3165bb4ee",
+            "start_line": 13,
+            "end_line": 26,
+            "literal_span_sha256": "7b3be76461bdbc05af7049e98c071c1f16da2126143899778c012f682444c46a"
+          },
+          "README": {
+            "path": "README.md",
+            "sha256": "919deff0356a4c1fe48226eb6e3b78c50cf878a6ed8067399c4fc2c0e67c5fcd",
+            "start_line": 37,
+            "end_line": 38,
+            "span_sha256": "af2a8cd01a7579e600e38b2651ea7c10e0525a03474d092b52c0166f8a9603f4",
+            "verified_against_UID_copy_receipt": true
+          },
+          "implementation": {
+            "path": "check_handover.py",
+            "sha256": "c36ae9f12b9b75d32e58ab02397eccdc167fb155aa5633d5ec9a4523dcdc2d15",
+            "start_line": 1,
+            "end_line": 28,
+            "span_sha256": "c36ae9f12b9b75d32e58ab02397eccdc167fb155aa5633d5ec9a4523dcdc2d15",
+            "verified_against_UID_copy_receipt": true
+          },
+          "evidence_limit": "Self-report plus matching static implementation; no causal or quality-effect attribution."
+        }
+      ],
+      "native_self_validation": [
+        {
+          "observed": "Generator/render command exited0.",
+          "evidence": {
+            "path": "trace.jsonl",
+            "sha256": "23715de6fe08b73f5ee6e89c824dfc6b903a2b0d1971c0f9a894e88d29e03c17",
+            "line": 14,
+            "event_sha256": "14414846176626aa1af6ea4990b421166aa989bfe5313b23937793db6af3094c",
+            "exit_code": 0,
+            "stdout_sha256": "b15b63adbf0568fbc507101b57471e1c41cbbbdfcd22991d9e241ba102c45535"
+          },
+          "scope": "candidate self-validation only; independent grading separate"
+        },
+        {
+          "observed": "Rewritten self-check exited0 and printed page/bounds/normalized-text checks.",
+          "evidence": {
+            "path": "trace.jsonl",
+            "sha256": "23715de6fe08b73f5ee6e89c824dfc6b903a2b0d1971c0f9a894e88d29e03c17",
+            "line": 21,
+            "event_sha256": "d9c5093184eb2d7dfab9a3e40039de01e0995cfe4759c7554d4ba7dffba57727",
+            "exit_code": 0,
+            "stdout_sha256": "2b03f896941076b4cf0eb2207d09df30ff2e8b2c969e1e815d15d128c51b90b5"
+          },
+          "scope": "candidate self-validation only; independent grading separate"
+        }
+      ],
+      "observed_failures_and_corrections": [
+        {
+          "observed": "Initial self-check failed literal phrase matching after page/bounds checks.",
+          "evidence": {
+            "path": "trace.jsonl",
+            "sha256": "23715de6fe08b73f5ee6e89c824dfc6b903a2b0d1971c0f9a894e88d29e03c17",
+            "line": 17,
+            "event_sha256": "e0fd00225821cc6903a3c4ef0b68708576653c5c76e46f1477431e1e699c81cf",
+            "exit_code": 1,
+            "stdout_sha256": "3e4acaf949bb870e2a45fe249164af848a7f68a2f4172680f1efa15343298725"
+          }
+        },
+        {
+          "observed": "Normalized extracted whitespace and reran successfully; test correction, not document content correction.",
+          "evidence": {
+            "path": "trace.jsonl",
+            "sha256": "23715de6fe08b73f5ee6e89c824dfc6b903a2b0d1971c0f9a894e88d29e03c17",
+            "line": 21,
+            "event_sha256": "d9c5093184eb2d7dfab9a3e40039de01e0995cfe4759c7554d4ba7dffba57727",
+            "exit_code": 0,
+            "stdout_sha256": "2b03f896941076b4cf0eb2207d09df30ff2e8b2c969e1e815d15d128c51b90b5"
+          }
+        }
+      ],
+      "visual_inspection_claim": {
+        "status": "self_reported_not_independently_corrobated_in_native_trace",
+        "README": {
+          "path": "README.md",
+          "sha256": "919deff0356a4c1fe48226eb6e3b78c50cf878a6ed8067399c4fc2c0e67c5fcd",
+          "start_line": 37,
+          "end_line": 38,
+          "span_sha256": "af2a8cd01a7579e600e38b2651ea7c10e0525a03474d092b52c0166f8a9603f4",
+          "verified_against_UID_copy_receipt": true
+        },
+        "boundary": "Rendered images exist and render/test commands are captured; no distinct view_image completion events appear in trace. No visual attention claim."
+      },
+      "notes": "Empty OA bundle. Original PDF source used; do not attribute this execution to an unread derived ReportLab method.",
+      "no_candidate_rerun": true,
+      "parent_adjudication": {
+        "review_complete": true,
+        "delivery_findings_accepted": true,
+        "original_guidance_application_findings_accepted": true,
+        "derived_method_application_confirmed": false,
+        "self_validation_findings_accepted": true,
+        "scope": "Original-source adaptation is separate from derived-method use. Automated command evidence only; native visual inspection remains self-reported and neither verified nor disproved."
+      }
+    },
+    {
+      "run_id": "documents-r2-direct",
+      "arm": "direct",
+      "role": "benchmark control; never an outcome of unread OA methods",
+      "native_evidence": {
+        "trace_sha256": "22451bddd1d92575867169a365fa3865122032535ebbf5c8f579ac30c8d69424",
+        "timing_sha256": "75181a0f9c10c7382a5b1eb89669a7d1860658559940ffdedf835ae6f4ff8181",
+        "retrieval_sha256": "2e4ad5bd53ec1ae17bccf9152afcae02c7beca7f7d86c0168e801434cb4017e2"
+      },
+      "original_source_delivery": [
+        {
+          "package_id": "skill_b645bd7b8fcb43d29d72b7582ece950d",
+          "name": "pdf",
+          "commit": "1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064",
+          "path": "SKILL.md",
+          "sha256": "d1c7caf5f35eb7d37877dd7fc33a095037be2b34fb5d2f7f4d43bde3165bb4ee",
+          "start_line": 1,
+          "end_line": 314,
+          "literal_span_sha256": "d1c7caf5f35eb7d37877dd7fc33a095037be2b34fb5d2f7f4d43bde3165bb4ee",
+          "native_trace": {
+            "path": "trace.jsonl",
+            "sha256": "22451bddd1d92575867169a365fa3865122032535ebbf5c8f579ac30c8d69424",
+            "line": 8,
+            "event_sha256": "13b1ba8940a686a5213bf4eb9e4094022157c7aa04c5d0d2e5e7651e690cd214",
+            "exit_code": 0,
+            "stdout_sha256": "794970e6dd73dfef13fd9f240ab18065dc4f75a330ad3b889c9f16ae6b383c18"
+          },
+          "corroboration": "Exact full original is native stdout prefix before any subsequent output.",
+          "attention_boundary": "Captured stdout proves literal delivery, not attention or that all bytes survived any model-side tool-output clipping."
+        }
+      ],
+      "automatic_delivery_review": {
+        "schema": "corroborated-source-delivery-v1",
+        "metadata_hits": [
+          {
+            "trace_line": 6,
+            "stdout_sha256": "b8533abf01b57910ba2bb65e588cc1bfaa9d768e26141f2d4f396cbe1988304e",
+            "event_sha256": "449dbdb2056a020aadbcc3fb3c2c3b7fc2995a8c145044eb72424262340ca4b0",
+            "family": "skills",
+            "schema": "frozen-direct-skill-search-v1",
+            "read_event_sha256": "88e157cb7d4a002bedd58bcbb3d81744b4f46c3db3bbc91b4e7172b669f09c66",
+            "retrieval_sha256": "1adb35bf42fe9106a39c700b818047032e0f87dfe77e4551958d98369c22e61f"
+          }
+        ],
+        "complete_method_deliveries": [],
+        "original_span_reads": [],
+        "manual_review_needed": [
+          {
+            "trace_line": 8,
+            "stdout_sha256": "794970e6dd73dfef13fd9f240ab18065dc4f75a330ad3b889c9f16ae6b383c18",
+            "event_sha256": "13b1ba8940a686a5213bf4eb9e4094022157c7aa04c5d0d2e5e7651e690cd214",
+            "reason": "Filesystem command is complex, ambiguous or stdout differs from exact frozen source span"
+          },
+          {
+            "trace_line": 12,
+            "stdout_sha256": "8703fe07c01b8d2a73213b26441edb4ede3d40c9daf940b99b7200c1369ff33c",
+            "event_sha256": "4d7e29e21dbe684522908f0669dadae95e6405a618da6d41af0645dc6bf2d964",
+            "reason": "Filesystem command is complex, ambiguous or stdout differs from exact frozen source span"
+          }
+        ],
+        "application_claims": [],
+        "boundary": "Delivery evidence only; no inference of attention, applicability, applied steps, task quality or effectiveness."
+      },
+      "derived_method_applications": [],
+      "quality_grade": null,
+      "application_scope": "Control source delivery recorded only. Do not attach control successes/failures as OA method executions.",
+      "parent_adjudication": {
+        "review_complete": true,
+        "delivery_findings_accepted": true,
+        "original_guidance_application_findings_accepted": null,
+        "derived_method_application_confirmed": false,
+        "self_validation_findings_accepted": true,
+        "scope": "Original-source adaptation is separate from derived-method use. Automated command evidence only; native visual inspection remains self-reported and neither verified nor disproved."
+      }
+    },
+    {
+      "run_id": "design-r1-direct",
+      "arm": "direct",
+      "role": "benchmark control; never an outcome of unread OA methods",
+      "native_evidence": {
+        "trace_sha256": "8f76f5c3789921a93777ae3f6afdcfc00e4d516a810be9f6f682b517c5538735",
+        "timing_sha256": "43e95c723805075610659f41544d228a6fa243b8770ea941846c213569911e70",
+        "retrieval_sha256": "97ecc65ac7313ecd80b0df44080b44079ae3ec441d34ab0f27a7df0921f104cf"
+      },
+      "original_source_delivery": [
+        {
+          "package_id": "skill_07c728f6e8cc12349e73623954a260c7",
+          "name": "frontend-design",
+          "commit": "1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064",
+          "path": "SKILL.md",
+          "sha256": "d91970639e9f5c37682ac7ab60094d35f1c7c1f38d731bd56396563aee10c1d3",
+          "start_line": 1,
+          "end_line": 71,
+          "literal_span_sha256": "d91970639e9f5c37682ac7ab60094d35f1c7c1f38d731bd56396563aee10c1d3",
+          "native_trace": {
+            "path": "trace.jsonl",
+            "sha256": "8f76f5c3789921a93777ae3f6afdcfc00e4d516a810be9f6f682b517c5538735",
+            "line": 8,
+            "event_sha256": "36666404df1f2564374a441330ae692f42aa68132cad6108ff3576af710583b9",
+            "exit_code": 0,
+            "stdout_sha256": "0864902962164988ed8b0330c2f821ab5ee24e7b7a5bdb90a92c6449d13884a6"
+          },
+          "corroboration": "Exact full original is native stdout prefix before any subsequent output.",
+          "attention_boundary": "Captured stdout proves literal delivery, not attention or that all bytes survived any model-side tool-output clipping."
+        }
+      ],
+      "automatic_delivery_review": {
+        "schema": "corroborated-source-delivery-v1",
+        "metadata_hits": [
+          {
+            "trace_line": 6,
+            "stdout_sha256": "c669717fbc7586e4b727e7f445a2fff9890b19ca6e932e571cc509af8ff91ff7",
+            "event_sha256": "9e21f5bb1ac1b0e6092d0e3d07421193374205c6fb617c55f0cc43c98bf5138e",
+            "family": "skills",
+            "schema": "frozen-direct-skill-search-v1",
+            "read_event_sha256": "6e5655af3395d397348f5e41fe8305a23ebec447928097ad1da622beebcf204f",
+            "retrieval_sha256": "209877f47d8ee95b381389155a03da10c304cf1619dedcdfaec323af933aa4c7"
+          }
+        ],
+        "complete_method_deliveries": [],
+        "original_span_reads": [],
+        "manual_review_needed": [
+          {
+            "trace_line": 8,
+            "stdout_sha256": "0864902962164988ed8b0330c2f821ab5ee24e7b7a5bdb90a92c6449d13884a6",
+            "event_sha256": "36666404df1f2564374a441330ae692f42aa68132cad6108ff3576af710583b9",
+            "reason": "Filesystem command is complex, ambiguous or stdout differs from exact frozen source span"
+          }
+        ],
+        "application_claims": [],
+        "boundary": "Delivery evidence only; no inference of attention, applicability, applied steps, task quality or effectiveness."
+      },
+      "derived_method_applications": [],
+      "quality_grade": null,
+      "application_scope": "Control source delivery recorded only. Do not attach control successes/failures as OA method executions.",
+      "parent_adjudication": {
+        "review_complete": true,
+        "delivery_findings_accepted": true,
+        "original_guidance_application_findings_accepted": null,
+        "derived_method_application_confirmed": false,
+        "self_validation_findings_accepted": true,
+        "scope": "Original-source adaptation is separate from derived-method use. Automated command evidence only; native visual inspection remains self-reported and neither verified nor disproved."
+      }
+    },
+    {
+      "run_id": "design-r1-oa",
+      "arm": "oa",
+      "role": "OA retrieval condition",
+      "native_evidence": {
+        "trace_sha256": "12d3b5c84d2e5e94f5f9c03461363c214082cd56744812e93e3cae012f436b88",
+        "timing_sha256": "b389dea88e68980bb83fc59d902eeb3d8003f86e907aaaa099753de706245923",
+        "retrieval_sha256": "accd758fc06ec05bd9412a7c15aaae3ed3343415575b17898f883da6c151564f"
+      },
+      "original_source_delivery": [
+        {
+          "package_id": "skill_07c728f6e8cc12349e73623954a260c7",
+          "name": "frontend-design",
+          "commit": "1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064",
+          "path": "SKILL.md",
+          "sha256": "d91970639e9f5c37682ac7ab60094d35f1c7c1f38d731bd56396563aee10c1d3",
+          "start_line": 1,
+          "end_line": 71,
+          "literal_span_sha256": "d91970639e9f5c37682ac7ab60094d35f1c7c1f38d731bd56396563aee10c1d3",
+          "native_trace": {
+            "path": "trace.jsonl",
+            "sha256": "12d3b5c84d2e5e94f5f9c03461363c214082cd56744812e93e3cae012f436b88",
+            "line": 10,
+            "event_sha256": "facbb2e8e364c0410481859c4e778aa0056ddb36bfa00ffccf255ce28a191314",
+            "exit_code": 0,
+            "stdout_sha256": "7539a174d22d8a30942faee61c575359433c0860b9f5e6af49f8330dd7ca0eab"
+          },
+          "corroboration": "Exact full original is native stdout prefix before any subsequent output.",
+          "attention_boundary": "Captured stdout proves literal delivery, not attention or that all bytes survived any model-side tool-output clipping."
+        }
+      ],
+      "automatic_delivery_review": {
+        "schema": "corroborated-source-delivery-v1",
+        "metadata_hits": [
+          {
+            "trace_line": 6,
+            "stdout_sha256": "22023e336a2d3f2476ef5708be331d882d9f40ad2054531f92ca8bcab0172e98",
+            "event_sha256": "d4d9b9b2fab0d31bda76b633e6d3e2de957d6eb5648f2a10c291941476448750",
+            "family": "oa",
+            "schema": "method-bundle-v1",
+            "read_event_sha256": "d96b1b9ddc7f99f8332d8c851c87d06f6994770fcd1b2b55e914397710534a38",
+            "retrieval_sha256": "a38f740ddafa4b1c599ec175271c1c697fbf2b41a5b093e0ac328395d4594c56"
+          }
+        ],
+        "complete_method_deliveries": [],
+        "original_span_reads": [],
+        "manual_review_needed": [
+          {
+            "trace_line": 8,
+            "stdout_sha256": "bfc1c82b87df492f28af57583bcc99a5bcb2c1e478bb8c9ee69219fcee5e1f82",
+            "event_sha256": "73f3bec4e9e8812c60b605778122fe9acd38f12d0f85f7501e78343051733d51",
+            "reason": "Filesystem command is complex, ambiguous or stdout differs from exact frozen source span"
+          },
+          {
+            "trace_line": 10,
+            "stdout_sha256": "7539a174d22d8a30942faee61c575359433c0860b9f5e6af49f8330dd7ca0eab",
+            "event_sha256": "facbb2e8e364c0410481859c4e778aa0056ddb36bfa00ffccf255ce28a191314",
+            "reason": "Filesystem command is complex, ambiguous or stdout differs from exact frozen source span"
+          }
+        ],
+        "application_claims": [],
+        "boundary": "Delivery evidence only; no inference of attention, applicability, applied steps, task quality or effectiveness."
+      },
+      "derived_method_applications": [],
+      "quality_grade": null,
+      "README_evidence": [
+        {
+          "path": "README.md",
+          "sha256": "8d3785b9998d8bd60db04250f33bb95bffc18483bd17124deb4a8e2d8be518bc",
+          "start_line": 5,
+          "end_line": 12,
+          "span_sha256": "5773cd760d90f16830fc09a5129887549b249bdfb1bbc733b4c140674a804dc5",
+          "verified_against_UID_copy_receipt": true
+        },
+        {
+          "path": "README.md",
+          "sha256": "8d3785b9998d8bd60db04250f33bb95bffc18483bd17124deb4a8e2d8be518bc",
+          "start_line": 23,
+          "end_line": 28,
+          "span_sha256": "3589808d90d24e49ae91030e62633f05a33c317c1b41a5d8adad11664ce6a9d6",
+          "verified_against_UID_copy_receipt": true
+        }
+      ],
+      "derived_method_delivery": [],
+      "oa_bundle_result": "empty bundle; no OA method delivered",
+      "original_guidance_applications": [
+        {
+          "claim": "Compact palette/type/layout plan",
+          "attribution": "original skill partial/adapted guidance, not derived OA method application",
+          "source": {
+            "package_id": "skill_07c728f6e8cc12349e73623954a260c7",
+            "name": "frontend-design",
+            "commit": "1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064",
+            "path": "SKILL.md",
+            "sha256": "d91970639e9f5c37682ac7ab60094d35f1c7c1f38d731bd56396563aee10c1d3",
+            "start_line": 47,
+            "end_line": 53,
+            "literal_span_sha256": "78db48da5e6ef1946a819fa7fe247f6a87071fddc9a23a9f4be86c70f5583a77"
+          },
+          "README": {
+            "path": "README.md",
+            "sha256": "8d3785b9998d8bd60db04250f33bb95bffc18483bd17124deb4a8e2d8be518bc",
+            "start_line": 9,
+            "end_line": 12,
+            "span_sha256": "eb123e01b5b4313e94fd746bba578924d71db83af941b8ff757be6bd84efab9f",
+            "verified_against_UID_copy_receipt": true
+          },
+          "implementation": {
+            "path": "index.html",
+            "sha256": "8e25a7f53707a7bcb227bbbe10f9ba8cba506fce49000e473b98e9fc3799ac83",
+            "start_line": 8,
+            "end_line": 34,
+            "span_sha256": "a97e5fbacc31c5b12648ee3f577b872c6ab36c195c8c499c8a81a68b810bdd68",
+            "verified_against_UID_copy_receipt": true
+          },
+          "evidence_limit": "Self-report plus matching static implementation; no causal or quality-effect attribution."
+        },
+        {
+          "claim": "Focus, responsive layout and actionable empty state",
+          "attribution": "original skill partial/adapted guidance, not derived OA method application",
+          "source": {
+            "package_id": "skill_07c728f6e8cc12349e73623954a260c7",
+            "name": "frontend-design",
+            "commit": "1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064",
+            "path": "SKILL.md",
+            "sha256": "d91970639e9f5c37682ac7ab60094d35f1c7c1f38d731bd56396563aee10c1d3",
+            "start_line": 57,
+            "end_line": 69,
+            "literal_span_sha256": "5d5e37c0b80c7876c9a8f3b7dab474dea7054b825a05abff0eea2fa856c1b755"
+          },
+          "README": {
+            "path": "README.md",
+            "sha256": "8d3785b9998d8bd60db04250f33bb95bffc18483bd17124deb4a8e2d8be518bc",
+            "start_line": 9,
+            "end_line": 12,
+            "span_sha256": "eb123e01b5b4313e94fd746bba578924d71db83af941b8ff757be6bd84efab9f",
+            "verified_against_UID_copy_receipt": true
+          },
+          "implementation": {
+            "path": "index.html",
+            "sha256": "8e25a7f53707a7bcb227bbbe10f9ba8cba506fce49000e473b98e9fc3799ac83",
+            "start_line": 95,
+            "end_line": 109,
+            "span_sha256": "c2f3e2197e5a3cb3938f75181adc348b4c015c74ee28cc2b71f3d2ac4eac9f8b",
+            "verified_against_UID_copy_receipt": true
+          },
+          "evidence_limit": "Self-report plus matching static implementation; no causal or quality-effect attribution."
+        }
+      ],
+      "native_self_validation": [
+        {
+          "observed": "qa.cjs native command exited0 and printed24-combination/source/keyboard/390px self-check results.",
+          "evidence": {
+            "path": "trace.jsonl",
+            "sha256": "12d3b5c84d2e5e94f5f9c03461363c214082cd56744812e93e3cae012f436b88",
+            "line": 18,
+            "event_sha256": "484f153ab088904f15a396fe78a5a7e172102428b401794a00d3be303db4f9c3",
+            "exit_code": 0,
+            "stdout_sha256": "beb76ee37c1cb3544be59ff2aebb61d634c4ba935694a202aaea8beeacf57f53"
+          },
+          "scope": "candidate self-validation only; independent grading separate"
+        }
+      ],
+      "observed_failures_and_corrections": [],
+      "visual_inspection_claim": {
+        "status": "self_reported_not_independently_corrobated_in_native_trace",
+        "README": {
+          "path": "README.md",
+          "sha256": "8d3785b9998d8bd60db04250f33bb95bffc18483bd17124deb4a8e2d8be518bc",
+          "start_line": 26,
+          "end_line": 27,
+          "span_sha256": "787812f332c2d9c58dfeddde97f0474e15ab92fd163f1e1146177df17e89ba8a",
+          "verified_against_UID_copy_receipt": true
+        },
+        "boundary": "Rendered images exist and render/test commands are captured; no distinct view_image completion events appear in trace. No visual attention claim."
+      },
+      "notes": "Empty OA bundle. Original frontend-design guidance used; no derived method returned or applied.",
+      "no_candidate_rerun": true,
+      "parent_adjudication": {
+        "review_complete": true,
+        "delivery_findings_accepted": true,
+        "original_guidance_application_findings_accepted": true,
+        "derived_method_application_confirmed": false,
+        "self_validation_findings_accepted": true,
+        "scope": "Original-source adaptation is separate from derived-method use. Automated command evidence only; native visual inspection remains self-reported and neither verified nor disproved."
+      }
+    },
+    {
+      "run_id": "documents-r1-oa",
+      "arm": "oa",
+      "role": "OA retrieval condition",
+      "native_evidence": {
+        "trace_sha256": "cf2692f954e2088665d4a9d0faed6c2982914c6fdce3b6a6efb6d26caf41a79e",
+        "timing_sha256": "1a1d58969e72f666a71076500101a44cc2e9b30c665e124e0516e1ccb4971b23",
+        "retrieval_sha256": "d022e4b15be9d8fe82099e07b6ec41d4786a9cf6e0123dcb07ee12716ef68fd1"
+      },
+      "original_source_delivery": [
+        {
+          "package_id": "skill_b645bd7b8fcb43d29d72b7582ece950d",
+          "name": "pdf",
+          "commit": "1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064",
+          "path": "SKILL.md",
+          "sha256": "d1c7caf5f35eb7d37877dd7fc33a095037be2b34fb5d2f7f4d43bde3165bb4ee",
+          "start_line": 1,
+          "end_line": 314,
+          "literal_span_sha256": "d1c7caf5f35eb7d37877dd7fc33a095037be2b34fb5d2f7f4d43bde3165bb4ee",
+          "native_trace": {
+            "path": "trace.jsonl",
+            "sha256": "cf2692f954e2088665d4a9d0faed6c2982914c6fdce3b6a6efb6d26caf41a79e",
+            "line": 10,
+            "event_sha256": "dd1b5256cfbd49ecdc97183e306551b4dedccd25fc14eacfb526d34521a46961",
+            "exit_code": 0,
+            "stdout_sha256": "d1c7caf5f35eb7d37877dd7fc33a095037be2b34fb5d2f7f4d43bde3165bb4ee"
+          },
+          "corroboration": "Exact full original is native stdout prefix before any subsequent output.",
+          "attention_boundary": "Captured stdout proves literal delivery, not attention or that all bytes survived any model-side tool-output clipping."
+        }
+      ],
+      "automatic_delivery_review": {
+        "schema": "corroborated-source-delivery-v1",
+        "metadata_hits": [
+          {
+            "trace_line": 6,
+            "stdout_sha256": "22023e336a2d3f2476ef5708be331d882d9f40ad2054531f92ca8bcab0172e98",
+            "event_sha256": "fc6a401648b95dcaa4b4767a36321ffa9b6a83309ea0fbd5259aa394b40e848d",
+            "family": "oa",
+            "schema": "method-bundle-v1",
+            "read_event_sha256": "b71af7018b6a9bae1c0bcdf3d7672d828427f647424678fa6fefbdeaaee6f0ec",
+            "retrieval_sha256": "a38f740ddafa4b1c599ec175271c1c697fbf2b41a5b093e0ac328395d4594c56"
+          }
+        ],
+        "complete_method_deliveries": [],
+        "original_span_reads": [
+          {
+            "trace_line": 10,
+            "stdout_sha256": "d1c7caf5f35eb7d37877dd7fc33a095037be2b34fb5d2f7f4d43bde3165bb4ee",
+            "event_sha256": "dd1b5256cfbd49ecdc97183e306551b4dedccd25fc14eacfb526d34521a46961",
+            "package_id": "skill_b645bd7b8fcb43d29d72b7582ece950d",
+            "name": "pdf",
+            "commit": "1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064",
+            "path": "SKILL.md",
+            "sha256": "d1c7caf5f35eb7d37877dd7fc33a095037be2b34fb5d2f7f4d43bde3165bb4ee",
+            "start_line": 1,
+            "end_line": 314,
+            "returned_text_sha256": "d1c7caf5f35eb7d37877dd7fc33a095037be2b34fb5d2f7f4d43bde3165bb4ee",
+            "returned_bytes": 8058,
+            "delivery": "native_filesystem_literal",
+            "read_command": "cat"
+          }
+        ],
+        "manual_review_needed": [
+          {
+            "trace_line": 8,
+            "stdout_sha256": "eb0dd84d1cd69208d9f5bfa06aaf5971530fbd18d9426ad43c8f7071a1a00c71",
+            "event_sha256": "b2a14d055c0d821fc20b5d45f99e263169be4e42d7c29ce1f713a39bd53d9102",
+            "reason": "Filesystem command is complex, ambiguous or stdout differs from exact frozen source span"
+          }
+        ],
+        "application_claims": [],
+        "boundary": "Delivery evidence only; no inference of attention, applicability, applied steps, task quality or effectiveness."
+      },
+      "derived_method_applications": [],
+      "quality_grade": null,
+      "README_evidence": [
+        {
+          "path": "README.md",
+          "sha256": "b0066858621a142d452d0f3d36ea92b40d5364cc23cf0a946107a562cbb53bc3",
+          "start_line": 6,
+          "end_line": 10,
+          "span_sha256": "88b74cdb011088b2dbdc7e1ee7910d529f423ab2e39327d0231fc9ba09ad9ea2",
+          "verified_against_UID_copy_receipt": true
+        },
+        {
+          "path": "README.md",
+          "sha256": "b0066858621a142d452d0f3d36ea92b40d5364cc23cf0a946107a562cbb53bc3",
+          "start_line": 23,
+          "end_line": 36,
+          "span_sha256": "59b67808d4af82fafd3a6d325417be3b95e673516e890cc4aa4902e81ae64937",
+          "verified_against_UID_copy_receipt": true
+        }
+      ],
+      "derived_method_delivery": [],
+      "oa_bundle_result": "empty bundle; no OA method delivered",
+      "original_guidance_applications": [
+        {
+          "claim": "Use ReportLab Canvas to create PDF content",
+          "attribution": "original skill partial/adapted guidance, not derived OA method application",
+          "source": {
+            "package_id": "skill_b645bd7b8fcb43d29d72b7582ece950d",
+            "name": "pdf",
+            "commit": "1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064",
+            "path": "SKILL.md",
+            "sha256": "d1c7caf5f35eb7d37877dd7fc33a095037be2b34fb5d2f7f4d43bde3165bb4ee",
+            "start_line": 121,
+            "end_line": 139,
+            "literal_span_sha256": "447deac29fe2e938ee8a19a0cbe929303475e599506919573bcc07270afb1b02"
+          },
+          "README": {
+            "path": "README.md",
+            "sha256": "b0066858621a142d452d0f3d36ea92b40d5364cc23cf0a946107a562cbb53bc3",
+            "start_line": 8,
+            "end_line": 9,
+            "span_sha256": "2740b1fe5058f2c0f857cc30233231bffe86843ca0d2c880b49e7f9f8a8a81a5",
+            "verified_against_UID_copy_receipt": true
+          },
+          "implementation": {
+            "path": "generate_handover.py",
+            "sha256": "6ab4384c39e5f837657e26305a78d824b491f5f6f4dd0795541c22cf859b8c8f",
+            "start_line": 20,
+            "end_line": 31,
+            "span_sha256": "a9b100ee41af50863aabf37e1d5f8ff3bdd87486123dfdb085d34034ba2a28be",
+            "verified_against_UID_copy_receipt": true
+          },
+          "evidence_limit": "Self-report plus matching static implementation; no causal or quality-effect attribution."
+        },
+        {
+          "claim": "Use pypdf/Poppler page/text checks",
+          "attribution": "original skill partial/adapted guidance, not derived OA method application",
+          "source": {
+            "package_id": "skill_b645bd7b8fcb43d29d72b7582ece950d",
+            "name": "pdf",
+            "commit": "1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064",
+            "path": "SKILL.md",
+            "sha256": "d1c7caf5f35eb7d37877dd7fc33a095037be2b34fb5d2f7f4d43bde3165bb4ee",
+            "start_line": 13,
+            "end_line": 26,
+            "literal_span_sha256": "7b3be76461bdbc05af7049e98c071c1f16da2126143899778c012f682444c46a"
+          },
+          "README": {
+            "path": "README.md",
+            "sha256": "b0066858621a142d452d0f3d36ea92b40d5364cc23cf0a946107a562cbb53bc3",
+            "start_line": 32,
+            "end_line": 36,
+            "span_sha256": "d25dfe010e86f38dbfc7bd7045d0b69284f492244e3c1e9d778b893ceafbf29f",
+            "verified_against_UID_copy_receipt": true
+          },
+          "implementation": {
+            "path": "check_pdf.py",
+            "sha256": "554825d9bed6f089e624e0ff4e910590607f0b11b9fb602d7c257a72447fcf3f",
+            "start_line": 1,
+            "end_line": 35,
+            "span_sha256": "554825d9bed6f089e624e0ff4e910590607f0b11b9fb602d7c257a72447fcf3f",
+            "verified_against_UID_copy_receipt": true
+          },
+          "evidence_limit": "Self-report plus matching static implementation; no causal or quality-effect attribution."
+        }
+      ],
+      "native_self_validation": [
+        {
+          "observed": "Font path correction allowed generation; combined command still failed on absent pdfplumber.",
+          "evidence": {
+            "path": "trace.jsonl",
+            "sha256": "cf2692f954e2088665d4a9d0faed6c2982914c6fdce3b6a6efb6d26caf41a79e",
+            "line": 17,
+            "event_sha256": "ceeb70db25070f93dfa808e6e8fc651aa1f543cc3d38a0019519e9d2c3aec59b",
+            "exit_code": 1,
+            "stdout_sha256": "6e5d31cfb13a4530f266bb6c30a11c8bbf97f743624fcf57bf1091e2cb63092d"
+          },
+          "scope": "candidate self-validation only; independent grading separate"
+        },
+        {
+          "observed": "Rewritten pypdf/Poppler self-check exited0 with printed page/bounds/token checks.",
+          "evidence": {
+            "path": "trace.jsonl",
+            "sha256": "cf2692f954e2088665d4a9d0faed6c2982914c6fdce3b6a6efb6d26caf41a79e",
+            "line": 22,
+            "event_sha256": "f770a18de9148e0d2c296e8d586459a3e60bc6b129a25d7df9022aefeb06c7fe",
+            "exit_code": 0,
+            "stdout_sha256": "c21094db5306b137a68e7cab70537c53f0feb85dbb6b537d1bb1dedcdf5e5f11"
+          },
+          "scope": "candidate self-validation only; independent grading separate"
+        }
+      ],
+      "observed_failures_and_corrections": [
+        {
+          "observed": "Generator initially failed unavailable DejaVu font path.",
+          "evidence": {
+            "path": "trace.jsonl",
+            "sha256": "cf2692f954e2088665d4a9d0faed6c2982914c6fdce3b6a6efb6d26caf41a79e",
+            "line": 14,
+            "event_sha256": "c2ee043356225b32c11545a26665407f585a9157a313338615e2348ce319d07d",
+            "exit_code": 1,
+            "stdout_sha256": "0b89a8735cdfa221d844cb70db25e7675d2efb983ea623f8246f08fcc720344d"
+          }
+        },
+        {
+          "observed": "Corrected font directory; next self-check failed importing unavailable pdfplumber.",
+          "evidence": {
+            "path": "trace.jsonl",
+            "sha256": "cf2692f954e2088665d4a9d0faed6c2982914c6fdce3b6a6efb6d26caf41a79e",
+            "line": 17,
+            "event_sha256": "ceeb70db25070f93dfa808e6e8fc651aa1f543cc3d38a0019519e9d2c3aec59b",
+            "exit_code": 1,
+            "stdout_sha256": "6e5d31cfb13a4530f266bb6c30a11c8bbf97f743624fcf57bf1091e2cb63092d"
+          }
+        },
+        {
+          "observed": "Replaced pdfplumber dependency with installed pypdf/Poppler; rerun passed.",
+          "evidence": {
+            "path": "trace.jsonl",
+            "sha256": "cf2692f954e2088665d4a9d0faed6c2982914c6fdce3b6a6efb6d26caf41a79e",
+            "line": 22,
+            "event_sha256": "f770a18de9148e0d2c296e8d586459a3e60bc6b129a25d7df9022aefeb06c7fe",
+            "exit_code": 0,
+            "stdout_sha256": "c21094db5306b137a68e7cab70537c53f0feb85dbb6b537d1bb1dedcdf5e5f11"
+          }
+        }
+      ],
+      "visual_inspection_claim": {
+        "status": "self_reported_not_independently_corrobated_in_native_trace",
+        "README": {
+          "path": "README.md",
+          "sha256": "b0066858621a142d452d0f3d36ea92b40d5364cc23cf0a946107a562cbb53bc3",
+          "start_line": 32,
+          "end_line": 36,
+          "span_sha256": "d25dfe010e86f38dbfc7bd7045d0b69284f492244e3c1e9d778b893ceafbf29f",
+          "verified_against_UID_copy_receipt": true
+        },
+        "boundary": "Rendered images exist and render/test commands are captured; no distinct view_image completion events appear in trace. No visual attention claim."
+      },
+      "notes": "Empty OA bundle. Original PDF source partially adapted; no source scripts autoexecuted and no unread OA method outcome justified.",
+      "no_candidate_rerun": true,
+      "parent_adjudication": {
+        "review_complete": true,
+        "delivery_findings_accepted": true,
+        "original_guidance_application_findings_accepted": true,
+        "derived_method_application_confirmed": false,
+        "self_validation_findings_accepted": true,
+        "scope": "Original-source adaptation is separate from derived-method use. Automated command evidence only; native visual inspection remains self-reported and neither verified nor disproved."
+      }
+    },
+    {
+      "run_id": "documents-r1-direct",
+      "arm": "direct",
+      "role": "benchmark control; never an outcome of unread OA methods",
+      "native_evidence": {
+        "trace_sha256": "a4c4b70b9776f9f5d8949853ab5738c299125902e6c01a227347d9fff382dc63",
+        "timing_sha256": "1f2b05f70f7d82dbdc2ae7a6db6c7b8f08354a339da4c9c1ce6defefcf9e782c",
+        "retrieval_sha256": "bf4f7f4372b12334da9258ef560359c210e97566b1d96aeb5c6af910280dd591"
+      },
+      "original_source_delivery": [
+        {
+          "package_id": "skill_b645bd7b8fcb43d29d72b7582ece950d",
+          "name": "pdf",
+          "commit": "1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064",
+          "path": "SKILL.md",
+          "sha256": "d1c7caf5f35eb7d37877dd7fc33a095037be2b34fb5d2f7f4d43bde3165bb4ee",
+          "start_line": 1,
+          "end_line": 314,
+          "literal_span_sha256": "d1c7caf5f35eb7d37877dd7fc33a095037be2b34fb5d2f7f4d43bde3165bb4ee",
+          "native_trace": {
+            "path": "trace.jsonl",
+            "sha256": "a4c4b70b9776f9f5d8949853ab5738c299125902e6c01a227347d9fff382dc63",
+            "line": 8,
+            "event_sha256": "2f6415a9827302848010b1aac3b859ace5b65df04f71a6e0ffa247334c76c749",
+            "exit_code": 0,
+            "stdout_sha256": "63581b23499b03866bda3ae7a9ff32b65cdfbfa299bf4c89a34c89ed2b44a128"
+          },
+          "corroboration": "Exact full original is native stdout prefix before any subsequent output.",
+          "attention_boundary": "Captured stdout proves literal delivery, not attention or that all bytes survived any model-side tool-output clipping."
+        }
+      ],
+      "automatic_delivery_review": {
+        "schema": "corroborated-source-delivery-v1",
+        "metadata_hits": [
+          {
+            "trace_line": 6,
+            "stdout_sha256": "6a036338feec46e5095f8e951567a52f0110209e77618be2e0b8713ba768684f",
+            "event_sha256": "888306c279cca8eb838b035d8b9aa3170a9b9c61bd5cbaa9b30eaa7c6c44adef",
+            "family": "skills",
+            "schema": "frozen-direct-skill-search-v1",
+            "read_event_sha256": "02c544aa02807d1a08cc87f140bfd8807d0cf8c0da3b5a03d0569a5593c8f63a",
+            "retrieval_sha256": "4d7a3751ca1a77b0c6003f52fdad05a382627528cd9e1c350a4462083d2b739d"
+          }
+        ],
+        "complete_method_deliveries": [],
+        "original_span_reads": [],
+        "manual_review_needed": [
+          {
+            "trace_line": 8,
+            "stdout_sha256": "63581b23499b03866bda3ae7a9ff32b65cdfbfa299bf4c89a34c89ed2b44a128",
+            "event_sha256": "2f6415a9827302848010b1aac3b859ace5b65df04f71a6e0ffa247334c76c749",
+            "reason": "Filesystem command is complex, ambiguous or stdout differs from exact frozen source span"
+          }
+        ],
+        "application_claims": [],
+        "boundary": "Delivery evidence only; no inference of attention, applicability, applied steps, task quality or effectiveness."
+      },
+      "derived_method_applications": [],
+      "quality_grade": null,
+      "application_scope": "Control source delivery recorded only. Do not attach control successes/failures as OA method executions.",
+      "parent_adjudication": {
+        "review_complete": true,
+        "delivery_findings_accepted": true,
+        "original_guidance_application_findings_accepted": null,
+        "derived_method_application_confirmed": false,
+        "self_validation_findings_accepted": true,
+        "scope": "Original-source adaptation is separate from derived-method use. Automated command evidence only; native visual inspection remains self-reported and neither verified nor disproved."
+      }
+    }
+  ],
+  "owner_feedback_boundary": "No OA method execution outcome justified. Only retrieval-mismatch opinion for actually delivered PDF method can be proposed; empty results have no applied-method target. Resolve live target by editorial public_id and exact payload hash, not provisional UUID.",
+  "editorial_audit_correction": {
+    "initial_draft_sha256": "793e973d34bb5045e70eb47a25091dbe838de23a4df5521bd85019dfe4704bde",
+    "change": "Corrected analysis-r1-oa self-test trace reference from non-command line18 to actual completed command line17; no raw candidate evidence changed."
+  },
+  "parent_adjudication": {
+    "review_complete": true,
+    "original_review_sha256": "3544867858597d39a4aec435fa25f92adb0f14f6eabdd52597ca27e28d25fc52",
+    "no_execution_outcomes_accepted": true,
+    "visual_evidence_audit_sha256": "f43f8d99f2102ab651c1f80a88e31bc23c136dd779a477c580fe2afd487b3c8b"
+  }
+}

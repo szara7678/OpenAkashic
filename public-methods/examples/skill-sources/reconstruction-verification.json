@@ -1,0 +1,205 @@
+{
+  "bytes_verified": 2025414,
+  "catalog_sha256": "4feca5fa8dc5a61d6231eb15e1ba37ea5dc03f8e3b86f5b2d2f3e34e6e59aaf4",
+  "fetcher_sha256": "5ba5ba5e2409af0b63c655477b48f548a42ce708cfeac820c3c85368befe3fa8",
+  "files_downloaded_from_immutable_upstream": 121,
+  "files_verified": 121,
+  "network_source": "anonymous pinned raw.githubusercontent.com HTTPS",
+  "packages": [
+    {
+      "all_file_hashes_and_git_blobs_match": true,
+      "bytes": 71273,
+      "commit": "1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064",
+      "files": 4,
+      "license": {
+        "reviewed_for_publication": true,
+        "spdx": "Apache-2.0",
+        "url": "https://github.com/anthropics/skills/blob/1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064/skills/frontend-design/LICENSE.txt"
+      },
+      "license_files": [
+        {
+          "git_blob": "f433b1a53f5b830a205fd2df78e2b34974656c7b",
+          "original_path": "skills/frontend-design/LICENSE.txt",
+          "path": "LICENSE.txt",
+          "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594",
+          "size_bytes": 10174
+        },
+        {
+          "git_blob": "ffef92c48b351a3ed036556ed32dda934e8cf41a",
+          "original_path": "THIRD_PARTY_NOTICES.md",
+          "path": "_upstream/THIRD_PARTY_NOTICES.md",
+          "sha256": "a8ff7a84dee9dfb42ab448de281784387ceafdf63881b7c070ee2de7f6ed865c",
+          "size_bytes": 46162
+        }
+      ],
+      "manifest_sha256": "0b9f52de5681d63a0b24404e85d6113e86a005d099f18d8d0a7b4eaac4608c6e",
+      "original_directory": "skills/frontend-design",
+      "package_id": "skill_07c728f6e8cc12349e73623954a260c7",
+      "repository": "https://github.com/anthropics/skills",
+      "source_id": "anthropics-frontend-design"
+    },
+    {
+      "all_file_hashes_and_git_blobs_match": true,
+      "bytes": 65289,
+      "commit": "1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064",
+      "files": 4,
+      "license": {
+        "reviewed_for_publication": true,
+        "spdx": "Apache-2.0",
+        "url": "https://github.com/anthropics/skills/blob/1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064/skills/brand-guidelines/LICENSE.txt"
+      },
+      "license_files": [
+        {
+          "git_blob": "4f881c52d1f72f4cfb720e339e2d35c3058d01a9",
+          "original_path": "skills/brand-guidelines/LICENSE.txt",
+          "path": "LICENSE.txt",
+          "sha256": "bc6b3af2f331cbc7fb0da1344efb2cbe5877a31498b4d70dbc7000f3405a1362",
+          "size_bytes": 11345
+        },
+        {
+          "git_blob": "ffef92c48b351a3ed036556ed32dda934e8cf41a",
+          "original_path": "THIRD_PARTY_NOTICES.md",
+          "path": "_upstream/THIRD_PARTY_NOTICES.md",
+          "sha256": "a8ff7a84dee9dfb42ab448de281784387ceafdf63881b7c070ee2de7f6ed865c",
+          "size_bytes": 46162
+        }
+      ],
+      "manifest_sha256": "660cfa9e611e619681cd06322f608eb3770aa237a84a1a76d14062509ceddaeb",
+      "original_directory": "skills/brand-guidelines",
+      "package_id": "skill_77687da51641a2447bceaa15d462a9f4",
+      "repository": "https://github.com/anthropics/skills",
+      "source_id": "anthropics-brand-guidelines"
+    },
+    {
+      "all_file_hashes_and_git_blobs_match": true,
+      "bytes": 120312,
+      "commit": "1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064",
+      "files": 14,
+      "license": {
+        "reviewed_for_publication": true,
+        "spdx": "Apache-2.0",
+        "url": "https://github.com/anthropics/skills/blob/1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064/skills/pdf/LICENSE.txt"
+      },
+      "license_files": [
+        {
+          "git_blob": "7a4a3ea2424c09fbe48d455aed1eaa94d9124835",
+          "original_path": "skills/pdf/LICENSE.txt",
+          "path": "LICENSE.txt",
+          "sha256": "58d1e17ffe5109a7ae296caafcadfdbe6a7d176f0bc4ab01e12a689b0499d8bd",
+          "size_bytes": 11357
+        },
+        {
+          "git_blob": "ffef92c48b351a3ed036556ed32dda934e8cf41a",
+          "original_path": "THIRD_PARTY_NOTICES.md",
+          "path": "_upstream/THIRD_PARTY_NOTICES.md",
+          "sha256": "a8ff7a84dee9dfb42ab448de281784387ceafdf63881b7c070ee2de7f6ed865c",
+          "size_bytes": 46162
+        }
+      ],
+      "manifest_sha256": "2c5b1863906d359b86d9eb782dd099d331b6febd94152aa8a713a2733fab22ad",
+      "original_directory": "skills/pdf",
+      "package_id": "skill_b645bd7b8fcb43d29d72b7582ece950d",
+      "repository": "https://github.com/anthropics/skills",
+      "source_id": "anthropics-pdf"
+    },
+    {
+      "all_file_hashes_and_git_blobs_match": true,
+      "bytes": 1214535,
+      "commit": "1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064",
+      "files": 63,
+      "license": {
+        "reviewed_for_publication": true,
+        "spdx": "Apache-2.0",
+        "url": "https://github.com/anthropics/skills/blob/1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064/skills/docx/LICENSE.txt"
+      },
+      "license_files": [
+        {
+          "git_blob": "7a4a3ea2424c09fbe48d455aed1eaa94d9124835",
+          "original_path": "skills/docx/LICENSE.txt",
+          "path": "LICENSE.txt",
+          "sha256": "58d1e17ffe5109a7ae296caafcadfdbe6a7d176f0bc4ab01e12a689b0499d8bd",
+          "size_bytes": 11357
+        },
+        {
+          "git_blob": "ffef92c48b351a3ed036556ed32dda934e8cf41a",
+          "original_path": "THIRD_PARTY_NOTICES.md",
+          "path": "_upstream/THIRD_PARTY_NOTICES.md",
+          "sha256": "a8ff7a84dee9dfb42ab448de281784387ceafdf63881b7c070ee2de7f6ed865c",
+          "size_bytes": 46162
+        }
+      ],
+      "manifest_sha256": "bebc5ff7fcdf0802deb856576a7e16e1e9031787091fbff79c5e410a4141b2fd",
+      "original_directory": "skills/docx",
+      "package_id": "skill_030e604af66e47e565b6efa0efa1d7b9",
+      "repository": "https://github.com/anthropics/skills",
+      "source_id": "anthropics-docx"
+    },
+    {
+      "all_file_hashes_and_git_blobs_match": true,
+      "bytes": 322181,
+      "commit": "2d2065fb4520fa3f3f2bcf61cff26ec8b7eba4b5",
+      "files": 25,
+      "license": {
+        "reviewed_for_publication": true,
+        "spdx": "MIT",
+        "url": "https://github.com/K-Dense-AI/scientific-agent-skills/blob/2d2065fb4520fa3f3f2bcf61cff26ec8b7eba4b5/LICENSE.md"
+      },
+      "license_files": [
+        {
+          "git_blob": "eb246475fd5a66b9bb56176f3a718984632dd98d",
+          "original_path": "LICENSE.md",
+          "path": "_upstream/LICENSE.md",
+          "sha256": "09b02a3c9df3053c55531d503357a9c7cde275970e6c3ceaa1ddf5f0e90b40c1",
+          "size_bytes": 1068
+        }
+      ],
+      "manifest_sha256": "5fe0a761595ab426089e37fd1a3a15624ce0aa95759416fe6e040098346dac21",
+      "original_directory": "skills/exploratory-data-analysis",
+      "package_id": "skill_5ed9591a3be82c9e63c6787f2256b588",
+      "repository": "https://github.com/K-Dense-AI/scientific-agent-skills",
+      "source_id": "kdense-exploratory-data-analysis"
+    },
+    {
+      "all_file_hashes_and_git_blobs_match": true,
+      "bytes": 231824,
+      "commit": "2d2065fb4520fa3f3f2bcf61cff26ec8b7eba4b5",
+      "files": 11,
+      "license": {
+        "reviewed_for_publication": true,
+        "spdx": "MIT",
+        "url": "https://github.com/K-Dense-AI/scientific-agent-skills/blob/2d2065fb4520fa3f3f2bcf61cff26ec8b7eba4b5/LICENSE.md"
+      },
+      "license_files": [
+        {
+          "git_blob": "eb246475fd5a66b9bb56176f3a718984632dd98d",
+          "original_path": "LICENSE.md",
+          "path": "_upstream/LICENSE.md",
+          "sha256": "09b02a3c9df3053c55531d503357a9c7cde275970e6c3ceaa1ddf5f0e90b40c1",
+          "size_bytes": 1068
+        }
+      ],
+      "manifest_sha256": "6c02918992497b153197fef8cd6c3b8c5d2d7d5f912e87018376d94ca1ba5eaf",
+      "original_directory": "skills/statistical-analysis",
+      "package_id": "skill_81e45a6d4f9155319cf65043886bcba4",
+      "repository": "https://github.com/K-Dense-AI/scientific-agent-skills",
+      "source_id": "kdense-statistical-analysis"
+    }
+  ],
+  "proposal_sha256": "24a18ec503422139ca77f4b5db4c6afa02fff34945ad498dce2cddc8b172a619",
+  "schema": "public-skill-reconstruction-verification-v1",
+  "scope": {
+    "dependencies_installed": false,
+    "deployment_performed": false,
+    "effectiveness_or_token_savings_measured": false,
+    "live_methods_imported": false,
+    "source_reconstruction_only": true,
+    "upstream_helpers_executed": false
+  },
+  "verification": {
+    "all_sizes_sha256_and_git_blobs_match": true,
+    "exact_manifest_file_sets_preserved": true,
+    "licenses_notices_original_paths_preserved": true,
+    "repeat_verified_without_network": true
+  },
+  "verified_at": "2026-11-15T12:01:31.612786+00:00"
+}

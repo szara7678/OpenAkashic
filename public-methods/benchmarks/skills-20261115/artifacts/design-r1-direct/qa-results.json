@@ -1,0 +1,40 @@
+{
+  "sourceRecords": 7,
+  "filterCombinations": 24,
+  "cardFields": "all source values verified",
+  "reset": "passed",
+  "emptyState": "passed",
+  "controlLabels": "passed",
+  "keyboardOrder": [
+    "Skip to directory",
+    "neighborhood",
+    "service",
+    "step-free",
+    "Reset filters"
+  ],
+  "focus": "solid visible outline on all five tab stops",
+  "widths": [
+    {
+      "viewport": 390,
+      "scroll": 375
+    },
+    {
+      "viewport": 320,
+      "scroll": 305
+    },
+    {
+      "viewport": 768,
+      "scroll": 753
+    },
+    {
+      "viewport": 1280,
+      "scroll": 1265
+    }
+  ],
+  "browserExceptions": 0,
+  "externalRequests": 0,
+  "screenshots": [
+    "desktop.png",
+    "mobile.png"
+  ]
+}

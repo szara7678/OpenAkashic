@@ -1,0 +1,40 @@
+{
+  "run_id": "design-r2-direct",
+  "exit_code": 1,
+  "seconds": 4.661797502019908,
+  "status": null,
+  "report": {
+    "task": "design",
+    "ok": false,
+    "groups": {
+      "delivery_and_selftest_record": {
+        "ok": false,
+        "errors": [
+          "QA.md absent"
+        ]
+      },
+      "directory_function_and_readability": {
+        "ok": false,
+        "errors": [
+          "Missing snapshot/unknown notice 2026-07-18",
+          "No helpful empty state"
+        ],
+        "evidence": {
+          "scenarios": [
+            "initial",
+            "East",
+            "East+Advice+stepfree",
+            "empty intersection",
+            "reset"
+          ],
+          "external_requests": [],
+          "mobile_overflow": false
+        }
+      }
+    },
+    "scope": "Artifact checks only; root independently verifies logged self-tests, normal final, source faithfulness and blind quality."
+  },
+  "original_checker_v2_sha256": "420d743112247295932bf95a3491f6fdb98a03cc28dd4fe1904b9f18c174b94f",
+  "native_outcome_unchanged": true,
+  "reclassification": false
+}
