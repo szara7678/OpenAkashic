@@ -284,7 +284,7 @@ main {height:calc(100dvh - var(--top))}
 .inspector-nav {position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:8px;margin:0 -8px 12px;padding:8px;background:var(--surface);border-bottom:1px solid var(--line)}
 .inspector-nav button {padding:0 8px;border-color:transparent;font-size:13px;background:transparent;color:var(--muted)}
 .inspector-nav #atlas-focus {margin-left:auto}
-.inspector-grip,#atlas-inspector-expand {display:none}
+#atlas-inspector-expand {display:none}
 .inspector .panel-heading {margin:0 0 16px}
 .record-heading-meta {display:flex;align-items:center;justify-content:space-between;gap:4px;min-height:44px}
 .record-actions {display:flex;align-items:center;flex:none;gap:2px}
@@ -298,14 +298,8 @@ main {height:calc(100dvh - var(--top))}
 .record-tabs {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin-bottom:16px;padding:3px;border:1px solid var(--line);border-radius:999px;background:var(--bg)}
 .record-tabs button {padding:0 4px;border-color:transparent;border-radius:999px;background:transparent;color:var(--muted);font-size:13px;font-weight:620;white-space:nowrap}
 .record-tabs button[aria-pressed=true] {color:var(--accent);border-color:transparent;background:var(--accent-soft)}
-.reading-route {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin:0 0 16px}
-.route-step {
-  position:relative;display:flex;flex-wrap:wrap;align-content:center;justify-content:flex-start;
-  gap:3px 7px;padding:7px 8px;border-color:transparent;background:var(--hover);
-  color:var(--muted);font-size:12px;font-weight:620;line-height:1.35;text-align:left
-}
-.route-step small {color:var(--subtle);font-size:11px;font-variant-numeric:tabular-nums}
-.route-step.is-current {border-color:var(--line);background:var(--accent-soft);color:var(--accent)}
+.record-tabs:has([data-record-tab="steps"][hidden]) {grid-template-columns:repeat(2,minmax(0,1fr))}
+.reader-next {width:100%;margin-top:16px}
 .quiet {color:var(--muted)}
 .primary {background:var(--accent);color:var(--accent-ink);border-color:transparent;font-weight:650}
 .record-kind {display:inline-block;padding:3px 8px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-size:12px}
@@ -327,16 +321,16 @@ main {height:calc(100dvh - var(--top))}
 .record-more .record-warning {margin:12px}
 .record-neighbors button {display:block;width:100%;margin-top:8px;padding:10px 12px;text-align:left;background:var(--raised);overflow-wrap:anywhere}
 .record-neighbors small,.path-card small {display:block;margin:2px 0 0;color:var(--muted);font-size:12px}
-.path-card {margin:8px 0;padding:12px;border:1px solid var(--line);border-left:3px solid var(--node-color,var(--accent));border-radius:14px;background:var(--raised)}
+button.path-card {display:block;width:100%;margin:8px 0;padding:12px;border:1px solid var(--line);border-left:3px solid var(--node-color,var(--accent));border-radius:14px;background:var(--raised);text-align:left;white-space:normal;overflow-wrap:anywhere}
+.path-card .path-title {display:block;color:var(--ink);font-size:14px;font-weight:650;line-height:1.55}
 .path-card .path-role {display:block;margin-bottom:4px;color:var(--node-color,var(--accent));font-size:12px;font-weight:650}
-.path-card p {margin:0;font-size:14px;line-height:1.6}
+.path-card .path-context {margin-top:6px}
 .connection-group {margin:16px 0 0}
 .connection-group h4 {display:flex;align-items:baseline;gap:8px;margin:0 0 6px;font-size:14px;font-weight:680}
 .connection-group h4 small,.connection-group>small {color:var(--subtle);font-size:11px;font-variant-numeric:tabular-nums}
 .connection-note {margin:4px 0 14px;color:var(--muted);font-size:13px;line-height:1.55}
 .path-card .path-context,.path-card .path-relation {display:block;color:var(--muted);font-size:12px;line-height:1.5}
 .path-card .path-relation {margin:0 0 3px;color:var(--node-color,var(--accent));font-weight:650}
-.path-card button {display:block;width:100%;padding:2px 0;text-align:left;border-color:transparent;background:transparent;overflow-wrap:anywhere}
 .inspector-open .map-tools {right:calc(420px + var(--inset) * 2)}
 .inspector-open .map-hint {display:none}
 .inspector-open .atlas-trail {max-width:calc(100% - 420px - var(--inset) * 3)}
@@ -386,13 +380,35 @@ main {height:calc(100dvh - var(--top))}
   .map-hint {display:none}
   .map-tools {bottom:calc(12px + env(safe-area-inset-bottom))}
   .controls {width:min(374px,calc(100% - var(--inset) * 2));bottom:calc(12px + env(safe-area-inset-bottom))}
-  .inspector {left:0;right:0;top:auto;bottom:0;width:100%;height:58dvh;max-height:calc(100% - 60px);border-radius:24px 24px 0 0;padding:8px max(16px,env(safe-area-inset-right)) calc(16px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
+  .inspector {
+    --reader-inline:max(16px,env(safe-area-inset-left),env(safe-area-inset-right));
+    left:0;right:0;top:auto;bottom:0;width:100%;height:58dvh;max-height:calc(100% - 60px);
+    border-radius:24px 24px 0 0;padding:8px var(--reader-inline) calc(16px + env(safe-area-inset-bottom));
+    scroll-padding-top:120px
+  }
   .inspector.is-tall {height:calc(100% - 60px)}
-  .inspector-grip {display:block;width:32px;height:3px;margin:0 auto 4px;border-radius:3px;background:var(--subtle)}
-  .inspector-nav {top:-8px;gap:4px;margin:0 -8px 4px;padding:4px 8px}
-  .inspector-nav button,#atlas-inspector-expand {font-size:12px}
+  .inspector-nav {top:-8px;z-index:4;gap:4px;margin:-8px -8px 8px;padding:4px 8px}
+  .inspector-nav button,#atlas-inspector-expand {min-width:44px;flex-shrink:0;font-size:12px}
+  .inspector-nav #atlas-focus {flex:1;min-width:44px;margin-left:0;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #atlas-back,#atlas-inspector-close {min-width:44px}
   #atlas-inspector-expand {display:inline-flex;white-space:nowrap}
-  #atlas-record-title {font-size:23px}
+  .inspector .panel-heading {margin-bottom:12px}
+  .record-heading-meta {gap:8px}
+  .record-actions {gap:0}
+  #atlas-bookmark {width:44px;padding:0}
+  #atlas-bookmark span {display:none}
+  #atlas-bookmark svg {width:18px;height:18px}
+  #atlas-share {padding-inline:6px}
+  #atlas-record-title {margin-top:0;font-size:21px;line-height:1.38}
+  .record-tabs {
+    position:sticky;top:44px;z-index:3;margin:0 calc(-1 * var(--reader-inline)) 12px;
+    padding:4px var(--reader-inline) 8px;border:0;border-radius:0;background:var(--surface);
+    box-shadow:0 1px var(--line)
+  }
+  .record-tabs button {border-radius:10px}
+  .path-card .path-title {font-size:15px}
+  .path-card .path-context,.path-card .path-relation {font-size:13px}
+  .record-content>.record-section:first-child,.record-steps>.record-section:first-child {padding-top:0;border-top:0}
   .record-section p,.record-section li,.record-content p,.record-steps li {font-size:16px}
   .inspector-open .discovery,.inspector-open .map-caption,.inspector-open .map-tools {display:none}
   .inspector-open .atlas-trail {top:calc(var(--inset) + 52px);max-width:calc(100% - var(--inset) * 2)}

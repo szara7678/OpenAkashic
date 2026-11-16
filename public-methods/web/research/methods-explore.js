@@ -14,6 +14,8 @@
   let motion = !reduceMotion.matches && !matchMedia("(pointer: coarse)").matches, showAllLabels = false, lastFocusedNode = null;
   let gestureFrame = 0, gestureMatrix = null, labelFrame = 0, labelHover, lastTap = null;
   const pendingMoves = new Map(), labelMetrics = new Map();
+  const readerHistory = new Map();
+  let activeEntry = history.state?.atlasEntry || null, readerReady = false, readerInteraction = 0, pendingGraphClick = null;
   let recordTab = "overview", searchIndex = -1, searchItems = [], shareTimer;
   const readingKey = "openakashic-atlas-reading-v1";
   let saved = [], recent = [], shelfTab = "saved", storageAvailable = true;
@@ -286,14 +288,25 @@
   window.addEventListener("storage", e => { if (e.key !== readingKey) return; try { const d = e.newValue ? JSON.parse(e.newValue) : {}; saved = cleanIds(d?.saved, 100); recent = cleanIds(d?.recent, 24); visited.clear(); recent.forEach(id => visited.add(id)); renderShelf(); updateBookmark(); highlight(selected?.id); } catch {} });
 
   function linkedCard(n, relation) {
-    const card = el("div", null, "path-card"); card.style.setProperty("--node-color", color(n));
-    card.append(el("span", n.kind === "outcome" ? statuses[n.status] || "적용 보고" : label(n), "path-role"));
-    const b = el("button", n.label); b.type = "button"; b.onclick = e => choose(n.id, true, e.detail === 0); card.append(b);
+    const card = el("button", null, "path-card"); card.type = "button"; card.style.setProperty("--node-color", color(n));
+    card.setAttribute("aria-label", `${label(n)}: ${n.label}`); card.onclick = e => choose(n.id, true, e.detail === 0);
+    card.append(el("span", n.kind === "outcome" ? statuses[n.status] || "적용 보고" : label(n), "path-role"), el("strong", n.label, "path-title"));
     if (n.method_version) card.append(el("small", `방법 v${n.method_version}${n.kind === "correction" ? " · 반영된 변경" : " · 작성자 보고"}`));
     if (n.historical) card.append(el("small", `이전 버전 v${n.version}`));
-    if (n.kind === "method" && (n.goal || n.situation)) card.append(el("p", short(n.goal || n.situation, 125), "path-context"));
+    if (n.kind === "method" && (n.goal || n.situation)) card.append(el("span", short(n.goal || n.situation, 125), "path-context"));
     if (relation) card.append(el("small", relations[relation] || "연결된 기록", "path-relation"));
     return card;
+  }
+  const newEntry = () => Date.now().toString(36) + "-" + Math.random().toString(36).slice(2);
+  function readerSnapshot() {
+    return selected && !inspector.hidden ? { node: selected.id, tab: recordTab, scroll: Math.max(0, inspector.scrollTop), tall: inspector.classList.contains("is-tall") } : null;
+  }
+  // Save before changing the selected node. Popstate saves only to memory:
+  // history.state already belongs to the incoming entry at that point.
+  function saveReader(persist = true) {
+    if (!readerReady || !activeEntry || !selected || inspector.hidden) return;
+    const reader = readerSnapshot(); readerHistory.set(activeEntry, reader);
+    if (persist && history.state?.atlasEntry === activeEntry) history.replaceState({ ...history.state, reader }, "", location.href);
   }
   function openInspector() { closeOptions(); setShelf(false, false); closeSearch(); inspector.hidden = false; document.body.classList.add("inspector-open"); controls(false); $("atlas-help-panel").hidden = true; $("atlas-help").setAttribute("aria-expanded", "false"); setDiscovery(false); }
   function closeInspector(focus = false) {
@@ -305,6 +318,7 @@
   // opening another surface. Clear selection before returning focus to the map.
   function dismissSelection() {
     if (!graph) return;
+    saveReader(); readerReady = false;
     clearTimeout(filterTimer); ++phraseRequest; stopCamera(); stopMotion(); closeSearch();
     selected = null; ++detailRequest; trail = []; lastFocusedNode = null;
     $("atlas-depth").value = "0";
@@ -312,8 +326,10 @@
     setDiscovery(width > 720); view(true); writeHistory(true);
     map.focus({ preventScroll: true }); highlight(null);
   }
-  async function choose(id, push = true, keyboard = false, restore = false) {
+  async function choose(id, push = true, keyboard = false, restore = false, restoredReader = null) {
     const n = index.get(id); if (!n) return;
+    if (!restore) saveReader();
+    readerReady = false; const interaction = readerInteraction;
     clearTimeout(filterTimer);
     selected = n; visited.add(id); recent = [id, ...recent.filter(x => x !== id)].slice(0, 24); saveReading(); updateBookmark(); renderShelf(); lastFocusedNode = id; stopMotion(); $("atlas-tooltip").hidden = true;
     if (!restore) { trail = trail.at(-1) === id ? trail : [...trail, id].slice(-16); }
@@ -367,14 +383,7 @@
     content.dataset.recordPane = "overview"; steps.dataset.recordPane = "steps"; related.dataset.recordPane = "connections";
     if (!links.length) related.append(el("p", "아직 연결된 기록이 없습니다.", "quiet"));
 
-    panel.append(content, steps, related, meta); setRecordTab("overview");
-    if (n.kind === "method") {
-      const route = el("nav", null, "reading-route"); route.setAttribute("aria-label", "방법 읽기 순서");
-      for (const [tab, title, hint] of [["overview", "01 맥락", "상황 · 목적"], ["steps", "02 방법", "실행 순서"], ["connections", "03 연결", `${links.length}개 기록`]]) {
-        const b = el("button", title, "route-step" + (tab === "overview" ? " is-current" : "")); b.type = "button"; b.dataset.route = tab; b.append(el("small", hint)); b.onclick = e => { setRecordTab(tab); inspector.scrollTop = 0; if (e.detail === 0) $("atlas-record-tabs").querySelector(`[data-record-tab="${tab}"]`).focus({ preventScroll: true }); }; route.append(b);
-      }
-      content.append(route);
-    }
+    panel.append(content, steps, related, meta); setRecordTab("overview", { user: false, persist: false });
     if (n.kind === "method") {
       const loading = el("p", "상황과 실행 기록을 불러오는 중…", "quiet"); content.append(loading); steps.append(el("p", "실행 순서를 불러오는 중…", "quiet"));
       try {
@@ -385,12 +394,13 @@
         if (pathLinks.length) { const s = el("section", null, "record-section"); s.append(el("h3", "적용 후 남은 기록")); pathLinks.forEach(x => s.append(linkedCard(x))); content.append(s); }
         steps.replaceChildren(section("따라 해 볼 순서", d.steps || [], true));
         const more = el("details", null, "record-more"); more.append(el("summary", "적용 조건 · 성공 기준 · 한계"), section("적용 조건", d.constraints || []), section("성공을 판단할 기준", d.success_criteria || []), section("한계와 주의점", d.limitations || [])); steps.append(more); more.open = true;
+        const next = el("button", "연결된 기록 이어 읽기 →", "primary reader-next"); next.type = "button"; next.onclick = e => setRecordTab("connections", { focus: e.detail === 0 }); steps.append(next);
         if (d.revision) { content.append(section(`v${d.revision.previous_version}에서 달라진 점`, d.revision.reason)); if (d.revision.correction) content.append(section("반영한 수정", d.revision.correction.reason)); }
         if (d.sources?.length) { const sources = el("section", null, "record-section"); sources.append(el("h3", "원래 출처")); for (const source of d.sources) { const a = safeLink(source.title || source.url, source.url); if (a) sources.append(a, el("br")); } content.append(sources); }
         if (d.skill_sources?.length) { const sources = el("section", null, "record-section"); sources.append(el("h3", "보존된 스킬 원문")); for (const source of d.skill_sources) { const card = skillSourceCard(source); if (card) sources.append(card); } content.append(sources); }
         content.append(el("p", d.evidence_kind === "documented_method" ? "문서에서 정리한 방법입니다. 적용 결과는 실행자의 보고이며, 효과의 독립 검증과 구분합니다." : "기록된 방법과 적용 보고를 함께 읽고, 자신의 상황에 맞는지 확인하세요.", "record-warning"));
         const a = el("a", "방법과 적용 보고 전체 읽기 ↗", "record-source"); a.href = "/research/methods/library/?method=" + encodeURIComponent(n.method_id); content.append(a);
-        const go = el("button", "실행 순서 살펴보기 →", "primary"); go.type = "button"; go.onclick = () => setRecordTab("steps"); content.append(go);
+        const go = el("button", "실행 순서 살펴보기 →", "primary"); go.type = "button"; go.onclick = e => setRecordTab("steps", { focus: e.detail === 0 }); content.append(go);
       } catch { if (token === detailRequest) { loading.textContent = "본문을 불러오지 못했습니다. 연결된 기록을 살펴보거나 다시 선택해 주세요."; steps.replaceChildren(el("p", "실행 순서를 불러오지 못했습니다. 방법을 다시 선택해 주세요.", "quiet")); } }
     } else if (n.kind === "source") {
       if (n.package_id) { const card = skillSourceCard(n); if (card) content.append(card); content.append(el("p", "원문과 참조 파일을 보존한 출처입니다. 스크립트와 의존 프로그램은 실행하지 않습니다.", "record-warning")); }
@@ -403,14 +413,33 @@
       try { const d = await get("/" + encodeURIComponent(n.method_id)); if (token !== detailRequest) return; const report = d.outcomes?.find(x => x.id === n.id); if (report) { if (report.situation) content.append(section("실제로 적용한 상황", report.situation)); if (report.goal) content.append(section("당시 목적", report.goal)); if (report.actions?.length) content.append(section("실제로 한 일", report.actions, true)); if (report.evidence?.length) content.append(section("작성자가 남긴 근거 설명", report.evidence.map(x => x.description))); } } catch { content.append(el("p", "추가 본문을 불러오지 못했습니다.", "quiet")); }
     } else content.append(section(n.kind === "opinion" ? "작성자가 남긴 의견" : label(n), n.label));
     if (token !== detailRequest) return;
+    const restoreReader = restore && restoredReader?.node === id && readerInteraction === interaction;
+    if (restoreReader) {
+      const tab = ["overview", "connections", ...(n.kind === "method" ? ["steps"] : [])].includes(restoredReader.tab) ? restoredReader.tab : "overview";
+      setRecordTab(tab, { user: false, persist: false });
+      inspector.classList.toggle("is-tall", Boolean(restoredReader.tall));
+      $("atlas-inspector-expand").setAttribute("aria-expanded", String(Boolean(restoredReader.tall)));
+      $("atlas-inspector-expand").textContent = restoredReader.tall ? "지도와 함께" : "크게 읽기";
+    }
+    readerReady = true;
+    if (restoreReader) requestAnimationFrame(() => {
+      if (token !== detailRequest || readerInteraction !== interaction) return;
+      inspector.scrollTop = Number.isFinite(restoredReader.scroll) ? Math.max(0, restoredReader.scroll) : 0;
+      saveReader();
+    });
+    else saveReader();
   }
 
-  function setRecordTab(value) {
+  function setRecordTab(value, options = {}) {
+    if (options.user !== false) readerInteraction++;
     recordTab = value;
     $("atlas-record-tabs").querySelectorAll("[data-record-tab]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.recordTab === value)));
     $("atlas-record").querySelectorAll("[data-record-pane]").forEach(n => { n.hidden = n.dataset.recordPane !== value; });
+    inspector.scrollTop = 0;
+    if (options.focus) $("atlas-record-tabs").querySelector(`[data-record-tab="${value}"]`).focus({ preventScroll: true });
+    if (options.persist !== false) saveReader();
   }
-  $("atlas-record-tabs").addEventListener("click", e => { const b = e.target.closest("[data-record-tab]"); if (b) { setRecordTab(b.dataset.recordTab); inspector.scrollTop = 0; } });
+  $("atlas-record-tabs").addEventListener("click", e => { const b = e.target.closest("[data-record-tab]"); if (b) setRecordTab(b.dataset.recordTab); });
   $("atlas-share").onclick = async () => {
     const b = $("atlas-share"); clearTimeout(shareTimer);
     try { await navigator.clipboard.writeText(location.href); b.textContent = "복사했어요"; }
@@ -509,7 +538,7 @@
     const nav = $("atlas-trail"); nav.replaceChildren(); nav.hidden = trail.length === 0;
     if (!trail.length) return;
     nav.append(el("span", "지나온 연결", "trail-label"));
-    for (const id of trail.slice(-5)) { const n = index.get(id); if (!n) continue; const b = el("button", short(n.label, 16)); b.type = "button"; b.title = n.label; if (id === selected?.id) b.setAttribute("aria-current", "step"); b.onclick = () => choose(id); nav.append(b); }
+    for (const id of trail.slice(-5)) { const n = index.get(id); if (!n) continue; const b = el("button", short(n.label, 16)); b.type = "button"; b.title = n.label; if (id === selected?.id) b.setAttribute("aria-current", "step"); b.onclick = e => choose(id, true, e.detail === 0); nav.append(b); }
     requestAnimationFrame(() => { nav.scrollLeft = nav.scrollWidth; });
   }
   function writeHistory(push) {
@@ -520,8 +549,10 @@
     if ($("atlas-filter").value) url.searchParams.set("q", $("atlas-filter").value);
     if (phraseResult?.query === $("atlas-filter").value.trim().toLocaleLowerCase()) url.searchParams.set("match", "meaning");
     if ($("atlas-record-filter").value) url.searchParams.set("records", $("atlas-record-filter").value);
-    const previous = history.state?.atlasStep || 0, state = { atlasStep: push ? previous + 1 : previous, trail: [...trail] };
-    if (push && url.href !== location.href) history.pushState(state, "", url); else history.replaceState({ ...state, atlasStep: previous }, "", url);
+    const previous = history.state?.atlasStep || 0, adding = push && url.href !== location.href;
+    const state = { atlasStep: adding ? previous + 1 : previous, trail: [...trail], atlasEntry: adding ? newEntry() : activeEntry || history.state?.atlasEntry || newEntry(), reader: readerSnapshot() };
+    if (adding) history.pushState(state, "", url); else history.replaceState(state, "", url);
+    activeEntry = state.atlasEntry; readerHistory.set(activeEntry, state.reader);
     $("atlas-back").disabled = !(history.state?.atlasStep);
   }
   function resetMap(updateHistory = true) {
@@ -547,7 +578,7 @@
   $("atlas-controls-toggle").onclick = () => controls($("atlas-controls").hidden);
   $("atlas-controls-close").onclick = () => { controls(false); $("atlas-controls-toggle").focus(); };
   $("atlas-inspector-close").onclick = dismissSelection;
-  $("atlas-inspector-expand").onclick = () => { const tall = inspector.classList.toggle("is-tall"); $("atlas-inspector-expand").setAttribute("aria-expanded", String(tall)); $("atlas-inspector-expand").textContent = tall ? "지도와 함께" : "크게 읽기"; };
+  $("atlas-inspector-expand").onclick = () => { readerInteraction++; const tall = inspector.classList.toggle("is-tall"); $("atlas-inspector-expand").setAttribute("aria-expanded", String(tall)); $("atlas-inspector-expand").textContent = tall ? "지도와 함께" : "크게 읽기"; saveReader(); };
   $("atlas-surprise").onclick = surprise; $("atlas-start").onclick = surprise;
   $("atlas-discovery-toggle").onclick = () => setDiscovery($("atlas-discovery-content").hidden);
   $("atlas-help").onclick = e => { closeOptions(e.detail === 0); const open = $("atlas-help-panel").hidden; if (open) setShelf(false, false); $("atlas-help-panel").hidden = !open; $("atlas-help").setAttribute("aria-expanded", String(open)); };
@@ -558,7 +589,7 @@
   $("atlas-reset").onclick = () => resetMap(); $("atlas-fit").onclick = () => fitVisible(true);
   $("atlas-zoom-in").onclick = () => scale(1.25, undefined, true); $("atlas-zoom-out").onclick = () => scale(.8, undefined, true);
   $("atlas-focus").onclick = () => setLocal(Number($("atlas-depth").value) ? 0 : 2);
-  $("atlas-back").onclick = () => history.back();
+  $("atlas-back").onclick = () => { saveReader(); history.back(); };
   $("atlas-expand").onclick = async () => { try { if (document.fullscreenElement) await document.exitFullscreen(); else if (document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen(); } catch { $("atlas-status").textContent = "브라우저 전체 화면은 지원되지 않습니다. 현재 지도는 창 크기에 맞춰져 있습니다."; } };
   document.addEventListener("fullscreenchange", () => $("atlas-expand").setAttribute("aria-pressed", String(Boolean(document.fullscreenElement))));
   ["atlas-domain", "atlas-record-filter"].forEach(id => $(id).onchange = filtersChanged);
@@ -625,6 +656,16 @@
     });
     options.addEventListener("click", e => { if (e.target.closest("button")) closeOptions(e.detail === 0); });
   }
+  // Opening the sheet on pointerup can put a new button under the browser's
+  // ensuing compatibility click. Consume that one click, never a fresh tap.
+  document.addEventListener("pointerdown", () => { pendingGraphClick = null; }, true);
+  document.addEventListener("click", e => {
+    const pending = pendingGraphClick; pendingGraphClick = null;
+    if (!pending || e.detail === 0 || performance.now() - pending.time > 750) return;
+    if (Number.isFinite(e.pointerId) && e.pointerId >= 0 && e.pointerId !== pending.pointer) return;
+    if (Math.hypot(e.clientX - pending.x, e.clientY - pending.y) > 8) return;
+    e.preventDefault(); e.stopImmediatePropagation();
+  }, true);
   document.addEventListener("pointerdown", e => { if (!$("atlas-search-results").contains(e.target) && !e.target.closest(".quick-search")) closeSearch(); });
   document.addEventListener("focusin", e => { if (!$("atlas-search-results").contains(e.target) && e.target !== $("atlas-quick-search")) closeSearch(); });
   $("atlas-evidence").onchange = () => view(false);
@@ -705,6 +746,7 @@
       if (e.type === "pointerup" && movedNode && width > 720) startMotion(45);
     }
     if (tap) {
+      pendingGraphClick = { pointer: e.pointerId, x: e.clientX, y: e.clientY, time: performance.now() };
       const double = lastTap?.node === node && performance.now() - lastTap.time < 350;
       lastTap = { node, time: performance.now() };
       choose(node, true, false); if (double) setLocal(2);
@@ -722,7 +764,13 @@
     if (e.key === "/" && !["INPUT", "SELECT", "TEXTAREA"].includes(document.activeElement.tagName)) { e.preventDefault(); $("atlas-quick-search").focus(); }
   });
   async function restoreLocation() {
-    if (!graph) return; const q = new URLSearchParams(location.search), request = ++phraseRequest, href = location.href; let restoreError = false;
+    if (!graph) return;
+    const returnFromReader = Boolean(selected || !inspector.hidden || inspector.contains(document.activeElement));
+    saveReader(false);
+    if (!history.state?.atlasEntry) history.replaceState({ ...history.state, atlasEntry: newEntry() }, "", location.href);
+    activeEntry = history.state.atlasEntry;
+    const restoredReader = readerHistory.has(activeEntry) ? readerHistory.get(activeEntry) : history.state.reader;
+    const q = new URLSearchParams(location.search), request = ++phraseRequest, href = location.href; let restoreError = false;
     $("atlas-domain").value = q.get("domain") || ""; $("atlas-filter").value = $("atlas-quick-search").value = q.get("q") || "";
     $("atlas-record-filter").value = ["reports", "failure", "correction"].includes(q.get("records")) ? q.get("records") : "";
     $("atlas-depth").value = ["1", "2"].includes(q.get("depth")) ? q.get("depth") : "0";
@@ -741,8 +789,8 @@
     }
     trail = (history.state?.trail || []).filter(id => index.has(id));
     const id = q.get("node"), method = q.get("method"), node = index.get(id) || graph.nodes.find(n => current(n) && n.method_id === method);
-    if (node) { if (!trail.length) trail = [node.id]; choose(node.id, false, false, true); requestAnimationFrame(() => { fitVisible(); keepSelectedInView(); }); }
-    else { selected = null; ++detailRequest; closeInspector(); if (width <= 720) setDiscovery(false); renderTrail(); view(true); }
+    if (node) { if (!trail.length) trail = [node.id]; await choose(node.id, false, false, true, restoredReader); if (location.href === href && selected?.id === node.id) requestAnimationFrame(() => { fitVisible(); keepSelectedInView(); }); }
+    else { readerReady = false; selected = null; ++detailRequest; closeInspector(); if (width <= 720) setDiscovery(false); renderTrail(); view(true); if (returnFromReader) map.focus({ preventScroll: true }); }
     if (restoreError) $("atlas-status").textContent = "문장 검색을 복원하지 못했습니다. 검색창에서 다시 찾거나 전체 지도를 열어 주세요.";
   }
   window.addEventListener("popstate", restoreLocation);

@@ -9,15 +9,16 @@ const path = require('node:path');
 const vm = require('node:vm');
 const { test } = require('node:test');
 
-function atlas() {
+function atlas({ reader = false, deferred = false } = {}) {
   const elements = new Map(), frames = new Map(), timers = [], choices = [];
+  const requests = new Map();
   const counters = { rect: 0, ctm: 0, text: 0, viewport: 0, position: 0 };
   let frameId = 0;
   class Element {
     constructor(tag = 'div', id = '') {
       this.tagName = tag.toUpperCase(); this.id = id; this.children = [];
       this.dataset = {}; this.attributes = {}; this.listeners = new Map();
-      this.hidden = true; this.value = ''; this.textContent = ''; this.open = false;
+      this.hidden = true; this.value = ''; this.textContent = ''; this.open = false; this.scrollTop = 0;
       const classes = new Set();
       this.classList = { add: (...xs) => xs.forEach(x => classes.add(x)),
         remove: (...xs) => xs.forEach(x => classes.delete(x)), contains: x => classes.has(x),
@@ -28,7 +29,7 @@ function atlas() {
     setAttribute(k, v) {
       this.attributes[k] = String(v);
       if (k === 'class') this.className = v;
-      if (k === 'data-node-id') this.dataset.nodeId = v;
+      if (k.startsWith('data-')) this.dataset[k.slice(5).replace(/-([a-z])/g, (_, x) => x.toUpperCase())] = v;
       if (k === 'transform' && this.id === 'atlas-viewport') counters.viewport++;
       if (k === 'transform' && this.classList.contains('network-node')) counters.position++;
     }
@@ -36,13 +37,23 @@ function atlas() {
     append(...nodes) { for (const node of nodes) { node.parentElement = this; this.children.push(node); } }
     replaceChildren(...nodes) { this.children = []; this.append(...nodes); }
     insertBefore(node) { this.append(node); }
-    matches(selector) { return selector.startsWith('.') ? this.classList.contains(selector.slice(1)) : this.tagName.toLowerCase() === selector; }
+    remove() { if (this.parentElement) this.parentElement.children = this.parentElement.children.filter(n => n !== this); }
+    matches(selector) {
+      const attribute = selector.match(/^\[data-([\w-]+)(?:="([^"]*)")?\]$/);
+      if (attribute) { const value = this.dataset[attribute[1].replace(/-([a-z])/g, (_, x) => x.toUpperCase())]; return value !== undefined && (attribute[2] === undefined || value === attribute[2]); }
+      return selector.startsWith('.') ? this.classList.contains(selector.slice(1)) : this.tagName.toLowerCase() === selector;
+    }
     closest(selector) { return this.matches(selector) ? this : this.parentElement?.closest(selector) || null; }
     querySelectorAll(selector) { return this.children.flatMap(n => [ ...(n.matches(selector) ? [n] : []), ...n.querySelectorAll(selector) ]); }
     querySelector(selector) { return this.querySelectorAll(selector)[0] || null; }
     contains(target) { return target === this || this.children.some(n => n.contains(target)); }
     addEventListener(type, fn) { this.listeners.set(type, [...(this.listeners.get(type) || []), fn]); }
-    dispatch(type, props = {}) { const e = { type, target: this, button: 0, pointerType: 'touch', pointerId: 1, clientX: 100, clientY: 200, preventDefault() {}, stopPropagation() {}, ...props }; for (const fn of this.listeners.get(type) || []) fn(e); return e; }
+    dispatch(type, props = {}) {
+      const pending = [], e = { type, target: this, button: 0, pointerType: 'touch', pointerId: 1, clientX: 100, clientY: 200,
+        preventDefault() { this.defaultPrevented = true; }, stopPropagation() { this.stopped = true; }, stopImmediatePropagation() { this.stopped = true; }, ...props };
+      for (const fn of this.listeners.get(type) || []) { pending.push(fn(e)); if (e.stopped) break; }
+      e.done = Promise.all(pending); return e;
+    }
     setPointerCapture(id) { this.captured.add(id); }
     hasPointerCapture(id) { return this.captured.has(id); }
     releasePointerCapture(id) { this.captured.delete(id); }
@@ -61,19 +72,35 @@ function atlas() {
   document.querySelectorAll = () => [];
   $('atlas-depth').value = '0'; $('atlas-map').hidden = false;
   $('atlas-options').append(new Element('summary'));
+  for (const tab of ['overview', 'steps', 'connections']) { const button = new Element('button'); button.dataset.recordTab = tab; $('atlas-record-tabs').append(button); }
   const href = 'https://atlas.example/';
+  const location = { href, search: '' }, entries = [{ url: href, state: null }];
+  let entry = 0;
+  const updateLocation = url => { const u = new URL(url); location.href = u.href; location.search = u.search; };
+  const history = {
+    get state() { return entries[entry].state; },
+    pushState(state, _, url) { entries.splice(entry + 1); entries.push({ state, url: String(url) }); entry++; updateLocation(url); },
+    replaceState(state, _, url = location.href) { entries[entry] = { state, url: String(url) }; updateLocation(url); },
+    back() { return this.go(-1); }, forward() { return this.go(1); },
+    go(delta) { const next = entry + delta; if (next < 0 || next >= entries.length) return Promise.resolve(); entry = next; updateLocation(entries[entry].url); return context.window.dispatch('popstate', { state: this.state }).done; }
+  };
+  const detail = id => ({ situation: `Situation for ${id}`, goal: `Goal for ${id}`, steps: ['First action', 'Second action'], constraints: [], success_criteria: [], limitations: [] });
   const context = { document, URL, URLSearchParams, console,
     DOMPoint: class { constructor(x, y) { this.x = x; this.y = y; } matrixTransform(m) { return { x: this.x * m.a + this.y * m.c + m.e, y: this.x * m.b + this.y * m.d + m.f }; } },
-    window: new Element('window'), location: { href, search: '' },
-    history: { state: null, pushState() {}, replaceState() {}, back() {} },
+    window: new Element('window'), location, history, readerMode: reader,
     localStorage: { getItem: () => null, setItem() {} },
     matchMedia: query => ({ matches: query.includes('reduced-motion'), addEventListener() {} }),
     performance: { now: () => 0 }, ResizeObserver: class { observe() {} },
     requestAnimationFrame: fn => { frames.set(++frameId, fn); return frameId; },
     cancelAnimationFrame: id => frames.delete(id),
     setTimeout: fn => { timers.push(fn); return timers.length; }, clearTimeout() {},
-    // Leave the startup request pending: fixture setup below supplies public data.
-    fetch: () => new Promise(() => {}) };
+    // Network bootstrap remains pending; reader requests receive public fixtures.
+    fetch: url => {
+      if (!reader || url.includes('/network?')) return new Promise(() => {});
+      const id = decodeURIComponent(url.split('/').at(-1));
+      if (deferred) return new Promise(resolve => requests.set(id, () => resolve({ ok: true, json: async () => detail(id) })));
+      return Promise.resolve({ ok: true, json: async () => detail(id) });
+    } };
   const filename = process.env.ATLAS_SCRIPT || path.join(__dirname, '../research/methods-explore.js');
   const source = fs.readFileSync(filename, 'utf8');
   const hook = `
@@ -84,9 +111,14 @@ function atlas() {
           { id: 'method-public:v1', kind: 'method', method_id: 'method-public', version: 1, label: 'Public method', domain: 'Public' },
           { id: 'category-public', kind: 'category', label: 'Public' }
         ], edges: [], domains: [], scope: { total_methods: 1, truncated: false } };
+        if (globalThis.readerMode) {
+          graph.nodes = [graph.nodes[0], { id: 'method-linked:v1', kind: 'method', method_id: 'method-linked', version: 1, label: 'Linked public method' }, { id: 'source-public', kind: 'source', label: 'Public source', url: 'https://example.com/source' }];
+          graph.edges = [{ source: 'method-public:v1', target: 'source-public', relation: 'documented_by' }, { source: 'method-linked:v1', target: 'source-public', relation: 'documented_by' }];
+        }
         visible = [...graph.nodes]; edges = [];
         for (const [i, n] of visible.entries()) { index.set(n.id, n); adj.set(n.id, []); points.set(n.id, { x: 100 + i * 150, y: 200, ax: 100 + i * 150, ay: 200, vx: 0, vy: 0 }); }
-        choose = (...args) => globalThis.recordChoice(...args);
+        for (const e of graph.edges) { adj.get(e.source).push({ id: e.target, relation: e.relation }); adj.get(e.target).push({ id: e.source, relation: e.relation }); }
+        if (!globalThis.readerMode) choose = (...args) => globalThis.recordChoice(...args);
         draw();
       },
       prepareDismiss(viewWidth) {
@@ -97,7 +129,9 @@ function atlas() {
         visible = [...graph.nodes]; selected = graph.nodes[0]; trail = [selected.id];
         $('atlas-depth').value = '2'; openInspector(); draw(); highlight(selected.id);
       },
-      state: () => ({ zoom, shift: { ...shift }, pointers: pointers.size, drag: drag && { ...drag }, point: { ...points.get('method-public:v1') }, selectedId: selected?.id || null }),
+      state: () => ({ zoom, shift: { ...shift }, pointers: pointers.size, drag: drag && { ...drag }, point: { ...points.get('method-public:v1') }, selectedId: selected?.id || null, recordTab }),
+      open: (...args) => choose(...args),
+      restore: () => restoreLocation(),
       labels: () => updateLabels(), reset: () => resetMap()
     };
   `;
@@ -107,10 +141,18 @@ function atlas() {
   context.contract.seed();
   function frame() { const callbacks = [...frames.values()]; frames.clear(); for (const fn of callbacks) fn(16); }
   function zero() { for (const key of Object.keys(counters)) counters[key] = 0; }
+  async function settle() { for (let i = 0; i < 8; i++) await Promise.resolve(); frame(); }
+  function click(target, props = {}) {
+    const event = document.dispatch('click', { target, detail: 1, ...props });
+    if (!event.stopped) for (let n = target; n; n = n.parentElement) { if (event.stopped) break; n.onclick?.(event); for (const fn of n.listeners.get('click') || []) fn(event); }
+    return event;
+  }
   frame(); zero();
   return { $, map: $('atlas-map'), node: $('atlas-nodes').children[0],
     state: context.contract.state, labels: context.contract.labels, reset: context.contract.reset,
     prepareDismiss: context.contract.prepareDismiss, activeElement: () => document.activeElement,
+    open: context.contract.open, restore: context.contract.restore, history, click, document, settle,
+    resolveDetail: id => { assert.ok(requests.has(id), `pending detail ${id}`); requests.get(id)(); requests.delete(id); },
     counters, choices, frame, timers, zero };
 }
 
@@ -264,4 +306,101 @@ test('mobile return to all records clears dimming without opening the discovery 
   desktop.$('atlas-inspector-close').onclick();
   assert.equal(desktop.$('atlas-discovery-content').hidden, false, 'desktop keeps expanded discovery');
   assert.equal(desktop.$('atlas-discovery-toggle').getAttribute('aria-expanded'), 'true');
+});
+
+const textOf = node => node.textContent + node.children.map(textOf).join(' ');
+const tabButton = (a, tab) => a.$('atlas-record-tabs').querySelector(`[data-record-tab="${tab}"]`);
+
+test('reader linked-card navigation and Back/Forward preserve each reading position', async () => {
+  const a = atlas({ reader: true });
+  await a.restore();
+  assert.equal(a.activeElement(), a.document.body, 'initial unselected load does not move focus');
+  await a.open('method-public:v1'); await a.settle();
+  a.click(tabButton(a, 'connections'));
+  a.$('atlas-inspector-expand').onclick(); a.$('atlas-inspector').scrollTop = 960;
+  a.$('atlas-inspector').dispatch('scroll');
+  const card = a.$('atlas-record').querySelectorAll('.path-card').find(n => textOf(n).includes('Linked public method'));
+  assert.ok(card, 'shared public source provides a linked method');
+  a.click(card.querySelector('button') || card.children[0]); await a.settle();
+  assert.equal(a.state().selectedId, 'method-linked:v1');
+  assert.equal(a.state().recordTab, 'overview'); assert.equal(a.$('atlas-inspector').scrollTop, 0);
+  a.click(tabButton(a, 'steps')); a.$('atlas-inspector').scrollTop = 220;
+  a.$('atlas-inspector').dispatch('scroll');
+  await a.history.back(); await a.settle();
+  assert.equal(a.state().selectedId, 'method-public:v1'); assert.equal(a.state().recordTab, 'connections');
+  assert.equal(tabButton(a, 'connections').getAttribute('aria-pressed'), 'true');
+  assert.equal(a.$('atlas-inspector').scrollTop, 960);
+  assert.equal(a.$('atlas-inspector').classList.contains('is-tall'), true);
+  await a.history.forward(); await a.settle();
+  assert.equal(a.state().selectedId, 'method-linked:v1'); assert.equal(a.state().recordTab, 'steps');
+  assert.equal(a.$('atlas-inspector').scrollTop, 220);
+  await a.history.back(); await a.history.back(); await a.settle();
+  assert.equal(a.state().selectedId, null);
+  assert.equal(a.activeElement(), a.map, 'return from reader to map restores map focus');
+});
+
+test('reader linked method cards make the whole context a semantic action', async () => {
+  const a = atlas({ reader: true }); await a.open('method-public:v1'); await a.settle();
+  a.click(tabButton(a, 'connections'));
+  const card = a.$('atlas-record').querySelectorAll('.path-card').find(n => textOf(n).includes('Linked public method'));
+  assert.equal(card.tagName, 'BUTTON', 'entire linked card is a semantic action');
+  assert.equal(card.querySelectorAll('button').length, 0, 'no nested buttons');
+  a.click(card.children.at(-1)); await a.settle();
+  assert.equal(a.state().selectedId, 'method-linked:v1');
+});
+
+test('reader next actions expose the next pane at its start', async () => {
+  const a = atlas({ reader: true }); await a.open('method-public:v1'); await a.settle();
+  const overview = a.$('atlas-record').querySelector('[data-record-pane="overview"]');
+  const next = overview.querySelectorAll('.primary').find(n => textOf(n).includes('실행 순서'));
+  assert.ok(next); a.$('atlas-inspector').scrollTop = 700; a.click(next);
+  assert.equal(a.state().recordTab, 'steps'); assert.equal(a.$('atlas-inspector').scrollTop, 0);
+  const steps = a.$('atlas-record').querySelector('[data-record-pane="steps"]');
+  const connections = steps.querySelectorAll('button').find(n => textOf(n).includes('연결'));
+  assert.ok(connections, 'steps offer a clear next action to connections');
+  a.$('atlas-inspector').scrollTop = 500; a.click(connections, { detail: 0 });
+  assert.equal(a.state().recordTab, 'connections'); assert.equal(a.$('atlas-inspector').scrollTop, 0);
+  assert.equal(a.activeElement(), tabButton(a, 'connections'));
+  assert.equal(a.$('atlas-record').querySelectorAll('.reading-route').length, 0, 'tab bar is the single reader navigation');
+});
+
+test('late public detail responses cannot replace a newer or restored reader', async () => {
+  const a = atlas({ reader: true, deferred: true });
+  const first = a.open('method-public:v1');
+  const second = a.open('method-linked:v1');
+  a.resolveDetail('method-linked'); await second;
+  a.resolveDetail('method-public'); await first; await a.settle();
+  assert.equal(a.state().selectedId, 'method-linked:v1');
+  assert.ok(textOf(a.$('atlas-record')).includes('Situation for method-linked'));
+  assert.ok(!textOf(a.$('atlas-record')).includes('Situation for method-public'));
+  await a.history.back(); await a.settle();
+  assert.equal(a.state().selectedId, 'method-public:v1');
+  assert.ok(textOf(a.$('atlas-record')).includes('Situation for method-public'));
+  assert.ok(!textOf(a.$('atlas-record')).includes('Situation for method-linked'));
+  const b = atlas({ reader: true, deferred: true });
+  const initial = b.open('method-public:v1'); b.resolveDetail('method-public'); await initial;
+  const pending = b.open('method-linked:v1');
+  await b.history.back(); await b.settle();
+  b.resolveDetail('method-linked'); await pending; await b.settle();
+  assert.equal(b.state().selectedId, 'method-public:v1');
+  assert.ok(textOf(b.$('atlas-record')).includes('Situation for method-public'));
+  assert.ok(!textOf(b.$('atlas-record')).includes('Situation for method-linked'));
+});
+
+test('captured graph tap consumes only its matching compatibility click', async () => {
+  for (const permitted of ['second-click', 'new-contact', 'keyboard', 'different-pointer', 'different-position']) {
+    const a = atlas({ reader: true });
+    a.map.dispatch('pointerdown', { target: a.node, pointerId: 7 });
+    a.map.dispatch('pointerup', { pointerId: 7 }); await a.settle();
+    assert.equal(a.state().recordTab, 'overview');
+    const button = tabButton(a, 'connections');
+    const matching = { pointerId: 7, clientX: 100, clientY: 200 };
+    if (permitted === 'second-click') {
+      const ghost = a.click(button, matching);
+      assert.equal(ghost.defaultPrevented, true); assert.equal(a.state().recordTab, 'overview');
+    } else if (permitted === 'new-contact') a.document.dispatch('pointerdown', { target: button, pointerId: 8 });
+    const props = permitted === 'keyboard' ? { ...matching, detail: 0 } : permitted === 'different-pointer' ? { ...matching, pointerId: 8 } : permitted === 'different-position' ? { ...matching, clientX: 120 } : matching;
+    a.click(button, props);
+    assert.equal(a.state().recordTab, 'connections', permitted);
+  }
 });
