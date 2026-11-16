@@ -11,7 +11,9 @@
   let width = 1100, height = 760, zoom = 1, shift = { x: 0, y: 0 }, drag = null, suppressClick = false;
   let detailRequest = 0, animation = 0, ticks = 0, trail = [], filterTimer, cameraFrame = 0;
   let cameraTarget = null, phraseResult = null, phraseRequest = 0;
-  let motion = !reduceMotion.matches, showAllLabels = false, lastFocusedNode = null;
+  let motion = !reduceMotion.matches && !matchMedia("(pointer: coarse)").matches, showAllLabels = false, lastFocusedNode = null;
+  let gestureFrame = 0, gestureMatrix = null, labelFrame = 0, labelHover, lastTap = null;
+  const pendingMoves = new Map(), labelMetrics = new Map();
   let recordTab = "overview", searchIndex = -1, searchItems = [], shareTimer;
   const readingKey = "openakashic-atlas-reading-v1";
   let saved = [], recent = [], shelfTab = "saved", storageAvailable = true;
@@ -85,7 +87,7 @@
     const shown = new Set(visible.map(n => n.id)); edges = graph.edges.filter(e => shown.has(e.source) && shown.has(e.target));
     const isInitial = points.size === 0;
     seedPoints(); draw();
-    if (isInitial) { for (let i = 0; i < 150; i++) physics(); normalizeMobile(); positionElements(); }
+    if (isInitial) { for (let i = 0; i < (width <= 720 ? 24 : 150); i++) physics(); normalizeMobile(); positionElements(); }
     if (fit) fitVisible();
     if (isInitial && width > 720) startMotion(45);
     renderMethodList(methods);
@@ -155,7 +157,7 @@
   }
   function stopMotion() { cancelAnimationFrame(animation); animation = 0; ticks = 0; }
   function draw() {
-    $("atlas-edges").replaceChildren(); $("atlas-nodes").replaceChildren(); nodeElements = new Map(); edgeElements = [];
+    $("atlas-edges").replaceChildren(); $("atlas-nodes").replaceChildren(); nodeElements = new Map(); edgeElements = []; labelMetrics.clear();
     for (const e of edges) {
       const line = svg("line", { class: "network-edge" + (e.relation === "categorized_as" ? " category" : ["documented_by", "has_opinion"].includes(e.relation) ? " evidence" : ""), "data-source": e.source, "data-target": e.target });
       const title = svg("title"); title.textContent = relations[e.relation] || "기록 연결"; line.append(title); $("atlas-edges").append(line); edgeElements.push([line, e]);
@@ -166,15 +168,16 @@
       g.style.setProperty("--node-color", color(n)); g.append(svg("circle", { r: r + 13, class: "node-halo" }), svg("circle", { r: 20, class: "network-hit" }), svg("circle", { r, class: "node-core" }));
       const title = svg("title"); title.textContent = `${label(n)} · ${n.label}`; g.append(title);
       const text = svg("text", { x: 0, y: n.kind === "category" ? -21 : 23, "text-anchor": "middle" }); text.textContent = short(n.label, n.kind === "category" ? 20 : 18); g.append(text);
-      g.onclick = e => { if (suppressClick || e.detail > 1) return; choose(n.id, true, e.detail === 0); };
+      // Pointer taps resolve on pointerup: capture intentionally retargets browser clicks.
+      g.onclick = e => { if (e.detail === 0) choose(n.id, true, true); };
       g.ondblclick = e => { e.preventDefault(); if (!suppressClick) { if (selected?.id !== n.id) choose(n.id); setLocal(2); } };
       g.onkeydown = e => { if (["Enter", " "].includes(e.key)) { e.preventDefault(); e.stopPropagation(); choose(n.id, true, true); } };
-      g.onmouseenter = e => { if (drag) return; highlight(n.id); tooltip(n, e); };
-      g.onmousemove = e => { if (!drag) tooltip(n, e); };
-      g.onmouseleave = () => { highlight(selected?.id); $("atlas-tooltip").hidden = true; };
+      g.onpointerenter = e => { if (e.pointerType !== "mouse" || pointers.size) return; highlight(n.id); tooltip(n, e); };
+      g.onpointerleave = e => { if (e.pointerType !== "mouse" || pointers.size) return; highlight(selected?.id); $("atlas-tooltip").hidden = true; };
       g.onfocus = () => { stopMotion(); highlight(n.id); const b = g.getBoundingClientRect(); tooltip(n, { clientX: b.x + b.width / 2, clientY: b.y + b.height / 2 }); };
       g.onblur = () => { highlight(selected?.id); $("atlas-tooltip").hidden = true; };
       $("atlas-nodes").append(g); nodeElements.set(n.id, g);
+      labelMetrics.set(n.id, { text, hit: g.querySelector(".network-hit"), core: g.querySelector(".node-core"), radius: r, width: null, zoom: null, selected: selected?.id === n.id });
     }
     positionElements(); highlight(selected?.id); transform();
   }
@@ -190,35 +193,52 @@
   }
   function screenPoint(p) { return { x: width / 2 + shift.x + (p.x - width / 2) * zoom, y: height / 2 + shift.y + (p.y - height / 2) * zoom }; }
   function worldPoint(p) { return { x: (p.x - width / 2 - shift.x) / zoom + width / 2, y: (p.y - height / 2 - shift.y) / zoom + height / 2 }; }
+  // Placement reads layout only after a gesture/camera transition settles. All
+  // label style writes precede the one-time width reads for each drawn label.
   function updateLabels(hover) {
+    labelHover = hover;
+    if (labelFrame) return;
+    labelFrame = requestAnimationFrame(() => {
+      labelFrame = 0;
+      if (!pointers.size && !cameraFrame) placeLabels(labelHover);
+    });
+  }
+  function placeLabels(hover) {
+    for (const n of visible) {
+      const m = labelMetrics.get(n.id); if (!m) continue;
+      const emphasized = selected?.id === n.id;
+      if (m.selected !== emphasized) { m.width = null; m.selected = emphasized; }
+      if (m.zoom === zoom) continue;
+      m.text.style.fontSize = (n.kind === "category" ? 13 : 12) / zoom + "px";
+      m.text.setAttribute("y", (n.kind === "category" ? -21 : 23) / zoom);
+      m.hit.setAttribute("r", Math.max(17, 18 / zoom));
+      m.core.setAttribute("r", Math.max(m.radius, (n.kind === "category" ? 7 : 3.3) / zoom));
+      m.zoom = zoom;
+    }
+    for (const m of labelMetrics.values()) if (m.width === null) m.width = m.text.getComputedTextLength() * zoom;
     const mapBounds = map.getBoundingClientRect();
-    const obstacles = ["atlas-discovery", "atlas-controls", "atlas-inspector", "atlas-trail", "atlas-help-panel", "atlas-shelf"].map($).filter(n => n && !n.hidden).map(n => {
+    const obstacles = ["atlas-discovery", "atlas-controls", "atlas-inspector", "atlas-trail", "atlas-help-panel", "atlas-shelf", "atlas-options"].map($).filter(n => n && !n.hidden && (n.id !== "atlas-options" || n.open)).map(n => n.id === "atlas-options" ? n.querySelector(".atlas-options-panel") || n : n).map(n => {
       const b = n.getBoundingClientRect(); return { x: b.left - mapBounds.left - 8, y: b.top - mapBounds.top - 8, w: b.width + 16, h: b.height + 16 };
     });
+    const selectedNeighbors = new Set(neighbors(selected?.id).map(n => n.id));
     const occupied = [], ordered = [...visible].sort((a, b) => {
-      const score = n => n.id === (hover || selected?.id) ? 1000 : n.kind === "category" ? 900 : neighbors(selected?.id).some(x => x.id === n.id) ? 800 : visited.has(n.id) ? 500 : neighbors(n.id).length;
+      const score = n => n.id === (hover || selected?.id) ? 1000 : n.kind === "category" ? 900 : selectedNeighbors.has(n.id) ? 800 : visited.has(n.id) ? 500 : neighbors(n.id).length;
       return score(b) - score(a);
     });
     for (const n of ordered) {
       const node = nodeElements.get(n.id), point = points.get(n.id);
       if (!node || !point) continue;
       const p = screenPoint(point);
-      const text = node.querySelector("text"), labelScale = 1;
-      text.style.fontSize = ((n.kind === "category" ? 13 : 12) * labelScale / zoom) + "px";
-      text.setAttribute("y", (n.kind === "category" ? -21 : 23) / zoom);
-      const w = text.getComputedTextLength() * zoom;
+      const w = labelMetrics.get(n.id).width;
       const y = p.y + (n.kind === "category" ? -30 : 14), box = { x: p.x - w / 2 - 5, y, w: w + 10, h: 18 };
       const within = box.x > 8 && box.x + box.w < width - 8 && box.y > 8 && box.y + box.h < height - 8;
       const overlaps = occupied.some(b => box.x < b.x + b.w && box.x + box.w > b.x && box.y < b.y + b.h && box.y + box.h > b.y);
       const important = n.id === selected?.id || n.id === hover;
       const covered = obstacles.some(b => box.x < b.x + b.w && box.x + box.w > b.x && box.y < b.y + b.h && box.y + box.h > b.y);
-      const detailed = zoom > 1.15 || n.kind === "category" || (selected && neighbors(selected.id).some(x => x.id === n.id)) || $("atlas-domain").value || $("atlas-filter").value;
+      const detailed = zoom > 1.15 || n.kind === "category" || (selected && selectedNeighbors.has(n.id)) || $("atlas-domain").value || $("atlas-filter").value;
       const show = within && !covered && (important || ((detailed || showAllLabels) && !overlaps));
       node.classList.toggle("hint-label", show);
       if (show) occupied.push(box);
-      node.querySelector(".network-hit").setAttribute("r", Math.max(17, 18 / zoom));
-      const baseRadius = n.kind === "category" ? 7 + Math.min(2, neighbors(n.id).length / 7) : n.kind === "method" ? 3.4 + Math.min(1.4, neighbors(n.id).length * .15) : 5;
-      node.querySelector(".node-core").setAttribute("r", Math.max(baseRadius, (n.kind === "category" ? 7 : 3.3) / zoom));
     }
   }
 
@@ -248,9 +268,10 @@
     const clear = $("atlas-shelf-clear"); clear.disabled = !ids.length; clear.textContent = shelfTab === "saved" ? "책갈피 모두 비우기" : "최근 연 기록 지우기";
     $("atlas-shelf-toggle").setAttribute("aria-label", `내 책갈피 ${saved.length}개`);
   }
+  function closeOptions(focus = false) { const options = $("atlas-options"); if (options?.open) { options.open = false; if (focus) options.querySelector("summary").focus(); updateLabels(); } }
   function setShelf(open, focus = true) {
     $("atlas-shelf").hidden = !open; $("atlas-shelf-toggle").setAttribute("aria-expanded", String(open));
-    if (open) { closeSearch(); controls(false); setDiscovery(false); $("atlas-help-panel").hidden = true; $("atlas-help").setAttribute("aria-expanded", "false"); if (width <= 720) closeInspector(); renderShelf(); if (focus) $("atlas-shelf-close").focus(); }
+    if (open) { closeOptions(); closeSearch(); controls(false); setDiscovery(false); $("atlas-help-panel").hidden = true; $("atlas-help").setAttribute("aria-expanded", "false"); if (width <= 720) closeInspector(); renderShelf(); if (focus) $("atlas-shelf-close").focus(); }
     updateLabels();
   }
   $("atlas-shelf-toggle").onclick = () => setShelf($("atlas-shelf").hidden);
@@ -274,7 +295,7 @@
     if (relation) card.append(el("small", relations[relation] || "연결된 기록", "path-relation"));
     return card;
   }
-  function openInspector() { setShelf(false, false); closeSearch(); inspector.hidden = false; document.body.classList.add("inspector-open"); controls(false); $("atlas-help-panel").hidden = true; $("atlas-help").setAttribute("aria-expanded", "false"); setDiscovery(false); }
+  function openInspector() { closeOptions(); setShelf(false, false); closeSearch(); inspector.hidden = false; document.body.classList.add("inspector-open"); controls(false); $("atlas-help-panel").hidden = true; $("atlas-help").setAttribute("aria-expanded", "false"); setDiscovery(false); }
   function closeInspector(focus = false) {
     inspector.hidden = true; inspector.classList.remove("is-tall"); document.body.classList.remove("inspector-open");
     $("atlas-inspector-expand").setAttribute("aria-expanded", "false"); $("atlas-inspector-expand").textContent = "크게 읽기";
@@ -288,7 +309,7 @@
     selected = null; ++detailRequest; trail = []; lastFocusedNode = null;
     $("atlas-depth").value = "0";
     closeInspector(); $("atlas-tooltip").hidden = true; renderTrail(); updateBookmark();
-    setDiscovery(true); view(true); writeHistory(true);
+    setDiscovery(width > 720); view(true); writeHistory(true);
     map.focus({ preventScroll: true }); highlight(null);
   }
   async function choose(id, push = true, keyboard = false, restore = false) {
@@ -411,7 +432,7 @@
     for (const p of points.values()) { p.x = (box.left + box.right) / 2 + (p.x - (minX + maxX) / 2) * sx; p.y = (box.top + box.bottom) / 2 + (p.y - (minY + maxY) / 2) * sy; p.ax = p.x; p.ay = p.y; p.vx = p.vy = 0; }
   }
   function setDiscovery(open) {
-    $("atlas-discovery-content").hidden = !open; $("atlas-discovery-toggle").setAttribute("aria-expanded", String(open)); $("atlas-discovery-toggle").setAttribute("aria-label", open ? "탐험 시작점 접기" : "탐험 시작점 펼치기"); $("atlas-discovery").classList.toggle("is-collapsed", !open);
+    $("atlas-discovery-content").hidden = !open; $("atlas-discovery-toggle").setAttribute("aria-expanded", String(open)); $("atlas-discovery-toggle").setAttribute("aria-label", open ? "주제로 둘러보기 접기" : "주제로 둘러보기 펼치기"); $("atlas-discovery").classList.toggle("is-collapsed", !open);
     requestAnimationFrame(() => { const r = $("atlas-discovery").getBoundingClientRect(), m = map.getBoundingClientRect(); document.documentElement.style.setProperty("--trail-top", (r.bottom - m.top + 12) + "px"); updateLabels(); });
   }
   function keepSelectedInView() {
@@ -435,7 +456,7 @@
       zoom = start.zoom + (target.zoom - start.zoom) * ease;
       shift = { x: start.x + (target.x - start.x) * ease, y: start.y + (target.y - start.y) * ease };
       transform();
-      if (p < 1) cameraFrame = requestAnimationFrame(frame); else { cameraFrame = 0; cameraTarget = null; }
+      if (p < 1) cameraFrame = requestAnimationFrame(frame); else { cameraFrame = 0; cameraTarget = null; updateLabels(); }
     };
     cameraFrame = requestAnimationFrame(frame);
   }
@@ -483,7 +504,7 @@
     if (top + b.height > r.height - 8) top = e.clientY - r.top - b.height - 20;
     t.style.left = Math.max(8, Math.min(r.width - b.width - 8, left)) + "px"; t.style.top = Math.max(8, Math.min(r.height - b.height - 8, top)) + "px";
   }
-  function controls(open, focus = true) { if (open) { setShelf(false, false); closeSearch(); } $("atlas-controls").hidden = !open; document.body.classList.toggle("controls-open", open); $("atlas-controls-toggle").setAttribute("aria-expanded", String(open)); if (open) { if (width <= 720) closeInspector(); if (focus) $("atlas-filter").focus(); } }
+  function controls(open, focus = true) { if (open) { closeOptions(); setShelf(false, false); closeSearch(); } $("atlas-controls").hidden = !open; document.body.classList.toggle("controls-open", open); $("atlas-controls-toggle").setAttribute("aria-expanded", String(open)); if (open) { if (width <= 720) closeInspector(); if (focus) $("atlas-filter").focus(); } }
   function renderTrail() {
     const nav = $("atlas-trail"); nav.replaceChildren(); nav.hidden = trail.length === 0;
     if (!trail.length) return;
@@ -504,16 +525,16 @@
     $("atlas-back").disabled = !(history.state?.atlasStep);
   }
   function resetMap(updateHistory = true) {
-    clearTimeout(filterTimer); setShelf(false, false); closeSearch(); selected = null; ++detailRequest; trail = []; $("atlas-tooltip").hidden = true;
+    clearTimeout(filterTimer); closeOptions(); $("atlas-help-panel").hidden = true; $("atlas-help").setAttribute("aria-expanded", "false"); setShelf(false, false); closeSearch(); selected = null; ++detailRequest; trail = []; $("atlas-tooltip").hidden = true;
     for (const id of ["atlas-domain", "atlas-filter", "atlas-quick-search", "atlas-record-filter"]) $(id).value = "";
-    $("atlas-depth").value = "0"; closeInspector(); controls(false); setDiscovery(true); renderTrail(); view(true); if (updateHistory) writeHistory(false);
+    $("atlas-depth").value = "0"; closeInspector(); controls(false); setDiscovery(width > 720); renderTrail(); view(true); if (updateHistory) writeHistory(false);
   }
   function filtersChanged() {
-    selected = null; ++detailRequest; $("atlas-depth").value = "0"; closeInspector(); view(true); writeHistory(false);
+    selected = null; ++detailRequest; $("atlas-depth").value = "0"; closeInspector(); if (width <= 720) setDiscovery(false); view(true); writeHistory(false);
   }
   function setLocal(depth) { if (!selected) return; $("atlas-depth").value = String(depth); view(true); writeHistory(false); }
-  function selectDomain(value) { if (!graph) return; clearTimeout(filterTimer); closeSearch(); if (value) setDiscovery(false); selected = null; ++detailRequest; $("atlas-domain").value = value; $("atlas-filter").value = $("atlas-quick-search").value = ""; $("atlas-record-filter").value = ""; $("atlas-depth").value = "0"; closeInspector(); controls(false); view(true); writeHistory(false); }
-  function reportFilter(value) { if (!graph) return; selected = null; ++detailRequest; $("atlas-record-filter").value = $("atlas-record-filter").value === value ? "" : value; $("atlas-depth").value = "0"; closeInspector(); view(true); writeHistory(false); }
+  function selectDomain(value) { if (!graph) return; clearTimeout(filterTimer); closeSearch(); if (value || width <= 720) setDiscovery(false); selected = null; ++detailRequest; $("atlas-domain").value = value; $("atlas-filter").value = $("atlas-quick-search").value = ""; $("atlas-record-filter").value = ""; $("atlas-depth").value = "0"; closeInspector(); controls(false); view(true); writeHistory(false); }
+  function reportFilter(value) { if (!graph) return; selected = null; ++detailRequest; $("atlas-record-filter").value = $("atlas-record-filter").value === value ? "" : value; $("atlas-depth").value = "0"; closeInspector(); if (width <= 720) setDiscovery(false); view(true); writeHistory(false); }
   function surprise() {
     if (!graph) return;
     let pool = matchingMethods().filter(n => !visited.has(n.id)); if (!pool.length) pool = matchingMethods().filter(n => n.id !== selected?.id);
@@ -529,7 +550,7 @@
   $("atlas-inspector-expand").onclick = () => { const tall = inspector.classList.toggle("is-tall"); $("atlas-inspector-expand").setAttribute("aria-expanded", String(tall)); $("atlas-inspector-expand").textContent = tall ? "지도와 함께" : "크게 읽기"; };
   $("atlas-surprise").onclick = surprise; $("atlas-start").onclick = surprise;
   $("atlas-discovery-toggle").onclick = () => setDiscovery($("atlas-discovery-content").hidden);
-  $("atlas-help").onclick = () => { const open = $("atlas-help-panel").hidden; if (open) setShelf(false, false); $("atlas-help-panel").hidden = !open; $("atlas-help").setAttribute("aria-expanded", String(open)); };
+  $("atlas-help").onclick = e => { closeOptions(e.detail === 0); const open = $("atlas-help-panel").hidden; if (open) setShelf(false, false); $("atlas-help-panel").hidden = !open; $("atlas-help").setAttribute("aria-expanded", String(open)); };
   $("atlas-labels").onclick = () => { showAllLabels = !showAllLabels; $("atlas-labels").setAttribute("aria-pressed", String(showAllLabels)); updateLabels(); };
   $("atlas-motion").setAttribute("aria-pressed", String(motion));
   $("atlas-motion").onclick = () => { motion = !motion; $("atlas-motion").setAttribute("aria-pressed", String(motion)); if (motion) startMotion(); else stopMotion(); };
@@ -556,7 +577,7 @@
       const ids = await phraseIds(value);
       if (request !== phraseRequest || $("atlas-quick-search").value.trim() !== value) return;
       phraseResult = { query: value.toLocaleLowerCase(), ids };
-      selected = null; ++detailRequest; $("atlas-depth").value = "0"; closeInspector(); renderTrail(); view(true); writeHistory(false); showSearch();
+      selected = null; ++detailRequest; $("atlas-depth").value = "0"; closeInspector(); if (width <= 720) setDiscovery(false); renderTrail(); view(true); writeHistory(false); showSearch();
       if (document.activeElement === document.body || result.contains(document.activeElement)) $("atlas-quick-search").focus({ preventScroll: true });
     } catch {
       if (request !== phraseRequest) return;
@@ -582,7 +603,7 @@
     ++phraseRequest; phraseResult = null; $(id === "atlas-filter" ? "atlas-quick-search" : "atlas-filter").value = $(id).value; clearTimeout(filterTimer);
     filterTimer = setTimeout(() => { filtersChanged(); if (id === "atlas-quick-search" && document.activeElement === $(id)) showSearch(); }, 120);
   };
-  $("atlas-quick-search").onfocus = () => { setShelf(false, false); controls(false); showSearch(); };
+  $("atlas-quick-search").onfocus = () => { closeOptions(); setShelf(false, false); controls(false); showSearch(); };
   $("atlas-quick-search").setAttribute("aria-controls", "atlas-search-results");
   $("atlas-quick-search").setAttribute("aria-expanded", "false");
   $("atlas-quick-search").onkeydown = e => {
@@ -596,6 +617,14 @@
     e.preventDefault(); const buttons = [...$("atlas-search-results").querySelectorAll("button")], currentIndex = buttons.indexOf(document.activeElement), next = currentIndex + (e.key === "ArrowDown" ? 1 : -1);
     if (next < 0) $("atlas-quick-search").focus(); else buttons[Math.min(buttons.length - 1, next)]?.focus();
   };
+  const options = $("atlas-options");
+  if (options) {
+    options.addEventListener("toggle", () => {
+      if (options.open) { setShelf(false, false); controls(false); closeSearch(); $("atlas-help-panel").hidden = true; $("atlas-help").setAttribute("aria-expanded", "false"); }
+      updateLabels();
+    });
+    options.addEventListener("click", e => { if (e.target.closest("button")) closeOptions(e.detail === 0); });
+  }
   document.addEventListener("pointerdown", e => { if (!$("atlas-search-results").contains(e.target) && !e.target.closest(".quick-search")) closeSearch(); });
   document.addEventListener("focusin", e => { if (!$("atlas-search-results").contains(e.target) && e.target !== $("atlas-quick-search")) closeSearch(); });
   $("atlas-evidence").onchange = () => view(false);
@@ -603,44 +632,93 @@
   $("atlas-reports-start").onclick = () => reportFilter("reports"); $("atlas-failures-start").onclick = () => reportFilter("failure");
 
   map.addEventListener("wheel", e => { if (!graph || !e.deltaY) return; e.preventDefault(); const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? height : 1; scale(Math.exp(-Math.max(-200, Math.min(200, e.deltaY * unit)) * .0025), coords(e.clientX, e.clientY), true); $("atlas-tooltip").hidden = true; }, { passive: false });
+  // Cache the map's screen matrix for a gesture. Moving its viewport group
+  // cannot change this matrix, so pointer bursts require no layout reads.
+  function gesturePoint(e) {
+    const m = gestureMatrix;
+    return { x: m.a * e.clientX + m.c * e.clientY + m.e, y: m.b * e.clientX + m.d * e.clientY + m.f };
+  }
+  function flushGesture() {
+    cancelAnimationFrame(gestureFrame); gestureFrame = 0;
+    if (!pendingMoves.size) return;
+    const before = [...pointers.values()];
+    for (const [id, p] of pendingMoves) if (pointers.has(id)) pointers.set(id, p);
+    pendingMoves.clear();
+    const after = [...pointers.values()];
+    if (after.length === 2 && before.length === 2) {
+      const mid = { x: (before[0].x + before[1].x) / 2, y: (before[0].y + before[1].y) / 2 };
+      const oldDist = Math.hypot(before[0].x - before[1].x, before[0].y - before[1].y);
+      const newDist = Math.hypot(after[0].x - after[1].x, after[0].y - after[1].y);
+      const next = oldDist > 2 ? Math.max(.16, Math.min(7, zoom * newDist / oldDist)) : zoom, ratio = next / zoom;
+      shift.x = mid.x - width / 2 - (mid.x - width / 2 - shift.x) * ratio + (after[0].x + after[1].x) / 2 - mid.x;
+      shift.y = mid.y - height / 2 - (mid.y - height / 2 - shift.y) * ratio + (after[0].y + after[1].y) / 2 - mid.y;
+      zoom = next; transform(); return;
+    }
+    if (!drag || !pointers.has(drag.pointer)) return;
+    const p = pointers.get(drag.pointer);
+    // Crossing the threshold stays a drag even if a later sample returns home.
+    if (!drag.moved) return;
+    if (drag.node) {
+      const point = points.get(drag.node), world = worldPoint(p);
+      point.x = world.x; point.y = world.y; point.ax = world.x; point.ay = world.y; point.pinned = true; point.vx = point.vy = 0;
+      positionElements();
+    } else { shift.x += p.x - drag.last.x; shift.y += p.y - drag.last.y; transform(); }
+    drag.last = p;
+  }
   map.addEventListener("pointerdown", e => {
-    if (e.button !== 0 || !graph) return; stopCamera(); stopMotion(); const p = coords(e.clientX, e.clientY);
-    pointers.set(e.pointerId, p); suppressClick = false; const node = e.target.closest(".network-node")?.dataset.nodeId;
-    drag = { pointer: e.pointerId, last: p, client: { x: e.clientX, y: e.clientY }, moved: false, node };
-    if (!node) map.setPointerCapture(e.pointerId);
-  });
+    if (e.button !== 0 || !graph || pointers.size >= 2) return;
+    e.preventDefault(); closeOptions(); flushGesture(); stopCamera(); stopMotion();
+    if (!pointers.size) { gestureMatrix = map.getScreenCTM().inverse(); suppressClick = false; }
+    const p = gesturePoint(e); pointers.set(e.pointerId, p);
+    if (pointers.size === 1) drag = { pointer: e.pointerId, last: p, client: { x: e.clientX, y: e.clientY }, moved: false, node: e.target.closest(".network-node")?.dataset.nodeId };
+    else { drag = null; suppressClick = true; lastTap = null; }
+    highlight(selected?.id); $("atlas-tooltip").hidden = true;
+    // One stable target covers node, blank-space and multi-pointer gestures.
+    map.setPointerCapture(e.pointerId);
+  }, { passive: false });
   map.addEventListener("pointermove", e => {
     if (!pointers.has(e.pointerId)) return;
-    const before = [...pointers.values()], p = coords(e.clientX, e.clientY); pointers.set(e.pointerId, p);
-    if (pointers.size === 2) {
-      const after = [...pointers.values()], oldDist = Math.hypot(before[0].x - before[1].x, before[0].y - before[1].y), newDist = Math.hypot(after[0].x - after[1].x, after[0].y - after[1].y), mid = { x: (before[0].x + before[1].x) / 2, y: (before[0].y + before[1].y) / 2 };
-      if (oldDist > 2) scale(newDist / oldDist, mid); shift.x += (after[0].x + after[1].x) / 2 - mid.x; shift.y += (after[0].y + after[1].y) / 2 - mid.y; transform(); suppressClick = true; drag = null; return;
-    }
-    if (!drag || drag.pointer !== e.pointerId) return;
-    if (!drag.moved && Math.hypot(e.clientX - drag.client.x, e.clientY - drag.client.y) < 5) return;
-    drag.moved = true; suppressClick = true;
-    if (!map.hasPointerCapture(e.pointerId)) map.setPointerCapture(e.pointerId);
-    if (drag.node) {
-      const point = points.get(drag.node), world = worldPoint(p); point.x = world.x; point.y = world.y; point.ax = world.x; point.ay = world.y; point.pinned = true; point.vx = point.vy = 0;
-      positionElements(); updateLabels(); startMotion(35);
-    } else { shift.x += p.x - drag.last.x; shift.y += p.y - drag.last.y; transform(); }
-    drag.last = p; $("atlas-tooltip").hidden = true;
-  });
+    e.preventDefault();
+    if (drag?.pointer === e.pointerId && !drag.moved && Math.hypot(e.clientX - drag.client.x, e.clientY - drag.client.y) >= 5) { drag.moved = true; suppressClick = true; lastTap = null; }
+    pendingMoves.set(e.pointerId, gesturePoint(e));
+    if (!gestureFrame) gestureFrame = requestAnimationFrame(flushGesture);
+  }, { passive: false });
   function endPointer(e) {
-    const moved = drag?.moved, node = drag?.node; pointers.delete(e.pointerId); drag = null;
+    if (!pointers.has(e.pointerId)) return;
+    // Up can contain the final coordinate without an intervening move event.
+    if (e.type !== "pointerup") { suppressClick = true; lastTap = null; }
+    if (e.type === "pointerup") {
+      if (drag?.pointer === e.pointerId && !drag.moved && Math.hypot(e.clientX - drag.client.x, e.clientY - drag.client.y) >= 5) { drag.moved = true; suppressClick = true; }
+      pendingMoves.set(e.pointerId, gesturePoint(e));
+    }
+    flushGesture();
+    const node = drag?.pointer === e.pointerId ? drag.node : null;
+    const tap = e.type === "pointerup" && node && !drag.moved && !suppressClick && pointers.size === 1;
+    const movedNode = drag?.moved && node;
+    pointers.delete(e.pointerId); pendingMoves.delete(e.pointerId); drag = null;
     if (map.hasPointerCapture(e.pointerId)) map.releasePointerCapture(e.pointerId);
-    if (moved && node) startMotion(45);
-    setTimeout(() => { suppressClick = false; }, 0);
+    if (pointers.size === 1) {
+      const [pointer, p] = pointers.entries().next().value;
+      drag = { pointer, last: p, moved: true, node: null }; suppressClick = true;
+    } else if (!pointers.size) {
+      gestureMatrix = null; updateLabels();
+      if (e.type === "pointerup" && movedNode && width > 720) startMotion(45);
+    }
+    if (tap) {
+      const double = lastTap?.node === node && performance.now() - lastTap.time < 350;
+      lastTap = { node, time: performance.now() };
+      choose(node, true, false); if (double) setLocal(2);
+    }
   }
   map.addEventListener("pointerup", endPointer); map.addEventListener("pointercancel", endPointer);
-  map.addEventListener("lostpointercapture", e => { pointers.delete(e.pointerId); if (drag?.pointer === e.pointerId) drag = null; });
-  map.addEventListener("dblclick", e => { if (!e.target.closest(".network-node")) scale(1.4, coords(e.clientX, e.clientY)); });
+  map.addEventListener("lostpointercapture", endPointer);
+  map.addEventListener("dblclick", e => { if (!e.target.closest(".network-node") && !(lastTap && performance.now() - lastTap.time < 500)) scale(1.4, coords(e.clientX, e.clientY)); });
   map.addEventListener("keydown", e => {
     const move = e.shiftKey ? 100 : 40, shifts = { ArrowLeft: [move, 0], ArrowRight: [-move, 0], ArrowUp: [0, move], ArrowDown: [0, -move] };
     if (["+", "=", "-", "Home", ...Object.keys(shifts)].includes(e.key)) { e.preventDefault(); if (e.key === "Home") fitVisible(); else if (shifts[e.key]) { stopCamera(); shift.x += shifts[e.key][0]; shift.y += shifts[e.key][1]; transform(); } else scale(e.key === "-" ? .8 : 1.25); }
   });
   document.addEventListener("keydown", e => {
-    if (e.key === "Escape") { if (!$("atlas-search-results").hidden) { closeSearch(); $("atlas-quick-search").blur(); } else if (!$("atlas-shelf").hidden) { setShelf(false); $("atlas-shelf-toggle").focus(); } else if (!$("atlas-help-panel").hidden) { $("atlas-help-panel").hidden = true; $("atlas-help").setAttribute("aria-expanded", "false"); } else if (!$("atlas-controls").hidden) { controls(false); $("atlas-controls-toggle").focus(); } else if (!inspector.hidden) dismissSelection(); }
+    if (e.key === "Escape") { if ($("atlas-options")?.open) { closeOptions(true); } else if (!$("atlas-search-results").hidden) { closeSearch(); $("atlas-quick-search").blur(); } else if (!$("atlas-shelf").hidden) { setShelf(false); $("atlas-shelf-toggle").focus(); } else if (!$("atlas-help-panel").hidden) { $("atlas-help-panel").hidden = true; $("atlas-help").setAttribute("aria-expanded", "false"); ($("atlas-options")?.querySelector("summary") || $("atlas-help")).focus(); } else if (!$("atlas-controls").hidden) { controls(false); $("atlas-controls-toggle").focus(); } else if (!inspector.hidden) dismissSelection(); }
     if (e.key === "/" && !["INPUT", "SELECT", "TEXTAREA"].includes(document.activeElement.tagName)) { e.preventDefault(); $("atlas-quick-search").focus(); }
   });
   async function restoreLocation() {
@@ -664,16 +742,24 @@
     trail = (history.state?.trail || []).filter(id => index.has(id));
     const id = q.get("node"), method = q.get("method"), node = index.get(id) || graph.nodes.find(n => current(n) && n.method_id === method);
     if (node) { if (!trail.length) trail = [node.id]; choose(node.id, false, false, true); requestAnimationFrame(() => { fitVisible(); keepSelectedInView(); }); }
-    else { selected = null; ++detailRequest; closeInspector(); renderTrail(); view(true); }
+    else { selected = null; ++detailRequest; closeInspector(); if (width <= 720) setDiscovery(false); renderTrail(); view(true); }
     if (restoreError) $("atlas-status").textContent = "문장 검색을 복원하지 못했습니다. 검색창에서 다시 찾거나 전체 지도를 열어 주세요.";
   }
   window.addEventListener("popstate", restoreLocation);
-  document.addEventListener("visibilitychange", () => { if (document.hidden) { stopMotion(); stopCamera(); } });
+  function cancelGesture() {
+    const ids = [...pointers.keys()];
+    pointers.clear(); pendingMoves.clear(); drag = null; gestureMatrix = null; suppressClick = true; lastTap = null;
+    cancelAnimationFrame(gestureFrame); gestureFrame = 0;
+    for (const id of ids) if (map.hasPointerCapture(id)) map.releasePointerCapture(id);
+    updateLabels();
+  }
+  window.addEventListener("blur", cancelGesture);
+  document.addEventListener("visibilitychange", () => { if (document.hidden) { cancelGesture(); stopMotion(); stopCamera(); } });
   const observer = new ResizeObserver(() => {
     const r = map.getBoundingClientRect(); if (!r.width || !r.height) return;
-    const previousWidth = width, dx = r.width - width, dy = r.height - height; width = r.width; height = r.height; map.setAttribute("viewBox", `0 0 ${width} ${height}`); stopCamera(); renderStars();
+    const previousWidth = width, dx = r.width - width, dy = r.height - height; if ((dx || dy) && pointers.size) cancelGesture(); width = r.width; height = r.height; map.setAttribute("viewBox", `0 0 ${width} ${height}`); stopCamera(); renderStars();
     for (const p of points.values()) { p.x += dx / 2; p.ax += dx / 2; p.y += dy / 2; p.ay += dy / 2; }
-    if (graph && width <= 720 && previousWidth > 720) normalizeMobile(); positionElements(); if (graph) { if (selected) { transform(); requestAnimationFrame(keepSelectedInView); } else fitVisible(); }
+    if (width <= 720 && previousWidth > 720) { setDiscovery(false); if (graph) normalizeMobile(); } positionElements(); if (graph) { if (selected) { transform(); requestAnimationFrame(keepSelectedInView); } else fitVisible(); }
   }); observer.observe(map);
   (async () => {
     try {
